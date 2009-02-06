@@ -1,0 +1,49 @@
+/*********************************
+ * This file is part of Kotoba.  *
+ * See license.txt for more info.*
+ *********************************/
+
+create database `Kotoba` default character set utf8 default collate utf8_general_ci
+
+create table `users`
+(
+`id` int auto_increment primary key,
+`Key` varchar(32) not null,
+`SID` varchar(32),
+`User Settings` varchar(300),
+UNIQUE `Key Index` (`Key`),
+UNIQUE `SID Index` (`SID`)
+)
+COMMENT = "Users table. Key - Keyword hash."
+ENGINE = MyISAM
+
+create table `boards`
+(
+`id` int auto_increment primary key,
+`Name` varchar(16) not null,
+`Board Settings` varchar(300),
+UNIQUE `Name Index` (`Name`)
+)
+COMMENT = "Boards table."
+ENGINE = MyISAM
+
+create table `threads`
+(
+`id` int primary key,
+`board` int primary key,
+`Thread Settings` varchar(300)
+)
+COMMENT = "Threads table."
+ENGINE = MyISAM
+
+create table `posts`
+(
+`id` int primary key,
+`thread` int primary key,
+`board` int  primary key,
+`Text` TEXT,
+`Post Settings` varchar(1000)
+)
+COMMENT = "Posts table."
+ENGINE = MyISAM
+

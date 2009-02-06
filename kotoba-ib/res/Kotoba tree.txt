@@ -1,0 +1,27 @@
+$KOTOBA_DIR_PATH
+ |_[board name]
+ |  |_[arch]
+ |  |  |_[src]
+ |  |  |  |_image name.ext
+ |  |  |  |_...
+ |  |  |_[thumb]
+ |  |  |  |_image namet.ext
+ |  |  |  |_...
+ |  |  |_thread number.html
+ |  |  |_...
+ |  |_[src]
+ |  |  |_image name.ext
+ |  |  |_...
+ |  |_[thumb]
+ |     |_image namet.ext
+ |     |_...
+ |_...
+ |_globals.php
+ |_index.php
+ |_database_connect.php
+ |_register.php
+ |_login.php
+ |_logout.php
+ |_preview.php
+ |_threads.php
+ |_kotoba.css
