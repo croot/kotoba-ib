@@ -11,27 +11,52 @@
 
 // TODO Переделать логирование ошибок и сбор статистики ошибок.
 
-ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . '/k/sessions/');
-ini_set('session.gc_maxlifetime', 60 * 60 * 24);
+require 'common.php';
+
+ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH  . '/sessions/');
+ini_set('session.gc_maxlifetime', 60 * 60 * 24);    // 1 день.
 ini_set('session.cookie_lifetime', 60 * 60 * 24);
 session_start();
 
-require "common.php";
+$HEAD = 
+'<html>
+<head>
+	<title>Kotoba preview</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="' . KOTOBA_DIR_PATH . '/kotoba.css">
+</head>
+<body>
+';
 
-$KOTOBA_DIR_PATH = KOTOBA_DIR_PATH;
+$FOOTER = 
+'
+</body>
+</html>';
+
+if(KOTOBA_ENABLE_STAT)
+    if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/preview.stat', 'a')) === false)
+        die($HEAD . '<span class="error">Ошибка. Не удалось открыть или создать файл статистики.</span>' . $FOOTER);
+
+require "events.php";
 
 if(isset($_GET['b']))
 {
 	
     if(($BOARD_NAME = CheckFormat('board', $_GET['b'])) === false)
     {
+        if(KOTOBA_ENABLE_STAT)
+            kotoba_stat(ERR_BOARD_BAD_FORMAT);
+
         header('Location: ' . KOTOBA_DIR_PATH . '/');
         exit;
     }
 }
 else
 {
-	header("Location: $KOTOBA_DIR_PATH/");
+    if(KOTOBA_ENABLE_STAT)
+        kotoba_stat(ERR_BOARD_NOT_SPECIFED);
+
+	header('Location: ' . $KOTOBA_DIR_PATH . '/');
 	exit;
 }
 
@@ -40,15 +65,10 @@ $HEAD =
 <head>
 	<title>Kotoba - $BOARD_NAME</title>
 	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
-	<link rel=\"stylesheet\" type=\"text/css\" href=\"$KOTOBA_DIR_PATH/kotoba.css\">
+	<link rel=\"stylesheet\" type=\"text/css\" href=\"" . KOTOBA_DIR_PATH . '/kotoba.css">
 </head>
 <body>
-";
-
-$FOOTER = 
-'
-</body>
-</html>';
+';
 
 $OPPOST_PASS = '';
 
@@ -56,14 +76,16 @@ if(isset($_COOKIE['rempass']))
 {
 	if(($OPPOST_PASS = CheckFormat('pass', $_COOKIE['rempass'])) === false)
 	{
-		kotoba_stat("(0037) Ошибка. Пароль для удаления имеет не верный формат.");
+        if(KOTOBA_ENABLE_STAT)
+            kotoba_stat(ERR_PASS_BAD_FORMAT);
+            
 		die($HEAD . '<span class="error">Ошибка. Пароль для удаления имеет не верный формат.</span>' . $FOOTER);
 	}
 }
 
 $FORM =
-"
-<form action=\"" . KOTOBA_DIR_PATH . "/createthread.php\" method=\"post\" enctype=\"multipart/form-data\">
+'
+<form action="' . KOTOBA_DIR_PATH . "/createthread.php\" method=\"post\" enctype=\"multipart/form-data\">
 <input type=\"hidden\" name=\"MAX_FILE_SIZE\" value=\"1560576\">
 <table align=\"center\" border=\"0\">
 <tr valign=\"top\"><td>Name: </td><td><input type=\"text\" name=\"Message_name\" size=\"30\"></td></tr>
@@ -86,23 +108,27 @@ if(($result = mysql_query('select `Name`, `id` from `boards` order by `Name`')) 
 {
 	if(mysql_num_rows($result) == 0)
 	{
-        header("Location: $KOTOBA_DIR_PATH/");
+        if(KOTOBA_ENABLE_STAT)
+            kotoba_stat(ERR_BOARDS_NOT_EXIST);
+
+        // TODO А точно надо молча выкинуть?
+        header('Location: ' . $KOTOBA_DIR_PATH . '/');
         exit;
 	}
 	else
 	{
-		$row = mysql_fetch_array($result, MYSQL_NUM);
+		$row = mysql_fetch_array($result, MYSQL_ASSOC);
 		
 		while ($row !== false)
 		{
-			if($row[0] == $BOARD_NAME)
+			if($row['Name'] == $BOARD_NAME)
 			{
                 $exist = true;
-				$BOARD_NUM = $row[1];
+				$BOARD_NUM = $row['id'];
 			}
 
-            $BOARDS_LIST .= "/<a href=\"$KOTOBA_DIR_PATH/$row[0]/\">$row[0]</a>/ ";
-			$row = mysql_fetch_array($result, MYSQL_NUM);
+            $BOARDS_LIST .= '/<a href="' . $KOTOBA_DIR_PATH . "/$row[Name]/\">$row[Name]</a>/ ";
+			$row = mysql_fetch_array($result, MYSQL_ASSOC);
 		}
     }
 
@@ -110,33 +136,39 @@ if(($result = mysql_query('select `Name`, `id` from `boards` order by `Name`')) 
 
 	if(!isset($exist))
 	{
-        mysql_free_result($result);
-        header("Location: $KOTOBA_DIR_PATH/");
+        if(KOTOBA_ENABLE_STAT)
+            kotoba_stat(sprintf(ERR_BOARD_NOT_EXIST, $BOARD_NAME));
+
+        header('Location: ' . KOTOBA_DIR_PATH . '/');
         exit;
     }
 }
 else
 {
-	$BOARDS_LIST = '<span class="error">Ошибка при получении списка досок. Причина: ' . mysql_error() . '.</span>';
+    if(KOTOBA_ENABLE_STAT)
+            kotoba_stat(sprintf(ERR_BOARDS_LIST_FALTURE, mysql_error()));
+
+	die($HEADER . '<span class="error">Ошибка. Невозможно получить список досок. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
 }
 
-// Фигня не нужная.
+// Фигня не нужная. Но удалять пока не надо.
 $result = mysql_query("select p.`board`, count(p.`id`) `count` from `posts` p join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board` where (position('ARCHIVE:YES' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null) group by p.`board` having p.`board` = $BOARD_NUM");
 $row = mysql_fetch_array($result, MYSQL_NUM);
 $POST_COUNT = $row[1];
 mysql_free_result($result);
 
-$MENU = $BOARDS_LIST . "<br>\n<h4 align=center>βchan</h4>\n<br><center><b>/$BOARD_NAME/</b></center>\n$POST_COUNT/$KOTOBA_POST_LIMIT<hr>\n";
+$MENU = $BOARDS_LIST . "<br>\n<h4 align=center>βchan</h4>\n<br><center><b>/$BOARD_NAME/</b></center>\n$POST_COUNT/" . KOTOBA_POST_LIMIT . "<hr>\n";
 
-// Получение количества тредов.
-if(($result = mysql_query("select count(*) from `threads` where `board` = $BOARD_NUM and (position('ARCHIVE:YES' in `Thread Settings`) = 0 or `Thread Settings` is null)")) !== false)
+// Получение количества тредов просматриваемой доски.
+if(($result = mysql_query("select count(*) `count` from `threads` where `board` = $BOARD_NUM and (position('ARCHIVE:YES' in `Thread Settings`) = 0 or `Thread Settings` is null)")) !== false)
 {
-	$row = mysql_fetch_array($result, MYSQL_NUM);
-    $threards_count = $row[0];
+	$row = mysql_fetch_array($result, MYSQL_ASSOC);
+    $threards_count = $row['count'];
     mysql_free_result($result);
     
     $pages_count = ($threards_count / 10) + 1;
-    
+
+    // TODO Ололо. А сразу-то нельзя было это проверить?
     if(isset($_GET['p']))
     {
         if(($PAGE = CheckFormat('page', $_GET['p'])) === false)
@@ -349,4 +381,19 @@ else
 }
 
 echo $HEAD . $MENU . $FORM . '<hr>' . $PREVIEW . $PAGES . $FOOTER;
+?>
+<?php
+
+/*
+ * Выводит сообщение $errmsg в файл статистики $stat_file.
+ *
+ */
+function kotoba_stat($errmsg)
+{
+    global $stat_file;
+    fwrite($stat_file, "$errmsg (" . date("Y-m-d H:i:s") . ")\n");
+    //fclose($stat_file);
+    // TODO Когда же будем закрывать файл?
+}
+
 ?>
