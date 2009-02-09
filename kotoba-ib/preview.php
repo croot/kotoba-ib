@@ -37,7 +37,7 @@ if(KOTOBA_ENABLE_STAT)
     if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/preview.stat', 'a')) === false)
         die($HEAD . '<span class="error">Ошибка. Не удалось открыть или создать файл статистики.</span>' . $FOOTER);
 
-require "events.php";
+require 'events.php';
 
 if(!isset($_GET['b']))
 {
@@ -140,7 +140,7 @@ if(($result = mysql_query('select `Name`, `id` from `boards` order by `Name`')) 
 	if($BOARD_NUM == -1)
 	{
         if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_BOARD_NOT_EXIST, $BOARD_NAME));
+            kotoba_stat(sprintf(ERR_BOARD_NOT_FOUND, $BOARD_NAME));
 
         die($HEAD . "<span class=\"error\">Ошибка. Доски с именем $BOARD_NAME не существует.</span>" . $FOOTER);
     }

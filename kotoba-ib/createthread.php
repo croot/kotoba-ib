@@ -65,7 +65,7 @@ if(($result = mysql_query("select `id` from `boards` where `Name` = \"$BOARD_NAM
 	if(mysql_num_rows($result) == 0)
 	{
         if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_BOARD_NOT_EXIST, $BOARD_NAME));
+            kotoba_stat(sprintf(ERR_BOARD_NOT_FOUND, $BOARD_NAME));
 
         mysql_free_result($result);
         die($HEAD . "<span class=\"error\">Ошибка. Доски с именем $BOARD_NAME не существует.</span>" . $FOOTER);
@@ -80,7 +80,7 @@ if(($result = mysql_query("select `id` from `boards` where `Name` = \"$BOARD_NAM
 else
 {
     if(KOTOBA_ENABLE_STAT)
-        kotoba_stat(sprintf(ERR_BOARD_EXIST_FAILED, $BOARD_NAME, mysql_error()));
+        kotoba_stat(sprintf(ERR_BOARD_EXIST_CHECK, $BOARD_NAME, mysql_error()));
         
     die($HEAD . "<span class=\"error\">Ошибка. Не удалось проверить существание доски с именем $BOARD_NAME. Прична: " .  mysql_error() . "</span>" . $FOOTER);
 }
