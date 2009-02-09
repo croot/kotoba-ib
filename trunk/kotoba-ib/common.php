@@ -143,7 +143,7 @@ function CheckFormat($type, $value)
             return $value;
 
         default:
-            return null;
+            return false;
     }
 }
 ?>

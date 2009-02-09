@@ -9,100 +9,108 @@
  * See license.txt for more info.*
  *********************************/
 
-require "common.php";
+require 'common.php';
 
 $HEAD = 
-"<html>
+'<html>
 <head>
-	<title>Error page.</title>
-	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
-	<link rel=\"stylesheet\" type=\"text/css\" href=\"$KOTOBA_DIR_PATH/kotoba.css\">
+	<title>Error page</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="' . KOTOBA_DIR_PATH . '/kotoba.css">
 </head>
 <body>
-";
+';
 
 $FOOTER = 
 '
 </body>
 </html>';
 
-if($KOTOBA_ENABLE_STAT === true)
-{
-    if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . $KOTOBA_DIR_PATH . '/reply.stat', 'a')) === false)
-    {
+if(KOTOBA_ENABLE_STAT === true)
+    if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/reply.stat', 'a')) === false)
         die($HEAD . '<span class="error">Ошибка. Не удалось открыть или создать файл статистики.</span>' . $FOOTER);
-    }
+
+require 'events.php';
+
+if(!isset($_POST['b']))
+{
+	if(KOTOBA_ENABLE_STAT)
+		kotoba_stat(ERR_BOARD_NOT_SPECIFED);
+
+	die($HEAD . '<span class="error">Ошибка. Не задано имя доски.</span>' . $FOOTER);
 }
 
-if(isset($_POST['b']))
+if(!isset($_POST['t']))
 {
-    $BOARD_NAME = $_POST['b'];
-}
-else
-{
-    kotoba_stat("(0001) Ошибка. Для ответа необходимо передать скрипту имя доски.");
-    die($HEAD . '<span class="error">Ошибка. Для ответа необходимо передать скрипту имя доски.</span>' . $FOOTER);
+	if(KOTOBA_ENABLE_STAT)
+		kotoba_stat(ERR_THREAD_NOT_SPECIFED);
+
+	die($HEAD . '<span class="error">Ошибка. Не задан номер треда.</span>' . $FOOTER);
 }
 
-if(isset($_POST['t']))
+if(($BOARD_NAME = CheckFormat('board', $_POST['b'])) === false)
 {
-    $THREAD_NUM = $_POST['t'];
-}
-else
-{
-    kotoba_stat("(0028) Ошибка. Для ответа необходимо передать скрипту номер треда.");
-    die($HEAD . '<span class="error">Ошибка. Для ответа необходимо передать скрипту номер треда.</span>' . $FOOTER);
-}
-
-if(($BOARD_NAME = CheckFormat('board', $BOARD_NAME)) === false)
-{
-    kotoba_stat("(0002) Ошибка. Имя доски имеет не верный формат.");
+    if(KOTOBA_ENABLE_STAT)
+        kotoba_stat(ERR_BOARD_BAD_FORMAT);
+        
     die($HEAD . '<span class="error">Ошибка. Имя доски имеет не верный формат.</span>' . $FOOTER);
 }
 
-if(($THREAD_NUM = CheckFormat('thread', $THREAD_NUM)) === false)
+if(($THREAD_NUM = CheckFormat('thread', $_POST['t'])) === false)
 {
-    kotoba_stat("(0029) Ошибка. Номер треда имеет не верный формат.");
-	die($HEAD . '<span class="error">Ошибка. Номер треда имеет не верный формат.</span>' . $FOOTER);
+    if(KOTOBA_ENABLE_STAT)
+        kotoba_stat(ERR_THREAD_BAD_FORMAT);
+        
+    die($HEAD . '<span class="error">Ошибка. Номер треда имеет не верный формат.</span>' . $FOOTER);
 }
 
 require 'database_connect.php';
 
+// Проверка существования доски с именем $BOARD_NAME.
 if(($result = mysql_query("select `id` from `boards` where `Name` = \"$BOARD_NAME\"")) !== false)
 {
-	if(mysql_num_rows($result) == 0)
+	if(mysql_num_rows($result) != 1)
 	{
-        mysql_free_result($result);
-        kotoba_stat("(0003) Ошибка. Доски с именем $BOARD_NAME не существует.");
+        if(KOTOBA_ENABLE_STAT)
+            kotoba_stat(sprintf(ERR_BOARD_NOT_FOUND, $BOARD_NAME));
+			
+		mysql_free_result($result);
 		die($HEAD . "<span class=\"error\">Ошибка. Доски с именем $BOARD_NAME не существует.</span>" . $FOOTER);
 	}
 	else
 	{
-		$row = mysql_fetch_array($result, MYSQL_NUM);
-		$BOARD_NUM = $row[0];
+		$row = mysql_fetch_array($result, MYSQL_ASSOC);
+		$BOARD_NUM = $row['id'];
         mysql_free_result($result);
     }
 }
 else
 {
-    kotoba_stat("(0004) Ошибка. Не удалось проверить существание доски с именем $BOARD_NAME. Прична: " . mysql_error());
-	die($HEAD . "<span class=\"error\">Ошибка. Не удалось проверить существание доски с именем $BOARD_NAME. Прична: " .  mysql_error() . "</error>" . $FOOTER);
+    if(KOTOBA_ENABLE_STAT)
+        kotoba_stat(sprintf(ERR_BOARD_EXIST_CHECK, $BOARD_NAME, mysql_error()));
+        
+    die($HEAD . "<span class=\"error\">Ошибка. Не удалось проверить существание доски с именем $BOARD_NAME. Прична: " .  mysql_error() . '</span>' . $FOOTER);
 }
 
-if(($result = mysql_query("select `id` from `threads` where `id` = $THREAD_NUM and `board` = $BOARD_NUM")) != false)
+// Проверка существования треда $THREAD_NUM на доске с именем $BOARD_NAME.
+if(($result = mysql_query("select `id` from `threads` where `id` = $THREAD_NUM and `board` = $BOARD_NUM")) !== false)
 {
-	if(mysql_num_rows($result) == 0)
+	if(mysql_num_rows($result) != 1)
 	{
-        mysql_free_result($result);
-        kotoba_stat("(0031) Ошибка. Треда с номером $THREAD_NUM на доске $BOARD_NAME не существует.");
-		die($HEAD . "<span class=\"error\">Ошибка. Треда с номером $THREAD_NUM на доске $BOARD_NAME не существует.</span>" . $FOOTER);
+        if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(sprintf(ERR_THREAD_NOT_FOUND, $THREAD_NUM, $BOARD_NAME));
+			
+		mysql_free_result($result);
+		die($HEAD . "<span class=\"error\">Ошибка. Треда с номером $THREAD_NUM на доске $BOARD_NAME не найдено.</span>" . $FOOTER);
 	}
     
     mysql_free_result($result);
 }
 else
 {
-    kotoba_stat("(0032) Ошибка. Не удалось проверить существание треда с номером $THREAD_NUM на доске $BOARD_NAME. Прична: " .  mysql_error());
+	if(KOTOBA_ENABLE_STAT)
+        kotoba_stat(sprintf(ERR_THREAD_EXIST_CHECK, $THREAD_NUM, $BOARD_NAME, mysql_error()));
+    
 	die($HEAD . "<span class=\"error\">Ошибка. Не удалось проверить существание треда с номером $THREAD_NUM на доске $BOARD_NAME. Прична: " .  mysql_error() . "</error>" . $FOOTER);
 }
 
@@ -141,25 +149,33 @@ switch($_FILES['Message_img']['error'])
 
 if($_FILES['Message_img']['error'] == UPLOAD_ERR_NO_FILE && (!isset($_POST['Message_text']) || $_POST['Message_text'] == ''))
 {
-    kotoba_stat("(0033) Error. Пост должен содержать по крайней мере картинку или текст.");
-    die($HEAD . "<span class=\"error\">Ошибка. Пост должен содержать по крайней мере картинку или текст.</error>" . $FOOTER);
+	if(KOTOBA_ENABLE_STAT)
+        kotoba_stat(ERR_NO_FILE_AND_TEXT);
+		
+    die($HEAD . '<span class="error">Ошибка. Файл не был загружен и пустой текст сообщения.</error>' . $FOOTER);
 }
 
 if(strlen($_POST['Message_text']) > 30000)
 {
-    kotoba_stat("(0013) Ошибка. Текст сообщения слишком длинный.");
+    if(KOTOBA_ENABLE_STAT)
+        kotoba_stat(ERR_TEXT_TOO_LONG);
+        
     die ($HEAD . '<span class="error">Ошибка. Текст сообщения слишком длинный.</span>' . $FOOTER);
 }
 
 if(strlen($_POST['Message_theme']) > 120)
 {
-    kotoba_stat("(0014) Ошибка. Тема слишком длинная.");
+    if(KOTOBA_ENABLE_STAT)
+        kotoba_stat(ERR_THEME_TOO_LONG);
+
     die ($HEAD . '<span class="error">Ошибка. Тема слишком длинная.</span>' . $FOOTER);
 }
 
 if(strlen($_POST['Message_name']) > 64)
 {
-    kotoba_stat("(0015) Ошибка. Имя пользователя слишком длинное.");
+    if(KOTOBA_ENABLE_STAT)
+        kotoba_stat(ERR_NAME_TOO_LONG);
+
     die ($HEAD . '<span class="error">Ошибка. Имя пользователя слишком длинное.</span>' . $FOOTER);
 }
 
@@ -169,33 +185,44 @@ $Message_name = htmlspecialchars($_POST['Message_name'], ENT_QUOTES);
 
 if(strlen($Message_text) > 30000)
 {
-    kotoba_stat("(0013) Ошибка. Текст сообщения слишком длинный.");
+    if(KOTOBA_ENABLE_STAT)
+        kotoba_stat(ERR_TEXT_TOO_LONG);
+        
     die ($HEAD . '<span class="error">Ошибка. Текст сообщения слишком длинный.</span>' . $FOOTER);
 }
 
 if(strlen($$Message_theme) > 120)
 {
-    kotoba_stat("(0014) Ошибка. Тема слишком длинная.");
+    if(KOTOBA_ENABLE_STAT)
+        kotoba_stat(ERR_THEME_TOO_LONG);
+
     die ($HEAD . '<span class="error">Ошибка. Тема слишком длинная.</span>' . $FOOTER);
 }
 
 if(strlen($Message_name) > 64)
 {
-    kotoba_stat("(0015) Ошибка. Имя пользователя слишком длинное.");
+    if(KOTOBA_ENABLE_STAT)
+        kotoba_stat(ERR_NAME_TOO_LONG);
+
     die ($HEAD . '<span class="error">Ошибка. Имя пользователя слишком длинное.</span>' . $FOOTER);
 }
 
+// TODO Сделать так, чтобы ссылки на другие посты можно было добавлять в рамках всей доски, а не только треда, в который отвечают.
 $Message_text = str_replace("\n", "<br>", $Message_text);
 $Message_text = str_replace("\r", "", $Message_text);
-$Message_text = preg_replace('/\&gt\;\&gt\;(\d+)/', "<a href=\"$KOTOBA_DIR_PATH/$BOARD_NAME/$THREAD_NUM/#$1\">&gt;&gt;$1</a>", $Message_text);
+$Message_text = preg_replace('/\&gt\;\&gt\;(\d+)/', '<a href="' . KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/#$1\">&gt;&gt;$1</a>", $Message_text);	// Сслыки на другие посты треда, в который добавляется ответ.
+
 $Message_theme = str_replace("\n", "", $Message_theme);
 $Message_theme = str_replace("\r", "", $Message_theme);
+
 $Message_name = str_replace("\n", "", $Message_name);
 $Message_name = str_replace("\r", "", $Message_name);
 
 if(strlen($Message_text) > 30000)
 {
-    kotoba_stat("(0013) Ошибка. Текст сообщения слишком длинный.");
+    if(KOTOBA_ENABLE_STAT)
+        kotoba_stat(ERR_TEXT_TOO_LONG);
+        
     die ($HEAD . '<span class="error">Ошибка. Текст сообщения слишком длинный.</span>' . $FOOTER);
 }
     
@@ -205,10 +232,12 @@ $with_image = false;
 
 if($_FILES['Message_img']['error'] == UPLOAD_ERR_OK)
 {
-    if($_FILES['Message_img']['size'] < $KOTOBA_MIN_IMGSIZE)
+    if($_FILES['Message_img']['size'] < KOTOBA_MIN_IMGSIZE)
     {
-        kotoba_stat("(0012) Ошибка. Загружаемый файл имеет слишком маленький размер.");
-        die($HEAD . "<span class=\"error\">Ошибка. Загружаемый файл имеет слишком маленький размер.</error>" . $FOOTER);
+        if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(ERR_FILE_TOO_SMALL);
+
+		die($HEAD . '<span class="error">Ошибка. Загружаемый файл имеет слишком маленький размер.</span>' . $FOOTER);
     }
     
     $recived_filename = explode(".", $_FILES['Message_img']['name']);
@@ -224,8 +253,10 @@ if($_FILES['Message_img']['error'] == UPLOAD_ERR_OK)
         case 'jpg':
             break;
         default:
-            kotoba_stat("(0016) Ошибка. Недопустимый тип файла.");
-            die ($HEAD . '<span class="error">Ошибка. Недопустимый тип файла.</span>' . $FOOTER);
+            if(KOTOBA_ENABLE_STAT)
+				kotoba_stat(ERR_WRONG_FILETYPE);
+
+			die ($HEAD . '<span class="error">Ошибка. Недопустимый тип файла.</span>' . $FOOTER);
     }
 
     list($usec, $sec) = explode(" ", microtime());
@@ -234,16 +265,18 @@ if($_FILES['Message_img']['error'] == UPLOAD_ERR_OK)
     $raw_filename = $saved_filename;
     $saved_filename .= ".$recived_ext";
 
-    $IMG_SRC_DIR = $_SERVER['DOCUMENT_ROOT'] . "$KOTOBA_DIR_PATH/$BOARD_NAME/img";
-    $IMG_THU_DIR = $_SERVER['DOCUMENT_ROOT'] . "$KOTOBA_DIR_PATH/$BOARD_NAME/thumb";
+    $IMG_SRC_DIR = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$BOARD_NAME/img";
+    $IMG_THU_DIR = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb";
 
     if (move_uploaded_file($_FILES['Message_img']['tmp_name'], "$IMG_SRC_DIR/$saved_filename") === false)
     {
-        kotoba_stat("(0017) Ошибка. Файл не удалось сохранить.");
-        die ($HEAD . '<span class="error">Ошибка. Файл не удалось сохранить.</span>' . $FOOTER);
+        if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(ERR_FILE_NOT_SAVED);
+
+		die ($HEAD . '<span class="error">Ошибка. Файл не удалось сохранить.</span>' . $FOOTER);
     }
     
-    if($KOTOBA_ALLOW_SAEMIMG === false)
+    if(KOTOBA_ALLOW_SAEMIMG)
     {
         $file_hash = hash_file('md5', "$IMG_SRC_DIR/$saved_filename");
 
@@ -297,10 +330,8 @@ if($_FILES['Message_img']['error'] == UPLOAD_ERR_OK)
     $Message_img_params .= "IMGSH:" . $res[1] . "\n";
     $Message_img_params .= "IMGSIZE:" . $_FILES['Message_img']['size'] . "\n";
     
-    if($KOTOBA_ALLOW_SAEMIMG === false)
-    {
+    if(KOTOBA_ALLOW_SAEMIMG)
         $Message_img_params .= "HASH:" . hash_file('md5', "$IMG_SRC_DIR/$saved_filename") . "\n";
-    }
 
     $with_image = true;
 }
@@ -310,14 +341,10 @@ $Message_settings .= 'NAME:' . $Message_name . "\n";
 $Message_settings .= 'IP:' . $_SERVER['REMOTE_ADDR'] . "\n";
 
 if(isset($_POST['Sage']) && $_POST['Sage'] == 'sage')
-{
     $Message_settings .= "SAGE:Y\n";
-}
 
-if($with_image === true)
-{
+if($with_image)
     $Message_settings .= $Message_img_params;
-}
 
 if(isset($_POST['Message_pass']) && $_POST['Message_pass'] != '')
 {
@@ -492,15 +519,9 @@ exit;
 
 function kotoba_stat($errmsg)
 {
-    global $KOTOBA_ENABLE_STAT;
-    
-    if($KOTOBA_ENABLE_STAT === true)
-    {
-        global $stat_file;
-        
-        fwrite($stat_file, "$errmsg (" . date("Y-m-d H:i:s") . ")\n");
-        //fclose($stat_file);
-    }
+    global $stat_file;
+    fwrite($stat_file, "$errmsg (" . date("Y-m-d H:i:s") . ")\n");
+    //fclose($stat_file);
 }
 
 ?>

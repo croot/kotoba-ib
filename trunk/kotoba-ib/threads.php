@@ -42,7 +42,7 @@ $HEAD =
 	<title>Kotoba - $BOARD_NAME/$THREAD_NUM</title>
 	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
 	<link rel=\"stylesheet\" type=\"text/css\" href=\"/k/kotoba.css\">
-	<script type=\"text/javascript\" src=\"$KOTOBA_DIR_PATH/kusaba.js\"></script>
+	<script type=\"text/javascript\" src=\"" . KOTOBA_DIR_PATH . "/kusaba.js\"></script>
 </head>
 <body>
 ";
@@ -64,8 +64,8 @@ if(isset($_COOKIE['rempass']))
 }
 
 $FORM =
-"
-<form name=\"Reply_form\" action=\"$KOTOBA_DIR_PATH/reply.php\" method=\"post\" enctype=\"multipart/form-data\">
+'
+<form name="Reply_form" action="' . KOTOBA_DIR_PATH . "/reply.php\" method=\"post\" enctype=\"multipart/form-data\">
 <input type=\"hidden\" name=\"MAX_FILE_SIZE\" value=\"1560576\">
 <table align=\"center\" border=\"0\">
 <tr valign=\"top\"><td>Name: </td><td><input type=\"text\" name=\"Message_name\" size=\"30\"></td></tr>
