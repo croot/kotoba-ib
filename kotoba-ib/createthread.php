@@ -293,7 +293,7 @@ require 'thumb_processing.php';
 if(!createThumbnail("$IMG_SRC_DIR/$saved_filename", "$IMG_THU_DIR/$saved_thumbname", $recived_ext, 200, 200))
 {
     if(KOTOBA_ENABLE_STAT)
-        kotoba_stat(ERR_THUMB_CREATION_FAILED);
+        kotoba_stat(ERR_THUMB_CREATION);
     
     unlink("$IMG_SRC_DIR/$saved_filename");
     die ($HEAD . '<span class="error">Ошибка. Не удалось создать уменьшенную копию изображения.</span>' . $FOOTER);
@@ -303,10 +303,10 @@ $thumb_res = getimagesize("$IMG_THU_DIR/$saved_thumbname");
 
 $Message_img_params = "IMGNAME:$raw_filename\n";
 $Message_img_params .= "IMGEXT:$recived_ext\n";
-$Message_img_params .= 'IMGTW:' . $thumb_res[0] . "\n";
-$Message_img_params .= 'IMGTH:' . $thumb_res[1] . "\n";
-$Message_img_params .= 'IMGSW:' . $srcimg_res[0] . "\n";
-$Message_img_params .= 'IMGSH:' . $srcimg_res[1] . "\n";
+$Message_img_params .= "IMGTW:$thumb_res[0]\n";
+$Message_img_params .= "IMGTH:$thumb_res[1]\n";
+$Message_img_params .= "IMGSW:$srcimg_res[0]\n";
+$Message_img_params .= "IMGSH:$srcimg_res[1]\n";
 $Message_img_params .= 'IMGSIZE:' . $_FILES['Message_img']['size'] . "\n";
 
 if(!KOTOBA_ALLOW_SAEMIMG)
@@ -343,11 +343,11 @@ if(mysql_query('start transaction') == false)
 
 // Вычисление числа постов доски (в не утонувших тредах).
 if(($result = mysql_query(
-    'select count(p.`id`) `count` ' .
-    'from `posts` p ' .
-    'join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board` ' .
-    'where p.`board` = ' . $BOARD_NUM . ' and (position(\'ARCHIVE:YES\' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null) ' .
-    'group by p.`board`')) == false)
+    "select count(p.`id`) `count`
+    from `posts` p 
+    join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board` 
+    where p.`board` = $BOARD_NUM and (position(\'ARCHIVE:YES\' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null) 
+    group by p.`board`")) == false)
 {
 	$temp = mysql_error();
 	mysql_query('rollback');
@@ -379,12 +379,12 @@ while($POST_COUNT >= KOTOBA_POST_LIMIT)
 {
     // Выберем тред, ответ в который был наиболее ранним, и количество постов в нем.
 	if(($result = mysql_query(
-        'select p.`thread`, count(p.`id`) `count` ' .
-        'from `posts` p ' .
-        'join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board` ' .
-        'where t.`board` = ' . $BOARD_NUM . ' and (position(\'ARCHIVE:YES\' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null) and (position(\'SAGE:Y\' in p.`Post Settings`) = 0 or p.`Post Settings` is null) ' .
-        'group by p.`thread` ' .
-        'order by max(p.`id`) asc limit 1')) == false)
+        "select p.`thread`, count(p.`id`) `count`
+        from `posts` p 
+        join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board` 
+        where t.`board` = $BOARD_NUM and (position(\'ARCHIVE:YES\' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null) and (position(\'SAGE:Y\' in p.`Post Settings`) = 0 or p.`Post Settings` is null) 
+        group by p.`thread` 
+        order by max(p.`id`) asc limit 1")) == false)
     {
         $temp = mysql_error();
         mysql_query('rollback');
@@ -436,16 +436,6 @@ while($POST_COUNT >= KOTOBA_POST_LIMIT)
         die ($HEAD . "<span class=\"error\">Ошибка. Невозможно пометить тред на архивирование. Причина: Возможно не верный номер доски $BOARD_NUM или треда для архивирования $ARCH_THREAD_NUM.</span>" . $FOOTER);
     }
     
-    /*if(mysql_query("update `boards` set `Post Count` = (`Post Count` - $ARCH_THREAD_POSTCOUNT) where `id` = $BOARD_NUM") === false || mysql_affected_rows() == 0)
-    {
-        $temp = mysql_error();
-        mysql_query('rollback');
-        unlink("$IMG_SRC_DIR/$saved_filename");
-        unlink("$IMG_THU_DIR/$saved_thumbname");
-        kotoba_stat("(0024) Ошибка. Невозможно пересчитать количество постов доски (архивирование). Причина: " . $temp);
-        die ($HEAD . '<span class="error">Ошибка. Невозможно пересчитать количество постов доски (архивирование). Причина: ' . $temp . '.</span>' . $FOOTER);
-    }*/
-
     if(($result = mysql_query(
         'select count(p.`id`) `count` ' .
         'from `posts` p ' .
@@ -500,14 +490,15 @@ $row = mysql_fetch_array($result, MYSQL_NUM);
 $THREAD_NUM = ($row[0]) ? $row[0] : 1;          // Номер оп поста и номер треда одно и тоже.
 mysql_free_result($result);
 
-$Message_settings  = 'THEME:' . $Message_theme . "\n";
-$Message_settings .= 'NAME:' . $Message_name . "\n";
-$Message_settings .= 'IP:' . $_SERVER['REMOTE_ADDR'] . "\n";
+$Message_settings  = "THEME:$Message_theme\n";
+$Message_settings .= "NAME:$Message_name\n";
+$Message_settings .= "IP:$_SERVER[REMOTE_ADDR]\n";
 $Message_settings .= $Message_img_params;
 
 if(isset($OPPOST_PASS))
-	$Message_settings .= 'REMPASS:' . $OPPOST_PASS . "\n";
+	$Message_settings .= "REMPASS:$OPPOST_PASS\n";
 
+// Не будем пока проверять, добавила ли вставка строку в таблицу.
 if(mysql_query(
     'insert into `posts` (`id`, `thread`, `board`, `Time`, `Text`, `Post Settings`) ' .
     " values (@op_post_num, @op_post_num, $BOARD_NUM, '" . date("Y-m-d H:i:s") . "', '$Message_text','$Message_settings')") == false)
@@ -516,7 +507,7 @@ if(mysql_query(
     mysql_query('rollback');
     
     if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_NEW_OPPOSTNUM_CREATE, $temp));
+            kotoba_stat(sprintf(ERR_NEW_OPPOST_CREATE, $temp));
     
     unlink("$IMG_SRC_DIR/$saved_filename");
     unlink("$IMG_THU_DIR/$saved_thumbname");
