@@ -359,15 +359,32 @@ if(($result = mysql_query(
     unlink("$IMG_THU_DIR/$saved_thumbname");
     die ($HEAD . "<span class=\"error\">Ошибка. Невозможно подсчитать количество постов доски $BOARD_NAME. Причина: $temp.</span>" . $FOOTER);
 }
-elseif (mysql_num_rows($result) == 0)
+elseif (mysql_num_rows($result) == 0)   // У вновь созданной доски может и не быть ни постов ни тредов.
 {
-    if(KOTOBA_ENABLE_STAT)
-        kotoba_stat(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, 'Возможно не верное имя доски'));
+    mysql_free_result($result);
+    
+    if(($result = mysql_query("select count(`id`) `count` from `posts` where `board` = $BOARD_NUM")) === false)
+    {
+        $temp = mysql_error();
+        mysql_query('rollback');
 
-	mysql_query('rollback');
-    unlink("$IMG_SRC_DIR/$saved_filename");
-    unlink("$IMG_THU_DIR/$saved_thumbname");
-    die ($HEAD . "<span class=\"error\">Ошибка. Невозможно подсчитать количество постов доски $BOARD_NAME. Причина: Возможно не верное имя доски.</span>" . $FOOTER);
+        if(KOTOBA_ENABLE_STAT)
+            kotoba_stat(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, $temp));
+
+        unlink("$IMG_SRC_DIR/$saved_filename");
+        unlink("$IMG_THU_DIR/$saved_thumbname");
+        die ($HEAD . "<span class=\"error\">Ошибка. Невозможно подсчитать количество постов доски $BOARD_NAME. Причина: $temp.</span>" . $FOOTER);
+    }
+    elseif(mysql_num_rows($result) == 0)
+    {
+        if(KOTOBA_ENABLE_STAT)
+            kotoba_stat(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, 'Возможно не верное имя доски'));
+
+        mysql_query('rollback');
+        unlink("$IMG_SRC_DIR/$saved_filename");
+        unlink("$IMG_THU_DIR/$saved_thumbname");
+        die ($HEAD . "<span class=\"error\">Ошибка. Невозможно подсчитать количество постов доски $BOARD_NAME. Причина: Возможно не верное имя доски.</span>" . $FOOTER);
+    }
 }
 
 $row = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -453,15 +470,32 @@ while($POST_COUNT >= KOTOBA_POST_LIMIT)
         unlink("$IMG_THU_DIR/$saved_thumbname");
         die ($HEAD . "<span class=\"error\">Ошибка. Невозможно подсчитать  количество постов доски $BOARD_NAME. Причина: $temp.</span>" . $FOOTER);
     }
-    elseif (mysql_num_rows($result) == 0)
+    elseif (mysql_num_rows($result) == 0)   // У вновь созданной доски может и не быть ни постов ни тредов.
     {
-        if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, 'Возможно не верное имя доски'));
+        mysql_free_result($result);
 
-        mysql_query('rollback');
-        unlink("$IMG_SRC_DIR/$saved_filename");
-        unlink("$IMG_THU_DIR/$saved_thumbname");
-        die ($HEAD . "<span class=\"error\">Ошибка. Невозможно подсчитать количество постов доски $BOARD_NAME. Причина: Возможно не верное имя доски.</span>" . $FOOTER);
+        if(($result = mysql_query("select count(`id`) `count` from `posts` where `board` = $BOARD_NUM")) === false)
+        {
+            $temp = mysql_error();
+            mysql_query('rollback');
+
+            if(KOTOBA_ENABLE_STAT)
+                kotoba_stat(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, $temp));
+
+            unlink("$IMG_SRC_DIR/$saved_filename");
+            unlink("$IMG_THU_DIR/$saved_thumbname");
+            die ($HEAD . "<span class=\"error\">Ошибка. Невозможно подсчитать количество постов доски $BOARD_NAME. Причина: $temp.</span>" . $FOOTER);
+        }
+        elseif(mysql_num_rows($result) == 0)
+        {
+            if(KOTOBA_ENABLE_STAT)
+                kotoba_stat(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, 'Возможно не верное имя доски'));
+
+            mysql_query('rollback');
+            unlink("$IMG_SRC_DIR/$saved_filename");
+            unlink("$IMG_THU_DIR/$saved_thumbname");
+            die ($HEAD . "<span class=\"error\">Ошибка. Невозможно подсчитать количество постов доски $BOARD_NAME. Причина: Возможно не верное имя доски.</span>" . $FOOTER);
+        }
     }
 
     $row = mysql_fetch_array($result, MYSQL_ASSOC);

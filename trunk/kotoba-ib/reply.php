@@ -385,6 +385,7 @@ if(mysql_query('start transaction') == false)
     die ($HEAD . '<span class="error">Ошибка. Невозможно начать транзакцию. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
 }
 
+// Вычисление числа постов доски (в не утонувших тредах).
 if(($result = mysql_query(
 	"select count(p.`id`) `count`
 	from `posts` p
@@ -402,7 +403,7 @@ if(($result = mysql_query(
     unlink("$IMG_THU_DIR/$saved_thumbname");
     die ($HEAD . "<span class=\"error\">Ошибка. Невозможно подсчитать количество постов доски $BOARD_NAME. Причина: $temp.</span>" . $FOOTER);
 }
-elseif (mysql_num_rows($result) == 0)
+elseif (mysql_num_rows($result) == 0)   // Нельзя ответить в тред которого нет, если доска пуста.
 {
     if(KOTOBA_ENABLE_STAT)
         kotoba_stat(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, 'Возможно не верное имя доски'));
@@ -575,21 +576,6 @@ if(mysql_query(
 
     die ($HEAD . "<span class=\"error\">Ошибка. Не удалось сохранить пост. Причина: $temp.</span>" . $FOOTER);
 }
-
-/*if(mysql_query("update `boards` set `Post Count` = (`Post Count` + 1) where `id` = $BOARD_NUM") == false)
-{
-    $temp = mysql_error();
-    mysql_query('ROLLBACK');
-
-    if($with_image === true)
-    {
-        unlink("$IMG_SRC_DIR/$saved_filename");
-        unlink("$IMG_THU_DIR/$saved_thumbname");
-    }
-
-    kotoba_stat("(0036) Ошибка. Не удалось увеличить число постов доски. Причина: " . mysql_error());
-    die ($HEAD . '<span class="error">Ошибка. Не удалось увеличить число постов доски. Причина: ' . $temp . '.</span>' . $FOOTER);
-}*/
 
 if(mysql_query("update `boards` set `MaxPostNum` = `MaxPostNum` + 1 where `id` = $BOARD_NUM") == false)
 {
