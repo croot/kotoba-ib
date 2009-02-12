@@ -9,12 +9,31 @@
  * See license.txt for more info.*
  *********************************/
 
-ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . '/k/sessions/');
-ini_set('session.gc_maxlifetime', 60 * 60 * 24);
+ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH  . '/sessions/');
+ini_set('session.gc_maxlifetime', 60 * 60 * 24);	// 1 день.
 ini_set('session.cookie_lifetime', 60 * 60 * 24);
 session_start();
 
-require "common.php";
+require 'common.php';
+
+$HEAD = 
+'<html>
+<head>
+	<title>Error page</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="' . KOTOBA_DIR_PATH . '/kotoba.css">
+</head>
+<body>
+';
+
+$FOOTER = 
+'
+</body>
+</html>';
+
+if(KOTOBA_ENABLE_STAT)
+    if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/threads.stat', 'a')) === false)
+        die($HEAD . '<span class="error">Ошибка. Не удалось открыть или создать файл статистики.</span>' . $FOOTER);
 
 if(isset($_GET['b']) && isset($_GET['t']))
 {

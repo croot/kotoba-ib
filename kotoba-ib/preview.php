@@ -9,7 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-// TODO Переделать логирование ошибок и сбор статистики ошибок.
+// TODO Надо подумать, хорошо ли, что длинный код запроса идёт с переносами. Потому что он в таким виде попадает в лог при возникновении ошибки.
 
 require 'common.php';
 
@@ -39,20 +39,22 @@ if(KOTOBA_ENABLE_STAT)
 
 require 'events.php';
 
-if(!isset($_GET['b']))
+if(isset($_GET['b']))
 {
-    if(KOTOBA_ENABLE_STAT)
+    if(($BOARD_NAME = CheckFormat('board', $_GET['b'])) === false)
+	{
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(ERR_BOARD_BAD_FORMAT);
+
+		die($HEAD . '<span class="error">Ошибка. Имя доски имеет не верный формат.</span>' . $FOOTER);
+	}
+}
+else
+{
+	if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_BOARD_NOT_SPECIFED);
 
 	die($HEAD . '<span class="error">Ошибка. Не задано имя доски.</span>' . $FOOTER);
-}
-
-if(($BOARD_NAME = CheckFormat('board', $_GET['b'])) === false)
-{
-	if(KOTOBA_ENABLE_STAT)
-		kotoba_stat(ERR_BOARD_BAD_FORMAT);
-
-	die($HEAD . '<span class="error">Ошибка. Имя доски имеет не верный формат.</span>' . $FOOTER);
 }
 
 if(isset($_GET['p']))
@@ -148,9 +150,9 @@ if(($result = mysql_query('select `Name`, `id` from `boards` order by `Name`')) 
 else
 {
     if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_BOARDS_LIST_FALTURE, mysql_error()));
+            kotoba_stat(sprintf(ERR_BOARDS_LIST, mysql_error()));
 
-	die($HEADER . '<span class="error">Ошибка. Невозможно получить список досок. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
+	die($HEAD . '<span class="error">Ошибка. Невозможно получить список досок. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
 }
 
 // Фигня не нужная. Но удалять пока не надо.
@@ -182,7 +184,7 @@ if(($result = mysql_query(
         if(KOTOBA_ENABLE_STAT)
             kotoba_stat(ERR_PAGE_BAD_RANGE);
 
-		die($HEADER . '<span class="error">Ошибка. Страница находится вне допустимого диапазона.</span>' . $FOOTER);
+		die($HEAD . '<span class="error">Ошибка. Страница находится вне допустимого диапазона.</span>' . $FOOTER);
     }
     
     $threads_range = " limit " . (($PAGE - 1) * 10) . ", 10";
@@ -199,7 +201,7 @@ else
 	if(KOTOBA_ENABLE_STAT)
 		kotoba_stat(sprintf(ERR_THREADS_CALC_FALTURE, mysql_error()));
 
-	die($HEADER . '<span class="error">Ошибка. Невозможно подсчитать количество тредов просматриваемой доски. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
+	die($HEAD . '<span class="error">Ошибка. Невозможно подсчитать количество тредов просматриваемой доски. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
 }
 
 // Получение номеров не утонувших тредов просматривоемой доски в заданном (в зависимости от страницы) диапазоне и отсортированных по убыванию номера последнего поста без сажи.
@@ -207,14 +209,14 @@ if(($threads = mysql_query(
 	"select p.`thread` `id` 
 	from `posts` p join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board`
 	where t.`board` = $BOARD_NUM and (position('ARCHIVE:YES' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null) and (position('SAGE:Y' in p.`Post Settings`) = 0 or p.`Post Settings` is null)
-	group by p.`thread` order by max(p.`id`) desc $threads_range")) !== false)
+	group by p.`thread` order by max(p.`id`) desc $threads_range")) != false)
 {
 	if(mysql_num_rows($threads) > 0)	// На доске может и не быть тредов, как это бывает при создании новой доски.
 	{
 		$PREVIEW = '';
 		$thread_preview_code = '';	// HTML код предпросмотра текущего треда.
 		
-		while (($thread = mysql_fetch_array($threads)) !== false)
+		while (($thread = mysql_fetch_array($threads)) != false)
 		{
 			$PREVIEW_REPLAYS_COUNT = 4;	// Количество ответов в предпросмотре треда.
             $POSTS_COUNT = 0;			// Число постов в треде.
@@ -233,7 +235,7 @@ if(($threads = mysql_query(
 			{
 				if(mysql_num_rows($posts) > 0)
 				{
-                    if(($result = mysql_query("select count(`id`) from `posts` where `thread` = $thread[id] and `board` = $BOARD_NUM")) !== false)
+                    if(($result = mysql_query("select count(`id`) from `posts` where `thread` = $thread[id] and `board` = $BOARD_NUM")) != false)
                     {
                         $row = mysql_fetch_array($result, MYSQL_NUM);
                         $POSTS_COUNT = $row[0];
@@ -243,7 +245,7 @@ if(($threads = mysql_query(
 						if(KOTOBA_ENABLE_STAT)
 							kotoba_stat(sprintf(ERR_THREAD_POSTS_CALC, $thread['id'], mysql_error()));
 
-						die($HEADER . "<span class=\"error\">Ошибка. Невозможно подсчитать количество постов треда $thread[id] для предпросмотра. Причина: " . mysql_error() . '.</span>' . $FOOTER);
+						die($HEAD . "<span class=\"error\">Ошибка. Невозможно подсчитать количество постов треда $thread[id] для предпросмотра. Причина: " . mysql_error() . '.</span>' . $FOOTER);
                     }
 
 					// Код ОП поста.
@@ -335,7 +337,7 @@ if(($threads = mysql_query(
 					if(KOTOBA_ENABLE_STAT)
 						kotoba_stat(sprintf(ERR_THREAD_NO_POSTS, $thread['id']));
 
-					die($HEADER . "<span class=\"error\">Ошибка. В треде $thread[id] нет ни одного поста.</span>" . $FOOTER);
+					die($HEAD . "<span class=\"error\">Ошибка. В треде $thread[id] нет ни одного поста.</span>" . $FOOTER);
                 }
 			
 				mysql_free_result($posts);
@@ -345,7 +347,7 @@ if(($threads = mysql_query(
 				if(KOTOBA_ENABLE_STAT)
 					kotoba_stat(sprintf(ERR_GET_THREAD_POSTS, $thread['id'], $BOARD_NAME, mysql_error()));
 
-				die($HEADER . "<span class=\"error\">Ошибка. Невозможно получить посты для предпросмотра треда $thread[id] доски $BOARD_NAME. Причина: " . mysql_error() . '.</span>' . $FOOTER);
+				die($HEAD . "<span class=\"error\">Ошибка. Невозможно получить посты для предпросмотра треда $thread[id] доски $BOARD_NAME. Причина: " . mysql_error() . '.</span>' . $FOOTER);
 			}
 
 			$PREVIEW .= $thread_preview_code;
@@ -360,7 +362,7 @@ else
 	if(KOTOBA_ENABLE_STAT)
 		kotoba_stat(sprintf(ERR_THREADS_NUMS_FALTURE, mysql_error()));
 
-	die($HEADER . '<span class="error">Ошибка. Невозможно получить номера тредов. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
+	die($HEAD . '<span class="error">Ошибка. Невозможно получить номера тредов. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
 }
 
 echo $HEAD . $MENU . $FORM . '<hr>' . $PREVIEW . $PAGES . $FOOTER;
