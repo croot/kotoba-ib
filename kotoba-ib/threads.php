@@ -235,7 +235,7 @@ if(($posts = mysql_query($query)))
 				$img_filename = $Replay_settings['IMGNAME'] . '.' . $Replay_settings['IMGEXT'];
 
 				$THREAD .= " <span class=\"filesize\">Файл: <a target=\"_blank\" href=\"". KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename\">$img_filename</a> -(<em>$Replay_settings[IMGSIZE] Байт $Replay_settings[IMGSW]x$Replay_settings[IMGSH]</em>)</span> <span class=\"reflink\"><span onclick=\"insert('>>$post[id]');\">#</span> <a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/#$post[id]\">$post[id]</a></span> <span class=\"delbtn\">[<a href=\"" . KOTOBA_DIR_PATH. "/$BOARD_NAME/r$post[id]/\" title=\"Удалить\">×</a>]</span><a name=\"$post[id]\"></a>\n";
-				$THREAD .= "\t<br><a target=\"_blank\" href=\"$KOTOBA_DIR_PATH/$BOARD_NAME/img/$img_filename\"><img src=\"$KOTOBA_DIR_PATH/$BOARD_NAME/thumb/$img_thumb_filename\" class=\"thumb\" width=\"" . $Replay_settings['IMGTW'] . "\" heigth=\"" . $Replay_settings['IMGTH'] . "\"></a>";
+				$THREAD .= "\t<br><a target=\"_blank\" href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename\"><img src=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb/$img_thumb_filename\" class=\"thumb\" width=\"$Replay_settings[IMGTW]\" heigth=\"$Replay_settings[IMGTH]\"></a>";
 				$THREAD .= "<blockquote>\n" . ($post['Text'] == "" ? "<br>" : $post['Text']) . "</blockquote>\n\t</td>\n</tr>\n";
 			}
 			else
