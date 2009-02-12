@@ -10,11 +10,11 @@
  *********************************/
 
 define('KOTOBA_DIR_PATH', '/k');        // Путь от корня документов к директории, где хранится kotoba.php. Например: /test/kotoba_drive
-define('KOTOBA_ALLOW_SAEMIMG', true);   // Разрешить постить одинакоые картинки.
-define('KOTOBA_ENABLE_STAT', true);     // Включить сбор статистики.
+define('KOTOBA_ALLOW_SAEMIMG', false);   // Разрешить постить одинакоые картинки. true or false.
+define('KOTOBA_ENABLE_STAT', true);     // Включить сбор статистики. true or false.
 
-define('KOTOBA_MIN_IMGWIDTH', 64);      // Мнимальная ширина загружаемого изображения.
-define('KOTOBA_MIN_IMGHEIGTH', 64);     // Минимальная высота загружаемого изображения.
+define('KOTOBA_MIN_IMGWIDTH', 32);      // Мнимальная ширина загружаемого изображения.
+define('KOTOBA_MIN_IMGHEIGTH', 32);     // Минимальная высота загружаемого изображения.
 define('KOTOBA_MIN_IMGSIZE', 1000);     // Минимальный размер загружаемого файла.
 
 define('KOTOBA_LONGPOST_LINES', 10);    // Число строк поста, отображаемое в предпросмотре доски.

@@ -17,7 +17,7 @@
 // Как, куда и когда выводить статистику решает скрипт. Что выводить - решает events.php. Если вы ходите изменить
 // выводимый текст в лог статистики, используйте константы в events.php.
 
-require "common.php";
+require 'common.php';
 
 $HEAD = 
 '<html>
@@ -38,7 +38,7 @@ if(KOTOBA_ENABLE_STAT)
     if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/createthread.stat', 'a')) === false)
         die($HEAD . '<span class="error">Ошибка. Не удалось открыть или создать файл статистики.</span>' . $FOOTER);
 
-require "events.php";
+require 'events.php';
 
 // Этап 1. Проверка имени доски, на которой создаётся тред.
 
@@ -72,8 +72,8 @@ if(($result = mysql_query("select `id` from `boards` where `Name` = \"$BOARD_NAM
 	}
     else
     {
-        $row = mysql_fetch_array($result, MYSQL_NUM);
-        $BOARD_NUM = $row[0];
+        $row = mysql_fetch_array($result, MYSQL_ASSOC);
+        $BOARD_NUM = $row['id'];
         mysql_free_result($result);
     }
 }
@@ -82,7 +82,7 @@ else
     if(KOTOBA_ENABLE_STAT)
         kotoba_stat(sprintf(ERR_BOARD_EXIST_CHECK, $BOARD_NAME, mysql_error()));
         
-    die($HEAD . "<span class=\"error\">Ошибка. Не удалось проверить существание доски с именем $BOARD_NAME. Прична: " .  mysql_error() . "</span>" . $FOOTER);
+    die($HEAD . "<span class=\"error\">Ошибка. Не удалось проверить существание доски с именем $BOARD_NAME. Прична: " .  mysql_error() . '</span>' . $FOOTER);
 }
 
 // Этап 2. Обработка данных ОП поста.
@@ -176,7 +176,7 @@ if(strlen($Message_theme) > 120)
     if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_THEME_TOO_LONG);
 
-    die ($HEAD . '<hr>' . '<span class="error">Ошибка. Тема слишком длинная.</span>' . $FOOTER);
+    die ($HEAD . '<span class="error">Ошибка. Тема слишком длинная.</span>' . $FOOTER);
 }
 
 if(strlen($Message_name) > 64)
@@ -184,7 +184,7 @@ if(strlen($Message_name) > 64)
     if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_NAME_TOO_LONG);
 
-    die ($HEAD . '<hr>' . '<span class="error">Ошибка. Имя пользователя слишком длинное.</span>' . $FOOTER);
+    die ($HEAD . '<span class="error">Ошибка. Имя пользователя слишком длинное.</span>' . $FOOTER);
 }
 
 // TODO Сделать, чтобы ссылки на другие посты работали и в опопсте.
@@ -202,7 +202,7 @@ if(strlen($Message_text) > 30000)
     if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_TEXT_TOO_LONG);
         
-    die ($HEAD . '<span class="error">Ошибка. Текст сообщения слишком длинный.</span><br>' . $FOOTER);
+    die ($HEAD . '<span class="error">Ошибка. Текст сообщения слишком длинный.</span>' . $FOOTER);
 }
 
 $Message_text = preg_replace('/(<br>){3,}/', '<br><br>', $Message_text);
@@ -237,7 +237,7 @@ $saved_filename .= ".$recived_ext";
 $IMG_SRC_DIR = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$BOARD_NAME/img";
 $IMG_THU_DIR = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb";
 
-if (move_uploaded_file($_FILES['Message_img']['tmp_name'], "$IMG_SRC_DIR/$saved_filename") === false)
+if (!move_uploaded_file($_FILES['Message_img']['tmp_name'], "$IMG_SRC_DIR/$saved_filename"))
 {
     if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_FILE_NOT_SAVED);
@@ -250,7 +250,7 @@ if(!KOTOBA_ALLOW_SAEMIMG)
     // TODO А если hash_file() верёнт что-то не то?    
     $img_hash = hash_file('md5', "$IMG_SRC_DIR/$saved_filename");
     
-    if(($result = mysql_query("select `id`, `thread` from `posts` where `board` = $BOARD_NUM and LOCATE(\"HASH:$img_hash\",`Post Settings`) <> 0")) !== false)
+    if(($result = mysql_query("select `id`, `thread` from `posts` where `board` = $BOARD_NUM and LOCATE(\"HASH:$img_hash\",`Post Settings`) <> 0")))
     {
         if(mysql_num_rows($result) == 0)
         {
@@ -264,7 +264,7 @@ if(!KOTOBA_ALLOW_SAEMIMG)
             $row = mysql_fetch_array($result, MYSQL_NUM);
             mysql_free_result($result);
             unlink("$IMG_SRC_DIR/$saved_filename");
-            die($HEAD . "<span class=\"error\">Ошибка. Картинка уже была запощена <a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$row[1]/$row[0]/\">тут</a></span>" . $FOOTER);
+            die($HEAD . '<span class="error">Ошибка. Картинка уже была запощена <a href="' . KOTOBA_DIR_PATH . "/$BOARD_NAME/$row[1]/$row[0]/\">тут</a></span>" . $FOOTER);
         }
     }
     else
@@ -273,7 +273,7 @@ if(!KOTOBA_ALLOW_SAEMIMG)
             kotoba_stat(sprintf(ERR_FILE_EXIST_FAILED, $BOARD_NAME, mysql_error()));
         
         unlink("$IMG_SRC_DIR/$saved_filename");
-        die($HEAD . "<span class=\"error\">Ошибка. Не удалось проверить существание картинки на доске с именем $BOARD_NAME. Прична: " .  mysql_error() . "</span>" . $FOOTER);
+        die($HEAD . "<span class=\"error\">Ошибка. Не удалось проверить существание картинки на доске с именем $BOARD_NAME. Прична: " .  mysql_error() . '</span>' . $FOOTER);
     }
 }
 
