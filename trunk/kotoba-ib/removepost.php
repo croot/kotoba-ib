@@ -9,85 +9,123 @@
  * See license.txt for more info.*
  *********************************/
 
-require "common.php";
-
-if(isset($_GET['b']) && isset($_GET['r']))
-{
-	$BOARD_NAME = $_GET['b'];
-	$POST_NUM =   $_GET['r'];
-}
-else
-{
-	if(isset($_POST['b']) && isset($_POST['r']))
-	{
-		$BOARD_NAME = $_POST['b'];
-		$POST_NUM =   $_POST['r'];
-	}
-	else
-	{
-		header("Location: $KOTOBA_DIR_PATH/");
-		exit;
-	}
-}
-
-if(($BOARD_NAME = CheckFormat('board', $BOARD_NAME)) === false)
-{
-    header("Location: $KOTOBA_DIR_PATH/");
-    exit;
-}
-
-if(($POST_NUM = CheckFormat('post', $POST_NUM)) === false)
-{
-    header("Location: $KOTOBA_DIR_PATH/");
-    exit;
-}
+require 'common.php';
 
 $HEAD = 
-"<html>
+'<html>
 <head>
-	<title>Kotoba Remove</title>
-	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
-	<link rel=\"stylesheet\" type=\"text/css\" href=\"/k/kotoba.css\">
+	<title>Error page</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="' . KOTOBA_DIR_PATH . '/kotoba.css">
 </head>
 <body>
-";
+';
 
 $FOOTER = 
 '
 </body>
 </html>';
 
-if($KOTOBA_ENABLE_STAT === true)
-{
-    if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . $KOTOBA_DIR_PATH . '/removepost.stat', 'a')) === false)
-    {
+if(KOTOBA_ENABLE_STAT === true)
+    if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/reply.stat', 'a')) === false)
         die($HEAD . '<span class="error">Ошибка. Не удалось открыть или создать файл статистики.</span>' . $FOOTER);
+
+require 'events.php';
+
+if(!isset($_GET['b']))
+{
+    if(!isset($_POST['b']))
+    {
+        if(KOTOBA_ENABLE_STAT)
+            kotoba_stat(ERR_BOARD_NOT_SPECIFED);
+
+        die($HEAD . '<span class="error">Ошибка. Не задано имя доски.</span>' . $FOOTER);
+    }
+    else
+    {
+        $BOARD_NAME = $_POST['b'];
     }
 }
+else
+{
+    $BOARD_NAME = $_GET['b'];
+}
+
+if(!isset($_GET['r']))
+{
+    if(!isset($_POST['r']))
+    {
+        if(KOTOBA_ENABLE_STAT)
+            kotoba_stat(ERR_POST_NOT_SPECIFED);
+
+        die($HEAD . '<span class="error">Ошибка. Не задан номер поста.</span>' . $FOOTER);
+    }
+    else
+    {
+        $POST_NUM =   $_POST['r'];
+    }
+}
+else
+{
+    $POST_NUM =   $_GET['r'];
+}
+
+if(($BOARD_NAME = CheckFormat('board', $BOARD_NAME)) === false)
+{
+    if(KOTOBA_ENABLE_STAT)
+        kotoba_stat(ERR_BOARD_BAD_FORMAT);
+        
+    die($HEAD . '<span class="error">Ошибка. Имя доски имеет не верный формат.</span>' . $FOOTER);
+}
+
+if(($POST_NUM = CheckFormat('post', $POST_NUM)) === false)
+{
+    if(KOTOBA_ENABLE_STAT)
+        kotoba_stat(ERR_POST_BAD_FORMAT);
+        
+    die($HEAD . '<span class="error">Ошибка. Номер поста имеет не верный формат.</span>' . $FOOTER);
+}
+
+
+$HEAD = 
+'<html>
+<head>
+	<title>Kotoba Remove</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="' . KOTOBA_DIR_PATH . '/kotoba.css">
+</head>
+<body>
+';
 
 require 'database_connect.php';
 
+// Проверка существования доски с именем $BOARD_NAME.
 if(($result = mysql_query("select `id` from `boards` where `Name` = \"$BOARD_NAME\"")) !== false)
 {
-	if(mysql_num_rows($result) == 0)
+	if(mysql_num_rows($result) != 1)
 	{
-        mysql_free_result($result);
-        kotoba_stat("(0003) Ошибка. Доски с именем $BOARD_NAME не существует.");
+        if(KOTOBA_ENABLE_STAT)
+            kotoba_stat(sprintf(ERR_BOARD_NOT_FOUND, $BOARD_NAME));
+			
+		mysql_free_result($result);
 		die($HEAD . "<span class=\"error\">Ошибка. Доски с именем $BOARD_NAME не существует.</span>" . $FOOTER);
 	}
 	else
 	{
-		$row = mysql_fetch_array($result, MYSQL_NUM);
-		$BOARD_NUM = $row[0];
+		$row = mysql_fetch_array($result, MYSQL_ASSOC);
+		$BOARD_NUM = $row['id'];
         mysql_free_result($result);
     }
 }
 else
 {
-    kotoba_stat("(0004) Ошибка. Не удалось проверить существание доски с именем $BOARD_NAME. Прична: " . mysql_error());
-	die($HEAD . "<span class=\"error\">Ошибка. Не удалось проверить существание доски с именем $BOARD_NAME. Прична: " .  mysql_error() . "</error>" . $FOOTER);
+    if(KOTOBA_ENABLE_STAT)
+        kotoba_stat(sprintf(ERR_BOARD_EXIST_CHECK, $BOARD_NAME, mysql_error()));
+        
+    die($HEAD . "<span class=\"error\">Ошибка. Не удалось проверить существание доски с именем $BOARD_NAME. Прична: " .  mysql_error() . '</span>' . $FOOTER);
 }
 
+//
 if(($result = mysql_query("select `thread` from `posts` where `board` = $BOARD_NUM and `id` = $POST_NUM")) !== false)
 {
 	if(mysql_num_rows($result) == 0)
@@ -200,15 +238,9 @@ else
 
 function kotoba_stat($errmsg)
 {
-    global $KOTOBA_ENABLE_STAT;
-    
-    if($KOTOBA_ENABLE_STAT === true)
-    {
-        global $stat_file;
-        
-        fwrite($stat_file, "$errmsg (" . date("Y-m-d H:i:s") . ")\n");
-        fclose($stat_file);
-    }
+    global $stat_file;
+    fwrite($stat_file, "$errmsg (" . date("Y-m-d H:i:s") . ")\n");
+    //fclose($stat_file);
 }
 
 ?>
