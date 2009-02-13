@@ -62,8 +62,8 @@ if(isset($_SESSION['isLoggedIn']))  // Только для зарегистри�
 			else
 			{
 				mkdir($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$boardname_code/arch/", '0777', true);
-				mkdir($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$boardname_code/thumb/", '0777', true);
 				mkdir($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$boardname_code/img/", '0777', true);
+				mkdir($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$boardname_code/thumb/", '0777', true);
 				$temp = "<p>Доска $boardname_code успешно добавлена.</p>";
 			}
 		}
