@@ -239,9 +239,16 @@ if($_FILES['Message_img']['error'] == UPLOAD_ERR_OK)
 
 		die($HEAD . '<span class="error">Ошибка. Загружаемый файл имеет слишком маленький размер.</span>' . $FOOTER);
     }
-    
-    $recived_filename = explode(".", $_FILES['Message_img']['name']);
-    $recived_ext = strtolower($recived_filename[1]);
+
+	if(($dot_pos = strrpos($_FILES['Message_img']['name'], '.')) === false)
+	{
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(ERR_WRONG_FILETYPE);
+
+		die ($HEAD . '<span class="error">Ошибка. Недопустимый тип файла.</span>' . $FOOTER);
+    }
+	
+    $recived_ext = strtolower(substr($_FILES['Message_img']['name'], $dot_pos + 1));
 
     switch($recived_ext)
     {
