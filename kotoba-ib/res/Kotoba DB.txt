@@ -34,20 +34,21 @@ ENGINE = InnoDB
 
 create table `threads`
 (
-`id` int primary key,
-`board` int primary key,
-`Thread Settings` varchar(300)
+`id` int not null,
+`board` int not null,
+`Thread Settings` varchar(300),
+primary key (`id`, `board`)
 )
 ENGINE = InnoDB
 
-create table `posts`
+create table `posts2`
 (
-`id` int primary key,
-`thread` int primary key,
-`board` int  primary key,
+`id` int not null,
+`thread` int not null,
+`board` int  not null,
 `Time` datetime,
 `Text` text,
-`Post Settings` varchar(1000)
+`Post Settings` varchar(1000),
+primary key (`id`, `thread`, `board`)
 )
 ENGINE = InnoDB
-
