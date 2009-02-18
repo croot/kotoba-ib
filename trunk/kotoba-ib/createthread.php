@@ -189,8 +189,39 @@ if(strlen($Message_name) > 64)
 }
 
 // TODO Сделать, чтобы ссылки на другие посты работали и в опопсте.
+$Message_text = str_replace("\r\n", "<br>", $Message_text);
 $Message_text = str_replace("\n", '<br>', $Message_text);
 $Message_text = str_replace("\r", '', $Message_text);
+
+$Message_text = preg_replace('/\&gt\;\&gt\;(\d+)/', '<a href="' . KOTOBA_DIR_PATH . "/$BOARD_NAME/#$1\">&gt;&gt;$1</a>", $Message_text);
+$Message_text = preg_replace('/(?<=\s|<br>|^)\&gt\;\&gt\;\/(\w+?)\/(\d+)(?=\s|<br>|$)/', '<a href="' . KOTOBA_DIR_PATH . '/$1#$2">\&gt\;\&gt\;/$1/$2</a>', $Message_text);
+
+$Message_text = preg_replace('/(?<=\s|<br>|^)(http:\/\/[^\/?#]*?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
+$Message_text = preg_replace('/(?<=\s|<br>|^)(https:\/\/[^\/?#]*?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
+$Message_text = preg_replace('/(?<=\s|<br>|^)(ftp:\/\/[^\/?#]*?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
+$Message_text = preg_replace('/(?<=\s|<br>|^)(irc:\/\/[^\/?#]*?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
+$Message_text = preg_replace('/(?<=\s|<br>|^)(mailto:(?:\/\/[^\/?#]*?)?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
+$Message_text = preg_replace('/(?<=\s|<br>|^)google:\/\/([^?#]*?)\/(?=\s|<br>|$)/', '<a href="http://www.google.ru/search?q=$1">Google: $1</a>', $Message_text);
+$Message_text = preg_replace('/(?<=\s|<br>|^)wiki:\/\/([^?#]*?)\/(?=\s|<br>|$)/', '<a href="http://en.wikipedia.org/wiki/$1">Wiki: $1</a>', $Message_text);
+
+$Message_text = preg_replace('/\*\s(.*?)<br>/', '<li>$1</li>', $Message_text);
+$Message_text = preg_replace('/(?<!<\/li>)<li>/', '<ul><li>', $Message_text);
+$Message_text = preg_replace('/<\/li>(?!<li>)/', '</li></ul>', $Message_text);
+
+$Message_text = preg_replace('/\d+\.\s+(.*?)<br>/', '<li>$1</li>', $Message_text);
+$Message_text = preg_replace('/(?<!<\/li>|<ul>)<li>/', '<ol><li>', $Message_text);
+$Message_text = preg_replace('/<\/li>(?!<li>|<\/ul>)/', '</li></ol>', $Message_text);
+
+$Message_text = preg_replace('/<\/li><ol>/', '<\/li>', $Message_text);
+$Message_text = preg_replace('/<\/ol><li>/', '<li>', $Message_text);
+$Message_text = preg_replace('/\*\*(.+?)\*\*/', '<b>$1</b>', $Message_text);
+$Message_text = preg_replace('/__(.+?)__/', '<b>$1</b>', $Message_text);
+$Message_text = preg_replace('/\*(.+?)\*/', '<i>$1</i>', $Message_text);
+$Message_text = preg_replace('/_(.+?)_/', '<i>$1</i>', $Message_text);
+$Message_text = preg_replace('/`(.+?)`/', '<tt>$1</tt>', $Message_text);
+$Message_text = preg_replace('/%%(.+?)%%/', '<span class="spoiler">$1</span>', $Message_text);
+$Message_text = preg_replace('/-(.+?)-/', '<s>$1</s>', $Message_text);
+$Message_text = preg_replace('/#([^<>]+?)#/', '<u>$1</u>', $Message_text);
 
 $Message_theme = str_replace("\n", '', $Message_theme);
 $Message_theme = str_replace("\r", '', $Message_theme);
