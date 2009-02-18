@@ -214,10 +214,17 @@ $Message_text = str_replace("\r", "", $Message_text);
 // "Вакаба марк"
 // ВАЖЕН ПОРЯДОК СТРОК!
 $Message_text = preg_replace('/\&gt\;\&gt\;(\d+)/', '<a href="' . KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/#$1\">&gt;&gt;$1</a>", $Message_text);	// Сслыки на другие посты треда, в который добавляется ответ.
+
 $Message_text = preg_replace('/\*\s(.*?)<br>/', '<li>$1</li>', $Message_text);
-$Message_text = preg_replace('/((?:<li>.*?<\/li>\s*)+)/', '<ul>$1</ul>', $Message_text);
-/*$Message_text = preg_replace('/\d+\.\s+(.*?)<br>/', '<li>$1</li>', $Message_text);
-$Message_text = preg_replace('/((?:<li>.*?<\/li>\s*)+)/', '<ol>$1</ol>', $Message_text);*/
+$Message_text = preg_replace('/(?<!<\/li>)<li>/', '<ul><li>', $Message_text);
+$Message_text = preg_replace('/<\/li>(?!<li>)/', '</li></ul>', $Message_text);
+
+$Message_text = preg_replace('/\d+\.\s+(.*?)<br>/', '<li>$1</li>', $Message_text);
+$Message_text = preg_replace('/(?<!<\/li>|<ul>)<li>/', '<ol><li>', $Message_text);
+$Message_text = preg_replace('/<\/li>(?!<li>|<\/ul>)/', '</li></ol>', $Message_text);
+
+$Message_text = preg_replace('/<\/li><ol>/', '<\/li>', $Message_text);
+$Message_text = preg_replace('/<\/ol><li>/', '<li>', $Message_text);
 $Message_text = preg_replace('/\*\*(.+?)\*\*/', '<b>$1</b>', $Message_text);
 $Message_text = preg_replace('/__(.+?)__/', '<b>$1</b>', $Message_text);
 $Message_text = preg_replace('/\*(.+?)\*/', '<i>$1</i>', $Message_text);
@@ -441,6 +448,7 @@ $POST_COUNT = $row['count'];
 mysql_free_result($result);
 
 // Топим треды.
+// TODO Косяк с тредами, в которых постов больше чем лимит постов на доске.
 while($POST_COUNT >= KOTOBA_POST_LIMIT)
 {
 	// Выберем тред, ответ в который был наиболее ранним, и количество постов в нем.
