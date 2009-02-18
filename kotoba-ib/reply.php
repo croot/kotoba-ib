@@ -179,6 +179,9 @@ if(strlen($_POST['Message_name']) > 64)
     die ($HEAD . '<span class="error">Ошибка. Имя пользователя слишком длинное.</span>' . $FOOTER);
 }
 
+//
+
+// TODO Может быть лучше юзать htmlentities
 $Message_text = htmlspecialchars($_POST['Message_text'], ENT_QUOTES);
 $Message_theme = htmlspecialchars($_POST['Message_theme'], ENT_QUOTES);
 $Message_name = htmlspecialchars($_POST['Message_name'], ENT_QUOTES);
@@ -208,12 +211,22 @@ if(strlen($Message_name) > 64)
 }
 
 // TODO Сделать так, чтобы ссылки на другие посты можно было добавлять в рамках всей доски, а не только треда, в который отвечают.
+$Message_text = str_replace("\r\n", "<br>", $Message_text);
 $Message_text = str_replace("\n", "<br>", $Message_text);
 $Message_text = str_replace("\r", "", $Message_text);
 
 // "Вакаба марк"
 // ВАЖЕН ПОРЯДОК СТРОК!
 $Message_text = preg_replace('/\&gt\;\&gt\;(\d+)/', '<a href="' . KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/#$1\">&gt;&gt;$1</a>", $Message_text);	// Сслыки на другие посты треда, в который добавляется ответ.
+$Message_text = preg_replace('/(?<=\s|<br>|^)\&gt\;\&gt\;\/(\w+?)\/(\d+)(?=\s|<br>|$)/', '<a href="' . KOTOBA_DIR_PATH . '/$1#$2">\&gt\;\&gt\;/$1/$2</a>', $Message_text);
+
+$Message_text = preg_replace('/(?<=\s|<br>|^)(http:\/\/[^\/?#]*?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
+$Message_text = preg_replace('/(?<=\s|<br>|^)(https:\/\/[^\/?#]*?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
+$Message_text = preg_replace('/(?<=\s|<br>|^)(ftp:\/\/[^\/?#]*?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
+$Message_text = preg_replace('/(?<=\s|<br>|^)(irc:\/\/[^\/?#]*?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
+$Message_text = preg_replace('/(?<=\s|<br>|^)(mailto:(?:\/\/[^\/?#]*?)?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
+$Message_text = preg_replace('/(?<=\s|<br>|^)google:\/\/([^?#]*?)\/(?=\s|<br>|$)/', '<a href="http://www.google.ru/search?q=$1">Google: $1</a>', $Message_text);
+$Message_text = preg_replace('/(?<=\s|<br>|^)wiki:\/\/([^?#]*?)\/(?=\s|<br>|$)/', '<a href="http://en.wikipedia.org/wiki/$1">Wiki: $1</a>', $Message_text);
 
 $Message_text = preg_replace('/\*\s(.*?)<br>/', '<li>$1</li>', $Message_text);
 $Message_text = preg_replace('/(?<!<\/li>)<li>/', '<ul><li>', $Message_text);
@@ -232,7 +245,7 @@ $Message_text = preg_replace('/_(.+?)_/', '<i>$1</i>', $Message_text);
 $Message_text = preg_replace('/`(.+?)`/', '<tt>$1</tt>', $Message_text);
 $Message_text = preg_replace('/%%(.+?)%%/', '<span class="spoiler">$1</span>', $Message_text);
 $Message_text = preg_replace('/-(.+?)-/', '<s>$1</s>', $Message_text);
-$Message_text = preg_replace('/#(.+?)#/', '<u>$1</u>', $Message_text);
+$Message_text = preg_replace('/#([^<>]+?)#/', '<u>$1</u>', $Message_text);
 
 $Message_theme = str_replace("\n", "", $Message_theme);
 $Message_theme = str_replace("\r", "", $Message_theme);
