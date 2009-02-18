@@ -159,6 +159,7 @@ if(strlen($_POST['Message_name']) > 64)
     die ($HEAD . '<span class="error">Ошибка. Имя пользователя слишком длинное.</span>' . $FOOTER);
 }
 
+// TODO Может быть лучше юзать htmlentities
 $Message_text = htmlspecialchars($_POST['Message_text'], ENT_QUOTES);
 $Message_theme = htmlspecialchars($_POST['Message_theme'], ENT_QUOTES);
 $Message_name = htmlspecialchars($_POST['Message_name'], ENT_QUOTES);

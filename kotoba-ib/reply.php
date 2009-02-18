@@ -210,7 +210,22 @@ if(strlen($Message_name) > 64)
 // TODO Сделать так, чтобы ссылки на другие посты можно было добавлять в рамках всей доски, а не только треда, в который отвечают.
 $Message_text = str_replace("\n", "<br>", $Message_text);
 $Message_text = str_replace("\r", "", $Message_text);
+
+// "Вакаба марк"
+// ВАЖЕН ПОРЯДОК СТРОК!
 $Message_text = preg_replace('/\&gt\;\&gt\;(\d+)/', '<a href="' . KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/#$1\">&gt;&gt;$1</a>", $Message_text);	// Сслыки на другие посты треда, в который добавляется ответ.
+$Message_text = preg_replace('/\*\s(.*?)<br>/', '<li>$1</li>', $Message_text);
+$Message_text = preg_replace('/((?:<li>.*?<\/li>\s*)+)/', '<ul>$1</ul>', $Message_text);
+/*$Message_text = preg_replace('/\d+\.\s+(.*?)<br>/', '<li>$1</li>', $Message_text);
+$Message_text = preg_replace('/((?:<li>.*?<\/li>\s*)+)/', '<ol>$1</ol>', $Message_text);*/
+$Message_text = preg_replace('/\*\*(.+?)\*\*/', '<b>$1</b>', $Message_text);
+$Message_text = preg_replace('/__(.+?)__/', '<b>$1</b>', $Message_text);
+$Message_text = preg_replace('/\*(.+?)\*/', '<i>$1</i>', $Message_text);
+$Message_text = preg_replace('/_(.+?)_/', '<i>$1</i>', $Message_text);
+$Message_text = preg_replace('/`(.+?)`/', '<tt>$1</tt>', $Message_text);
+$Message_text = preg_replace('/%%(.+?)%%/', '<span class="spoiler">$1</span>', $Message_text);
+$Message_text = preg_replace('/-(.+?)-/', '<s>$1</s>', $Message_text);
+$Message_text = preg_replace('/#(.+?)#/', '<u>$1</u>', $Message_text);
 
 $Message_theme = str_replace("\n", "", $Message_theme);
 $Message_theme = str_replace("\r", "", $Message_theme);
@@ -433,7 +448,7 @@ while($POST_COUNT >= KOTOBA_POST_LIMIT)
         "select p.`thread`, count(p.`id`) `count`
         from `posts` p 
         join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board` 
-        where t.`board` = $BOARD_NUM and (position(\'ARCHIVE:YES\' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null) and (position(\'SAGE:Y\' in p.`Post Settings`) = 0 or p.`Post Settings` is null) 
+        where t.`board` = $BOARD_NUM and (position('ARCHIVE:YES' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null) and (position('SAGE:Y' in p.`Post Settings`) = 0 or p.`Post Settings` is null) 
         group by p.`thread` 
         order by max(p.`id`) asc limit 1")) == false)
     {
