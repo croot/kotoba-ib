@@ -218,7 +218,7 @@ $Message_text = str_replace("\r", "", $Message_text);
 // "Вакаба марк"
 // ВАЖЕН ПОРЯДОК СТРОК!
 $Message_text = preg_replace('/\&gt\;\&gt\;(\d+)/', '<a href="' . KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/#$1\">&gt;&gt;$1</a>", $Message_text);	// Сслыки на другие посты треда, в который добавляется ответ.
-$Message_text = preg_replace('/(?<=\s|<br>|^)\&gt\;\&gt\;\/(\w+?)\/(\d+)(?=\s|<br>|$)/', '<a href="' . KOTOBA_DIR_PATH . '/$1#$2">\&gt\;\&gt\;/$1/$2</a>', $Message_text);
+$Message_text = preg_replace('/(?<=\s|<br>|^)\&gt\;\&gt\;\&gt\;\/(\w+?)\/(\d+)(?=\s|<br>|$)/', '<a href="' . KOTOBA_DIR_PATH . '/$1#$2">\&gt\;\&gt\;\&gt\;/$1/$2</a>', $Message_text);
 
 $Message_text = preg_replace('/(?<=\s|<br>|^)(http:\/\/[^\/?#]*?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
 $Message_text = preg_replace('/(?<=\s|<br>|^)(https:\/\/[^\/?#]*?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
