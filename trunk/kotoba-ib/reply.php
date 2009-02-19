@@ -215,9 +215,40 @@ $Message_text = str_replace("\r\n", "<br>", $Message_text);
 $Message_text = str_replace("\n", "<br>", $Message_text);
 $Message_text = str_replace("\r", "", $Message_text);
 
+// Ссылки на посты в рамках доски.
+preg_match_all('/(?<=\s|<br>|^)\&gt\;\&gt\;(\d+)(?=\s|<br>|$)/', $Message_text, $links);
+
+if(count($links[0]) > 0)
+{
+    // Получение номеров постов и тредов доски.
+    if(($result = mysql_query("select p.`id`, p.`thread` from `posts` p join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board` where p.`board` = $BOARD_NUM and (position('ARCHIVE:YES' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null)")) !== false)
+    {
+        if(mysql_num_rows($result) > 0)
+        {
+            while(($row = mysql_fetch_array($result, MYSQL_ASSOC)) !== false)
+                $postsThreads[$row['id']] = $row['thread'];
+
+            mysql_free_result($result);
+        }
+
+        // Если это первый тред на доске, то и делать ничего не нужно.
+    }
+    else
+    {
+        if(KOTOBA_ENABLE_STAT)
+            kotoba_stat(sprintf(ERR_GET_POSTS_THREADS, $BOARD_NAME, mysql_error()));
+
+        die($HEAD . "<span class=\"error\">Ошибка. Не удалось получить номера постов и тредов доски $BOARD_NAME. Прична: " .  mysql_error() . '</span>' . $FOOTER);
+    }
+
+    // TODO Паранойя такая паранойя. Надо бы запилить проверку типов.
+    for ($i = 0; $i < count($links[0]); $i++)
+      if(in_array($links[1][$i], array_keys($postsThreads)))
+          $Message_text = preg_replace("/(?<=\s|<br>|^)\&gt\;\&gt\;{$links[1][$i]}(?=\s|<br>|$)/", '<a href="' . KOTOBA_DIR_PATH . "/$BOARD_NAME/" . $postsThreads[$links[1][$i]] . "/#{$links[1][$i]}\">{$links[0][$i]}</a>", $Message_text);
+}
+
 // "Вакаба марк"
 // ВАЖЕН ПОРЯДОК СТРОК!
-$Message_text = preg_replace('/\&gt\;\&gt\;(\d+)/', '<a href="' . KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/#$1\">&gt;&gt;$1</a>", $Message_text);	// Сслыки на другие посты треда, в который добавляется ответ.
 $Message_text = preg_replace('/(?<=\s|<br>|^)\&gt\;\&gt\;\&gt\;\/(\w+?)\/(\d+)(?=\s|<br>|$)/', '<a href="' . KOTOBA_DIR_PATH . '/$1#$2">\&gt\;\&gt\;\&gt\;/$1/$2</a>', $Message_text);
 
 $Message_text = preg_replace('/(?<=\s|<br>|^)(http:\/\/[^\/?#]*?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
