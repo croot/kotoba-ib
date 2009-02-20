@@ -235,7 +235,7 @@ if(count($links[0]) > 0)
         die($HEAD . "<span class=\"error\">Ошибка. Не удалось получить номера постов и тредов доски $BOARD_NAME. Прична: " .  mysql_error() . '</span>' . $FOOTER);
     }
 
-    // TODO Паранойя такая паранойя. Надо бы запилить проверку типов.
+    // Номер поста из реги имеет тип string, а номер поста из БД - int
     for ($i = 0; $i < count($links[0]); $i++)
       if(in_array($links[1][$i], array_keys($postsThreads)))
           $Message_text = preg_replace("/(?<=\s|<br>|^)\&gt\;\&gt\;{$links[1][$i]}(?=\s|<br>|$)/", '<a href="' . KOTOBA_DIR_PATH . "/$BOARD_NAME/" . $postsThreads[$links[1][$i]] . "/#{$links[1][$i]}\">{$links[0][$i]}</a>", $Message_text);
@@ -251,19 +251,7 @@ if(count($links[0]) > 0)
     if(($result = mysql_query('select b.`Name` `board`, p.`id`, p.`thread` from `posts` p join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board` join `boards` b on p.`board` = b.`id` where (position(\'ARCHIVE:YES\' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null) order by  p.`board`, p.`thread`, p.`id`')) !== false)
     {
         while(($row = mysql_fetch_array($result, MYSQL_ASSOC)) !== false)
-            $boardsPostsThreads[$row['board']][$row['id']] = $row['thread'];
-            
-        /*var_dump($boardsPostsThreads);
-        echo '<br><br><br>';
-        var_dump($boardsPostsThreads['b']);
-        echo '<br><br><br>';
-        var_dump($boardsPostsThreads['b'][400]);
-        echo '<br><br><br>';
-        var_dump($links[1][0]);
-        echo '<br><br><br>';
-        var_dump($links[2][0]);
-        echo '<br><br><br>';
-        die();*/
+            $boardsPostsThreads[$row['board']][$row['id']] = $row['thread'] . '';
 
         mysql_free_result($result);
     }
@@ -275,9 +263,9 @@ if(count($links[0]) > 0)
         die($HEAD . "<span class=\"error\">Ошибка. Не удалось получить номера постов и тредов на досках. Прична: " .  mysql_error() . '</span>' . $FOOTER);
     }
     
-    // TODO Паранойя такая паранойя. Надо бы запилить проверку типов.
+    // TODO Номер поста из реги имеет тип текст, а номера постов из БД имеют целый тип.
     for ($i = 0; $i < count($links[0]); $i++)
-      if(in_array($links[1][$i], array_keys($boardsPostsThreads)))  // Есть такая доска.
+      if(in_array($links[1][$i], array_keys($boardsPostsThreads), true))  // Есть такая доска.
         if(in_array($links[2][$i], array_keys($boardsPostsThreads[$links[1][$i]])))    // Есть такой тред на этой доске.
           $Message_text = preg_replace("/(?<=\s|<br>|^)\&gt\;\&gt\;\&gt\;\/{$links[1][$i]}\/{$links[2][$i]}(?=\s|<br>|$)/", '<a href="' . KOTOBA_DIR_PATH . "/{$links[1][$i]}/" . $boardsPostsThreads[$links[1][$i]][$links[2][$i]] . "/#{$links[2][$i]}\">{$links[0][$i]}</a>", $Message_text);
 }

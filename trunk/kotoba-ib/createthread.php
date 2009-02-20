@@ -214,7 +214,7 @@ if(count($links[0]) > 0)
         die($HEAD . "<span class=\"error\">Ошибка. Не удалось получить номера постов и тредов доски $BOARD_NAME. Прична: " .  mysql_error() . '</span>' . $FOOTER);
     }
 
-    // TODO Паранойя такая паранойя. Надо бы запилить проверку типов.
+    // Номер поста из реги имеет тип string, а номер поста из БД - int
     for ($i = 0; $i < count($links[0]); $i++)
       if(in_array($links[1][$i], array_keys($postsThreads)))
           $Message_text = preg_replace("/(?<=\s|<br>|^)\&gt\;\&gt\;{$links[1][$i]}(?=\s|<br>|$)/", '<a href="' . KOTOBA_DIR_PATH . "/$BOARD_NAME/" . $postsThreads[$links[1][$i]] . "/#{$links[1][$i]}\">{$links[0][$i]}</a>", $Message_text);
@@ -242,9 +242,9 @@ if(count($links[0]) > 0)
         die($HEAD . "<span class=\"error\">Ошибка. Не удалось получить номера постов и тредов на досках. Прична: " .  mysql_error() . '</span>' . $FOOTER);
     }
     
-    // TODO Паранойя такая паранойя. Надо бы запилить проверку типов.
+    // Номер поста из реги имеет тип string, а номер поста из БД - int
     for ($i = 0; $i < count($links[0]); $i++)
-      if(in_array($links[1][$i], array_keys($boardsPostsThreads)))  // Есть такая доска.
+      if(in_array($links[1][$i], array_keys($boardsPostsThreads), true))  // Есть такая доска.
         if(in_array($links[2][$i], array_keys($boardsPostsThreads[$links[1][$i]])))    // Есть такой тред на этой доске.
           $Message_text = preg_replace("/(?<=\s|<br>|^)\&gt\;\&gt\;\&gt\;\/{$links[1][$i]}\/{$links[2][$i]}(?=\s|<br>|$)/", '<a href="' . KOTOBA_DIR_PATH . "/{$links[1][$i]}/" . $boardsPostsThreads[$links[1][$i]][$links[2][$i]] . "/#{$links[2][$i]}\">{$links[0][$i]}</a>", $Message_text);
 }
