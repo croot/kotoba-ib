@@ -199,7 +199,7 @@ if($POST_NUM != $THREAD_NUM)	// Удаляется пост из треда.
 {
 	if(mysql_query("delete from `posts` where `board` = $BOARD_NUM and `id` = $POST_NUM and `thread` = $THREAD_NUM and INSTR(`Post Settings`, 'REMPASS:$REM_PASS') <> 0") === true)
 	{
-		if(mysql_affected_rows() == 1)	// Пост удалился.
+		if(mysql_affected_rows() == 1)
 		{
 			header('Location: ' . KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/");
 			exit;
@@ -220,46 +220,18 @@ if($POST_NUM != $THREAD_NUM)	// Удаляется пост из треда.
 		die($HEAD . "<span class=\"error\">Ошибка. Не удалось удалить пост с номером $POST_NUM с доски $BOARD_NAME. Прична: " .  mysql_error() . '</span>' . $FOOTER);
 	}
 }
-else	// Удаляетя тред.
+else	// Удаляем тред.
 {
-	if(mysql_query("delete from `posts` where `board` = $BOARD_NUM and `id` = $POST_NUM and `thread` = $THREAD_NUM and INSTR(`Post Settings`, 'REMPASS:$REM_PASS') <> 0") === true) // Удалим оппост.
-	{
-		if(mysql_affected_rows() == 1)
-		{
-			if(mysql_query("delete from `posts` where `board` = $BOARD_NUM and `thread` = $THREAD_NUM") === false)	// Удалим остальные посты треда.
-			{
-				if(KOTOBA_ENABLE_STAT)
-					kotoba_stat(sprintf(ERR_THREAD_POSTS_REMOVE, $THREAD_NUM, $BOARD_NAME, mysql_error()));
-
-				die($HEAD . "<span class=\"error\">Ошибка. Не удалось удалить посты треда $THREAD_NUM с доски $BOARD_NAME. Прична: " .  mysql_error() . '</span>' . $FOOTER);
-			}
-
-			if(mysql_query("delete from `threads` where `board` = $BOARD_NUM and `id` = $THREAD_NUM") === false)	// Удалим тред.
-			{
-				if(KOTOBA_ENABLE_STAT)
-					kotoba_stat(sprintf(ERR_THREAD_REMOVE, $THREAD_NUM, $BOARD_NAME, mysql_error()));
-
-				die($HEAD . "<span class=\"error\">Ошибка. Не удалось удалить тред $THREAD_NUM с доски $BOARD_NAME. Прична: " .  mysql_error() . '</span>' . $FOOTER);
-			}
-			
-			header('Location: ' . KOTOBA_DIR_PATH . "/$BOARD_NAME/");
-			exit;
-		}
-		else
-		{
-			if(KOTOBA_ENABLE_STAT)
-				kotoba_stat(ERR_WRONG_PASSWORD);
-
-			die($HEAD . '<span class="error">Ошибка. Не верный пароль.</span>' . $FOOTER);
-        }
-	}
-	else
+	if(mysql_query("delete from `threads` where `board` = $BOARD_NUM and `id` = $THREAD_NUM") === false)
 	{
 		if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(sprintf(ERR_POST_REMOVE, $POST_NUM, $BOARD_NAME, mysql_error()));
+			kotoba_stat(sprintf(ERR_THREAD_REMOVE, $THREAD_NUM, $BOARD_NAME, mysql_error()));
 
-		die($HEAD . "<span class=\"error\">Ошибка. Не удалось удалить пост с номером $POST_NUM с доски $BOARD_NAME. Прична: " .  mysql_error() . '</span>' . $FOOTER);
+		die($HEAD . "<span class=\"error\">Ошибка. Не удалось удалить тред $THREAD_NUM с доски $BOARD_NAME. Прична: " .  mysql_error() . '</span>' . $FOOTER);
 	}
+
+	header('Location: ' . KOTOBA_DIR_PATH . "/$BOARD_NAME/");
+	exit;
 }
 ?>
 <?php

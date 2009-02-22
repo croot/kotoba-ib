@@ -93,7 +93,9 @@ else
 }
 
 // Проверка существования треда $THREAD_NUM на доске с именем $BOARD_NAME.
-if(($result = mysql_query("select `id` from `threads` where `id` = $THREAD_NUM and `board` = $BOARD_NUM")) !== false)
+if(($result = mysql_query("select t.`id`, count(p.`id`) `count`
+	from `threads` t join `posts` p on t.`id` = p.`thread` and t.`board` = p.`board`
+	where t.`id` = $THREAD_NUM and t.`board` = $BOARD_NUM group by t.`id`")) !== false)
 {
 	if(mysql_num_rows($result) != 1)
 	{
@@ -103,8 +105,12 @@ if(($result = mysql_query("select `id` from `threads` where `id` = $THREAD_NUM a
 		mysql_free_result($result);
 		die($HEAD . "<span class=\"error\">Ошибка. Треда с номером $THREAD_NUM на доске $BOARD_NAME не найдено.</span>" . $FOOTER);
 	}
-    
-    mysql_free_result($result);
+	else
+	{
+		$row = mysql_fetch_array($result, MYSQL_ASSOC);
+		$THREAD_POSTCOUNT = $row['count'];
+        mysql_free_result($result);
+    }
 }
 else
 {
@@ -290,14 +296,15 @@ $Message_text = preg_replace('/<\/li>(?!<li>|<\/ul>)/', '</li></ol>', $Message_t
 
 $Message_text = preg_replace('/<\/li><ol>/', '<\/li>', $Message_text);
 $Message_text = preg_replace('/<\/ol><li>/', '<li>', $Message_text);
-$Message_text = preg_replace('/\*\*(.+?)\*\*/', '<b>$1</b>', $Message_text);
-$Message_text = preg_replace('/__(.+?)__/', '<b>$1</b>', $Message_text);
-$Message_text = preg_replace('/\*(.+?)\*/', '<i>$1</i>', $Message_text);
-$Message_text = preg_replace('/_(.+?)_/', '<i>$1</i>', $Message_text);
-$Message_text = preg_replace('/`(.+?)`/', '<tt>$1</tt>', $Message_text);
-$Message_text = preg_replace('/%%(.+?)%%/', '<span class="spoiler">$1</span>', $Message_text);
-$Message_text = preg_replace('/-(.+?)-/', '<s>$1</s>', $Message_text);
+$Message_text = preg_replace('/\*\*([^<>]+?)\*\*/', '<b>$1</b>', $Message_text);
+$Message_text = preg_replace('/__([^<>]+?)__/', '<b>$1</b>', $Message_text);
+$Message_text = preg_replace('/\*([^<>]+?)\*/', '<i>$1</i>', $Message_text);
+$Message_text = preg_replace('/_([^<>]+?)_/', '<i>$1</i>', $Message_text);
+$Message_text = preg_replace('/`([^<>]+?)`/', '<tt>$1</tt>', $Message_text);
+$Message_text = preg_replace('/%%([^<>]+?)%%/', '<span class="spoiler">$1</span>', $Message_text);
+$Message_text = preg_replace('/-([^<>]+?)-/', '<s>$1</s>', $Message_text);
 $Message_text = preg_replace('/#([^<>]+?)#/', '<u>$1</u>', $Message_text);
+$Message_text = preg_replace('/(\&gt\;[^<>]+?)(?:<br>|$)/', '<blockquote class="unkfunc">$1</blockquote>', $Message_text);
 
 $Message_theme = str_replace("\n", "", $Message_theme);
 $Message_theme = str_replace("\r", "", $Message_theme);
@@ -449,6 +456,9 @@ $Message_settings .= "IP:$_SERVER[REMOTE_ADDR]\n";
 
 if(isset($_POST['Sage']) && $_POST['Sage'] == 'sage')
     $Message_settings .= "SAGE:Y\n";
+
+if($THREAD_POSTCOUNT > KOTOBA_BUMPLIMIT)
+	$Message_settings .= "BLIMIT:Y\n";
 
 if($with_image)
     $Message_settings .= $Message_img_params;

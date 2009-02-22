@@ -9,9 +9,10 @@
  * See license.txt for more info.*
  *********************************/
 
-define('KOTOBA_DIR_PATH', '/k');        // Путь от корня документов к директории, где хранится kotoba.php. Например: /test/kotoba_drive
-define('KOTOBA_ALLOW_SAEMIMG', false);   // Разрешить постить одинакоые картинки. true or false.
-define('KOTOBA_ENABLE_STAT', true);     // Включить сбор статистики. true or false.
+define('KOTOBA_DIR_PATH', '/k');		// Путь от корня документов к директории, где хранится index.php. Например: /test/kotoba_drive
+define('KOTOBA_ALLOW_SAEMIMG', false);	// Разрешить постить одинакоые картинки. true or false.
+define('KOTOBA_ENABLE_STAT', true);		// Включить сбор статистики. true or false.
+define('KOTOBA_BUMPLIMIT', 30);			// Глобальный бамплимит.
 
 define('KOTOBA_MIN_IMGWIDTH', 32);      // Мнимальная ширина загружаемого изображения.
 define('KOTOBA_MIN_IMGHEIGTH', 32);     // Минимальная высота загружаемого изображения.
@@ -43,6 +44,7 @@ function GetSettings($type, $settings)
         case 'post':
         case 'thread':
         case 'board':
+		case 'user':
             $h = array();
             $settings_array = explode("\n", $settings);
 
@@ -58,7 +60,7 @@ function GetSettings($type, $settings)
             }
 
             return $h;
-			
+
         default:
             return null;
     }

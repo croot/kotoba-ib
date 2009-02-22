@@ -166,7 +166,7 @@ $row = mysql_fetch_array($result, MYSQL_NUM);
 $POST_COUNT = $row[1];
 mysql_free_result($result);
 
-$MENU = $BOARDS_LIST . "<br>\n<h4 align=center>βchan</h4>\n<br><center><b>/$BOARD_NAME/</b></center>\n$POST_COUNT/" . KOTOBA_POST_LIMIT . "<hr>\n";
+$MENU = $BOARDS_LIST . "<br>\n<h4 align=center>βchan</h4>\n<br><center><b>/$BOARD_NAME/</b></center>\nПостлимит: $POST_COUNT/" . KOTOBA_POST_LIMIT . "<br>\nБамплимит: " . KOTOBA_BUMPLIMIT . "<hr>\n";
 
 // Получение количества не утонувших тредов просматриваемой доски.
 if(($result = mysql_query(
@@ -176,7 +176,7 @@ if(($result = mysql_query(
 {
 	$row = mysql_fetch_array($result, MYSQL_ASSOC);
     $threards_count = $row['count'];
-    mysql_free_result($result);    
+    mysql_free_result($result);
     $pages_count = ($threards_count / 10) + 1;
 
     if($PAGE < 1 || $PAGE > $pages_count)
@@ -192,7 +192,7 @@ if(($result = mysql_query(
 	
 	for($i = 1; $i <= $pages_count; $i++)
 		if($i != $PAGE)
-			$PAGES .= '(<a href="' . KOTOBA_DIR_PATH . "/$BOARD_NAME/p$i/\">" . ($i < 10 ? "0$i" : "$i") . '</a>) ';
+			$PAGES .= '(<a href="' . KOTOBA_DIR_PATH . "/$BOARD_NAME/" . (($i == 1) ? '' : "p$i/") . "\">" . ($i < 10 ? "0$i" : "$i") . '</a>) ';
 		else
 			$PAGES .= '(' . ($i < 10 ? "0$i" : "$i") . ') ';
 }
@@ -208,7 +208,7 @@ else
 if(($threads = mysql_query(
 	"select p.`thread` `id` 
 	from `posts` p join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board`
-	where t.`board` = $BOARD_NUM and (position('ARCHIVE:YES' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null) and (position('SAGE:Y' in p.`Post Settings`) = 0 or p.`Post Settings` is null)
+	where t.`board` = $BOARD_NUM and (position('ARCHIVE:YES' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null) and (position('SAGE:Y' in p.`Post Settings`) = 0 or p.`Post Settings` is null) and (position('BLIMIT:Y' in p.`Post Settings`) = 0 or p.`Post Settings` is null)
 	group by p.`thread` order by max(p.`id`) desc $threads_range")) != false)
 {
 	if(mysql_num_rows($threads) > 0)	// На доске может и не быть тредов, как это бывает при создании новой доски.
@@ -216,6 +216,34 @@ if(($threads = mysql_query(
 		$PREVIEW = '';
 		$thread_preview_code = '';	// HTML код предпросмотра текущего треда.
 		
+		if(isset($_SESSION['isLoggedIn']))
+		{
+			if(($result = mysql_query('select `id`, `User Settings` from `users` where SID = \'' . session_id() . '\'')) !== false)
+			{
+				if(mysql_num_rows($result) == 0)
+				{
+					if(KOTOBA_ENABLE_STAT)
+						kotoba_stat(sprintf(ERR_USER_SEARCH, session_id()));
+
+					die($HEAD . '<span class="error">Ошибка. Пользователя с сессией ' . session_id() . ' не найден.</span>' . $FOOTER);
+				}
+				else
+				{
+					$user = mysql_fetch_array($result, MYSQL_ASSOC);
+					$User_id = $user['id'];
+					$User_Settings = GetSettings('user', $user['User Settings']);
+					mysql_free_result($result);
+				}
+			}
+			else
+			{
+				if(KOTOBA_ENABLE_STAT)
+						kotoba_stat(sprintf(ERR_USER_DATA, mysql_error()));
+
+				die($HEAD . '<span class="error">Ошибка. Невозможно получить данные пользователя. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
+			}
+		}
+
 		while (($thread = mysql_fetch_array($threads)) != false)
 		{
 			$PREVIEW_REPLAYS_COUNT = 4;	// Количество ответов в предпросмотре треда.
@@ -235,10 +263,11 @@ if(($threads = mysql_query(
 			{
 				if(mysql_num_rows($posts) > 0)
 				{
-                    if(($result = mysql_query("select count(`id`) from `posts` where `thread` = $thread[id] and `board` = $BOARD_NUM")) != false)
+                    if(($result = mysql_query("select count(`id`) `count` from `posts` where `thread` = $thread[id] and `board` = $BOARD_NUM")) != false)
                     {
-                        $row = mysql_fetch_array($result, MYSQL_NUM);
-                        $POSTS_COUNT = $row[0];
+                        $row = mysql_fetch_array($result, MYSQL_ASSOC);
+                        $POSTS_COUNT = $row['count'];
+						mysql_free_result($result);
                     }
                     else
                     {
@@ -268,7 +297,7 @@ if(($threads = mysql_query(
                     else
                         $Message_text = $post['Text'];
 
-					$thread_preview_code .= "<div>\n";
+					$thread_preview_code .= "\n<div>\n";
 					$thread_preview_code .= "<span class=\"filetitle\">$Op_settings[THEME]</span> <span class=\"postername\">$Op_settings[NAME]</span> $post[Time]";
 					
 					if(isset($Op_settings['IMGNAME']))
@@ -276,18 +305,17 @@ if(($threads = mysql_query(
 						$img_thumb_filename = $Op_settings['IMGNAME'] . 't.' . $Op_settings['IMGEXT'];
 						$img_filename = $Op_settings['IMGNAME'] . '.' . $Op_settings['IMGEXT'];
 						
-						$thread_preview_code .= " <span class=\"filesize\">Файл: <a target=\"_blank\" href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename\">$img_filename</a> -(<em>" .  $Op_settings['IMGSIZE'] . " Байт, " . $Op_settings['IMGSW'] . "x" . $Op_settings['IMGSH'] . "</em>)</span> <span class=\"reflink\"># <a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$thread[0]/#$post[0]\">$post[0]</a></span> [<a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$thread[0]/\">Ответить</a>] <span class=\"delbtn\">[<a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/r$post[0]/\" title=\"Удалить\">×</a>]</span>\n";
-						$thread_preview_code .= "<br><a target=\"_blank\" href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename\"><img src=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb/$img_thumb_filename\" class=\"thumb\" width=\"" . $Op_settings['IMGTW'] . "\" heigth=\"" . $Op_settings['IMGTH'] . "\"></a>";
-						$thread_preview_code .= "<blockquote>\n" . ($Message_text == "" ? "<br>" : $Message_text) . "</blockquote>\n";
+						$thread_preview_code .= " <span class=\"filesize\">Файл: <a target=\"_blank\" href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename\">$img_filename</a> -(<em>" .  $Op_settings['IMGSIZE'] . " Байт, " . $Op_settings['IMGSW'] . "x" . $Op_settings['IMGSH'] . "</em>)</span> <span class=\"reflink\"># <a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$thread[0]/#$post[0]\">$post[0]</a></span> [<a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$thread[0]/\">Ответить</a>] <span class=\"delbtn\">[<a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/r$post[0]/\" title=\"Удалить\">×</a>]</span> " . ((isset($_SESSION['isLoggedIn']) && ($User_Settings['ADMIN'] === 'Y')) ? $Op_settings['IP'] : '') . "<br>\n";
+						$thread_preview_code .= "<a target=\"_blank\" href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename\"><img src=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb/$img_thumb_filename\" class=\"thumb\" width=\"" . $Op_settings['IMGTW'] . "\" heigth=\"" . $Op_settings['IMGTH'] . "\"></a>";
+						$thread_preview_code .= "\n<blockquote>\n" . ($Message_text == "" ? "<br>" : $Message_text) . "\n</blockquote>\n";
 					}
 					else
 					{
-						$thread_preview_code .= " <span class=\"reflink\"># <a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$thread[0]/#$post[0]\">" .  $post[0] . "</a></span> [<a href=\"" . $thread[0] . "/\">Ответить</a>] <span class=\"delbtn\">[<a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/r$post[0]/\" title=\"Удалить\">×</a>]</span>\n";
+						$thread_preview_code .= " <span class=\"reflink\"># <a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$thread[0]/#$post[0]\">" .  $post[0] . "</a></span> [<a href=\"" . $thread[0] . "/\">Ответить</a>] <span class=\"delbtn\">[<a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/r$post[0]/\" title=\"Удалить\">×</a>]</span> " . ((isset($_SESSION['isLoggedIn']) && ($User_Settings['ADMIN'] === 'Y')) ? $Op_settings['IP'] : '') . "\n";
 						$thread_preview_code .= "<br><blockquote>\n" . ($Message_text == "" ? "<br>" : $Message_text) . "</blockquote>\n";
                     }
 
-					$thread_preview_code .= "<div>\n<span class=\"omittedposts\">" . (($POSTS_COUNT > $PREVIEW_REPLAYS_COUNT + 1) ? "Сообщений пропущено: " . ($POSTS_COUNT - ($PREVIEW_REPLAYS_COUNT + 1)) . ".</span>\n<br><br>" : "</span>\n");
-					$thread_preview_code .= "";
+					$thread_preview_code .= "<div>\n<span class=\"omittedposts\">" . (($POSTS_COUNT > $PREVIEW_REPLAYS_COUNT + 1) ? "Сообщений пропущено: " . ($POSTS_COUNT - ($PREVIEW_REPLAYS_COUNT + 1)) . '.' . (($POSTS_COUNT > KOTOBA_BUMPLIMIT) ? ' Тред достиг бамплимта.' : '') . "</span>\n<br><br>" : "</span>\n");
 					
 					// Код остальных постов треда.
 					while (($post = mysql_fetch_array($posts, MYSQL_BOTH)) !== false)
@@ -310,23 +338,18 @@ if(($threads = mysql_query(
                             $Message_text = $post['Text'];
 					
 						$thread_preview_code .= "\n<table>\n";
-						$thread_preview_code .= "<tr>\n\t<td class=\"reply\"><span class=\"filetitle\">" . $Replay_settings['THEME'] . "</span> <span class=\"postername\">" . $Replay_settings['NAME'] . "</span>  " . $post[1];
+						$thread_preview_code .= "<tr>\n\t<td class=\"reply\"><span class=\"filetitle\">$Replay_settings[THEME]</span> <span class=\"postername\">$Replay_settings[NAME]</span> $post[Time] <span class=\"reflink\"># <a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$thread[0]/#$post[id]\">" .  $post[id] . "</a></span> <span class=\"delbtn\">[<a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/r$post[id]/\" title=\"Удалить\">×</a>]</span> " . ((isset($_SESSION['isLoggedIn']) && ($User_Settings['ADMIN'] === 'Y')) ? $Replay_settings['IP'] : '') . "<br>\n";
 						
 						if(isset($Replay_settings['IMGNAME']))
 						{
 							$img_thumb_filename = $Replay_settings['IMGNAME'] . 't.' . $Replay_settings['IMGEXT'];
 							$img_filename = $Replay_settings['IMGNAME'] . '.' . $Replay_settings['IMGEXT'];
 
-							$thread_preview_code .= " <span class=\"filesize\">Файл: <a target=\"_blank\" href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename\">$img_filename</a> -(<em>" .  $Replay_settings['IMGSIZE'] . " Байт " . $Replay_settings['IMGSW'] . "x" . $Replay_settings['IMGSH'] . "</em>)</span> <span class=\"reflink\"># <a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$thread[0]/#$post[0]\">" .  $post[0] . "</a></span> <span class=\"delbtn\">[<a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/r$post[0]/\" title=\"Удалить\">×</a>]</span>\n";
+							$thread_preview_code .= "<span class=\"filesize\">Файл: <a target=\"_blank\" href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename\">$img_filename</a> -(<em>" .  $Replay_settings['IMGSIZE'] . " Байт " . $Replay_settings['IMGSW'] . "x" . $Replay_settings['IMGSH'] . "</em>)</span>\n";
 							$thread_preview_code .= "\t<br<a target=\"_blank\" href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename\"><img src=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb/$img_thumb_filename\" class=\"thumb\" width=\"" . $Replay_settings['IMGTW'] . "\" heigth=\"" . $Replay_settings['IMGTH'] . "\"></a>";
-							$thread_preview_code .= "<blockquote>\n" . ($Message_text == "" ? "<br>" : $Message_text) . "</blockquote>\n\t</td>\n</tr>\n";
 						}
-						else
-						{
-							$thread_preview_code .= " <span class=\"reflink\"># <a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$thread[0]/#$post[0]\">" .  $post[0] . "</a></span> <span class=\"delbtn\">[<a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/r$post[0]/\" title=\"Удалить\">×</a>]</span>\n";
-							$thread_preview_code .= "<br><blockquote>\n" . ($Message_text == "" ? "<br>" : $Message_text) . "</blockquote>\n\t</td>\n</tr>\n";
-						}
-
+						
+						$thread_preview_code .= "<blockquote>\n" . ($Message_text == "" ? "<br>" : $Message_text) . "</blockquote>\n\t</td>\n</tr>\n";
 						$thread_preview_code .= "</table>\n";
 					} // Следующий пост.
 					

@@ -269,14 +269,15 @@ $Message_text = preg_replace('/<\/li>(?!<li>|<\/ul>)/', '</li></ol>', $Message_t
 
 $Message_text = preg_replace('/<\/li><ol>/', '<\/li>', $Message_text);
 $Message_text = preg_replace('/<\/ol><li>/', '<li>', $Message_text);
-$Message_text = preg_replace('/\*\*(.+?)\*\*/', '<b>$1</b>', $Message_text);
-$Message_text = preg_replace('/__(.+?)__/', '<b>$1</b>', $Message_text);
-$Message_text = preg_replace('/\*(.+?)\*/', '<i>$1</i>', $Message_text);
-$Message_text = preg_replace('/_(.+?)_/', '<i>$1</i>', $Message_text);
-$Message_text = preg_replace('/`(.+?)`/', '<tt>$1</tt>', $Message_text);
-$Message_text = preg_replace('/%%(.+?)%%/', '<span class="spoiler">$1</span>', $Message_text);
-$Message_text = preg_replace('/-(.+?)-/', '<s>$1</s>', $Message_text);
+$Message_text = preg_replace('/\*\*([^<>]+?)\*\*/', '<b>$1</b>', $Message_text);
+$Message_text = preg_replace('/__([^<>]+?)__/', '<b>$1</b>', $Message_text);
+$Message_text = preg_replace('/\*([^<>]+?)\*/', '<i>$1</i>', $Message_text);
+$Message_text = preg_replace('/_([^<>]+?)_/', '<i>$1</i>', $Message_text);
+$Message_text = preg_replace('/`([^<>]+?)`/', '<tt>$1</tt>', $Message_text);
+$Message_text = preg_replace('/%%([^<>]+?)%%/', '<span class="spoiler">$1</span>', $Message_text);
+$Message_text = preg_replace('/-([^<>]+?)-/', '<s>$1</s>', $Message_text);
 $Message_text = preg_replace('/#([^<>]+?)#/', '<u>$1</u>', $Message_text);
+$Message_text = preg_replace('/(\&gt\;[^<>]+?)(?:<br>|$)/', '<blockquote class="unkfunc">$1</blockquote>', $Message_text);
 
 $Message_theme = str_replace("\n", '', $Message_theme);
 $Message_theme = str_replace("\r", '', $Message_theme);
@@ -628,6 +629,19 @@ $Message_settings .= $Message_img_params;
 if(isset($OPPOST_PASS))
 	$Message_settings .= "REMPASS:$OPPOST_PASS\n";
 
+if(mysql_query("insert into `threads` (`id`, `board`) values (@op_post_num, $BOARD_NUM)") == false)
+{
+    $temp = mysql_error();
+    mysql_query('rollback');
+    
+    if(KOTOBA_ENABLE_STAT)
+            kotoba_stat(sprintf(ERR_NEW_THREAD_CREATE, $temp));
+    
+    unlink("$IMG_SRC_DIR/$saved_filename");
+    unlink("$IMG_THU_DIR/$saved_thumbname");
+    die ($HEAD . "<span class=\"error\">Ошибка. Невозможно создать новый тред. Причина: $temp.</span>" . $FOOTER);
+}
+
 // Не будем пока проверять, добавила ли вставка строку в таблицу.
 if(mysql_query(
     "insert into `posts` (`id`, `thread`, `board`, `Time`, `Text`, `Post Settings`) 
@@ -642,19 +656,6 @@ if(mysql_query(
     unlink("$IMG_SRC_DIR/$saved_filename");
     unlink("$IMG_THU_DIR/$saved_thumbname");
     die ($HEAD . "<span class=\"error\">Ошибка. Невозможно создать новый оп пост. Причина: $temp.</span>" . $FOOTER);
-}
-
-if(mysql_query("insert into `threads` (`id`, `board`) values (@op_post_num, $BOARD_NUM)") == false)
-{
-    $temp = mysql_error();
-    mysql_query('rollback');
-    
-    if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_NEW_THREAD_CREATE, $temp));
-    
-    unlink("$IMG_SRC_DIR/$saved_filename");
-    unlink("$IMG_THU_DIR/$saved_thumbname");
-    die ($HEAD . "<span class=\"error\">Ошибка. Невозможно создать новый тред. Причина: $temp.</span>" . $FOOTER);
 }
 
 if(mysql_query("update `boards` set `MaxPostNum` = `MaxPostNum` + 1 where `id` = $BOARD_NUM") === false)
