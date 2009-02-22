@@ -16,12 +16,32 @@ $KOTOBA_DIR_PATH
  |     |_image namet.ext
  |     |_...
  |_...
- |_globals.php
- |_index.php
+ |_[res]
+ |  |_Apache.txt
+ |  |_create base struct.bat
+ |  |_kotoba struct.sql
+ |  |_Kotoba tree.txt
+ |  |_kotoba.jpg
+ |  |_login_bs.dot
+ |  |_login_bs.png
+ |  |_register_bs.dot
+ |  |_register_bs.png
+ |_[sessions]
+ |_add_board.php
+ |_common.php
+ |_createthread.php
  |_database_connect.php
- |_register.php
+ |_events.php
+ |_index.php
+ |_kotoba.css
+ |_kusaba.js
+ |_license.txt
  |_login.php
  |_logout.php
  |_preview.php
+ |_register.php
+ |_rem_board.php
+ |_removepost.php
+ |_reply.php
  |_threads.php
- |_kotoba.css
+ |_thumb_processing.php
