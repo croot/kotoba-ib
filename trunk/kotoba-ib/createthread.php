@@ -58,7 +58,7 @@ if(($BOARD_NAME = CheckFormat('board', $_POST['b'])) === false)
     die($HEAD . '<span class="error">Ошибка. Имя доски имеет не верный формат.</span>' . $FOOTER);
 }
 
-require 'database_connect.php';
+require 'databaseconnect.php';
 
 if(($result = mysql_query("select `id` from `boards` where `Name` = \"$BOARD_NAME\"")) !== false)
 {
@@ -192,92 +192,92 @@ $Message_text = str_replace("\r\n", "<br>", $Message_text);
 $Message_text = str_replace("\n", '<br>', $Message_text);
 $Message_text = str_replace("\r", '', $Message_text);
 
-// Ссылки на посты в рамках доски.
-preg_match_all('/(?<=\s|<br>|^)\&gt\;\&gt\;(\d+)(?=\s|<br>|$)/', $Message_text, $links);
-
-if(count($links[0]) > 0)
-{
-    // Получение номеров постов и тредов доски.
-    if(($result = mysql_query("select p.`id`, p.`thread` from `posts` p join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board` where p.`board` = $BOARD_NUM and (position('ARCHIVE:YES' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null)")) !== false)
-    {
-        while(($row = mysql_fetch_array($result, MYSQL_ASSOC)) !== false)
-            $postsThreads[$row['id']] = $row['thread'];
-
-        mysql_free_result($result);
-        // Если это первый тред на доске, то и делать ничего не нужно.
-    }
-    else
-    {
-        if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_GET_POSTS_THREADS, $BOARD_NAME, mysql_error()));
-
-        die($HEAD . "<span class=\"error\">Ошибка. Не удалось получить номера постов и тредов доски $BOARD_NAME. Прична: " .  mysql_error() . '</span>' . $FOOTER);
-    }
-
-    // Номер поста из реги имеет тип string, а номер поста из БД - int
-    for ($i = 0; $i < count($links[0]); $i++)
-      if(in_array($links[1][$i], array_keys($postsThreads)))
-          $Message_text = preg_replace("/(?<=\s|<br>|^)\&gt\;\&gt\;{$links[1][$i]}(?=\s|<br>|$)/", '<a href="' . KOTOBA_DIR_PATH . "/$BOARD_NAME/" . $postsThreads[$links[1][$i]] . "/#{$links[1][$i]}\">{$links[0][$i]}</a>", $Message_text);
-}
-
-// Ссылки на посты в рамках всей имэйджборды.
-unset($links);
-preg_match_all('/(?<=\s|<br>|^)\&gt\;\&gt\;\&gt\;\/(\w+?)\/(\d+)(?=\s|<br>|$)/', $Message_text, $links);
-
-if(count($links[0]) > 0)
-{
-    // Получение номеров постов и тредов всех досок.
-    if(($result = mysql_query('select b.`Name` `board`, p.`id`, p.`thread` from `posts` p join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board` join `boards` b on p.`board` = b.`id` where (position(\'ARCHIVE:YES\' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null) order by  p.`board`, p.`thread`, p.`id`')) !== false)
-    {
-        while(($row = mysql_fetch_array($result, MYSQL_ASSOC)) !== false)
-            $boardsPostsThreads[$row['board']][$row['id']] = $row['thread'];
-
-        mysql_free_result($result);
-    }
-    else
-    {
-        if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_BOARDS_POSTS_THREADS, mysql_error()));
-
-        die($HEAD . "<span class=\"error\">Ошибка. Не удалось получить номера постов и тредов на досках. Прична: " .  mysql_error() . '</span>' . $FOOTER);
-    }
-    
-    // Номер поста из реги имеет тип string, а номер поста из БД - int
-    for ($i = 0; $i < count($links[0]); $i++)
-      if(in_array($links[1][$i], array_keys($boardsPostsThreads), true))  // Есть такая доска.
-        if(in_array($links[2][$i], array_keys($boardsPostsThreads[$links[1][$i]])))    // Есть такой тред на этой доске.
-          $Message_text = preg_replace("/(?<=\s|<br>|^)\&gt\;\&gt\;\&gt\;\/{$links[1][$i]}\/{$links[2][$i]}(?=\s|<br>|$)/", '<a href="' . KOTOBA_DIR_PATH . "/{$links[1][$i]}/" . $boardsPostsThreads[$links[1][$i]][$links[2][$i]] . "/#{$links[2][$i]}\">{$links[0][$i]}</a>", $Message_text);
-}
-
-// "Вакаба марк"
-// ВАЖЕН ПОРЯДОК СТРОК!
-$Message_text = preg_replace('/(?<=\s|<br>|^)(http:\/\/[^\/?#]*?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
-$Message_text = preg_replace('/(?<=\s|<br>|^)(https:\/\/[^\/?#]*?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
-$Message_text = preg_replace('/(?<=\s|<br>|^)(ftp:\/\/[^\/?#]*?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
-$Message_text = preg_replace('/(?<=\s|<br>|^)(irc:\/\/[^\/?#]*?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
-$Message_text = preg_replace('/(?<=\s|<br>|^)(mailto:(?:\/\/[^\/?#]*?)?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
-$Message_text = preg_replace('/(?<=\s|<br>|^)google:\/\/([^?#]*?)\/(?=\s|<br>|$)/', '<a href="http://www.google.ru/search?q=$1">Google: $1</a>', $Message_text);
-$Message_text = preg_replace('/(?<=\s|<br>|^)wiki:\/\/([^?#]*?)\/(?=\s|<br>|$)/', '<a href="http://en.wikipedia.org/wiki/$1">Wiki: $1</a>', $Message_text);
-
-$Message_text = preg_replace('/\*\s(.*?)<br>/', '<li>$1</li>', $Message_text);
-$Message_text = preg_replace('/(?<!<\/li>)<li>/', '<ul><li>', $Message_text);
-$Message_text = preg_replace('/<\/li>(?!<li>)/', '</li></ul>', $Message_text);
-
-$Message_text = preg_replace('/\d+\.\s+(.*?)<br>/', '<li>$1</li>', $Message_text);
-$Message_text = preg_replace('/(?<!<\/li>|<ul>)<li>/', '<ol><li>', $Message_text);
-$Message_text = preg_replace('/<\/li>(?!<li>|<\/ul>)/', '</li></ol>', $Message_text);
-
-$Message_text = preg_replace('/<\/li><ol>/', '<\/li>', $Message_text);
-$Message_text = preg_replace('/<\/ol><li>/', '<li>', $Message_text);
-$Message_text = preg_replace('/\*\*([^<>]+?)\*\*/', '<b>$1</b>', $Message_text);
-$Message_text = preg_replace('/__([^<>]+?)__/', '<b>$1</b>', $Message_text);
-$Message_text = preg_replace('/\*([^<>]+?)\*/', '<i>$1</i>', $Message_text);
-$Message_text = preg_replace('/_([^<>]+?)_/', '<i>$1</i>', $Message_text);
-$Message_text = preg_replace('/`([^<>]+?)`/', '<tt>$1</tt>', $Message_text);
-$Message_text = preg_replace('/%%([^<>]+?)%%/', '<span class="spoiler">$1</span>', $Message_text);
-$Message_text = preg_replace('/-([^<>]+?)-/', '<s>$1</s>', $Message_text);
-$Message_text = preg_replace('/#([^<>]+?)#/', '<u>$1</u>', $Message_text);
-$Message_text = preg_replace('/(\&gt\;[^<>]+?)(?:<br>|$)/', '<blockquote class="unkfunc">$1</blockquote>', $Message_text);
+//// Ссылки на посты в рамках доски.
+//preg_match_all('/(?<=\s|<br>|^)\&gt\;\&gt\;(\d+)(?=\s|<br>|$)/', $Message_text, $links);
+//
+//if(count($links[0]) > 0)
+//{
+//    // Получение номеров постов и тредов доски.
+//    if(($result = mysql_query("select p.`id`, p.`thread` from `posts` p join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board` where p.`board` = $BOARD_NUM and (position('ARCHIVE:YES' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null)")) !== false)
+//    {
+//        while(($row = mysql_fetch_array($result, MYSQL_ASSOC)) !== false)
+//            $postsThreads[$row['id']] = $row['thread'];
+//
+//        mysql_free_result($result);
+//        // Если это первый тред на доске, то и делать ничего не нужно.
+//    }
+//    else
+//    {
+//        if(KOTOBA_ENABLE_STAT)
+//            kotoba_stat(sprintf(ERR_GET_POSTS_THREADS, $BOARD_NAME, mysql_error()));
+//
+//        die($HEAD . "<span class=\"error\">Ошибка. Не удалось получить номера постов и тредов доски $BOARD_NAME. Прична: " .  mysql_error() . '</span>' . $FOOTER);
+//    }
+//
+//    // Номер поста из реги имеет тип string, а номер поста из БД - int
+//    for ($i = 0; $i < count($links[0]); $i++)
+//      if(in_array($links[1][$i], array_keys($postsThreads)))
+//          $Message_text = preg_replace("/(?<=\s|<br>|^)\&gt\;\&gt\;{$links[1][$i]}(?=\s|<br>|$)/", '<a href="' . KOTOBA_DIR_PATH . "/$BOARD_NAME/" . $postsThreads[$links[1][$i]] . "/#{$links[1][$i]}\">{$links[0][$i]}</a>", $Message_text);
+//}
+//
+//// Ссылки на посты в рамках всей имэйджборды.
+//unset($links);
+//preg_match_all('/(?<=\s|<br>|^)\&gt\;\&gt\;\&gt\;\/(\w+?)\/(\d+)(?=\s|<br>|$)/', $Message_text, $links);
+//
+//if(count($links[0]) > 0)
+//{
+//    // Получение номеров постов и тредов всех досок.
+//    if(($result = mysql_query('select b.`Name` `board`, p.`id`, p.`thread` from `posts` p join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board` join `boards` b on p.`board` = b.`id` where (position(\'ARCHIVE:YES\' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null) order by  p.`board`, p.`thread`, p.`id`')) !== false)
+//    {
+//        while(($row = mysql_fetch_array($result, MYSQL_ASSOC)) !== false)
+//            $boardsPostsThreads[$row['board']][$row['id']] = $row['thread'];
+//
+//        mysql_free_result($result);
+//    }
+//    else
+//    {
+//        if(KOTOBA_ENABLE_STAT)
+//            kotoba_stat(sprintf(ERR_BOARDS_POSTS_THREADS, mysql_error()));
+//
+//        die($HEAD . "<span class=\"error\">Ошибка. Не удалось получить номера постов и тредов на досках. Прична: " .  mysql_error() . '</span>' . $FOOTER);
+//    }
+//
+//    // Номер поста из реги имеет тип string, а номер поста из БД - int
+//    for ($i = 0; $i < count($links[0]); $i++)
+//      if(in_array($links[1][$i], array_keys($boardsPostsThreads), true))  // Есть такая доска.
+//        if(in_array($links[2][$i], array_keys($boardsPostsThreads[$links[1][$i]])))    // Есть такой тред на этой доске.
+//          $Message_text = preg_replace("/(?<=\s|<br>|^)\&gt\;\&gt\;\&gt\;\/{$links[1][$i]}\/{$links[2][$i]}(?=\s|<br>|$)/", '<a href="' . KOTOBA_DIR_PATH . "/{$links[1][$i]}/" . $boardsPostsThreads[$links[1][$i]][$links[2][$i]] . "/#{$links[2][$i]}\">{$links[0][$i]}</a>", $Message_text);
+//}
+//
+//// "Вакаба марк"
+//// ВАЖЕН ПОРЯДОК СТРОК!
+//$Message_text = preg_replace('/(?<=\s|<br>|^)(http:\/\/[^\/?#]*?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
+//$Message_text = preg_replace('/(?<=\s|<br>|^)(https:\/\/[^\/?#]*?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
+//$Message_text = preg_replace('/(?<=\s|<br>|^)(ftp:\/\/[^\/?#]*?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
+//$Message_text = preg_replace('/(?<=\s|<br>|^)(irc:\/\/[^\/?#]*?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
+//$Message_text = preg_replace('/(?<=\s|<br>|^)(mailto:(?:\/\/[^\/?#]*?)?[^?#]*?(?:\?[^#]*)?(?:#.*?)?)(?=\s|<br>|$)/', '<a href="$1">$1</a>', $Message_text);
+//$Message_text = preg_replace('/(?<=\s|<br>|^)google:\/\/([^?#]*?)\/(?=\s|<br>|$)/', '<a href="http://www.google.ru/search?q=$1">Google: $1</a>', $Message_text);
+//$Message_text = preg_replace('/(?<=\s|<br>|^)wiki:\/\/([^?#]*?)\/(?=\s|<br>|$)/', '<a href="http://en.wikipedia.org/wiki/$1">Wiki: $1</a>', $Message_text);
+//
+////$Message_text = preg_replace('/\*\s(.*?)(?:<br>)*/', '<li>$1</li>', $Message_text);
+////$Message_text = preg_replace('/(?<!<\/li>)<li>/', '<ul><li>', $Message_text);
+////$Message_text = preg_replace('/<\/li>(?!<li>)/', '</li></ul>', $Message_text);
+////
+////$Message_text = preg_replace('/\d+\.\s+(.*?)(?:<br>)*/', '<li>$1</li>', $Message_text);
+////$Message_text = preg_replace('/(?<!<\/li>|<ul>)<li>/', '<ol><li>', $Message_text);
+////$Message_text = preg_replace('/<\/li>(?!<li>|<\/ul>)/', '</li></ol>', $Message_text);
+//
+//$Message_text = preg_replace('/<\/li><ol>/', '<\/li>', $Message_text);
+//$Message_text = preg_replace('/<\/ol><li>/', '<li>', $Message_text);
+//$Message_text = preg_replace('/\*\*([^<>]+?)\*\*/', '<b>$1</b>', $Message_text);
+//$Message_text = preg_replace('/__([^<>]+?)__/', '<b>$1</b>', $Message_text);
+//$Message_text = preg_replace('/\*([^<>]+?)\*/', '<i>$1</i>', $Message_text);
+//$Message_text = preg_replace('/_([^<>]+?)_/', '<i>$1</i>', $Message_text);
+//$Message_text = preg_replace('/`([^<>]+?)`/', '<tt>$1</tt>', $Message_text);
+//$Message_text = preg_replace('/%%([^<>]+?)%%/', '<span class="spoiler">$1</span>', $Message_text);
+//$Message_text = preg_replace('/-([^<>]+?)-/', '<s>$1</s>', $Message_text);
+//$Message_text = preg_replace('/#([^<>]+?)#/', '<u>$1</u>', $Message_text);
+//$Message_text = preg_replace('/(\&gt\;[^<>]+?)(?:<br>|$)/', '<blockquote class="unkfunc">$1</blockquote>', $Message_text);
 
 $Message_theme = str_replace("\n", '', $Message_theme);
 $Message_theme = str_replace("\r", '', $Message_theme);

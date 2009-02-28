@@ -24,7 +24,7 @@ ini_set('session.gc_maxlifetime', 60 * 60 * 24);
 ini_set('session.cookie_lifetime', 60 * 60 * 24);
 session_start();
 
-require 'database_connect.php';
+require 'databaseconnect.php';
 
 if(($result = mysql_query('select `Name` from `boards` order by `Name`')) != false)
 {

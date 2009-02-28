@@ -86,7 +86,7 @@ if(($POST_NUM = CheckFormat('post', $POST_NUM)) === false)
     die($HEAD . '<span class="error">Ошибка. Номер поста имеет не верный формат.</span>' . $FOOTER);
 }
 
-require 'database_connect.php';
+require 'databaseconnect.php';
 
 // Проверка существования доски с именем $BOARD_NAME.
 if(($result = mysql_query("select `id` from `boards` where `Name` = \"$BOARD_NAME\"")) !== false)

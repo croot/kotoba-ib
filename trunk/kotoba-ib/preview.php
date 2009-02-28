@@ -9,8 +9,6 @@
  * See license.txt for more info.*
  *********************************/
 
-// TODO Надо подумать, хорошо ли, что длинный код запроса идёт с переносами. Потому что он в таким виде попадает в лог при возникновении ошибки.
-
 require 'common.php';
 
 ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH  . '/sessions/');
@@ -34,19 +32,19 @@ $FOOTER =
 </html>';
 
 if(KOTOBA_ENABLE_STAT)
-    if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/preview.stat', 'a')) === false)
-        die($HEAD . '<span class="error">Ошибка. Не удалось открыть или создать файл статистики.</span>' . $FOOTER);
+    if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/preview.stat', 'a')) == false)
+        die($HEAD . '<span class="error">Ошибка. Неудалось открыть или создать файл статистики.</span>' . $FOOTER);
 
 require 'events.php';
 
 if(isset($_GET['b']))
 {
-    if(($BOARD_NAME = CheckFormat('board', $_GET['b'])) === false)
+    if(($BOARD_NAME = CheckFormat('board', $_GET['b'])) == false)
 	{
 		if(KOTOBA_ENABLE_STAT)
 			kotoba_stat(ERR_BOARD_BAD_FORMAT);
 
-		die($HEAD . '<span class="error">Ошибка. Имя доски имеет не верный формат.</span>' . $FOOTER);
+		die($HEAD . '<span class="error">Ошибка. Имя доски имеет неверный формат.</span>' . $FOOTER);
 	}
 }
 else
@@ -59,12 +57,12 @@ else
 
 if(isset($_GET['p']))
 {
-	if(($PAGE = CheckFormat('page', $_GET['p'])) === false)
+	if(($PAGE = CheckFormat('page', $_GET['p'])) == false)
 	{
 		if(KOTOBA_ENABLE_STAT)
 			kotoba_stat(ERR_PAGE_BAD_FORMAT);
 
-		die($HEAD . '<span class="error">Ошибка. Номер страницы имеет не верный формат.</span>' . $FOOTER);
+		die($HEAD . '<span class="error">Ошибка. Номер страницы имеет неверный формат.</span>' . $FOOTER);
 	}
 }
 else
@@ -72,49 +70,43 @@ else
 	$PAGE = 1;
 }
 
-$HEAD = 
-"<html>
-<head>
-	<title>Kotoba - $BOARD_NAME</title>
-	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
-	<link rel=\"stylesheet\" type=\"text/css\" href=\"" . KOTOBA_DIR_PATH . '/kotoba.css">
-</head>
-<body>
-';
-
-$OPPOST_PASS = '';
-
 if(isset($_COOKIE['rempass']))
 {
-	if(($OPPOST_PASS = CheckFormat('pass', $_COOKIE['rempass'])) === false)
+	if(($OPPOST_PASS = CheckFormat('pass', $_COOKIE['rempass'])) == false)
 	{
         if(KOTOBA_ENABLE_STAT)
             kotoba_stat(ERR_PASS_BAD_FORMAT);
             
-		die($HEAD . '<span class="error">Ошибка. Пароль для удаления имеет не верный формат.</span>' . $FOOTER);
+		die($HEAD . '<span class="error">Ошибка. Пароль для удаления имеет неверный формат.</span>' . $FOOTER);
 	}
 }
+else
+{
+	$OPPOST_PASS = '';
+}
 
-$FORM =
-'
-<form action="' . KOTOBA_DIR_PATH . "/createthread.php\" method=\"post\" enctype=\"multipart/form-data\">
-<input type=\"hidden\" name=\"MAX_FILE_SIZE\" value=\"1560576\">
-<table align=\"center\" border=\"0\">
-<tr valign=\"top\"><td>Name: </td><td><input type=\"text\" name=\"Message_name\" size=\"30\"></td></tr>
-<tr valign=\"top\"><td>Theme: </td><td><input type=\"text\" name=\"Message_theme\" size=\"48\"> <input type=\"submit\" value=\"Create Thread\"></td></tr>
-<tr valign=\"top\"><td>Message: </td><td><textarea name=\"Message_text\" rows=\"7\" cols=\"50\"></textarea></td></tr>
-<tr valign=\"top\"><td>Image: </td><td><input type=\"file\" name=\"Message_img\" size=\"54\"></td></tr>
-<tr valign=\"top\"><td>Password: </td><td><input type=\"password\" name=\"Message_pass\" size=\"30\" value=\"$OPPOST_PASS\"></td></tr>
-<tr valign=\"top\"><td>GoTo: </td><td>(thread: <input type=\"radio\" name=\"goto\" value=\"t\">) (board: <input type=\"radio\" name=\"goto\" value=\"b\" checked>)</td></tr>
-</table>
-<input type=\"hidden\" name=\"b\" value=\"$BOARD_NAME\">
-</form>
-";
+require 'databaseconnect.php';
 
-require 'database_connect.php';
+if(isset($_SESSION['isLoggedIn']))	// Зарегистрированный пользователь.
+{
+	if(($result = mysql_query('select `id`, `User Settings` from `users` where SID = \'' . session_id() . '\'')) !== false)
+	{
+		if(mysql_num_rows($result) > 0)
+		{
+			$user = mysql_fetch_array($result, MYSQL_ASSOC);
+			$User_id = $user['id'];
+			$User_Settings = GetSettings('user', $user['User Settings']);
+			mysql_free_result($result);
+		}
+	}
+	else
+	{
+		if(KOTOBA_ENABLE_STAT)
+				kotoba_stat(sprintf(ERR_USER_DATA, mysql_error()));
 
-$BOARDS_LIST = '';
-$BOARD_NUM = -1;
+		die($HEAD . '<span class="error">Ошибка. Невозможно получить данные пользователя. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
+	}
+}
 
 // Получение списка досок и проверка существут ли доска с заданным именем.
 if(($result = mysql_query('select `Name`, `id` from `boards` order by `Name`')) !== false)
@@ -128,6 +120,9 @@ if(($result = mysql_query('select `Name`, `id` from `boards` order by `Name`')) 
 	}
 	else
 	{
+		$BOARD_NUM = -1;
+		$BOARDS_LIST = '';
+		
 		while (($row = mysql_fetch_array($result, MYSQL_ASSOC)) !== false)
 		{
 			if($row['Name'] == $BOARD_NAME)
@@ -155,7 +150,22 @@ else
 	die($HEAD . '<span class="error">Ошибка. Невозможно получить список досок. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
 }
 
-// Фигня не нужная. Но удалять пока не надо.
+$FORM =
+'
+<form action="' . KOTOBA_DIR_PATH . "/createthread.php\" method=\"post\" enctype=\"multipart/form-data\">
+<input type=\"hidden\" name=\"MAX_FILE_SIZE\" value=\"1560576\">
+<table align=\"center\" border=\"0\">
+<tr valign=\"top\"><td>Name: </td><td><input type=\"text\" name=\"Message_name\" size=\"30\"></td></tr>
+<tr valign=\"top\"><td>Theme: </td><td><input type=\"text\" name=\"Message_theme\" size=\"48\"> <input type=\"submit\" value=\"Create Thread\"></td></tr>
+<tr valign=\"top\"><td>Message: </td><td><textarea name=\"Message_text\" rows=\"7\" cols=\"50\"></textarea></td></tr>
+<tr valign=\"top\"><td>Image: </td><td><input type=\"file\" name=\"Message_img\" size=\"54\"></td></tr>
+<tr valign=\"top\"><td>Password: </td><td><input type=\"password\" name=\"Message_pass\" size=\"30\" value=\"$OPPOST_PASS\"></td></tr>
+<tr valign=\"top\"><td>GoTo: </td><td>(thread: <input type=\"radio\" name=\"goto\" value=\"t\">) (board: <input type=\"radio\" name=\"goto\" value=\"b\" checked>)</td></tr>
+</table>
+<input type=\"hidden\" name=\"b\" value=\"$BOARD_NAME\">
+</form>
+";
+
 $result = mysql_query(
 	'select p.`board`, count(p.`id`) `count`
 	from `posts` p join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board`
@@ -168,7 +178,7 @@ mysql_free_result($result);
 
 $MENU = $BOARDS_LIST . "<br>\n<h4 align=center>βchan</h4>\n<br><center><b>/$BOARD_NAME/</b></center>\nПостлимит: $POST_COUNT/" . KOTOBA_POST_LIMIT . "<br>\nБамплимит: " . KOTOBA_BUMPLIMIT . "<hr>\n";
 
-// Получение количества не утонувших тредов просматриваемой доски.
+// Получение количества не утонувших тредов просматриваемой доски и постраничная разбивка.
 if(($result = mysql_query(
 	"select count(*) `count`
 	from `threads`
@@ -177,7 +187,7 @@ if(($result = mysql_query(
 	$row = mysql_fetch_array($result, MYSQL_ASSOC);
     $threards_count = $row['count'];
     mysql_free_result($result);
-    $pages_count = ($threards_count / 10) + 1;
+    $pages_count = ($threards_count / 10) + 1;	// По 10 тредов на странице.
 
     if($PAGE < 1 || $PAGE > $pages_count)
     {
@@ -187,7 +197,7 @@ if(($result = mysql_query(
 		die($HEAD . '<span class="error">Ошибка. Страница находится вне допустимого диапазона.</span>' . $FOOTER);
     }
     
-    $threads_range = " limit " . (($PAGE - 1) * 10) . ", 10";
+    $threads_range = " limit " . (($PAGE - 1) * 10) . ", 10";	// 10 тредов начиная с ...
 	$PAGES = "<br>";
 	
 	for($i = 1; $i <= $pages_count; $i++)
@@ -204,46 +214,31 @@ else
 	die($HEAD . '<span class="error">Ошибка. Невозможно подсчитать количество тредов просматриваемой доски. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
 }
 
-// Получение номеров не утонувших тредов просматривоемой доски в заданном (в зависимости от страницы) диапазоне и отсортированных по убыванию номера последнего поста без сажи.
+$HEAD = 
+"<html>
+<head>
+	<title>Kotoba - $BOARD_NAME</title>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
+	<link rel=\"stylesheet\" type=\"text/css\" href=\"" . KOTOBA_DIR_PATH . '/kotoba.css">
+</head>
+<body>
+';
+
+// Получение номеров не утонувших тредов просматривоемой доски в заданном (в зависимости от страницы)
+// диапазоне и отсортированных по убыванию номера последнего поста без сажи и не запощенного после бамплимита.
 if(($threads = mysql_query(
-	"select p.`thread` `id` 
-	from `posts` p join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board`
-	where t.`board` = $BOARD_NUM and (position('ARCHIVE:YES' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null) and (position('SAGE:Y' in p.`Post Settings`) = 0 or p.`Post Settings` is null) and (position('BLIMIT:Y' in p.`Post Settings`) = 0 or p.`Post Settings` is null)
-	group by p.`thread` order by max(p.`id`) desc $threads_range")) != false)
+	'select p.`thread` `id` ' .
+	"from `posts` p join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board` where t.`board` = $BOARD_NUM " .
+	'and (position(\'ARCHIVE:YES\' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null) ' .
+	'and (position(\'SAGE:Y\' in p.`Post Settings`) = 0 or p.`Post Settings` is null) ' .
+	'and (position(\'BLIMIT:Y\' in p.`Post Settings`) = 0 or p.`Post Settings` is null) ' .
+	"group by p.`thread` order by max(p.`id`) desc $threads_range")) != false)
 {
 	if(mysql_num_rows($threads) > 0)	// На доске может и не быть тредов, как это бывает при создании новой доски.
 	{
 		$PREVIEW = '';
 		$thread_preview_code = '';	// HTML код предпросмотра текущего треда.
 		
-		if(isset($_SESSION['isLoggedIn']))
-		{
-			if(($result = mysql_query('select `id`, `User Settings` from `users` where SID = \'' . session_id() . '\'')) !== false)
-			{
-				if(mysql_num_rows($result) == 0)
-				{
-					if(KOTOBA_ENABLE_STAT)
-						kotoba_stat(sprintf(ERR_USER_SEARCH, session_id()));
-
-					die($HEAD . '<span class="error">Ошибка. Пользователя с сессией ' . session_id() . ' не найден.</span>' . $FOOTER);
-				}
-				else
-				{
-					$user = mysql_fetch_array($result, MYSQL_ASSOC);
-					$User_id = $user['id'];
-					$User_Settings = GetSettings('user', $user['User Settings']);
-					mysql_free_result($result);
-				}
-			}
-			else
-			{
-				if(KOTOBA_ENABLE_STAT)
-						kotoba_stat(sprintf(ERR_USER_DATA, mysql_error()));
-
-				die($HEAD . '<span class="error">Ошибка. Невозможно получить данные пользователя. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
-			}
-		}
-
 		while (($thread = mysql_fetch_array($threads)) != false)
 		{
 			$PREVIEW_REPLAYS_COUNT = 4;	// Количество ответов в предпросмотре треда.
@@ -282,25 +277,32 @@ if(($threads = mysql_query(
 					$Op_settings = GetSettings('post', $post['Post Settings']);
 
 					// Урезание длинного текста.
-                    $Message_text = '';
-                    $offset = 0;
-                    $line = 1;
-
-                    while($line <= KOTOBA_LONGPOST_LINES && (($offset = strpos($post['Text'], "<br>", ($offset == 0 ? $offset : $offset + strlen("<br>")))) !== false))
-                        $line++;
+                    $Message_text = $post['Text'];
                     
-                    if($line == (KOTOBA_LONGPOST_LINES + 1) && $offset !== false)
-                    {
-                        $Message_text = substr($post['Text'], 0, $offset);
-                        $Message_text .= "<br><br><span class=\"abbrev\">Текст сообщения слишком длинный. Нажмите [<a href=\"$thread[id]/\">Просмотр</a>] чтобы посмотреть его целиком.</span>";
-                    }
-                    else
-                        $Message_text = $post['Text'];
+//					if(($count = preg_match('/((?:.+?(?:<br>|<\/ul>|<\/ol>|<\/li>|$)){1,10})/', $post['Text'], $result)) === false)
+//					{
+//						$Message_text = $post['Text'];
+//					}
+//					else
+//					{
+//						if($count == 0)
+//						{
+//							$Message_text = $post['Text'];
+//						}
+//						else
+//						{
+//							$Message_text = preg_replace('/(<ul><li>.+(?!<ul>|<ol>)<\/li>$)/', '$1</ul>', $result[1]);
+//							$Message_text = preg_replace('/(<ol><li>.+(?!<ul>|<ol>)<\/li>$)/', '$1</ol>', $Message_text);
+//
+//							if(strlen($post['Text']) > strlen($Message_text))	// Если урезали.
+//								$Message_text .= "<br><span class=\"abbrev\">Текст сообщения слишком длинный. Нажмите [<a href=\"$thread[id]/\">Просмотр</a>] чтобы посмотреть его целиком.</span>";
+//						}
+//					}
 
 					$thread_preview_code .= "\n<div>\n";
 					$thread_preview_code .= "<span class=\"filetitle\">$Op_settings[THEME]</span> <span class=\"postername\">$Op_settings[NAME]</span> $post[Time]";
 					
-					if(isset($Op_settings['IMGNAME']))
+					if(isset($Op_settings['IMGNAME']))	//TODO Оу. Какой интересный if
 					{
 						$img_thumb_filename = $Op_settings['IMGNAME'] . 't.' . $Op_settings['IMGEXT'];
 						$img_filename = $Op_settings['IMGNAME'] . '.' . $Op_settings['IMGEXT'];
@@ -321,22 +323,28 @@ if(($threads = mysql_query(
 					while (($post = mysql_fetch_array($posts, MYSQL_BOTH)) !== false)
 					{
 						$Replay_settings = GetSettings('post', $post['Post Settings']);
-                        
-                        $Message_text = '';
-                        $offset = 0;
-                        $line = 1;
+                        $Message_text = $post['Text'];
+						
+//                        if(($count = preg_match('/((?:.+?(?:<br>|<\/ul>|<\/ol>|<\/li>|$)){1,10})/', $post['Text'], $result)) === false)
+//						{
+//							$Message_text = $post['Text'];
+//						}
+//						else
+//						{
+//							if($count == 0)
+//							{
+//								$Message_text = $post['Text'];
+//							}
+//							else
+//							{
+//								$Message_text = preg_replace('/(<ul><li>.+(?!<ul>|<ol>)<\/li>$)/', '$1</ul>', $result[1]);
+//								$Message_text = preg_replace('/(<ol><li>.+(?!<ul>|<ol>)<\/li>$)/', '$1</ol>', $Message_text);
+//
+//								if(strlen($post['Text']) > strlen($Message_text))	// Если урезали.
+//									$Message_text .= "<br><span class=\"abbrev\">Текст сообщения слишком длинный. Нажмите [<a href=\"$thread[id]/\">Просмотр</a>] чтобы посмотреть его целиком.</span>";
+//							}
+//						}
 
-                        while($line <= KOTOBA_LONGPOST_LINES && (($offset = strpos($post['Text'], "<br>", ($offset == 0 ? $offset : $offset + strlen("<br>")))) !== false))
-                            $line++;
-                        
-                        if($line == KOTOBA_LONGPOST_LINES + 1 && $offset !== false)
-                        {
-                            $Message_text = substr($post['Text'], 0, $offset);
-                            $Message_text .= "<br><br><span class=\"abbrev\">Текст сообщения слишком длинный. Нажмите [<a href=\"$thread[0]/\">Просмотр</a>] чтобы посмотреть его целиком.</span>";
-                        }
-                        else
-                            $Message_text = $post['Text'];
-					
 						$thread_preview_code .= "\n<table>\n";
 						$thread_preview_code .= "<tr>\n\t<td class=\"reply\"><span class=\"filetitle\">$Replay_settings[THEME]</span> <span class=\"postername\">$Replay_settings[NAME]</span> $post[Time] <span class=\"reflink\"># <a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$thread[0]/#$post[id]\">" .  $post[id] . "</a></span> <span class=\"delbtn\">[<a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/r$post[id]/\" title=\"Удалить\">×</a>]</span> " . ((isset($_SESSION['isLoggedIn']) && ($User_Settings['ADMIN'] === 'Y')) ? $Replay_settings['IP'] : '') . "<br>\n";
 						
@@ -383,7 +391,7 @@ if(($threads = mysql_query(
 else
 {
 	if(KOTOBA_ENABLE_STAT)
-		kotoba_stat(sprintf(ERR_THREADS_NUMS_FALTURE, mysql_error()));
+		kotoba_stat(sprintf(ERR_THREADS_NUM, mysql_error()));
 
 	die($HEAD . '<span class="error">Ошибка. Невозможно получить номера тредов. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
 }
