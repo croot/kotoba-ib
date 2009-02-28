@@ -28,7 +28,7 @@ $BODY = '
 <table width="80%" align="center">
 	<div class="pass">
 		<center>
-			<img src="img/ahs.png"><br>
+			<img src="img/logo.png"><br>
 			Keyword: <input name="Keyword" type="text" maxlength="32">
 			<input type="submit" value="Login">
 			<br><br><br><br><br><br><br><br><br><br>
@@ -62,7 +62,7 @@ if(isset($_POST['Keyword']))
 	if($keyword_length >= 16 && $keyword_length <= 32 && strpos($keyword_code, '%') === false)
 	{
 		$keyword_hash = md5($keyword_code);
-		require 'database_connect.php';
+		require 'databaseconnect.php';
 		
 		if(($result = mysql_query('select `id` from `users` where `Key` = ' . "\"$keyword_hash\"")) != false)
 		{

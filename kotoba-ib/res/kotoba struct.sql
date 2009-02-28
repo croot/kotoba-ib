@@ -37,7 +37,7 @@ CREATE TABLE `boards` (
   `Board Settings` varchar(300) collate utf8_unicode_ci default NULL,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `Name Index` (`Name`)
-) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Boards table.';
 SET character_set_client = @saved_cs_client;
 
 --
@@ -57,7 +57,7 @@ CREATE TABLE `posts` (
   PRIMARY KEY  (`id`,`thread`,`board`),
   KEY `thread` (`thread`,`board`),
   CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`thread`, `board`) REFERENCES `threads` (`id`, `board`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Posts table.';
 SET character_set_client = @saved_cs_client;
 
 --
@@ -72,7 +72,7 @@ CREATE TABLE `threads` (
   `board` int(11) NOT NULL,
   `Thread Settings` varchar(300) collate utf8_unicode_ci default NULL,
   PRIMARY KEY  (`id`,`board`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Threads table.';
 SET character_set_client = @saved_cs_client;
 
 --
@@ -90,7 +90,7 @@ CREATE TABLE `users` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `Key Index` (`Key`),
   UNIQUE KEY `SID Index` (`SID`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Key - Keyword hash.';
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Users table. Key - Keyword hash.';
 SET character_set_client = @saved_cs_client;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -102,4 +102,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2009-02-22 18:09:16
+-- Dump completed on 2009-02-24 16:03:24

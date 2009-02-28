@@ -21,49 +21,35 @@ define('KOTOBA_MIN_IMGSIZE', 1000);     // Минимальный размер �
 define('KOTOBA_LONGPOST_LINES', 10);    // Число строк поста, отображаемое в предпросмотре доски.
 define('KOTOBA_POST_LIMIT', 400);       // Число постов доски, по достижению которого начинают тонуть треды.
 
+
+
 /*
- * Разбирает строку настроек $settings
- * в зависимости от типа $type. Вовзращает
- * ассоциированный массив с настройками.
+ * Разбирает строку настроек $settings.
+ * Вовзращает ассоциированный массив с 
+ * настройками КЛЮЧ => ЗНАЧЕНИЕ.
  * 
- * Например, для типа "post" строка настроек представляет
- * собой пары КЛЮЧ:ЗНАЧЕНИЕ, разделённые символом \n:
+ * Строка настроек состоит из пар КЛЮЧ:ЗНАЧЕНИЕ,
+ * разделённых символом \n:
+ * 
  * КЛЮЧ1:ЗНАЧЕНИЕ1\n
  * КЛЮЧ2:ЗНАЧЕНИЕ2\n
  * ...
- * Функция вернёт ассоциированный массив:
- * КЛЮЧ1 => ЗНАЧЕНИЕ1
- * КЛЮЧ2 => ЗНАЧЕНИЕ2
- * ...
- * 
  */
 function GetSettings($type, $settings)
 {
-    switch($type)
-    {
-        case 'post':
-        case 'thread':
-        case 'board':
-		case 'user':
-            $h = array();
-            $settings_array = explode("\n", $settings);
+    $h = array();
+	$settings_array = explode("\n", $settings);
 
-            for($i = 0; $i < count($settings_array); $i++)
-            {
-                $key = substr($settings_array[$i], 0, strpos($settings_array[$i], ':'));
-                $value = substr($settings_array[$i], strpos($settings_array[$i], ':') + 1, strlen($settings_array[$i]));
-                
-                if($value != '')
-                {
-                    $h[$key] = $value;
-                }
-            }
+	for($i = 0; $i < count($settings_array); $i++)
+	{
+		$key = substr($settings_array[$i], 0, strpos($settings_array[$i], ':'));
+		$value = substr($settings_array[$i], strpos($settings_array[$i], ':') + 1, strlen($settings_array[$i]));
 
-            return $h;
+		if($value != '')
+			$h[$key] = $value;
+	}
 
-        default:
-            return null;
-    }
+	return $h;
 }
 
 /*
@@ -120,7 +106,7 @@ function CheckFormat($type, $value)
 				$value = RawUrlEncode($value);
 				$length = strlen($value);
 
-				if($length > 2 || (ctype_digit($value) === false) || $length < 1)
+				if($length > 2 || (ctype_digit($value) == false) || $length < 1)
 					return false;
 			}
 			else

@@ -34,7 +34,7 @@ if(isset($_POST['Keyword']))
 	{
 		$keyword_hash = md5($keyword_code);		
 		
-		require 'database_connect.php';
+		require 'databaseconnect.php';
 		
 		if(($result = mysql_query('select `id` from `users` where `Key` = ' . "'$keyword_hash'")) != false)
 		{

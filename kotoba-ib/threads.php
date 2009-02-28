@@ -73,7 +73,7 @@ else
 	die($HEAD . '<span class="error">Ошибка. Не задан номер треда.</span>' . $FOOTER);
 }
 
-require 'database_connect.php';
+require 'databaseconnect.php';
 
 $HEAD = 
 "<html>
