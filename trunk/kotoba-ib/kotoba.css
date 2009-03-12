@@ -196,12 +196,12 @@ hr {
 font-size: .6em;
 }
 .reflink {
-	font-size: 18;
+	font-size: 18px;
 	font-weight: bold;
 }
 .admin {
 	background: transparent url('./icons/admin.png') no-repeat;
-font-size: 1;
+font-size: 1px;
 }
 input, textarea {
 	background-color: #F1F1FF;
