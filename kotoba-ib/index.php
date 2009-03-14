@@ -21,10 +21,8 @@ ini_set('session.cookie_lifetime', 60 * 60 * 24);
 session_start();
 
 require 'databaseconnect.php';
-require 'smarty/kotoba/setup.php';
 
 $smarty = new SmartyKotobaSetup();
-$smarty->assign('KOTOBA_DIR_PATH', KOTOBA_DIR_PATH);
 
 // Получение списка досок.
 if(($result = mysql_query('select `Name`, `id` from `boards` order by `Name`')) !== false)

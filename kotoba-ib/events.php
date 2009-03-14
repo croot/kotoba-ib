@@ -182,4 +182,12 @@ define('ERR_DB_SELECT', '(Ошибка) Неудалось выбрать баз
 
 // 1. Причина неудачи обновления SID.
 define('ERR_UPDATE_USER_SID', '(Ошибка) Неудалось обновить идентификатор сессии пользователя. Причина: %s.');
+
+define('ERR_UPLOAD_INI_SIZE', '(Ошибка) Загруженный файл превышает размер, заданный директивой upload_max_filesize в php.ini.');
+define('ERR_UPLOAD_FORM_SIZE', '(Ошибка) Загруженный файл превышает размер, заданный директивой MAX_FILE_SIZE, определённой в HTML форме.');
+define('ERR_UPLOAD_PARTIAL', '(Ошибка) Файл был загружен лишь частично.');
+define('ERR_UPLOAD_NO_FILE', '(Ошибка) Файл не был загружен.');
+define('ERR_UPLOAD_NO_TMP_DIR', '(Ошибка) Временная папка не найдена.');
+define('ERR_UPLOAD_CANT_WRITE', '(Ошибка) Не удалось записать файл на диск.');
+define('ERR_UPLOAD_EXTENSION', '(Ошибка) Загрузка файла прервана расширением.');
 ?>

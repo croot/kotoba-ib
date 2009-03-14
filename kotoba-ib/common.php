@@ -21,6 +21,30 @@ define('KOTOBA_MIN_IMGSIZE', 1000);     // Минимальный размер �
 define('KOTOBA_LONGPOST_LINES', 10);    // Число строк поста, отображаемое в предпросмотре доски.
 define('KOTOBA_POST_LIMIT', 600);       // Число постов доски, по достижению которого начинают тонуть треды.
 
+define('KOTOBA_MAX_MESSAGE_LENGTH', 30000);	// Максимальная длина текста сообщения в байтах.
+define('KOTOBA_MAX_THEME_LENGTH', 120);		// Максимальная длина темы в байтах.
+define('KOTOBA_MAX_NAME_LENGTH', 64);		// Максимальная длина имени в байтах.
+
+/*
+ * Обёртка с настройками Smarty.
+ */
+require_once($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/smarty/Smarty.class.php');
+class SmartyKotobaSetup extends Smarty
+{
+	function SmartyKotobaSetup()
+	{
+		$this->Smarty();
+
+        $this->template_dir = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/smarty/kotoba/templates/';
+		$this->compile_dir = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/smarty/kotoba/templates_c/';
+		$this->config_dir = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/smarty/kotoba/config/';
+		$this->cache_dir = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/smarty/kotoba/cache/';
+        //$this->caching = true;
+		
+		$this->assign('KOTOBA_DIR_PATH', KOTOBA_DIR_PATH);
+    }
+}
+
 /*
  * Разбирает строку настроек $settings.
  * Вовзращает ассоциированный массив с 
