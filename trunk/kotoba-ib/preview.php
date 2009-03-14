@@ -406,7 +406,6 @@ function kotoba_stat($errmsg)
 {
     global $stat_file;
     fwrite($stat_file, "$errmsg (" . date("Y-m-d H:i:s") . ")\n");
-    //fclose($stat_file);
-    // TODO Когда же будем закрывать файл?
+	fclose($stat_file);
 }
 ?>

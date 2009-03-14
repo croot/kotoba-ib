@@ -19,6 +19,8 @@ $KOTOBA_DIR_PATH
  |_[res]
  |  |_Apache.txt
  |  |_create base struct.bat
+ |  |_Install.txt
+ |  |_Kotoba mark 1.txt
  |  |_kotoba struct.sql
  |  |_Kotoba tree.txt
  |  |_kotoba.jpg
@@ -26,7 +28,20 @@ $KOTOBA_DIR_PATH
  |  |_login_bs.png
  |  |_register_bs.dot
  |  |_register_bs.png
+ |  |_restore base struct.bat
+ |_[service]
+ |  |_RestoreSettings.php
  |_[sessions]
+ |_[smarty]
+ |  |_[kotoba]
+ |  |  |_[cache]
+ |  |  |_[configs]
+ |  |  |_[templates]
+ |  |  |  |_index.tpl
+ |  |  |  |_RestoreSettings.tpl
+ |  |  |_[templates_c]
+ |  |_Readme.txt
+ |  |_...
  |_addboard.php
  |_common.php
  |_createthread.php

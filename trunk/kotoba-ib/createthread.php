@@ -87,42 +87,55 @@ else
 
 // Этап 2. Обработка данных ОП поста.
 
-// TODO Перевести ошибки на русский, для единообразия. А пока что их не дефайним.
 switch($_FILES['Message_img']['error'])
 {
     case UPLOAD_ERR_INI_SIZE:
-    kotoba_stat("(0005) Error. The uploaded file exceeds the upload_max_filesize directive in php.ini.");
-    die($HEAD . '<span class="error">Error. The uploaded file exceeds the upload_max_filesize directive in php.ini.</span>' . $FOOTER);
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(ERR_UPLOAD_INI_SIZE);
+
+		die($HEAD . '<span class="error">Ошибка. Загруженный файл превышает размер, заданный директивой upload_max_filesize в php.ini.</span>' . $FOOTER);
     break;
 
     case UPLOAD_ERR_FORM_SIZE:
-    kotoba_stat("(0006) Error. The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form.");
-    die($HEAD . '<span class="error">Error. The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form.</span>' . $FOOTER);
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(ERR_UPLOAD_FORM_SIZE);
+
+		die($HEAD . '<span class="error">Ошибка. Загруженный файл превышает размер, заданный директивой MAX_FILE_SIZE, определённой в HTML форме.</span>' . $FOOTER);
     break;
     
     case UPLOAD_ERR_PARTIAL:
-    kotoba_stat("(0007) Error. The uploaded file was only partially uploaded.");
-    die($HEAD . '<span class="error">Error. The uploaded file was only partially uploaded.</span>' . $FOOTER);
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(ERR_UPLOAD_PARTIAL);
+
+		die($HEAD . '<span class="error">Ошибка. Файл был загружен лишь частично.</span>' . $FOOTER);
     break;
     
     case UPLOAD_ERR_NO_FILE:
-    kotoba_stat("(0008) Error. No file was uploaded.");
-    die($HEAD . '<span class="error">Error. No file was uploaded.</span>' . $FOOTER);
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(ERR_UPLOAD_NO_FILE);
+
+		die($HEAD . '<span class="error">Ошибка. Файл не был загружен.</span>' . $FOOTER);
     break;
     
     case UPLOAD_ERR_NO_TMP_DIR:
-    kotoba_stat("(0009) Error. Missing a temporary folder.");
-    die($HEAD . '<span class="error">Error. Missing a temporary folder.</span>' . $FOOTER);
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(ERR_UPLOAD_NO_TMP_DIR);
+
+		die($HEAD . '<span class="error">Ошибка. Временная папка не найдена.</span>' . $FOOTER);
     break;
     
     case UPLOAD_ERR_CANT_WRITE:
-    kotoba_stat("(0010) Error. Failed to write file to disk.");
-    die($HEAD . '<span class="error">Error. Failed to write file to disk.</span>' . $FOOTER);
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(ERR_UPLOAD_CANT_WRITE);
+
+		die($HEAD . '<span class="error">Ошибка. Не удалось записать файл на диск.</span>' . $FOOTER);
     break;
     
     case UPLOAD_ERR_EXTENSION:
-    kotoba_stat("(0011) Error. File upload stopped by extension.");
-    die($HEAD . '<span class="error">Error. File upload stopped by extension.</span>' . $FOOTER);
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(ERR_UPLOAD_EXTENSION);
+
+		die($HEAD . '<span class="error">Ошибка. Загрузка файла прервана расширением.</span>' . $FOOTER);
     break;
 }
 
@@ -134,8 +147,7 @@ if($_FILES['Message_img']['size'] < KOTOBA_MIN_IMGSIZE)
     die($HEAD . '<span class="error">Ошибка. Загружаемый файл имеет слишком маленький размер.</span>' . $FOOTER);
 }
 
-// TODO Допустимые размеры сообщения, темы и имени надо будет параметризовать.
-if(strlen($_POST['Message_text']) > 30000)
+if(strlen($_POST['Message_text']) > KOTOBA_MAX_MESSAGE_LENGTH)
 {
     if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_TEXT_TOO_LONG);
@@ -143,7 +155,7 @@ if(strlen($_POST['Message_text']) > 30000)
     die ($HEAD . '<span class="error">Ошибка. Текст сообщения слишком длинный.</span>' . $FOOTER);
 }
 
-if(strlen($_POST['Message_theme']) > 120)
+if(strlen($_POST['Message_theme']) > KOTOBA_MAX_THEME_LENGTH)
 {
     if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_THEME_TOO_LONG);
@@ -151,7 +163,7 @@ if(strlen($_POST['Message_theme']) > 120)
     die ($HEAD . '<span class="error">Ошибка. Тема слишком длинная.</span>' . $FOOTER);
 }
 
-if(strlen($_POST['Message_name']) > 64)
+if(strlen($_POST['Message_name']) > KOTOBA_MAX_NAME_LENGTH)
 {
     if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_NAME_TOO_LONG);
@@ -159,12 +171,11 @@ if(strlen($_POST['Message_name']) > 64)
     die ($HEAD . '<span class="error">Ошибка. Имя пользователя слишком длинное.</span>' . $FOOTER);
 }
 
-// TODO Может быть лучше юзать htmlentities
 $Message_text = htmlspecialchars($_POST['Message_text'], ENT_QUOTES);
 $Message_theme = htmlspecialchars($_POST['Message_theme'], ENT_QUOTES);
 $Message_name = htmlspecialchars($_POST['Message_name'], ENT_QUOTES);
 
-if(strlen($Message_text) > 30000)
+if(strlen($Message_text) > KOTOBA_MAX_MESSAGE_LENGTH)
 {
     if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_TEXT_TOO_LONG);
@@ -172,7 +183,7 @@ if(strlen($Message_text) > 30000)
     die ($HEAD . '<span class="error">Ошибка. Текст сообщения слишком длинный.</span>' . $FOOTER);
 }
 
-if(strlen($Message_theme) > 120)
+if(strlen($Message_theme) > KOTOBA_MAX_THEME_LENGTH)
 {
     if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_THEME_TOO_LONG);
@@ -180,7 +191,7 @@ if(strlen($Message_theme) > 120)
     die ($HEAD . '<span class="error">Ошибка. Тема слишком длинная.</span>' . $FOOTER);
 }
 
-if(strlen($Message_name) > 64)
+if(strlen($Message_name) > KOTOBA_MAX_NAME_LENGTH)
 {
     if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_NAME_TOO_LONG);
@@ -199,7 +210,7 @@ $Message_theme = str_replace("\r", '', $Message_theme);
 $Message_name = str_replace("\n", '', $Message_name);
 $Message_name = str_replace("\r", '', $Message_name);
 
-if(strlen($Message_text) > 30000)
+if(strlen($Message_text) > KOTOBA_MAX_MESSAGE_LENGTH)
 {
     if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_TEXT_TOO_LONG);
@@ -441,7 +452,6 @@ while($POST_COUNT >= KOTOBA_POST_LIMIT)
     mysql_free_result($result);
     $Thread_Settings = "ARCHIVE:YES\n";
 
-    // TODO А если в настройках треда уже есть пометка, что он для архивирования?
     if(mysql_query("update `threads` set `Thread Settings` = case when `Thread Settings` is null then concat('', '$Thread_Settings') else concat(`Thread Settings`, '$Thread_Settings') end where `id` = $ARCH_THREAD_NUM and `board` = $BOARD_NUM") === false)
     {
         $temp = mysql_error();
@@ -514,7 +524,7 @@ while($POST_COUNT >= KOTOBA_POST_LIMIT)
     mysql_free_result($result);
 	
     if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(INFO_THREAD_ARCHIVED, $ARCH_THREAD_NUM, $ARCH_THREAD_POSTCOUNT, $BOARD_NUM, $POST_COUNT));
+            kotoba_stat(sprintf(INFO_THREAD_ARCHIVED, $ARCH_THREAD_NUM, $ARCH_THREAD_POSTCOUNT, $BOARD_NUM, $POST_COUNT), false);
 }
 
 // `MaxPostNum` не может быть NULL.
@@ -620,17 +630,15 @@ header('Location: ' . KOTOBA_DIR_PATH . "/$BOARD_NAME/");
 exit;
 ?>
 <?php
-
 /*
  * Выводит сообщение $errmsg в файл статистики $stat_file.
- *
  */
-function kotoba_stat($errmsg)
+function kotoba_stat($errmsg, $close_file = true)
 {
     global $stat_file;
     fwrite($stat_file, "$errmsg (" . date("Y-m-d H:i:s") . ")\n");
-    //fclose($stat_file);
-    // TODO Когда же будем закрывать файл?
-}
 
+	if($close_file)
+		fclose($stat_file);
+}
 ?>

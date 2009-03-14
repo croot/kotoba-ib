@@ -65,7 +65,7 @@ if(isset($_POST['Keyword']))
 
 		if(($result = mysql_query("select `id` from `users` where `Key` = '$keyword_hash'")) != false)
 		{
-			if(mysql_num_rows($result) == 0)
+			if(@mysql_num_rows($result) == 0)
 				$BODY .= "<p>\n\tОшибка. Вы не зарегистрированы.<br>\n\t<a href=\"" . KOTOBA_DIR_PATH . "/index.php\">На главную</a>\n</p>";
 			else
 			{

@@ -270,16 +270,13 @@ else
 echo $HEAD . $MENU . $FORM . '<hr>' . $THREAD . $FOOTER;
 ?>
 <?php
-
 /*
  * Выводит сообщение $errmsg в файл статистики $stat_file.
- *
  */
 function kotoba_stat($errmsg)
 {
     global $stat_file;
     fwrite($stat_file, "$errmsg (" . date("Y-m-d H:i:s") . ")\n");
-    //fclose($stat_file);
+	fclose($stat_file);
 }
-
 ?>
