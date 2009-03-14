@@ -27,9 +27,9 @@ $HEAD =
 
 $FORM =	'
 <form action="' . KOTOBA_DIR_PATH . '/add_board.php" method="post">
-	<p>Boardname: 
+	<p>Имя доски:
 	<input name="Boardname" type="text" size="30" maxlength="16"> 
-	<input type="submit" value="Add">
+	<input type="submit" value="Добавить">
 	</p>
 </form>
 ';
@@ -46,8 +46,8 @@ session_start();
 
 if(isset($_SESSION['isLoggedIn']))  // Только для зарегистрированных пользователей.
 {
-	require 'database_connect.php';
-	
+	require 'databaseconnect.php';
+
 	if(isset($_POST['Boardname']))
 	{
 		$boardname_code   = RawUrlEncode($_POST['Boardname']);
@@ -56,9 +56,7 @@ if(isset($_SESSION['isLoggedIn']))  // Только для зарегистри�
 		if($boardname_length >= 1 && $boardname_length <= 16 && strpos($boardname_code, '%') === false)
 		{
 			if(mysql_query("insert into `boards` (`Name`, `MaxPostNum`, `Board Settings`) values ('$boardname_code', 0, null)") == false)
-			{
 				$temp = '<span class="error">Ошибка. Добаление доски завершилось неудачей. Причина: ' . mysql_error() . '</span><br>';
-			}
 			else
 			{
 				mkdir($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$boardname_code/arch/", '0777', true);
@@ -68,21 +66,17 @@ if(isset($_SESSION['isLoggedIn']))  // Только для зарегистри�
 			}
 		}
 		else
-		{
 			$temp = '<span class="error">Ошибка. Неверный формат имени доски.</span><br>';
-		}
 	}
 
     if(($result = mysql_query('select `Name` from `boards` order by `Name`')) !== false)
     {
         if(mysql_num_rows($result) == 0)
-        {
             $BODY = '<span class="error">Ошибка. Не создано ни одной доски.</span><br>' . $FORM . $temp;
-        }
         else
         {
             $BODY = "<p>Список досок: ";
-            
+
             while (($row = mysql_fetch_array($result, MYSQL_ASSOC)) !== false)
                 $BODY .= '/<a href="' . KOTOBA_DIR_PATH . "/$row[Name]/\">$row[Name]</a>/ ";
 
@@ -93,16 +87,12 @@ if(isset($_SESSION['isLoggedIn']))  // Только для зарегистри�
         mysql_free_result($result);
     }
     else
-    {
         $BODY = '<span class="error">Ошибка. Невозможно получить список досок. Причина: ' . mysql_error() . '.</span><br>' . $FORM . $temp;
-    }
 }
 else
-{
-	$BODY = '<span class="error">Залогиньтесь: <a href="login.php">[login]</a></span>';
-}
+	$BODY = "Вы не вошли в систему.<br>\n<a href=\"" . KOTOBA_DIR_PATH . '/login.php">Войти</a>';
 
-$BODY .= '<br><a href="index.php">[Home]</a>';
+$BODY .= "<br>\n<a href=\"" . KOTOBA_DIR_PATH . '/index.php">На главную</a>';
 
 echo $HEAD . $BODY . $FOOTER;
 ?>

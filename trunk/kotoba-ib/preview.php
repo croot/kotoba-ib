@@ -399,10 +399,8 @@ else
 echo $HEAD . $MENU . $FORM . '<hr>' . $PREVIEW . $PAGES . $FOOTER;
 ?>
 <?php
-
 /*
  * Выводит сообщение $errmsg в файл статистики $stat_file.
- *
  */
 function kotoba_stat($errmsg)
 {
@@ -411,5 +409,4 @@ function kotoba_stat($errmsg)
     //fclose($stat_file);
     // TODO Когда же будем закрывать файл?
 }
-
 ?>
