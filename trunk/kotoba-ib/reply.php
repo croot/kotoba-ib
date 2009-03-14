@@ -235,12 +235,7 @@ $Message_theme = str_replace("\r", '', $Message_theme);
 $Message_name = str_replace("\n", '', $Message_name);
 $Message_name = str_replace("\r", '', $Message_name);
 
-// Заметки:
-//
-// Не думаю, что замена последовательностей переносов строк длинее четырёх на три переноса строки
-// сильно повредит форматированию кода, если таковой запостят.
-$Message_text = preg_replace('/(<br>){4,}/', '<br><br><br>', $Message_text);
-
+$Message_text = preg_replace('/(<br>){3,}/', '<br><br>', $Message_text);
 $with_image = false;
 
 if($_FILES['Message_img']['error'] == UPLOAD_ERR_OK)

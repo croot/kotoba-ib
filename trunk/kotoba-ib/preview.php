@@ -314,7 +314,7 @@ if(($threads = mysql_query(
 					else
 					{
 						$thread_preview_code .= " <span class=\"reflink\"># <a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$thread[0]/#$post[0]\">" .  $post[0] . "</a></span> [<a href=\"" . $thread[0] . "/\">Ответить</a>] <span class=\"delbtn\">[<a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/r$post[0]/\" title=\"Удалить\">×</a>]</span> " . ((isset($_SESSION['isLoggedIn']) && ($User_Settings['ADMIN'] === 'Y')) ? $Op_settings['IP'] : '') . "\n";
-						$thread_preview_code .= "<br><blockquote>\n" . ($Message_text == "" ? "<br>" : $Message_text) . "</blockquote>\n";
+						$thread_preview_code .= "<br>\n<blockquote>\n" . ($Message_text == "" ? "<br>" : $Message_text) . "\n</blockquote>\n";
                     }
 
 					$thread_preview_code .= "<div>\n<span class=\"omittedposts\">" . (($POSTS_COUNT > $PREVIEW_REPLAYS_COUNT + 1) ? "Сообщений пропущено: " . ($POSTS_COUNT - ($PREVIEW_REPLAYS_COUNT + 1)) . '.' . (($POSTS_COUNT > KOTOBA_BUMPLIMIT) ? ' Тред достиг бамплимта.' : '') . "</span>\n<br><br>" : "</span>\n");
