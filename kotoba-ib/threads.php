@@ -80,7 +80,7 @@ $HEAD =
 <head>
 	<title>Kotoba - $BOARD_NAME/$THREAD_NUM</title>
 	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
-	<link rel=\"stylesheet\" type=\"text/css\" href=\"/k/kotoba.css\">
+	<link rel=\"stylesheet\" type=\"text/css\" href=\"" . KOTOBA_DIR_PATH . "/kotoba.css\">
 	<script type=\"text/javascript\" src=\"" . KOTOBA_DIR_PATH . "/kusaba.js\"></script>
 </head>
 <body>
@@ -202,7 +202,7 @@ if(($posts = mysql_query($query)))
 			$HEAD = "<html>\n<head>\n
 				\t<title>Kotoba - $BOARD_NAME/$THREAD_NUM - " . $Op_settings['THEME'] . "</title>\n
 				\t<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n
-				\t<link rel=\"stylesheet\" type=\"text/css\" href=\"/k/kotoba.css\">\n
+				\t<link rel=\"stylesheet\" type=\"text/css\" href=\"" . KOTOBA_DIR_PATH . "/kotoba.css\">\n
 				\t<script type=\"text/javascript\" src=\"" . KOTOBA_DIR_PATH . "/kusaba.js\"></script>\n</head>\n<body>\n";
 		
 		if(isset($Op_settings['IMGNAME']))  // С картинкой.

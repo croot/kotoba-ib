@@ -1,34 +1,32 @@
 <?php
+/*************************************
+ * Этот файл является частью Kotoba. *
+ * Файл license.txt содержит условия *
+ * распространения Kotoba.           *
+ *************************************/
 /*********************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
-?>
-<?php
-$HEAD = 
-'<html>
+
+require 'common.php';
+
+$HEAD = '<html>
 <head>
 	<title>Kotoba Login</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<link rel="stylesheet" type="text/css" href="kotoba.css">
+	<link rel="stylesheet" type="text/css" href="' . KOTOBA_DIR_PATH . '/kotoba.css">
 </head>
 <body>
 ';
-/*$BODY =
-'<form action="login.php" method="post">
-	<p>Keyword: 
-	<input name="Keyword" type="text" size="80" maxlength="32"> 
-	<input type="submit" value="Login">
-	</p>
-	</form>
-';*/
+
 $BODY = '
-<form action="login.php" method="post">
+<form action="' . KOTOBA_DIR_PATH . '/login.php" method="post">
 <p align="center">
 <table width="80%" align="center">
 	<div class="pass">
 		<center>
-			<img src="img/logo.png"><br>
+			<img src="' . KOTOBA_DIR_PATH . '/img/logo.png"><br>
 			Keyword: <input name="Keyword" type="text" maxlength="32">
 			<input type="submit" value="Login">
 			<br><br><br><br><br><br><br><br><br><br>
@@ -38,21 +36,22 @@ $BODY = '
 </table>
 </form>
 ';
+
 $FOOTER = '
 </body>
 </html>';
-$ERROR = '';
 
-ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . '/k/sessions/');
+if(KOTOBA_ENABLE_STAT)
+    if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/login.stat', 'a')) == false)
+        die($HEAD . '<span class="error">Ошибка. Неудалось открыть или создать файл статистики.</span>' . $FOOTER);
+
+ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/sessions/');
 ini_set('session.gc_maxlifetime', 60 * 60 * 24);
 ini_set('session.cookie_lifetime', 60 * 60 * 24);
-
 session_start();
 
 if(isset($_SESSION['isLoggedIn']))
-{
-	die($HEAD . '<p>Already logged in.<br><a href="logout.php">[Logout]</a></p>' . $FOOTER);
-}
+	die($HEAD . "<p>\n\tВы уже вошли.<br>\n\t<a href=\"" . KOTOBA_DIR_PATH . "/logout.php\">Выйти</a>\n</p>" . $FOOTER);
 
 if(isset($_POST['Keyword']))
 {
@@ -63,36 +62,50 @@ if(isset($_POST['Keyword']))
 	{
 		$keyword_hash = md5($keyword_code);
 		require 'databaseconnect.php';
-		
-		if(($result = mysql_query('select `id` from `users` where `Key` = ' . "\"$keyword_hash\"")) != false)
+
+		if(($result = mysql_query("select `id` from `users` where `Key` = '$keyword_hash'")) != false)
 		{
 			if(mysql_num_rows($result) == 0)
-			{
-				$BODY .= '<p>Error.<br>Not registred.</p>' . "\n<br>[<a href=\"index.php\">Home</a>]";
-			}
+				$BODY .= "<p>\n\tОшибка. Вы не зарегистрированы.<br>\n\t<a href=\"" . KOTOBA_DIR_PATH . "/index.php\">На главную</a>\n</p>";
 			else
 			{
-				if(mysql_query('update `users` set `SID` = "' . session_id() . '" where `key` = ' . "\"$keyword_hash\"") == false)
+				if(mysql_query('update `users` set `SID` = "' . session_id() . "\" where `key` = '$keyword_hash'") == false)
 				{
-					$BODY = '<p>Error.<br>Session binding failed by reason: ' . mysql_error() . '.</p>';
+					if(KOTOBA_ENABLE_STAT)
+						kotoba_stat(sprintf(ERR_UPDATE_USER_SID, mysql_error()));
+
+					die($HEAD . '<span class="error">Ошибка. Неудалось обновить идентификатор сессии пользователя. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
 				}
 				else
 				{
 					$_SESSION['isLoggedIn'] = session_id();
-					$BODY = '<p>Logged in.<br><a href="logout.php">[Logout]</a></p>' . "\n<br>[<a href=\"index.php\">Home</a>]";
+					$BODY = "<p>Вы вошли.<br>\n\t<a href=\"" . KOTOBA_DIR_PATH . "/logout.php\">Выйти</a><br>\n\t" .
+							"<a href=\"" . KOTOBA_DIR_PATH . "/index.php\">На главную</a>\n</p>";
 				}
 			}
 		}
 		else
 		{
-			$BODY = '<p>Error.<br>Searching in database falied by reason: ' . mysql_error() . '.</p>';
+			if(KOTOBA_ENABLE_STAT)
+				kotoba_stat(sprintf(ERR_USER_DATA, mysql_error()));
+
+			die($HEAD . '<span class="error">Ошибка. Невозможно получить данные пользователя. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
 		}
 	}
 	else
-	{
-		$BODY .= '<br><p>Error.<br>Keyword: 16-32, A-Za-z0-9_-.</p>';
-	}
+		$BODY .= "<p>\n\tОшибка. Ключевое слово должно иметь длину 16-32 свимолов A-Z a-z 0-9 _ -\n</p>";
 }
-	
-echo ($HEAD . $BODY . $FOOTER);
+
+echo $HEAD . $BODY . $FOOTER;
+?>
+<?php
+/*
+ * Выводит сообщение $errmsg в файл статистики $stat_file.
+ */
+function kotoba_stat($errmsg)
+{
+    global $stat_file;
+    fwrite($stat_file, "$errmsg (" . date("Y-m-d H:i:s") . ")\n");
+    fclose($stat_file);
+}
 ?>
