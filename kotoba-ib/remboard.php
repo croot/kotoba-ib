@@ -74,7 +74,7 @@ if(isset($_SESSION['isLoggedIn']))  // Только для зарегистри�
             $BODY = "<p>Список досок: ";
             
             while (($row = mysql_fetch_array($result, MYSQL_ASSOC)) !== false)
-                $BODY .= '/<a href="' . KOTOBA_DIR_PATH . "/rem_board.php?Boardname=$row[Name]\">$row[Name]</a>/ ";
+                $BODY .= '/<a href="' . KOTOBA_DIR_PATH . "/remboard.php?Boardname=$row[Name]\">$row[Name]</a>/ ";
 
             $BODY = substr($BODY, 0, strlen($BODY) - 1);
 			$BODY .= '</p>' . $temp;

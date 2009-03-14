@@ -554,6 +554,29 @@ function KotobaMark(&$src_text)
 			}
 	}
 
+	// Урежем последовательности пробелов и табов длинее двух вне кода и ссылок.
+	if(isset($TextBlocks))
+		unset($TextBlocks);
+
+	if((isset($CodeBlocks) && count($CodeBlocks) > 0) || (isset($Lists) && count($Lists) > 0) || (isset($Quotes) && count($Quotes) > 0))
+		$TextBlocks = preg_split('/(code:\d+|list:\d+)/', $output, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+	else
+		$TextBlocks[] = $output;
+
+	$output = '';
+
+	for($i = 0; $i < count($TextBlocks); $i++)
+	{
+		if(preg_match('/(code:\d+|list:\d+)/', $TextBlocks[$i]) == 1)
+		{
+			$output .= $TextBlocks[$i];
+			continue;
+		}
+
+		$TextBlocks[$i] = preg_replace('/( |\t){2,}/', '$1', $TextBlocks[$i]);
+		$output .= $TextBlocks[$i];
+	}
+
 	if(isset($CodeBlocks) && count($CodeBlocks) > 0)	// Восстановление кода.
 		for($i = 0; $i < count($CodeBlocks); $i++)
 			$output = preg_replace("/(code:$i)/", "<pre>$CodeBlocks[$i]</pre>", $output);

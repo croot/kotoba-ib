@@ -26,7 +26,7 @@ $HEAD =
 ';
 
 $FORM =	'
-<form action="' . KOTOBA_DIR_PATH . '/add_board.php" method="post">
+<form action="' . KOTOBA_DIR_PATH . '/addboard.php" method="post">
 	<p>Имя доски:
 	<input name="Boardname" type="text" size="30" maxlength="16"> 
 	<input type="submit" value="Добавить">
@@ -73,10 +73,9 @@ if(isset($_SESSION['isLoggedIn']))  // Только для зарегистри�
 						}
 					}
 				}
-/*				mkdir($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$boardname_code/arch/", '0777', true);
+				/*mkdir($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$boardname_code/arch/", '0777', true);
 				mkdir($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$boardname_code/img/", '0777', true);
-				mkdir($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$boardname_code/thumb/", '0777', true);
-*/
+				mkdir($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$boardname_code/thumb/", '0777', true);*/
 				$temp = "<p>Доска $boardname_code успешно добавлена.</p>";
 			}
 		}
