@@ -59,9 +59,24 @@ if(isset($_SESSION['isLoggedIn']))  // Только для зарегистри�
 				$temp = '<span class="error">Ошибка. Добаление доски завершилось неудачей. Причина: ' . mysql_error() . '</span><br>';
 			else
 			{
-				mkdir($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$boardname_code/arch/", '0777', true);
+				$base = sprintf("%s%s/%s", $_SERVER['DOCUMENT_ROOT'], KOTOBA_DIR_PATH, $boardname_code);
+				if(mkdir ($base)) {
+					chmod ($base, 0777);
+					$subdirs = array("arch", "img", "thumb");
+					foreach($subdirs as $dir) {
+						$subdir = sprintf("$base/%s", $dir);
+						if(mkdir($subdir)) {
+							chmod($subdir, 0777);
+						}
+						else {
+							die("create $subdir failed: $php_errormsg");
+						}
+					}
+				}
+/*				mkdir($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$boardname_code/arch/", '0777', true);
 				mkdir($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$boardname_code/img/", '0777', true);
 				mkdir($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$boardname_code/thumb/", '0777', true);
+*/
 				$temp = "<p>Доска $boardname_code успешно добавлена.</p>";
 			}
 		}
