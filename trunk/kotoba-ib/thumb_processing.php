@@ -1,4 +1,16 @@
 <?
+/*************************************
+ * Этот файл является частью Kotoba. *
+ * Файл license.txt содержит условия *
+ * распространения Kotoba.           *
+ *************************************/
+/*********************************
+ * This file is part of Kotoba.  *
+ * See license.txt for more info.*
+ *********************************/
+
+@require_once("./common.php");
+
 /* checkLoadModule function:
  * checking installed module, tries to load module if not loaded
  * return is boolean:
@@ -36,23 +48,24 @@ function checkLoadModule($module_name, $module_library) {
  * $resize_y is thumbnal height
 */
 function createThumbnail($source, $destination, $type, $resize_x, $resize_y) {
-	echo sprintf("%s, %s, %s, %s, %s", $source, $destination, $type, $resize_x, $resize_y);
-	$has_gd = checkLoadModule('gd', 'gd.so');
-	$has_im = checkLoadModule('imagick', 'imagick.so');
+//	echo sprintf("%s, %s, %s, %s, %s", $source, $destination, $type, $resize_x, $resize_y);
+	$has_gd = checkLoadModule('gd', 'gd.so') & KOTOBA_TRY_IMAGE_GD;
+	$has_im = checkLoadModule('imagick', 'imagick.so') & KOTOBA_TRY_IMAGE_IM;
 
 	if($has_gd && $has_im) { //all image formats supported
 		switch(strtolower($type)) {
 			case 'jpg':
 			case 'jpeg':
-				echo "gd";
 				gdCreateThumbnail($source, $destination, $type, $resize_x, $resize_y);
 				return true;
 				break;
 			case 'png':
-			case 'gif':
 			case 'bmp':
-				echo "imagemagick";
 				imCreateThumbnail($source, $destination, $resize_x, $resize_y);
+				return true;
+				break;
+			case 'gif':
+				imCreateThumbnail($source, $destination, $resize_x, $resize_y, false);
 				return true;
 				break;
 			default:
@@ -66,7 +79,7 @@ function createThumbnail($source, $destination, $type, $resize_x, $resize_y) {
 			case 'jpg':
 			case 'gif':
 			case 'jpeg':
-				echo "gd";
+			case 'png':
 				gdCreateThumbnail($source, $destination, $type, $resize_x, $resize_y);
 				return true;
 				break;
@@ -83,7 +96,6 @@ function createThumbnail($source, $destination, $type, $resize_x, $resize_y) {
 			case 'jpeg':
 			case 'png':
 			case 'bmp':
-				echo "imagemagick";
 				imCreateThumbnail($source, $destination, $resize_x, $resize_y);
 				return true;
 				break;
@@ -103,22 +115,44 @@ function createThumbnail($source, $destination, $type, $resize_x, $resize_y) {
  * imCreateThumbnail procedure: creating thumnail using ImageMagick
  * return void TODO: errors?
  * argumens:
- * argumens: $source is source image file
+ * $source is source image file
  * $destination is thumbnail image file
  * $resize_x is thumbnal width
  * $resize_y is thumbnal height
+ * $animation is boulean: preserve animation?
 */
-
-function imCreateThumbnail($source, $destination, $resize_x, $resize_y) {
-	$thumbanil = new Imagick($source);
-	$x = $thumbanil->getImageWidth();
-	$y = $thumbanil->getImageHeight();
+function imCreateThumbnail($source, $destination, $resize_x, $resize_y, $animation = false) {
+	$thumbnail = new Imagick($source);
+	$x = $thumbnail->getImageWidth();
+	$y = $thumbnail->getImageHeight();
 	if($x >= $y) {
-		$thumbanil->thumbnailImage($resize_x, 0);
+		if($animation) {
+			// TODO refactoring needed. code repeating
+			$anime = $thumbnail->coalesceImages();
+			$anime->resizeImage($resize_x, 0, Imagick::FILTER_LANCZOS, 0);
+			$anime->writeImage($destination);
+			$thumbnail->clear();
+			$thumbnail->destroy();
+			$anime->clear();
+			$anime->destroy();
+		}
+		else {
+			$thumbnail->thumbnailImage($resize_x, 0);
+		}
 	}
 	else {
-		$thumbanil->thumbnailImage(0, $resize_y);
+		if($animation) {
+			$anime = $thumbnail->coalesceImages();
+			$anime->resizeImage(0, $resize_y, Imagick::FILTER_LANCZOS, 0);
+		}
+		else {
+			$thumbnail->thumbnailImage(0, $resize_y);
+		}
 	}
-	$thumbanil->writeImage($destination);
+	if(! $animation) {
+		$thumbnail->writeImage($destination);
+		$thumbnail->clear();
+		$thumbnail->destroy();
+	}
 }
 ?>
