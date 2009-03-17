@@ -25,6 +25,9 @@ define('KOTOBA_MAX_MESSAGE_LENGTH', 30000);	// Максимальная длин
 define('KOTOBA_MAX_THEME_LENGTH', 120);		// Максимальная длина темы в байтах.
 define('KOTOBA_MAX_NAME_LENGTH', 64);		// Максимальная длина имени в байтах.
 
+define('KOTOBA_TRY_IMAGE_GD', 0);		// try load libgd support for image processing
+define('KOTOBA_TRY_IMAGE_IM', 1);		// try load imagemagick support for image processing
+
 /*
  * Обёртка с настройками Smarty.
  */
