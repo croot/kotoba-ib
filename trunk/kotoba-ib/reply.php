@@ -351,15 +351,43 @@ if($_FILES['Message_img']['error'] == UPLOAD_ERR_OK)
 
     require 'thumb_processing.php';
 
-	// TODO Если картинка достаточно мала, то зачем делать эскиз?
-    if(!createThumbnail("$IMG_SRC_DIR/$saved_filename", "$IMG_THU_DIR/$saved_thumbname", $recived_ext, 200, 200))
+	$thumb_res = createThumbnail("$IMG_SRC_DIR/$saved_filename", "$IMG_THU_DIR/$saved_thumbname", $recived_ext, $srcimg_res[0], $srcimg_res[1], 200, 200);
+	if($thumb_res != KOTOBA_THUMB_SUCCESS)
+	{
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(ERR_THUMB_CREATION);
+		
+		unlink("$IMG_SRC_DIR/$saved_filename");
+		switch($thumb_res) {
+		case KOTOBA_THUMB_UNSUPPORTED:	// unsupported format
+			$message = "usupported file format";
+			break;
+		case KOTOBA_THUMB_NOLIBRARY:	// no suitable library
+			$message = "no suitable library for image processing";
+			break;
+		case KOTOBA_THUMB_TOOBIG	:	// file too big
+			$message = "image file too big";
+			break;
+		case KOTOBA_THUMB_UNKNOWN:	// unknown error
+			$message = "unknown error";
+			break;
+		default:
+			$message = "...";
+			break;
+		}
+		die ($HEAD . '<span class="error">Ошибка. Не удалось создать уменьшенную копию изображения:' . $message .'</span>' .  $FOOTER);
+	}
+
+	/*
+	if(!createThumbnail("$IMG_SRC_DIR/$saved_filename", "$IMG_THU_DIR/$saved_thumbname", $recived_ext, 200, 200))
     {
         if(KOTOBA_ENABLE_STAT)
 			kotoba_stat(ERR_THUMB_CREATION);
 
 		unlink("$IMG_SRC_DIR/$saved_filename");
 		die ($HEAD . '<span class="error">Ошибка. Не удалось создать уменьшенную копию изображения.</span>' . $FOOTER);
-    }
+	}
+	 */
 	
 	$thumb_res = getimagesize("$IMG_THU_DIR/$saved_thumbname");
 
