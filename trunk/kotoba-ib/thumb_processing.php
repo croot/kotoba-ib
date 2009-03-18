@@ -42,8 +42,8 @@ function checkLoadModule($module_name) {
  * $resize_y is thumbnal height
 */
 function createThumbnail($source, $destination, $type, $x, $y, $resize_x, $resize_y) {
-//	echo sprintf("%s, %s, %s, %s, %s", $source, $destination, $type, $resize_x, $resize_y);
-	if($x < $size_x && $y < $size_y) { // small image doesn't need to be thumbnailed
+//	echo sprintf("%s, %s, %s, %d, %d, %d, %d", $source, $destination, $type, $x, $y, $resize_x, $resize_y);
+	if($x < $resize_x && $y < $resize_y) { // small image doesn't need to be thumbnailed
 		if(filesize($source) > KOTOBA_SMALLIMAGE_LIMIT_FILE_SIZE) { // big file but small image is some kind of trolling
 			return KOTOBA_THUMB_TOOBIG;
 		}
