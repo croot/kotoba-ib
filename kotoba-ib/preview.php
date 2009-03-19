@@ -241,7 +241,7 @@ if(($threads = mysql_query(
 		
 		while (($thread = mysql_fetch_array($threads)) != false)
 		{
-			$PREVIEW_REPLAYS_COUNT = 4;	// Количество ответов в предпросмотре треда.
+			$PREVIEW_REPLAYS_COUNT = 6;	// Количество ответов в предпросмотре треда.
             $POSTS_COUNT = 0;			// Число постов в треде.
 			$last_post_number = null;
 

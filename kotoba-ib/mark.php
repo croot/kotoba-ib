@@ -487,7 +487,7 @@ function KotobaMark(&$src_text)
 	// TODO Придумать проверку на стили текста.
 	if(1 == 1)
 	{
-		// Шаг 1. Однострочные участки текста вне многострочных элементов.
+		// Шаг 1. Однострочные участки текста вне многострочных элементов. (Проверка на однострочность внутри функции wak_basic_mark)
 		if(isset($TextBlocks))
 			unset($TextBlocks);
 
@@ -506,12 +506,12 @@ function KotobaMark(&$src_text)
 				continue;
 			}
 
-			$TextBlocks[$i] = wak_basic_mark($TextBlocks[$i], '**', 'b');
-			$TextBlocks[$i] = wak_basic_mark($TextBlocks[$i], '__', 'b');
-			$TextBlocks[$i] = wak_basic_mark($TextBlocks[$i], '*', 'i');
-			$TextBlocks[$i] = wak_basic_mark($TextBlocks[$i], '_', 'i');
-			$TextBlocks[$i] = wak_basic_mark($TextBlocks[$i], '#', 'u');
-			$TextBlocks[$i] = wak_basic_mark($TextBlocks[$i], '-', 's');
+			$TextBlocks[$i] = BasicMark($TextBlocks[$i], '**', 'b');
+			$TextBlocks[$i] = BasicMark($TextBlocks[$i], '__', 'b');
+			$TextBlocks[$i] = BasicMark($TextBlocks[$i], '*', 'i');
+			$TextBlocks[$i] = BasicMark($TextBlocks[$i], '_', 'i');
+			$TextBlocks[$i] = BasicMark($TextBlocks[$i], '#', 'u');
+			$TextBlocks[$i] = BasicMark($TextBlocks[$i], '-', 's');
 
 			$output .= $TextBlocks[$i];
 		}
@@ -520,12 +520,12 @@ function KotobaMark(&$src_text)
 		if(isset($Quotes) && count($Quotes) > 0)
 			for($i = 0; $i < count($Quotes); $i++)
 			{
-				$Quotes[$i] = wak_basic_mark($Quotes[$i], '**', 'b');
-				$Quotes[$i] = wak_basic_mark($Quotes[$i], '__', 'b');
-				$Quotes[$i] = wak_basic_mark($Quotes[$i], '*', 'i');
-				$Quotes[$i] = wak_basic_mark($Quotes[$i], '_', 'i');
-				$Quotes[$i] = wak_basic_mark($Quotes[$i], '#', 'u');
-				$Quotes[$i] = wak_basic_mark($Quotes[$i], '-', 's');
+				$Quotes[$i] = BasicMark($Quotes[$i], '**', 'b');
+				$Quotes[$i] = BasicMark($Quotes[$i], '__', 'b');
+				$Quotes[$i] = BasicMark($Quotes[$i], '*', 'i');
+				$Quotes[$i] = BasicMark($Quotes[$i], '_', 'i');
+				$Quotes[$i] = BasicMark($Quotes[$i], '#', 'u');
+				$Quotes[$i] = BasicMark($Quotes[$i], '-', 's');
 			}
 
 		// Шаг 3. Текст внутри элементов списка.
@@ -543,12 +543,12 @@ function KotobaMark(&$src_text)
 						continue;
 					}
 
-					$tokens[$j] = wak_basic_mark($tokens[$j], '**', 'b');
-					$tokens[$j] = wak_basic_mark($tokens[$j], '__', 'b');
-					$tokens[$j] = wak_basic_mark($tokens[$j], '*', 'i');
-					$tokens[$j] = wak_basic_mark($tokens[$j], '_', 'i');
-					$tokens[$j] = wak_basic_mark($tokens[$j], '#', 'u');
-					$tokens[$j] = wak_basic_mark($tokens[$j], '-', 's');
+					$tokens[$j] = BasicMark($tokens[$j], '**', 'b');
+					$tokens[$j] = BasicMark($tokens[$j], '__', 'b');
+					$tokens[$j] = BasicMark($tokens[$j], '*', 'i');
+					$tokens[$j] = BasicMark($tokens[$j], '_', 'i');
+					$tokens[$j] = BasicMark($tokens[$j], '#', 'u');
+					$tokens[$j] = BasicMark($tokens[$j], '-', 's');
 					$Lists[$i] .= $tokens[$j];
 				}
 			}
@@ -607,39 +607,114 @@ function KotobaMark(&$src_text)
  * Заменяет $delimeterТЕКСТ$delimeter на $tagТЕКСТ$tag в строке $line.
  * Возвращает изменённую строку.
  */
-function wak_basic_mark(&$line, $delimeter, $tag)
+function BasicMark(&$line, $delimeter, $tag)
 {
-	$parts = explode($delimeter, $line);
-	$numparts = count($parts);
+	$regDelimeter = '';
 
-	if($numparts > 2)
+	for($i = 0; $i < strlen($delimeter); $i++)
+		$regDelimeter .= "\\$delimeter[$i]";
+
+	$lines = preg_split('/(\n)/', $line, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+
+	for($i = 0; $i < count($lines); $i++)
 	{
-		$counter = 0;
-		$result = array();
-
-		foreach($parts as $part)
+		if($lines[$i] == "\n")
+			$tokens[] = $lines[$i];
+		else
 		{
-			if($counter > 0)
-				if($counter % 2 && array_key_exists($counter + 1, $parts))
-				{
-					if($part != '')
-					{
-						if(preg_match('/^\S.*$/', $part) == 1)
-							$part = "<$tag>" . $part . "</$tag>";
-						else
-							$part = $delimeter . $part . $delimeter;
-					}
-					else
-						$part = $delimeter . $delimeter;
-				}
+			$openMarks = preg_split("/((?: |\t|^)$regDelimeter(?!$regDelimeter|\s))/", $lines[$i], -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
 
-			array_push($result, $part);
-			$counter ++;
+			for($j = 0; $j < count($openMarks); $j++)
+			{
+				if(preg_match("/((?: |\t|^)$regDelimeter)(?!$regDelimeter|\s)/", $openMarks[$j], $matches) == 1)
+					$tokens[] = $matches[1];
+				else
+				{
+					$closeMarks = preg_split("/((?<!$regDelimeter|\s)$regDelimeter(?: |\t|$))/", $openMarks[$j], -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+					
+					for($k = 0; $k < count($closeMarks); $k++)
+						$tokens[] = $closeMarks[$k];
+                }
+            }
+        }
+    }
+
+	$style = false;
+	$line = '';
+	$text = '';
+
+	for($i = 0; $i < count($tokens); $i++)
+	{
+		if($tokens[$i] == "\n")
+		{
+			if($style)
+			{
+				$line .= $delimeter . $text . $tokens[$i];
+				$style = false;
+				$text = '';
+			}
+			else
+				$line .= $tokens[$i];
+
+			continue;
 		}
 
-		return implode($result);
+		if($tokens[$i] == "$delimeter")	// Действительные метки в конце и начале строки одинаковые.
+		{
+			if($style)	// Открывающая.
+			{
+				$line .= "<$tag>$text</$tag>$matches[1]";
+				$style = false;
+				$text = '';
+            }
+			else		// Закрывающая.
+			{
+				$style = true;
+				$line .= $matches[1];
+            }
+
+			continue;
+        }
+
+		if(preg_match("/( |\t)$regDelimeter(?!$regDelimeter|\s)/", $tokens[$i], $matches) == 1)		// Открывающая метка.
+		{
+			if($style)
+			{
+				$line .= $delimeter . $text . $matches[1];
+				$text = '';
+			}
+			else
+			{
+				$style = true;
+				$line .= $matches[1];
+			}
+
+			continue;
+		}
+
+		if(preg_match("/(?<!$regDelimeter|\s)$regDelimeter( |\t)/", $tokens[$i], $matches) == 1)	// Закрывающая метка.
+		{
+			if($style)
+			{
+				$line .= "<$tag>$text</$tag>$matches[1]";
+				$style = false;
+				$text = '';
+			}
+			else
+				$line .= $tokens[$i];
+
+			continue;
+		}
+
+		if($style)
+			$text .= $tokens[$i];
+		else
+			$line .= $tokens[$i];
 	}
-	else
-		return $line;
+
+	if($text != '')
+		$line .= $delimeter . $text;
+
+	return $line;
 }
 ?>
