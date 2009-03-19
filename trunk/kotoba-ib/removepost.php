@@ -75,7 +75,7 @@ if(($BOARD_NAME = CheckFormat('board', $BOARD_NAME)) === false)
     if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_BOARD_BAD_FORMAT);
         
-    die($HEAD . '<span class="error">Ошибка. Имя доски имеет не верный формат.</span>' . $FOOTER);
+    die($HEAD . '<span class="error">Ошибка. Имя доски имеет неверный формат.</span>' . $FOOTER);
 }
 
 if(($POST_NUM = CheckFormat('post', $POST_NUM)) === false)
@@ -83,7 +83,7 @@ if(($POST_NUM = CheckFormat('post', $POST_NUM)) === false)
     if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_POST_BAD_FORMAT);
         
-    die($HEAD . '<span class="error">Ошибка. Номер поста имеет не верный формат.</span>' . $FOOTER);
+    die($HEAD . '<span class="error">Ошибка. Номер поста имеет неверный формат.</span>' . $FOOTER);
 }
 
 require 'databaseconnect.php';
@@ -168,7 +168,7 @@ if(isset($_COOKIE['rempass']))
 		if(KOTOBA_ENABLE_STAT)
 			kotoba_stat(ERR_PASS_BAD_FORMAT);
 
-		die($HEAD . '<span class="error">Ошибка. Пароль для удаления имеет не верный формат.</span>' . $FOOTER);
+		die($HEAD . '<span class="error">Ошибка. Пароль для удаления имеет неверный формат.</span>' . $FOOTER);
 	}
 }
 else
@@ -180,7 +180,7 @@ else
 			if(KOTOBA_ENABLE_STAT)
 				kotoba_stat(ERR_PASS_BAD_FORMAT);
 
-			die($HEAD . '<span class="error">Ошибка. Пароль для удаления имеет не верный формат.</span>' . $FOOTER);
+			die($HEAD . '<span class="error">Ошибка. Пароль для удаления имеет неверный формат.</span>' . $FOOTER);
 		}
     }
 	else
@@ -209,7 +209,7 @@ if($POST_NUM != $THREAD_NUM)	// Удаляется пост из треда.
 			if(KOTOBA_ENABLE_STAT)
 				kotoba_stat(ERR_WRONG_PASSWORD);
 
-			die($HEAD . '<span class="error">Ошибка. Не верный пароль.</span>' . $FOOTER);
+			die($HEAD . '<span class="error">Ошибка. Неверный пароль.</span>' . $FOOTER);
         }
 	}
 	else

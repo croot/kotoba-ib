@@ -19,7 +19,7 @@ if(@mysql_connect('localhost', 'root', '') == false)
 	die("<html>\n<head>\n\t<title>Kotoba установление соединения</title>\n" .
 		"\t<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n" .
 		"\t<link rel=\"stylesheet\" type=\"text/css\" href=\"" . KOTOBA_DIR_PATH . "/kotoba.css\">\n</head>\n<body>\n" .
-		"\t<span class=\"error\">Ошибка. Неудалось установить соединение с сервром БД.</span>\n</body>\n</html>");
+		"\t<span class=\"error\">Ошибка. Не удалось установить соединение с сервером БД.</span>\n</body>\n</html>");
 }
 
 if(mysql_select_db('kotoba') == false)
@@ -32,6 +32,6 @@ if(mysql_select_db('kotoba') == false)
 	die("<html>\n<head>\n\t<title>Kotoba установление соединения</title>\n" .
 		"\t<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n" .
 		"\t<link rel=\"stylesheet\" type=\"text/css\" href=\"" . KOTOBA_DIR_PATH . "/kotoba.css\">\n</head>\n<body>\n" .
-		"\t<span class=\"error\">Ошибка. Неудалось выбрать базу данных. Причина: " . mysql_error() . "</span>\n</body>\n</html>");
+		"\t<span class=\"error\">Ошибка. Не удалось выбрать базу данных. Причина: " . mysql_error() . "</span>\n</body>\n</html>");
 }
 ?>
