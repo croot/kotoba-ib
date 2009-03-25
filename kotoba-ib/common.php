@@ -25,8 +25,8 @@ define('KOTOBA_MAX_MESSAGE_LENGTH', 30000);	// Максимальная длин
 define('KOTOBA_MAX_THEME_LENGTH', 120);		// Максимальная длина темы в байтах.
 define('KOTOBA_MAX_NAME_LENGTH', 64);		// Максимальная длина имени в байтах.
 
-define('KOTOBA_TRY_IMAGE_GD', 0);		// try load libgd support for image processing
-define('KOTOBA_TRY_IMAGE_IM', 1);		// try load imagemagick support for image processing
+define('KOTOBA_TRY_IMAGE_GD', 1);		// try load libgd support for image processing
+define('KOTOBA_TRY_IMAGE_IM', 0);		// try load imagemagick support for image processing
 
 define('KOTOBA_SMALLIMAGE_LIMIT_FILE_SIZE', 1048576);	// small image over that limit wouldn't 
 														// processing
@@ -36,6 +36,8 @@ define('KOTOBA_THUMB_UNSUPPORTED', 1);	// unsupported format
 define('KOTOBA_THUMB_NOLIBRARY', 2);	// no suitable library
 define('KOTOBA_THUMB_TOOBIG', 4);		// file too big
 define('KOTOBA_THUMB_UNKNOWN', 255);	// unknown error
+
+define('KOTOBA_SESSION_LIFETIME', 86400);	// Используется для параметров session.gc_maxlifetime и session.cookie_lifetime
 
 /*
  * Обёртка с настройками Smarty.

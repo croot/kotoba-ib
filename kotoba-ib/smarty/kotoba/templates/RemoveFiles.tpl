@@ -17,7 +17,8 @@
 {if isset($error)}
 <span class="error">{$error}.</span>
 {else}
-Обработано {$postsCount} постов. Исправлено {$affectedCount} постов.
+<h3>Всего перемещено {$actionCount} файлов.</h3>
+{$actionList}
 {/if}
 </body>
 </html>

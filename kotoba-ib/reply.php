@@ -265,7 +265,7 @@ if($_FILES['Message_img']['error'] == UPLOAD_ERR_OK)
 
 		die ($HEAD . '<span class="error">Ошибка. Недопустимый тип файла.</span>' . $FOOTER);
     }
-	
+
     $recived_ext = strtolower(substr($_FILES['Message_img']['name'], $dot_pos + 1));
 
     switch($recived_ext)

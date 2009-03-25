@@ -30,7 +30,7 @@ session_start();
 // Только для зарегистрированных пользователей.
 if(!isset($_SESSION['isLoggedIn']))
 {
-	$smarty->assign('error', 'Ошибка. Вы не вошли в систему.');
+	$smarty->assign('error', 'Ошибка. Вы не вошли в систему');
 	die($smarty->fetch('RestoreSettings.tpl'));
 }
 
@@ -45,7 +45,7 @@ if(($result = mysql_query('select `User Settings` from `users` where SID = \'' .
 	else
 	{
 		@mysql_free_result($result);
-		$smarty->assign('error', 'Ошибка. Пользователь с SID ' . session_id() . ' не найден в базе.');
+		$smarty->assign('error', 'Ошибка. Пользователь с SID ' . session_id() . ' не найден в базе');
 		die($smarty->fetch('RestoreSettings.tpl'));
     }
 }
@@ -58,7 +58,7 @@ else
 // Только для администраторов.
 if($User_Settings['ADMIN'] !== 'Y')
 {
-	$smarty->assign('error', 'Ошибка. Вы не являетесь администратором.');
+	$smarty->assign('error', 'Ошибка. Вы не являетесь администратором');
 	die($smarty->fetch('RestoreSettings.tpl'));
 }
 
@@ -137,7 +137,7 @@ if(count($posts_to_update) > 0)
 		{
 			$temp = mysql_error();
 			mysql_query('rollback');
-			$smarty->assign('error', "Ошибка. Невозможно обновить настройки поста. Причина: $temp.");
+			$smarty->assign('error', "Ошибка. Невозможно обновить настройки поста. Причина: $temp");
 			die($smarty->fetch('RestoreSettings.tpl'));
         }
 		
@@ -148,7 +148,7 @@ if(count($posts_to_update) > 0)
 	{
 		$temp = mysql_error();
 		mysql_query('rollback');
-		$smarty->assign('error', "Ошибка. Невозможно завершить транзакцию. Причина: $temp.");
+		$smarty->assign('error', "Ошибка. Невозможно завершить транзакцию. Причина: $temp");
 		die($smarty->fetch('RestoreSettings.tpl'));
 	}
 }

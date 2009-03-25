@@ -25,6 +25,12 @@ Windows (XP)
     AllowOverride FileInfo Indexes
 </Directory>
 
+<Directory C:/Apache22/htdocs/k/sessions/>
+    AllowOverride None
+    Order deny,allow
+    Deny from all
+</Directory>
+
 <Directory C:/Apache22/htdocs/k/smarty/>
     AllowOverride None
     Order deny,allow
