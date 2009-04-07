@@ -63,6 +63,10 @@ function createThumbnail($source, $destination, $type, $x, $y, $resize_x, $resiz
 			case 'gif':
 				return imCreateThumbnail($source, $destination, $x, $y, $resize_x, $resize_y);
 				break;
+			case 'svg':
+				// svg format
+				return imCreatePngThumbnail($source, $destination, $resize_x, $resize_y);
+				break;
 			default:
 				// unknown image format
 				return KOTOBA_THUMB_UNSUPPORTED;
@@ -91,6 +95,10 @@ function createThumbnail($source, $destination, $type, $x, $y, $resize_x, $resiz
 			case 'png':
 			case 'bmp':
 				return imCreateThumbnail($source, $destination, $x, $y, $resize_x, $resize_y);
+				break;
+			case 'svg':
+				// svg format
+				return imCreatePngThumbnail($source, $destination, $resize_x, $resize_y);
 				break;
 			default:
 				// unknown image format
@@ -131,7 +139,36 @@ function linkfile($source, $destination) {
 	}
 	return KOTOBA_THUMB_UNKNOWN;
 }
-
+/*
+ * imCreatePngThumbnail procedure: creating thumnail using ImageMagick from 
+ *  other formats. Result in .png
+ * return integer code error (0 or KOTOBA_THUMB_SUCCESS on success)
+ * argumens:
+ * $source is source image file
+ * $destination is thumbnail image file
+ ** (dimensions of original image unknown)
+ * $resize_x is thumbnal width
+ * $resize_y is thumbnal height
+ */
+function imCreatePngThumbnail($source, $destination, $resize_x, $resize_y) {
+	$thumbnail = new Imagick($source);
+	$x = $thumbnail->getImageWidth();
+	$y = $thumbnail->getImageHeight();
+	echo "$x, $y\n";
+	if(!$thumbnail->setImageFormat('png')) {
+		echo "failed?";
+	}
+	if($x >= $y) { // resize width to $resize_x, height is resized proportional
+		$thumbnail->thumbnailImage($resize_x, 0);
+	}
+	else { //resize height to $resize_y, width resized proportional
+		$thumbnail->thumbnailImage(0, $resize_y);
+	}
+	$thumbnail->writeImage($destination);
+	$thumbnail->clear();
+	$thumbnail->destroy();
+	return KOTOBA_THUMB_SUCCESS;
+}
 /*
  * imCreateThumbnail procedure: creating thumnail using ImageMagick
  * return integer code error (0 or KOTOBA_THUMB_SUCCESS on success)
@@ -172,6 +209,17 @@ function imCreateThumbnail($source, $destination, $x, $y, $resize_x, $resize_y, 
 		return KOTOBA_THUMB_SUCCESS;
 	}
 }
+
+/*
+ * gdCreateThumbnail: create thumbnail from image
+ * return integer code error (0 or KOTOBA_THUMB_SUCCESS on success)
+ * arguments
+ * $source: source file name
+ * $destination: destination file name
+ * $type: file type
+ * $x and $y: dimensions of source image
+ * $resize_x and $resize_y: dimensions of destination image
+ */
 
 function gdCreateThumbnail($source, $destination, $type, $x, $y, $resize_x, $resize_y) {
 	switch(strtolower($type)) {
