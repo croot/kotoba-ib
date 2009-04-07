@@ -154,8 +154,10 @@ function imCreatePngThumbnail($source, $destination, $resize_x, $resize_y) {
 	$thumbnail = new Imagick($source);
 	$x = $thumbnail->getImageWidth();
 	$y = $thumbnail->getImageHeight();
+	$pixel = new ImagickPixel();
+	$pixel->setColor('none');
 	if(!$thumbnail->setImageFormat('png')) {
-		echo "failed?";
+		die("conversion failed");
 	}
 	if($x >= $y) { // resize width to $resize_x, height is resized proportional
 		$thumbnail->thumbnailImage($resize_x, 0);
@@ -163,6 +165,8 @@ function imCreatePngThumbnail($source, $destination, $resize_x, $resize_y) {
 	else { //resize height to $resize_y, width resized proportional
 		$thumbnail->thumbnailImage(0, $resize_y);
 	}
+	$thumbnail->setBackgroundColor($pixel);
+	$thumbnail->setImageBackgroundColor($pixel);
 	$thumbnail->writeImage($destination);
 	$thumbnail->clear();
 	$thumbnail->destroy();
