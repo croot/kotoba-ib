@@ -268,15 +268,27 @@ if($_FILES['Message_img']['error'] == UPLOAD_ERR_OK)
 
     $recived_ext = strtolower(substr($_FILES['Message_img']['name'], $dot_pos + 1));
 
+	// $internal_size: boolean flag indicates is picture dimensions
+	// calculated in this file (see below) matter to thumbnailing
+	$internal_size = true;
+	// $original_ext: original extension of posted filename
+	$original_ext;
     switch($recived_ext)
     {
         case 'jpeg':
             $recived_ext = 'jpg';
+			$original_ext = $recived_ext;
             break;
         case 'gif':
         case 'png':
         case 'jpg':
+			$original_ext = $recived_ext;
             break;
+		case 'svg':
+			$internal_size = false;
+			$original_ext = $recived_ext;
+			$recived_ext = 'png';
+			break;
         default:
             if(KOTOBA_ENABLE_STAT)
 				kotoba_stat(ERR_WRONG_FILETYPE);
@@ -284,11 +296,16 @@ if($_FILES['Message_img']['error'] == UPLOAD_ERR_OK)
 			die ($HEAD . '<span class="error">Ошибка. Недопустимый тип файла.</span>' . $FOOTER);
     }
 
-    list($usec, $sec) = explode(" ", microtime());
+    /*list($usec, $sec) = explode(" ", microtime());
     $saved_filename = $sec . substr($usec, 2, 5);
     $saved_thumbname = $saved_filename . "t." . $recived_ext;
     $raw_filename = $saved_filename;
-    $saved_filename .= ".$recived_ext";
+	$saved_filename .= ".$recived_ext"; */
+	list($usec, $sec) = explode(' ', microtime());
+	$saved_filename = $sec . substr($usec, 2, 5);				// Три знака после запятой.
+	$saved_thumbname = $saved_filename . 't.' . $recived_ext;   // Имена всех миниатюр заканчиваются на t.
+	$raw_filename = $saved_filename;
+	$saved_filename .= ".$original_ext";
 
     $IMG_SRC_DIR = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$BOARD_NAME/img";
     $IMG_THU_DIR = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb";
@@ -301,7 +318,7 @@ if($_FILES['Message_img']['error'] == UPLOAD_ERR_OK)
 		die ($HEAD . '<span class="error">Ошибка. Файл не удалось сохранить.</span>' . $FOOTER);
     }
     
-    if(KOTOBA_ALLOW_SAEMIMG)
+    if(!KOTOBA_ALLOW_SAEMIMG)
     {
         if(($img_hash = hash_file('md5', "$IMG_SRC_DIR/$saved_filename")) === false)
         {
@@ -336,7 +353,13 @@ if($_FILES['Message_img']['error'] == UPLOAD_ERR_OK)
         }
     }
 
-    $srcimg_res = getimagesize("$IMG_SRC_DIR/$saved_filename");
+	if($internal_size) { // calculate image dimensions
+		$srcimg_res = getimagesize("$IMG_SRC_DIR/$saved_filename");
+	}
+	else { // doesn't calculate iamge dimensions, thumbnailing procedure do it itself
+		// set dimensions size suitable to thumbnailing procedure not copy
+		$srcimg_res[0] = 201; $srcimg_res[1] = 201;
+	}
 
     if($srcimg_res[0] < KOTOBA_MIN_IMGWIDTH && $srcimg_res[1] < KOTOBA_MIN_IMGHEIGTH)
     {
@@ -351,7 +374,7 @@ if($_FILES['Message_img']['error'] == UPLOAD_ERR_OK)
 
     require 'thumb_processing.php';
 
-	$thumb_res = createThumbnail("$IMG_SRC_DIR/$saved_filename", "$IMG_THU_DIR/$saved_thumbname", $recived_ext, $srcimg_res[0], $srcimg_res[1], 200, 200);
+	$thumb_res = createThumbnail("$IMG_SRC_DIR/$saved_filename", "$IMG_THU_DIR/$saved_thumbname", $original_ext, $srcimg_res[0], $srcimg_res[1], 200, 200);
 
 	if($thumb_res != KOTOBA_THUMB_SUCCESS)
 	{
@@ -387,6 +410,7 @@ if($_FILES['Message_img']['error'] == UPLOAD_ERR_OK)
 
     $Message_img_params = "IMGNAME:$raw_filename\n";
     $Message_img_params .= "IMGEXT:$recived_ext\n";
+	$Message_img_params .= "ORIGIMGEXT:$original_ext\n";
     $Message_img_params .= "IMGTW:$thumb_res[0]\n";
     $Message_img_params .= "IMGTH:$thumb_res[1]\n";
     $Message_img_params .= "IMGSW:$srcimg_res[0]\n";

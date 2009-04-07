@@ -208,7 +208,7 @@ if(($posts = mysql_query($query)))
 		if(isset($Op_settings['IMGNAME']))  // С картинкой.
 		{
 			$img_thumb_filename = $Op_settings['IMGNAME'] . 't.' . $Op_settings['IMGEXT'];
-			$img_filename = $Op_settings['IMGNAME'] . '.' . $Op_settings['IMGEXT'];
+			$img_filename = $Op_settings['IMGNAME'] . '.' . $Op_settings['ORIGIMGEXT'];
 			
 			$THREAD .= " <span class=\"filesize\">Файл: <a target=\"_blank\" href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename\">$img_filename</a> -(<em>$Op_settings[IMGSIZE] Байт, $Op_settings[IMGSW]x$Op_settings[IMGSH]</em>)</span> <span class=\"reflink\"><span onclick=\"insert('>>$post[id]');\">#</span> <a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/#$post[id]\">$post[id]</a></span> <span class=\"delbtn\">[<a href=\" " . KOTOBA_DIR_PATH . "/$BOARD_NAME/r$post[id]/\" title=\"Удалить\">×</a>]</span><a name=\"$post[id]\"></a>\n";
 			$THREAD .= "<br><a target=\"_blank\" href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename\"><img src=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb/$img_thumb_filename\" class=\"thumb\" width=\"$Op_settings[IMGTW]\" heigth=\"$Op_settings[IMGTH]\"></a>";
@@ -232,7 +232,7 @@ if(($posts = mysql_query($query)))
 			if(isset($Replay_settings['IMGNAME']))
 			{
 				$img_thumb_filename = $Replay_settings['IMGNAME'] . 't.' . $Replay_settings['IMGEXT'];
-				$img_filename = $Replay_settings['IMGNAME'] . '.' . $Replay_settings['IMGEXT'];
+				$img_filename = $Replay_settings['IMGNAME'] . '.' . $Replay_settings['ORIGIMGEXT'];
 
 				$THREAD .= " <span class=\"filesize\">Файл: <a target=\"_blank\" href=\"". KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename\">$img_filename</a> -(<em>$Replay_settings[IMGSIZE] Байт $Replay_settings[IMGSW]x$Replay_settings[IMGSH]</em>)</span> <span class=\"reflink\"><span onclick=\"insert('>>$post[id]');\">#</span> <a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/#$post[id]\">$post[id]</a></span> <span class=\"delbtn\">[<a href=\"" . KOTOBA_DIR_PATH. "/$BOARD_NAME/r$post[id]/\" title=\"Удалить\">×</a>]</span><a name=\"$post[id]\"></a>\n";
 				$THREAD .= "\t<br><a target=\"_blank\" href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename\"><img src=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb/$img_thumb_filename\" class=\"thumb\" width=\"$Replay_settings[IMGTW]\" heigth=\"$Replay_settings[IMGTH]\"></a>";

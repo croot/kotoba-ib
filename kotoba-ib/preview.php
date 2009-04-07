@@ -306,7 +306,7 @@ if(($threads = mysql_query(
 					if(isset($Op_settings['IMGNAME']))	//TODO Оу. Какой интересный if
 					{
 						$img_thumb_filename = $Op_settings['IMGNAME'] . 't.' . $Op_settings['IMGEXT'];
-						$img_filename = $Op_settings['IMGNAME'] . '.' . $Op_settings['IMGEXT'];
+						$img_filename = $Op_settings['IMGNAME'] . '.' . $Op_settings['ORIGIMGEXT'];
 						
 						$thread_preview_code .= " <span class=\"filesize\">Файл: <a target=\"_blank\" href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename\">$img_filename</a> -(<em>" .  $Op_settings['IMGSIZE'] . " Байт, " . $Op_settings['IMGSW'] . "x" . $Op_settings['IMGSH'] . "</em>)</span> <span class=\"reflink\"># <a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$thread[0]/#$post[0]\">$post[0]</a></span> [<a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$thread[0]/\">Ответить</a>] <span class=\"delbtn\">[<a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/r$post[0]/\" title=\"Удалить\">×</a>]</span> " . ((isset($_SESSION['isLoggedIn']) && ($User_Settings['ADMIN'] === 'Y')) ? $Op_settings['IP'] : '') . "<br>\n";
 						$thread_preview_code .= "<a target=\"_blank\" href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename\"><img src=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb/$img_thumb_filename\" class=\"thumb\" width=\"" . $Op_settings['IMGTW'] . "\" heigth=\"" . $Op_settings['IMGTH'] . "\"></a>";
@@ -352,7 +352,7 @@ if(($threads = mysql_query(
 						if(isset($Replay_settings['IMGNAME']))
 						{
 							$img_thumb_filename = $Replay_settings['IMGNAME'] . 't.' . $Replay_settings['IMGEXT'];
-							$img_filename = $Replay_settings['IMGNAME'] . '.' . $Replay_settings['IMGEXT'];
+							$img_filename = $Replay_settings['IMGNAME'] . '.' . $Replay_settings['ORIGIMGEXT'];
 
 							$thread_preview_code .= "<span class=\"filesize\">Файл: <a target=\"_blank\" href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename\">$img_filename</a> -(<em>" .  $Replay_settings['IMGSIZE'] . " Байт " . $Replay_settings['IMGSW'] . "x" . $Replay_settings['IMGSH'] . "</em>)</span>\n";
 							$thread_preview_code .= "\t<br<a target=\"_blank\" href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename\"><img src=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb/$img_thumb_filename\" class=\"thumb\" width=\"" . $Replay_settings['IMGTW'] . "\" heigth=\"" . $Replay_settings['IMGTH'] . "\"></a>";
