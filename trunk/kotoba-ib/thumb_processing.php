@@ -154,7 +154,6 @@ function imCreatePngThumbnail($source, $destination, $resize_x, $resize_y) {
 	$thumbnail = new Imagick($source);
 	$x = $thumbnail->getImageWidth();
 	$y = $thumbnail->getImageHeight();
-	echo "$x, $y\n";
 	if(!$thumbnail->setImageFormat('png')) {
 		echo "failed?";
 	}
