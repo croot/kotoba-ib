@@ -359,7 +359,7 @@ if($thumb_res != KOTOBA_THUMB_SUCCESS)
 			break;
 	}
 
-	die ($HEAD . '<span class="error">Ошибка. Не удалось создать уменьшенную копию изображения:' . $message .'</span>' .  $FOOTER);
+	die ($HEAD . '<span class="error">Ошибка. Не удалось создать уменьшенную копию изображения: ' . $message .'</span>' .  $FOOTER);
 }
 
 $thumb_res = getimagesize("$IMG_THU_DIR/$saved_thumbname");
