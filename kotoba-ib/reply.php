@@ -403,7 +403,7 @@ if($_FILES['Message_img']['error'] == UPLOAD_ERR_OK)
 				break;
 		}
 
-		die ($HEAD . '<span class="error">Ошибка. Не удалось создать уменьшенную копию изображения:' . $message .'</span>' .  $FOOTER);
+		die ($HEAD . '<span class="error">Ошибка. Не удалось создать уменьшенную копию изображения: ' . $message .'</span>' .  $FOOTER);
 	}
 
 	$thumb_res = getimagesize("$IMG_THU_DIR/$saved_thumbname");
