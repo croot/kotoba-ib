@@ -15,6 +15,7 @@ ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH  . '/se
 ini_set('session.gc_maxlifetime', 60 * 60 * 24);	// 1 день.
 ini_set('session.cookie_lifetime', 60 * 60 * 24);
 session_start();
+header("Cache-Control: private");
 
 $HEAD = 
 '<html>

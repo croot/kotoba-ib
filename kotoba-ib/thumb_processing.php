@@ -29,6 +29,66 @@ function checkLoadModule($module_name) {
 	}
 }
 
+/*
+ * thumbCheckImageType function checking is image format supported
+ * also if fomat supported - calculates its dimensions
+ * return true if supported
+ * argumens: 
+ * $ext is extension of uploaded file
+ * $file is uploaded file
+ * &$result is reference to array with resulting data:
+ * 'extension' is thumbnail extension
+ * 'orig_extension' is original file extension
+ * 'x' is width of image
+ * 'y' is height of image
+ */
+
+function thumbCheckImageType($ext, $file, &$result) {
+	$has_gd = (checkLoadModule('gd') | checkLoadModule('gd2')) & KOTOBA_TRY_IMAGE_GD;
+	$has_im = checkLoadModule('imagick') & KOTOBA_TRY_IMAGE_IM;
+
+	if($has_gd) { //gd library formats
+		switch(strtolower($ext)) {
+			case 'jpg':
+			case 'jpeg':
+				$result['extension'] = 'jpg';
+				break;
+			case 'png':
+				$result['extension'] = 'png';
+				break;
+			case 'gif':
+				$result['extension'] = 'gif';
+				break;
+			default:
+				return false;
+				break;
+		}
+		$result['orig_extension'] = $result['extension'];
+		$dimensions = getimagesize($file);
+		$result['x'] = $dimensions[0];
+		$result['y'] = $dimensions[1];
+		return true;
+	}
+	elseif($has_im) {
+		switch(strtolower($type)) {
+			case 'jpg':
+			case 'jpeg':
+			case 'gif':
+			case 'png':
+			case 'bmp':
+				return true;
+			case 'svg':
+				return true;
+				break;
+			default:
+				return false;
+				break;
+		}
+	}
+	else {
+		return false;
+	}
+}
 
 /*
  * createThumbnail routine is
