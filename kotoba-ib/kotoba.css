@@ -225,3 +225,9 @@ input, textarea {
 .spoiler blockquote:hover {
 	color:#789922 !important;
 }
+
+.doc_code
+{
+	font-family: "Courier", monospace;
+    background: Silver;
+}
