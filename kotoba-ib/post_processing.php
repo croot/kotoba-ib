@@ -222,4 +222,62 @@ function postCreateFilenames($recived_ext, $original_ext) {
 
 	return array($saved_filename, $saved_thumbname, $raw_filename);
 }
+
+/*
+ * postMoveUplodedFile moves uploded file to kotoba folder
+ */
+function postMoveUplodedFile($source, $target, $kotoba_stat, &$error_message) {
+	if (!rename($source, $target))
+	{
+		if(KOTOBA_ENABLE_STAT)
+			call_user_func_array($kotoba_stat, array(ERR_FILE_NOT_SAVED));
+			
+		$error_message = "Ошибка. Файл не удалось сохранить.";
+		return false;
+	}
+	return true;
+}
+/*
+ * postGetSameImage finds same images if any
+ * return true if none found
+ * if found return false and $result_array['sameimage'] is true
+ * otherwise return false and error_message set
+ * result_array fields:
+ * 'thread' number of thread where is same message
+ * 'post' number of post where is same message
+ */
+function postGetSameImage($board, $board_name, $hash, $kotoba_stat, &$result_array) {
+	$result_array['sameimage'] = false;
+	$sql = sprintf("select id, thread from posts where board = %d and locate(\"HASH:%s\", `Post Settings`) <> 0", $board, $hash);
+    if($result = mysql_query($sql))
+    {
+        if(mysql_num_rows($result) == 0)
+        {
+			mysql_free_result($result);
+			return true;
+        }
+        else
+        {
+            if(KOTOBA_ENABLE_STAT)
+				call_user_func_array($kotoba_stat, array(ERR_FILE_ALREADY_EXIST));
+
+            $row = mysql_fetch_array($result, MYSQL_NUM);
+            mysql_free_result($result);
+			$result_array['sameimage'] = true;
+			$result_array['thread'] = $row[1];
+			$result_array['post'] = $row[0];
+			return false;
+        }
+    }
+    else
+    {
+        if(KOTOBA_ENABLE_STAT)
+			call_user_func_array($kotoba_stat, array(sprintf(ERR_FILE_EXIST_FAILED, $board_name, mysql_error())));
+        
+		$result_array['sameimage'] = false;
+		$result_array['error_message'] = sprintf("Ошибка. Не удалось проверить существание картинки на доске с именем %s. Прична: %s", $board_name, mysql_error());
+		return false;
+    }
+}
+
 ?>

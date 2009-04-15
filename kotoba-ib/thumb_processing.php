@@ -41,12 +41,14 @@ function checkLoadModule($module_name) {
  * 'orig_extension' is original file extension
  * 'x' is width of image
  * 'y' is height of image
+ * 'force_thumbnail' create thumbnail even if dimensions too small
  */
 
 function thumbCheckImageType($ext, $file, &$result) {
 //	echo sprintf("file %s with extension %s", $file, $ext);
 	$has_gd = (checkLoadModule('gd') | checkLoadModule('gd2')) & KOTOBA_TRY_IMAGE_GD;
 	$has_im = checkLoadModule('imagick') & KOTOBA_TRY_IMAGE_IM;
+	$result['force_thumbnail'] = false;
 
 	if($has_gd) { //gd library formats
 		switch(strtolower($ext)) {
@@ -91,6 +93,7 @@ function thumbCheckImageType($ext, $file, &$result) {
 				break;
 				return true;*/
 			case 'svg':
+				$result['force_thumbnail'] = true;
 				$result['extension'] = 'png';
 				$result['orig_extension'] = 'svg';
 				break;
@@ -123,13 +126,19 @@ function thumbCheckImageType($ext, $file, &$result) {
  * $x and $y - dimensions of original image
  * $resize_x is thumbnal width
  * $resize_y is thumbnal height
+ * $force is forcing creating thumbnail
+ * &$result is reference to array with thumbnail dimensions:
+ * 'x' is width, 'y' is height
 */
-function createThumbnail($source, $destination, $type, $x, $y, $resize_x, $resize_y) {
+function createThumbnail($source, $destination, $type, $x, $y, 
+	$resize_x, $resize_y, $force = false, &$result) {
 //	echo sprintf("%s, %s, %s, %d, %d, %d, %d", $source, $destination, $type, $x, $y, $resize_x, $resize_y);
-	if($x < $resize_x && $y < $resize_y) { // small image doesn't need to be thumbnailed
+	if(!$force && $x < $resize_x && $y < $resize_y) { // small image doesn't need to be thumbnailed
 		if(filesize($source) > KOTOBA_SMALLIMAGE_LIMIT_FILE_SIZE) { // big file but small image is some kind of trolling
 			return KOTOBA_THUMB_TOOBIG;
 		}
+		$result['x'] = $x;
+		$result['y'] = $y;
 		return linkfile($source, $destination);
 	}
 	$has_gd = (checkLoadModule('gd') | checkLoadModule('gd2')) & KOTOBA_TRY_IMAGE_GD;
@@ -139,16 +148,16 @@ function createThumbnail($source, $destination, $type, $x, $y, $resize_x, $resiz
 		switch(strtolower($type)) {
 			case 'jpg':
 			case 'jpeg':
-				return gdCreateThumbnail($source, $destination, $type, $x, $y, $resize_x, $resize_y);
+				return gdCreateThumbnail($source, $destination, $type, $x, $y, $resize_x, $resize_y, $result);
 				break;
 			case 'png':
 			case 'bmp':
 			case 'gif':
-				return imCreateThumbnail($source, $destination, $x, $y, $resize_x, $resize_y);
+				return imCreateThumbnail($source, $destination, $x, $y, $resize_x, $resize_y, $result);
 				break;
 			case 'svg':
 				// svg format
-				return imCreatePngThumbnail($source, $destination, $resize_x, $resize_y);
+				return imCreatePngThumbnail($source, $destination, $x, $y, $resize_x, $resize_y, $result);
 				break;
 			default:
 				// unknown image format
@@ -162,7 +171,7 @@ function createThumbnail($source, $destination, $type, $x, $y, $resize_x, $resiz
 			case 'gif':
 			case 'jpeg':
 			case 'png':
-				return gdCreateThumbnail($source, $destination, $type, $x, $y, $resize_x, $resize_y);
+				return gdCreateThumbnail($source, $destination, $type, $x, $y, $resize_x, $resize_y, $result);
 				break;
 			default:
 				// unknown image format
@@ -177,11 +186,11 @@ function createThumbnail($source, $destination, $type, $x, $y, $resize_x, $resiz
 			case 'jpeg':
 			case 'png':
 			case 'bmp':
-				return imCreateThumbnail($source, $destination, $x, $y, $resize_x, $resize_y);
+				return imCreateThumbnail($source, $destination, $x, $y, $resize_x, $resize_y, $false, $result);
 				break;
 			case 'svg':
 				// svg format
-				return imCreatePngThumbnail($source, $destination, $resize_x, $resize_y);
+				return imCreatePngThumbnail($source, $destination, $x, $y, $resize_x, $resize_y, $result);
 				break;
 			default:
 				// unknown image format
@@ -232,24 +241,27 @@ function linkfile($source, $destination) {
  ** (dimensions of original image unknown)
  * $resize_x is thumbnal width
  * $resize_y is thumbnal height
+ * $result: see description in createThumbnail function
  */
-function imCreatePngThumbnail($source, $destination, $resize_x, $resize_y) {
+function imCreatePngThumbnail($source, $destination, $x, $y, $resize_x, $resize_y, &$result) {
 	$thumbnail = new Imagick($source);
-	$x = $thumbnail->getImageWidth();
-	$y = $thumbnail->getImageHeight();
+#	$x = $thumbnail->getImageWidth();
+#	$y = $thumbnail->getImageHeight();
 	$pixel = new ImagickPixel();
 	$pixel->setColor('none');
-	if(!$thumbnail->setImageFormat('png')) {
-		die("conversion failed");
-	}
 	if($x >= $y) { // resize width to $resize_x, height is resized proportional
 		$thumbnail->thumbnailImage($resize_x, 0);
 	}
 	else { //resize height to $resize_y, width resized proportional
 		$thumbnail->thumbnailImage(0, $resize_y);
 	}
+	if(!$thumbnail->setImageFormat('png')) {
+		die("conversion failed");
+	}
 	$thumbnail->setBackgroundColor($pixel);
 	$thumbnail->setImageBackgroundColor($pixel);
+	$result['x'] = $thumbnail->getImageWidth();
+	$result['y'] = $thumbnail->getImageHeight();
 	$thumbnail->writeImage($destination);
 	$thumbnail->clear();
 	$thumbnail->destroy();
@@ -265,8 +277,10 @@ function imCreatePngThumbnail($source, $destination, $resize_x, $resize_y) {
  * $resize_x is thumbnal width
  * $resize_y is thumbnal height
  * $animation is boulean: preserve animation?
+ * $result: see description in createThumbnail function
 */
-function imCreateThumbnail($source, $destination, $x, $y, $resize_x, $resize_y, $animation = false) {
+function imCreateThumbnail($source, $destination, $x, $y, $resize_x, $resize_y,
+   $animation = false, &$result) {
 	$thumbnail = new Imagick($source);
 	if($x >= $y) { // resize width to 200, height is resized proportional
 		if($animation) { // animation not supported
@@ -287,6 +301,8 @@ function imCreateThumbnail($source, $destination, $x, $y, $resize_x, $resize_y, 
 	$res = false;
 	if(! $animation) {
 		// write image, ImageMagick object cleanup
+		$result['x'] = $thumbnail->getImageWidth();
+		$result['y'] = $thumbnail->getImageHeight();
 		$res = $thumbnail->writeImage($destination);
 		$thumbnail->clear();
 		$thumbnail->destroy();
@@ -305,19 +321,20 @@ function imCreateThumbnail($source, $destination, $x, $y, $resize_x, $resize_y, 
  * $type: file type
  * $x and $y: dimensions of source image
  * $resize_x and $resize_y: dimensions of destination image
+ * $result: see description in createThumbnail function
  */
 
-function gdCreateThumbnail($source, $destination, $type, $x, $y, $resize_x, $resize_y) {
+function gdCreateThumbnail($source, $destination, $type, $x, $y, $resize_x, $resize_y, &$result) {
 	switch(strtolower($type)) {
 	case 'gif':
-		return gifGdCreate($source, $destination, $x, $y, $resize_x, $resize_y);
+		return gifGdCreate($source, $destination, $x, $y, $resize_x, $resize_y, $result);
 		break;
 	case 'jpeg':
 	case 'jpg':
-		return jpgGdCreate($source, $destination, $x, $y, $resize_x, $resize_y);
+		return jpgGdCreate($source, $destination, $x, $y, $resize_x, $resize_y, $result);
 		break;
 	case 'png':
-		return pngGdCreate($source, $destination, $x, $y, $resize_x, $resize_y);
+		return pngGdCreate($source, $destination, $x, $y, $resize_x, $resize_y, $result);
 		break;
 	default:
 		return KOTOBA_THUMB_UNKNOWN;
@@ -335,8 +352,9 @@ function gdCreateThumbnail($source, $destination, $type, $x, $y, $resize_x, $res
  * $destination: destination file name
  * $fill: fill image with transparent color
  * $blend: blend image with transparent color FIXME
+ * $result: see description in createThumbnail function
  */
-function gdResize(&$img, $x, $y, $size_x, $size_y, $source, $destination, $fill = false, $blend = false) {
+function gdResize(&$img, $x, $y, $size_x, $size_y, $source, $destination, $fill = false, $blend = false, &$result) {
 	if($x >= $y) { // calculate proportions of destination image
 		$ratio = $y / $x;
 		$size_y = $size_y * $ratio;
@@ -345,6 +363,9 @@ function gdResize(&$img, $x, $y, $size_x, $size_y, $source, $destination, $fill 
 		$ratio = $x / $y;
 		$size_x = $size_x * $ratio;
 	}
+
+	$result['x'] = $size_x;
+	$result['y'] = $size_y;
 	$res = imagecreatetruecolor($size_x, $size_y);
 	if($fill && $blend) { // png. slow on big images (need tests)
 		imagealphablending($res, false);
@@ -373,23 +394,24 @@ function gdResize(&$img, $x, $y, $size_x, $size_y, $source, $destination, $fill 
  * $destination: destination file name
  * $x and $y: dimensions of source image
  * $size_x and $size_y: dimensions of destination image
+ * $result: see description in createThumbnail function
  */
 
-function gifGdCreate($source, $destination, $x, $y, $resize_x, $resize_y) {
+function gifGdCreate($source, $destination, $x, $y, $resize_x, $resize_y, &$result) {
 	$gif = imagecreatefromgif($source);
-	$thumbnail = gdResize($gif, $x, $y, $resize_x, $resize_y, $source, $destination, true, false);
+	$thumbnail = gdResize($gif, $x, $y, $resize_x, $resize_y, $source, $destination, true, false, $result);
 	imagegif($thumbnail, $destination);
 	return KOTOBA_THUMB_SUCCESS;
 }
-function jpgGdCreate($source, $destination, $x, $y, $resize_x, $resize_y) {
+function jpgGdCreate($source, $destination, $x, $y, $resize_x, $resize_y, &$result) {
 	$jpeg = imagecreatefromjpeg($source);
-	$thumbnail = gdResize($jpeg, $x, $y, $resize_x, $resize_y, $source, $destination);
+	$thumbnail = gdResize($jpeg, $x, $y, $resize_x, $resize_y, $source, $destination, false,false,$result);
 	imagejpeg($thumbnail, $destination);
 	return KOTOBA_THUMB_SUCCESS;
 }
-function pngGdCreate($source, $destination, $x, $y, $resize_x, $resize_y) {
+function pngGdCreate($source, $destination, $x, $y, $resize_x, $resize_y, &$result) {
 	$png = imagecreatefrompng($source);
-	$thumbnail = gdResize($png, $x, $y, $resize_x, $resize_y, $source, $destination, true ,true);
+	$thumbnail = gdResize($png, $x, $y, $resize_x, $resize_y, $source, $destination, true ,true, $result);
 	imagepng($thumbnail, $destination);
 	return KOTOBA_THUMB_SUCCESS;
 }
