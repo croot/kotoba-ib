@@ -44,6 +44,7 @@ function checkLoadModule($module_name) {
  */
 
 function thumbCheckImageType($ext, $file, &$result) {
+//	echo sprintf("file %s with extension %s", $file, $ext);
 	$has_gd = (checkLoadModule('gd') | checkLoadModule('gd2')) & KOTOBA_TRY_IMAGE_GD;
 	$has_im = checkLoadModule('imagick') & KOTOBA_TRY_IMAGE_IM;
 
@@ -70,20 +71,42 @@ function thumbCheckImageType($ext, $file, &$result) {
 		return true;
 	}
 	elseif($has_im) {
-		switch(strtolower($type)) {
+		switch(strtolower($ext)) {
 			case 'jpg':
 			case 'jpeg':
+				$result['extension'] = 'jpg';
+				$result['orig_extension'] = $result['extension'];
+				break;
 			case 'gif':
+				$result['extension'] = 'gif';
+				$result['orig_extension'] = $result['extension'];
+				break;
 			case 'png':
-			case 'bmp':
-				return true;
+				$result['extension'] = 'png';
+				$result['orig_extension'] = $result['extension'];
+				break;
+/*			case 'bmp':
+				$result['extension'] = 'bmp';
+				$result['orig_extension'] = $result['extension'];
+				break;
+				return true;*/
 			case 'svg':
-				return true;
+				$result['extension'] = 'png';
+				$result['orig_extension'] = 'svg';
 				break;
 			default:
 				return false;
 				break;
 		}
+		$image = new Imagick($file);
+		if(!$image->setImageFormat($result['orig_extension'])) {
+			die("image format failed");
+		}
+		$result['x'] = $image->getImageWidth();
+		$result['y'] = $image->getImageHeight();
+		$image->clear();
+		$image->destroy();
+		return true;
 	}
 	else {
 		return false;
