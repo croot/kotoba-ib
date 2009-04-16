@@ -107,6 +107,7 @@ function thumbCheckImageType($ext, $file, &$result) {
 		}
 		$result['x'] = $image->getImageWidth();
 		$result['y'] = $image->getImageHeight();
+//		echo sprintf("%dx%d<br>\n", $result['x'], $result['y']);
 		$image->clear();
 		$image->destroy();
 		return true;
