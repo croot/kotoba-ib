@@ -166,6 +166,7 @@ switch($_FILES['Message_img']['error'])
     break;
 }
 
+$uploaded_file_size = $_FILES['Message_img']['size'];
 if($_FILES['Message_img']['error'] == UPLOAD_ERR_NO_FILE && (!isset($_POST['Message_text']) || $_POST['Message_text'] == ''))
 {
 	if(KOTOBA_ENABLE_STAT)
@@ -265,9 +266,30 @@ if($_FILES['Message_img']['error'] == UPLOAD_ERR_OK)
 
 		die ($HEAD . '<span class="error">Ошибка. Недопустимый тип файла.</span>' . $FOOTER);
     }
+require 'post_processing.php';
+    //$recived_ext = strtolower(substr($_FILES['Message_img']['name'], $dot_pos + 1));
+$uploaded_file = $_FILES['Message_img']['tmp_name'];
+$uploaded_name = $_FILES['Message_img']['name'];
+$recived_ext = postGetUploadedExtension($uploaded_name);
 
-    $recived_ext = strtolower(substr($_FILES['Message_img']['name'], $dot_pos + 1));
+require 'thumb_processing.php';
+$imageresult = array();
+if(!thumbCheckImageType($recived_ext, $uploaded_file, $imageresult)) {
+	// not supported file name
+	if(KOTOBA_ENABLE_STAT)
+		kotoba_stat(ERR_WRONG_FILETYPE);
+	
+	die ($HEAD . '<span class="error">Ошибка. Недопустимый тип файла...</span>' . $FOOTER);
+}
 
+$original_ext = $imageresult['orig_extension'];
+$recived_ext = $imageresult['extension'];
+
+$filenames = postCreateFilenames($recived_ext, $original_ext);
+$saved_filename = $filenames[0];
+$saved_thumbname = $filenames[1];
+$raw_filename = $filenames[2];
+/*
 	// $internal_size: boolean flag indicates is picture dimensions
 	// calculated in this file (see below) matter to thumbnailing
 	$internal_size = true;
@@ -295,17 +317,17 @@ if($_FILES['Message_img']['error'] == UPLOAD_ERR_OK)
 
 			die ($HEAD . '<span class="error">Ошибка. Недопустимый тип файла.</span>' . $FOOTER);
     }
-
+*/
     /*list($usec, $sec) = explode(" ", microtime());
     $saved_filename = $sec . substr($usec, 2, 5);
     $saved_thumbname = $saved_filename . "t." . $recived_ext;
     $raw_filename = $saved_filename;
 	$saved_filename .= ".$recived_ext"; */
-	list($usec, $sec) = explode(' ', microtime());
+/*	list($usec, $sec) = explode(' ', microtime());
 	$saved_filename = $sec . substr($usec, 2, 5);				// Три знака после запятой.
 	$saved_thumbname = $saved_filename . 't.' . $recived_ext;   // Имена всех миниатюр заканчиваются на t.
 	$raw_filename = $saved_filename;
-	$saved_filename .= ".$original_ext";
+	$saved_filename .= ".$original_ext";*/
 
     $IMG_SRC_DIR = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$BOARD_NAME/img";
     $IMG_THU_DIR = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb";
@@ -353,28 +375,40 @@ if($_FILES['Message_img']['error'] == UPLOAD_ERR_OK)
         }
     }
 
-	if($internal_size) { // calculate image dimensions
-		$srcimg_res = getimagesize("$IMG_SRC_DIR/$saved_filename");
-	}
-	else { // doesn't calculate iamge dimensions, thumbnailing procedure do it itself
-		// set dimensions size suitable to thumbnailing procedure not copy
-		$srcimg_res[0] = 201; $srcimg_res[1] = 201;
-	}
+/*		if($internal_size) { // calculate image dimensions
+			$srcimg_res = getimagesize("$IMG_SRC_DIR/$saved_filename");
+		}
+		else { // doesn't calculate iamge dimensions, thumbnailing procedure do it itself
+			// set dimensions size suitable to thumbnailing procedure not copy
+			$srcimg_res[0] = 201; $srcimg_res[1] = 201;
+		}
 
-    if($srcimg_res[0] < KOTOBA_MIN_IMGWIDTH && $srcimg_res[1] < KOTOBA_MIN_IMGHEIGTH)
-    {
-        if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(ERR_FILE_LOW_RESOLUTION);
+		if($srcimg_res[0] < KOTOBA_MIN_IMGWIDTH && $srcimg_res[1] < KOTOBA_MIN_IMGHEIGTH)
+		{
+			if(KOTOBA_ENABLE_STAT)
+				kotoba_stat(ERR_FILE_LOW_RESOLUTION);
 
-		unlink("$IMG_SRC_DIR/$saved_filename");
-		die($HEAD . '<span class="error">Ошибка. Разрешение загружаемого изображения слишком маленькое.</span>' . $FOOTER);
-    }
+			unlink("$IMG_SRC_DIR/$saved_filename");
+			die($HEAD . '<span class="error">Ошибка. Разрешение загружаемого изображения слишком маленькое.</span>' . $FOOTER);
+		}*/
 
 	// TODO Сделать проверку на слишком большое расширение.
 
-    require 'thumb_processing.php';
+//    require 'thumb_processing.php';
 
-	$thumb_res = createThumbnail("$IMG_SRC_DIR/$saved_filename", "$IMG_THU_DIR/$saved_thumbname", $original_ext, $srcimg_res[0], $srcimg_res[1], 200, 200);
+	if($imageresult['x'] < KOTOBA_MIN_IMGWIDTH && $imageresult['y'] < KOTOBA_MIN_IMGHEIGTH)
+	{
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(ERR_FILE_LOW_RESOLUTION);
+		
+		unlink("$IMG_SRC_DIR/$saved_filename");
+		die($HEAD . '<span class="error">Ошибка. Разрешение загружаемого изображения слишком маленькое.</span>' . $FOOTER);
+	}
+
+	$thumbnailresult = array();
+	$thumb_res = createThumbnail("$IMG_SRC_DIR/$saved_filename", "$IMG_THU_DIR/$saved_thumbname",
+		$original_ext, $imageresult['x'], $imageresult['y'], 200, 200,
+		$imageresult['force_thumbnail'], $thumbnailresult);
 
 	if($thumb_res != KOTOBA_THUMB_SUCCESS)
 	{
@@ -406,17 +440,25 @@ if($_FILES['Message_img']['error'] == UPLOAD_ERR_OK)
 		die ($HEAD . '<span class="error">Ошибка. Не удалось создать уменьшенную копию изображения: ' . $message .'</span>' .  $FOOTER);
 	}
 
-	$thumb_res = getimagesize("$IMG_THU_DIR/$saved_thumbname");
+//	$thumb_res = getimagesize("$IMG_THU_DIR/$saved_thumbname");
 
-    $Message_img_params = "IMGNAME:$raw_filename\n";
+    /*$Message_img_params = "IMGNAME:$raw_filename\n";
     $Message_img_params .= "IMGEXT:$recived_ext\n";
 	$Message_img_params .= "ORIGIMGEXT:$original_ext\n";
     $Message_img_params .= "IMGTW:$thumb_res[0]\n";
     $Message_img_params .= "IMGTH:$thumb_res[1]\n";
     $Message_img_params .= "IMGSW:$srcimg_res[0]\n";
     $Message_img_params .= "IMGSH:$srcimg_res[1]\n";
-    $Message_img_params .= "IMGSIZE:{$_FILES['Message_img']['size']}\n";
+	$Message_img_params .= "IMGSIZE:{$_FILES['Message_img']['size']}\n";*/
     
+	$Message_img_params = "IMGNAME:$raw_filename\n";
+	$Message_img_params .= "IMGEXT:$recived_ext\n";
+	$Message_img_params .= "ORIGIMGEXT:$original_ext\n";
+	$Message_img_params .= "IMGTW:" . $thumbnailresult['x'] . "\n";
+	$Message_img_params .= "IMGTH:" . $thumbnailresult['y'] . "\n";
+	$Message_img_params .= "IMGSW:" . $imageresult['x'] . "\n";
+	$Message_img_params .= "IMGSH:" . $imageresult['y'] . "\n";
+	$Message_img_params .= 'IMGSIZE:' . $uploaded_file_size . "\n";
     if(KOTOBA_ALLOW_SAEMIMG)
         $Message_img_params .= "HASH:$img_hash\n";
 
