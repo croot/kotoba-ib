@@ -62,7 +62,7 @@ require 'databaseconnect.php';
 require 'post_processing.php';
 
 $error_message = "";
-$BOARD_NUM = postGetBoardId($BOARD_NAME, "kotoba_stat", $error_message);
+$BOARD_NUM = post_get_board_id($BOARD_NAME, "kotoba_stat", $error_message);
 
 if($BOARD_NUM < 0) {
 	die($HEAD . '<span class="error">' . $error_message . '</span>' . $FOOTER);
@@ -71,13 +71,13 @@ if($BOARD_NUM < 0) {
 // Этап 2. Обработка данных ОП поста.
 
 
-if(!postCheckImageUploadError($_FILES['Message_img']['error'], "kotoba_stat", $error_message)) {
+if(!post_check_image_upload_error($_FILES['Message_img']['error'], "kotoba_stat", $error_message)) {
 	die($HEAD . '<span class="error">' . $error_message . '</span>' . $FOOTER);
 }
 
 $uploaded_file_size = $_FILES['Message_img']['size'];
 
-if(!postCheckSizes($uploaded_file_size, $_POST['Message_text'],
+if(!post_check_sizes($uploaded_file_size, $_POST['Message_text'],
 	$_POST['Message_theme'], $_POST['Message_name'], "kotoba_stat", $error_message)) {
 	die($HEAD . '<span class="error">' . $error_message . '</span>' . $FOOTER);
 }
@@ -86,19 +86,19 @@ $Message_text = htmlspecialchars($_POST['Message_text'], ENT_QUOTES);
 $Message_theme = htmlspecialchars($_POST['Message_theme'], ENT_QUOTES);
 $Message_name = htmlspecialchars($_POST['Message_name'], ENT_QUOTES);
 
-if(!postCheckSizes($uploaded_file_size, $Message_text,
+if(!post_check_sizes($uploaded_file_size, $Message_text,
 	$Message_theme, $Message_name, "kotoba_stat", $error_message)) {
 	die($HEAD . '<span class="error">' . $error_message . '</span>' . $FOOTER);
 }
 
 // mark fuction here
-if(!postMark($Message_text, 
+if(!post_mark($Message_text, 
 	$Message_theme, $Message_name, "kotoba_stat", $error_message)) {
 	die($HEAD . '<span class="error">' . $error_message . '</span>' . $FOOTER);
 }
 $uploaded_file = $_FILES['Message_img']['tmp_name'];
 $uploaded_name = $_FILES['Message_img']['name'];
-$recived_ext = postGetUploadedExtension($uploaded_name);
+$recived_ext = post_get_uploaded_extension($uploaded_name);
 
 require 'thumb_processing.php';
 $imageresult = array();
@@ -113,7 +113,7 @@ if(!thumb_check_image_type($recived_ext, $uploaded_file, $imageresult)) {
 $original_ext = $imageresult['orig_extension'];
 $recived_ext = $imageresult['extension'];
 
-$filenames = postCreateFilenames($recived_ext, $original_ext);
+$filenames = post_create_filenames($recived_ext, $original_ext);
 $saved_filename = $filenames[0];
 $saved_thumbname = $filenames[1];
 $raw_filename = $filenames[2];
@@ -123,7 +123,7 @@ $IMG_THU_DIR = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb
 
 $saved_image_path = sprintf("%s/%s", $IMG_SRC_DIR, $saved_filename);
 
-if(!postMoveUplodedFile($uploaded_file, $saved_image_path, "kotoba_stat", $error_message)) {
+if(!post_move_uploded_file($uploaded_file, $saved_image_path, "kotoba_stat", $error_message)) {
 	die($error_message);
 }
 
@@ -137,7 +137,7 @@ if(! KOTOBA_ALLOW_SAEMIMG)
         die ($HEAD . "<span class=\"error\">Ошибка. Не удалось вычислить хеш файла $saved_image_path.</span>" . $FOOTER);
 	}
 	$error_message_array = array();
-	if(!postGetSameImage($BOARD_NUM, $BOARD_NAME, $img_hash, "kotoba_stat", $error_message_array)) {
+	if(!post_get_same_image($BOARD_NUM, $BOARD_NAME, $img_hash, "kotoba_stat", $error_message_array)) {
 		unlink($saved_image_path);
 		if($error_message_array['sameimage']) {
 			$link = sprintf("<a href=\"%s/%s/%d/%d\">тут</a>", 

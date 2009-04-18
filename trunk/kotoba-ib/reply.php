@@ -270,7 +270,7 @@ require 'post_processing.php';
     //$recived_ext = strtolower(substr($_FILES['Message_img']['name'], $dot_pos + 1));
 $uploaded_file = $_FILES['Message_img']['tmp_name'];
 $uploaded_name = $_FILES['Message_img']['name'];
-$recived_ext = postGetUploadedExtension($uploaded_name);
+$recived_ext = post_get_uploaded_extension($uploaded_name);
 
 require 'thumb_processing.php';
 $imageresult = array();
@@ -285,7 +285,7 @@ if(!thumb_check_image_type($recived_ext, $uploaded_file, $imageresult)) {
 $original_ext = $imageresult['orig_extension'];
 $recived_ext = $imageresult['extension'];
 
-$filenames = postCreateFilenames($recived_ext, $original_ext);
+$filenames = post_create_filenames($recived_ext, $original_ext);
 $saved_filename = $filenames[0];
 $saved_thumbname = $filenames[1];
 $raw_filename = $filenames[2];
