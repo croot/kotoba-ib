@@ -102,7 +102,7 @@ $recived_ext = postGetUploadedExtension($uploaded_name);
 
 require 'thumb_processing.php';
 $imageresult = array();
-if(!thumbCheckImageType($recived_ext, $uploaded_file, $imageresult)) {
+if(!thumb_check_image_type($recived_ext, $uploaded_file, $imageresult)) {
 	// not supported file name
 	if(KOTOBA_ENABLE_STAT)
 		kotoba_stat(ERR_WRONG_FILETYPE);
@@ -160,7 +160,7 @@ if($imageresult['x'] < KOTOBA_MIN_IMGWIDTH && $imageresult['y'] < KOTOBA_MIN_IMG
 }
 
 $thumbnailresult = array();
-$thumb_res = createThumbnail("$IMG_SRC_DIR/$saved_filename", "$IMG_THU_DIR/$saved_thumbname",
+$thumb_res = create_thumbnail("$IMG_SRC_DIR/$saved_filename", "$IMG_THU_DIR/$saved_thumbname",
 	$original_ext, $imageresult['x'], $imageresult['y'], 200, 200,
 	$imageresult['force_thumbnail'], $thumbnailresult);
 
