@@ -39,6 +39,8 @@ define('KOTOBA_THUMB_UNKNOWN', 255);	// unknown error
 
 define('KOTOBA_SESSION_LIFETIME', 86400);	// Используется для параметров session.gc_maxlifetime и session.cookie_lifetime
 
+define('KOTOBA_FRAMED_INTERFACE', 1);	// Kotoba uses frames
+
 /*
  * Обёртка с настройками Smarty.
  */
