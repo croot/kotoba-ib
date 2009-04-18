@@ -2,7 +2,7 @@
 /* postprocessing.php: module for post processing */
 
 
-/* postGetBoardId: get board id
+/* post_get_board_id: get board id
  * return values: positive integer board id
  * on error return -1
  * arguments:
@@ -10,7 +10,7 @@
  * $kotoba_stat is kotoba stat function name
  * $error_message is reference to variable which would contain error message if any
  */
-function postGetBoardId($board_name, $kotoba_stat, &$error_message) {
+function post_get_board_id($board_name, $kotoba_stat, &$error_message) {
 	$BOARD_NUM = -1;
 	// create sql query
 	$sql = sprintf("select id from boards where Name = '%s'", $board_name);
@@ -44,7 +44,7 @@ function postGetBoardId($board_name, $kotoba_stat, &$error_message) {
 }
 
 /*
- * postCheckImageUploadError: check image upload errors
+ * post_check_image_upload_error: check image upload errors
  * return true if no errors
  * false on error
  * arguments:
@@ -52,7 +52,7 @@ function postGetBoardId($board_name, $kotoba_stat, &$error_message) {
  * $kotoba_stat is kotoba_stat function name
  * $error_message is reference to variable which would contain error message if any
  */
-function postCheckImageUploadError($error, $kotoba_stat, &$error_message) {
+function post_check_image_upload_error($error, $kotoba_stat, &$error_message) {
 	switch($error)
 	{
 		case UPLOAD_ERR_INI_SIZE:
@@ -116,7 +116,7 @@ function postCheckImageUploadError($error, $kotoba_stat, &$error_message) {
 }
 
 /*
- * postCheckSizes is check sizes of uploaded data
+ * post_check_sizes is check sizes of uploaded data
  * return true if no errors
  * false on error
  * arguments:
@@ -127,7 +127,7 @@ function postCheckImageUploadError($error, $kotoba_stat, &$error_message) {
  * $kotoba_stat is kotoba_stat function name
  * $error_message is reference to variable which would contain error message if any
  */
-function postCheckSizes($uplodedFileSize, &$message_text, &$message_theme, 
+function post_check_sizes($uplodedFileSize, &$message_text, &$message_theme, 
 	&$message_name, $kotoba_stat, &$error_message) {
 
 	if($uplodedFileSize < KOTOBA_MIN_IMGSIZE)
@@ -139,7 +139,7 @@ function postCheckSizes($uplodedFileSize, &$message_text, &$message_theme,
 		return false;
 	}
 
-	if(!postCheckMessageSize($message_text, $kotoba_stat, $error_message)) {
+	if(!post_check_message_size($message_text, $kotoba_stat, $error_message)) {
 		return false;
 	}
 	if(strlen($message_theme) > KOTOBA_MAX_THEME_LENGTH)
@@ -163,10 +163,10 @@ function postCheckSizes($uplodedFileSize, &$message_text, &$message_theme,
 	return true;
 }
 
-/* postCheckMessageSize check message text size
+/* post_check_message_size check message text size
  * TODO
  */
-function postCheckMessageSize(&$message_text, $kotoba_stat, &$error_message) {
+function post_check_message_size(&$message_text, $kotoba_stat, &$error_message) {
 	if(strlen($message_text) > KOTOBA_MAX_MESSAGE_LENGTH)
 	{
 		if(KOTOBA_ENABLE_STAT)
@@ -181,11 +181,11 @@ function postCheckMessageSize(&$message_text, $kotoba_stat, &$error_message) {
  * postMark format text
  * TODO
  */
-function postMark(&$message_text, &$message_theme, &$message_name, $kotoba_stat, &$error_message) {
+function post_mark(&$message_text, &$message_theme, &$message_name, $kotoba_stat, &$error_message) {
 require 'mark.php';
 KotobaMark($message_text);
 	$message_text = preg_replace("/\n/", '<br>', $message_text);
-	if(!postCheckMessageSize($message_text, $kotoba_stat, $error_message)) {
+	if(!post_check_message_size($message_text, $kotoba_stat, $error_message)) {
 		return false;
 	}
 	// should it be placed before size checking?
@@ -201,19 +201,19 @@ KotobaMark($message_text);
 }
 
 /*
- * postGetUploadedExtension gets uploded extesion
+ * post_get_uploaded_extension gets uploded extesion
  * TODO
  */
-function postGetUploadedExtension($filename) {
+function post_get_uploaded_extension($filename) {
 	$uploaded_parts = pathinfo($filename);
 	return $uploaded_parts['extension'];
 }
 
 /*
- * postCreateFilenames create filenames for uploaded image and thumbnail
+ * post_create_filenames create filenames for uploaded image and thumbnail
  * TODO
  */
-function postCreateFilenames($recived_ext, $original_ext) {
+function post_create_filenames($recived_ext, $original_ext) {
 	list($usec, $sec) = explode(' ', microtime());
 	$saved_filename = $sec . substr($usec, 2, 5);				// Три знака после запятой.
 	$saved_thumbname = $saved_filename . 't.' . $recived_ext;   // Имена всех миниатюр заканчиваются на t.
@@ -224,9 +224,9 @@ function postCreateFilenames($recived_ext, $original_ext) {
 }
 
 /*
- * postMoveUplodedFile moves uploded file to kotoba folder
+ * post_move_uploded_file moves uploded file to kotoba folder
  */
-function postMoveUplodedFile($source, $target, $kotoba_stat, &$error_message) {
+function post_move_uploded_file($source, $target, $kotoba_stat, &$error_message) {
 	if (!rename($source, $target))
 	{
 		if(KOTOBA_ENABLE_STAT)
@@ -238,7 +238,7 @@ function postMoveUplodedFile($source, $target, $kotoba_stat, &$error_message) {
 	return true;
 }
 /*
- * postGetSameImage finds same images if any
+ * post_get_same_image finds same images if any
  * return true if none found
  * if found return false and $result_array['sameimage'] is true
  * otherwise return false and error_message set
@@ -246,7 +246,7 @@ function postMoveUplodedFile($source, $target, $kotoba_stat, &$error_message) {
  * 'thread' number of thread where is same message
  * 'post' number of post where is same message
  */
-function postGetSameImage($board, $board_name, $hash, $kotoba_stat, &$result_array) {
+function post_get_same_image($board, $board_name, $hash, $kotoba_stat, &$result_array) {
 	$result_array['sameimage'] = false;
 	$sql = sprintf("select id, thread from posts where board = %d and locate(\"HASH:%s\", `Post Settings`) <> 0", $board, $hash);
     if($result = mysql_query($sql))
