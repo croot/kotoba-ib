@@ -59,7 +59,7 @@ if(($BOARD_NAME = CheckFormat('board', $_POST['b'])) === false)
 }
 
 require 'databaseconnect.php';
-require 'post_processing.php';
+require_once 'post_processing.php';
 
 $error_message = "";
 $BOARD_NUM = post_get_board_id($BOARD_NAME, "kotoba_stat", $error_message);
@@ -71,13 +71,13 @@ if($BOARD_NUM < 0) {
 // Этап 2. Обработка данных ОП поста.
 
 
-if(!post_check_image_upload_error($_FILES['Message_img']['error'], "kotoba_stat", $error_message)) {
+if(!post_check_image_upload_error($_FILES['Message_img']['error'], false, "kotoba_stat", $error_message)) {
 	die($HEAD . '<span class="error">' . $error_message . '</span>' . $FOOTER);
 }
 
 $uploaded_file_size = $_FILES['Message_img']['size'];
 
-if(!post_check_sizes($uploaded_file_size, $_POST['Message_text'],
+if(!post_check_sizes($uploaded_file_size, true, $_POST['Message_text'],
 	$_POST['Message_theme'], $_POST['Message_name'], "kotoba_stat", $error_message)) {
 	die($HEAD . '<span class="error">' . $error_message . '</span>' . $FOOTER);
 }
@@ -86,7 +86,7 @@ $Message_text = htmlspecialchars($_POST['Message_text'], ENT_QUOTES);
 $Message_theme = htmlspecialchars($_POST['Message_theme'], ENT_QUOTES);
 $Message_name = htmlspecialchars($_POST['Message_name'], ENT_QUOTES);
 
-if(!post_check_sizes($uploaded_file_size, $Message_text,
+if(!post_check_sizes($uploaded_file_size, true, $Message_text,
 	$Message_theme, $Message_name, "kotoba_stat", $error_message)) {
 	die($HEAD . '<span class="error">' . $error_message . '</span>' . $FOOTER);
 }
@@ -140,7 +140,7 @@ if(! KOTOBA_ALLOW_SAEMIMG)
 	if(!post_get_same_image($BOARD_NUM, $BOARD_NAME, $img_hash, "kotoba_stat", $error_message_array)) {
 		unlink($saved_image_path);
 		if($error_message_array['sameimage']) {
-			$link = sprintf("<a href=\"%s/%s/%d/%d\">тут</a>", 
+			$link = sprintf("<a href=\"%s/%s/%d#%d\">тут</a>", 
 				KOTOBA_DIR_PATH, $BOARD_NAME, $error_message_array['thread'], $error_message_array['post']);
 			die ($HEAD . '<span class="error">Ошибка. Картинка уже была запощена ' . $link . '</span>' . $FOOTER);
 		}

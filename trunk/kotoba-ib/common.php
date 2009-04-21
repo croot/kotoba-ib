@@ -73,7 +73,7 @@ class SmartyKotobaSetup extends Smarty
  * КЛЮЧ2:ЗНАЧЕНИЕ2\n
  * ...
  */
-function GetSettings($type, $settings)
+function get_settings($type, $settings)
 {
     $h = array();
 	$settings_array = explode("\n", $settings);

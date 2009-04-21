@@ -49,10 +49,11 @@ function post_get_board_id($board_name, $kotoba_stat, &$error_message) {
  * false on error
  * arguments:
  * $error is error code from $_FILES[...]['error']
+ * $allow_no_uploads is for not to detect NO_FILE error
  * $kotoba_stat is kotoba_stat function name
  * $error_message is reference to variable which would contain error message if any
  */
-function post_check_image_upload_error($error, $kotoba_stat, &$error_message) {
+function post_check_image_upload_error($error, $allow_no_uploads = false, $kotoba_stat, &$error_message) {
 	switch($error)
 	{
 		case UPLOAD_ERR_INI_SIZE:
@@ -84,7 +85,7 @@ function post_check_image_upload_error($error, $kotoba_stat, &$error_message) {
 				call_user_func_array($kotoba_stat, array(ERR_UPLOAD_NO_FILE));
 
 			$error_message = "Ошибка. Файл не был загружен.";
-			return false;
+			return $allow_no_uploads;
 		break;
 		
 		case UPLOAD_ERR_NO_TMP_DIR:
@@ -121,16 +122,17 @@ function post_check_image_upload_error($error, $kotoba_stat, &$error_message) {
  * false on error
  * arguments:
  * $uplodedFileSize is size of uploaded image
+ * $with_image boolean is was image loaded?
  * &$message_text is message text field
  * &$message_theme is message theme field
  * &$message_name is message name field
  * $kotoba_stat is kotoba_stat function name
  * $error_message is reference to variable which would contain error message if any
  */
-function post_check_sizes($uplodedFileSize, &$message_text, &$message_theme, 
+function post_check_sizes($uplodedFileSize, $with_image, &$message_text, &$message_theme, 
 	&$message_name, $kotoba_stat, &$error_message) {
 
-	if($uplodedFileSize < KOTOBA_MIN_IMGSIZE)
+	if($uplodedFileSize < KOTOBA_MIN_IMGSIZE && $with_image)
 	{
 		if(KOTOBA_ENABLE_STAT)
 			call_user_func_array($kotoba_stat, array(ERR_FILE_TOO_SMALL));
