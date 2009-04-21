@@ -17,7 +17,7 @@ $query = "select id, `Post Settings` from posts";
 if($posts = mysql_query($query)) { // query executed normally
 	if(mysql_num_rows($posts) > 0) { // we're have posts
 		while (($post = mysql_fetch_array($posts, MYSQL_ASSOC)) !== false) {
-			$post_settings = GetSettings('post', $post['Post Settings']);
+			$post_settings = get_settings('post', $post['Post Settings']);
 			if(isset($post_settings['IMGNAME'])) { // post have an image
 				if(!isset($post_settings['ORIGIMGEXT'])) { // post doesn't have new setting
 					// create new bunch of settings.

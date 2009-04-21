@@ -195,7 +195,7 @@ if(($posts = mysql_query($query)))
 	{
 		//$isFirst = true;
 		$post = mysql_fetch_array($posts, MYSQL_ASSOC);
-		$Op_settings = GetSettings('post', $post['Post Settings']);
+		$Op_settings = get_settings('post', $post['Post Settings']);
 
 		$THREAD .= "\n<div>\n";
 		$THREAD .= "<span class=\"filetitle\">$Op_settings[THEME]</span> <span class=\"postername\">$Op_settings[NAME]</span> $post[Time]";

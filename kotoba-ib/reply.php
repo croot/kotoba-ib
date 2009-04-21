@@ -65,32 +65,15 @@ if(($THREAD_NUM = CheckFormat('thread', $_POST['t'])) === false)
 }
 
 require 'databaseconnect.php';
+require_once 'post_processing.php';
 $BOARD_NUM = -1;
 
 // Проверка существования доски с именем $BOARD_NAME.
-if(($result = mysql_query("select `id` from `boards` where `Name` = \"$BOARD_NAME\"")) !== false)
-{
-	if(mysql_num_rows($result) != 1)
-	{
-        if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_BOARD_NOT_FOUND, $BOARD_NAME));
-			
-		mysql_free_result($result);
-		die($HEAD . "<span class=\"error\">Ошибка. Доски с именем $BOARD_NAME не существует.</span>" . $FOOTER);
-	}
-	else
-	{
-		$row = mysql_fetch_array($result, MYSQL_ASSOC);
-		$BOARD_NUM = $row['id'];
-        mysql_free_result($result);
-    }
-}
-else
-{
-    if(KOTOBA_ENABLE_STAT)
-        kotoba_stat(sprintf(ERR_BOARD_EXIST_CHECK, $BOARD_NAME, mysql_error()));
-        
-    die($HEAD . "<span class=\"error\">Ошибка. Не удалось проверить существание доски с именем $BOARD_NAME. Прична: " .  mysql_error() . '</span>' . $FOOTER);
+$error_message = "";
+$BOARD_NUM = post_get_board_id($BOARD_NAME, "kotoba_stat", $error_message);
+
+if($BOARD_NUM < 0) {
+	die($HEAD . '<span class="error">' . $error_message . '</span>' . $FOOTER);
 }
 
 // Проверка существования треда $THREAD_NUM на доске с именем $BOARD_NAME.
@@ -121,280 +104,101 @@ else
 	die($HEAD . "<span class=\"error\">Ошибка. Не удалось проверить существание треда с номером $THREAD_NUM на доске $BOARD_NAME. Прична: " .  mysql_error() . "</error>" . $FOOTER);
 }
 
-switch($_FILES['Message_img']['error'])
-{
-    case UPLOAD_ERR_INI_SIZE:
-		if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(ERR_UPLOAD_INI_SIZE);
-
-		die($HEAD . '<span class="error">Ошибка. Загруженный файл превышает размер, заданный директивой upload_max_filesize в php.ini.</span>' . $FOOTER);
-    break;
-
-    case UPLOAD_ERR_FORM_SIZE:
-		if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(ERR_UPLOAD_FORM_SIZE);
-
-		die($HEAD . '<span class="error">Ошибка. Загруженный файл превышает размер, заданный директивой MAX_FILE_SIZE, определённой в HTML форме.</span>' . $FOOTER);
-    break;
-    
-    case UPLOAD_ERR_PARTIAL:
-		if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(ERR_UPLOAD_PARTIAL);
-
-		die($HEAD . '<span class="error">Ошибка. Файл был загружен лишь частично.</span>' . $FOOTER);
-    break;
-    
-    case UPLOAD_ERR_NO_TMP_DIR:
-		if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(ERR_UPLOAD_NO_TMP_DIR);
-
-		die($HEAD . '<span class="error">Ошибка. Временная папка не найдена.</span>' . $FOOTER);
-    break;
-    
-    case UPLOAD_ERR_CANT_WRITE:
-		if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(ERR_UPLOAD_CANT_WRITE);
-
-		die($HEAD . '<span class="error">Ошибка. Не удалось записать файл на диск.</span>' . $FOOTER);
-    break;
-    
-    case UPLOAD_ERR_EXTENSION:
-		if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(ERR_UPLOAD_EXTENSION);
-
-		die($HEAD . '<span class="error">Ошибка. Загрузка файла прервана расширением.</span>' . $FOOTER);
-    break;
+if(!post_check_image_upload_error($_FILES['Message_img']['error'], true, "kotoba_stat", $error_message)) {
+	die($HEAD . '<span class="error">' . $error_message . '</span>' . $FOOTER);
 }
 
-$uploaded_file_size = $_FILES['Message_img']['size'];
 if($_FILES['Message_img']['error'] == UPLOAD_ERR_NO_FILE && (!isset($_POST['Message_text']) || $_POST['Message_text'] == ''))
-{
+{ // no text no image
 	if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_NO_FILE_AND_TEXT);
 		
     die($HEAD . '<span class="error">Ошибка. Файл не был загружен и пустой текст сообщения.</error>' . $FOOTER);
 }
-
-if(strlen($_POST['Message_text']) > KOTOBA_MAX_MESSAGE_LENGTH)
-{
-    if(KOTOBA_ENABLE_STAT)
-        kotoba_stat(ERR_TEXT_TOO_LONG);
-        
-    die ($HEAD . '<span class="error">Ошибка. Текст сообщения слишком длинный.</span>' . $FOOTER);
+elseif($_FILES['Message_img']['error'] == UPLOAD_ERR_NO_FILE) { // no image
+	$with_image = false;
+}
+else { // image and text
+	$with_image = true;
 }
 
-if(strlen($_POST['Message_theme']) > KOTOBA_MAX_THEME_LENGTH)
-{
-    if(KOTOBA_ENABLE_STAT)
-        kotoba_stat(ERR_THEME_TOO_LONG);
+$uploaded_file_size = $_FILES['Message_img']['size'];
 
-    die ($HEAD . '<span class="error">Ошибка. Тема слишком длинная.</span>' . $FOOTER);
-}
-
-if(strlen($_POST['Message_name']) > KOTOBA_MAX_NAME_LENGTH)
-{
-    if(KOTOBA_ENABLE_STAT)
-        kotoba_stat(ERR_NAME_TOO_LONG);
-
-    die ($HEAD . '<span class="error">Ошибка. Имя пользователя слишком длинное.</span>' . $FOOTER);
+if(!post_check_sizes($uploaded_file_size, $with_image, $_POST['Message_text'],
+	$_POST['Message_theme'], $_POST['Message_name'], "kotoba_stat", $error_message)) {
+	die($HEAD . '<span class="error">' . $error_message . '</span>' . $FOOTER);
 }
 
 $Message_text = htmlspecialchars($_POST['Message_text'], ENT_QUOTES);
 $Message_theme = htmlspecialchars($_POST['Message_theme'], ENT_QUOTES);
 $Message_name = htmlspecialchars($_POST['Message_name'], ENT_QUOTES);
 
-if(strlen($Message_text) > KOTOBA_MAX_MESSAGE_LENGTH)
-{
-    if(KOTOBA_ENABLE_STAT)
-        kotoba_stat(ERR_TEXT_TOO_LONG);
-        
-    die ($HEAD . '<span class="error">Ошибка. Текст сообщения слишком длинный.</span>' . $FOOTER);
+if(!post_check_sizes($uploaded_file_size, $with_image, $Message_text,
+	$Message_theme, $Message_name, "kotoba_stat", $error_message)) {
+	die($HEAD . '<span class="error">' . $error_message . '</span>' . $FOOTER);
 }
 
-if(strlen($$Message_theme) > KOTOBA_MAX_THEME_LENGTH)
-{
-    if(KOTOBA_ENABLE_STAT)
-        kotoba_stat(ERR_THEME_TOO_LONG);
-
-    die ($HEAD . '<span class="error">Ошибка. Тема слишком длинная.</span>' . $FOOTER);
+// mark fuction here
+if(!post_mark($Message_text, 
+	$Message_theme, $Message_name, "kotoba_stat", $error_message)) {
+	die($HEAD . '<span class="error">' . $error_message . '</span>' . $FOOTER);
 }
 
-if(strlen($Message_name) > KOTOBA_MAX_NAME_LENGTH)
-{
-    if(KOTOBA_ENABLE_STAT)
-        kotoba_stat(ERR_NAME_TOO_LONG);
+// post have attached image
+if($with_image) {
+	$uploaded_file = $_FILES['Message_img']['tmp_name'];
+	$uploaded_name = $_FILES['Message_img']['name'];
+	$recived_ext = post_get_uploaded_extension($uploaded_name);
 
-    die ($HEAD . '<span class="error">Ошибка. Имя пользователя слишком длинное.</span>' . $FOOTER);
-}
-
-require 'mark.php';
-
-KotobaMark($Message_text);
-$Message_text = preg_replace("/\n/", '<br>', $Message_text);
-
-if(strlen($Message_text) > KOTOBA_MAX_MESSAGE_LENGTH)
-{
-    if(KOTOBA_ENABLE_STAT)
-        kotoba_stat(ERR_TEXT_TOO_LONG);
-        
-    die ($HEAD . '<span class="error">Ошибка. Текст сообщения слишком длинный.</span>' . $FOOTER);
-}
-
-$Message_theme = str_replace("\n", '', $Message_theme);
-$Message_theme = str_replace("\r", '', $Message_theme);
-
-$Message_name = str_replace("\n", '', $Message_name);
-$Message_name = str_replace("\r", '', $Message_name);
-
-$Message_text = preg_replace('/(<br>){3,}/', '<br><br>', $Message_text);
-$with_image = false;
-
-if($_FILES['Message_img']['error'] == UPLOAD_ERR_OK)
-{
-    if($_FILES['Message_img']['size'] < KOTOBA_MIN_IMGSIZE)
-    {
-        if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(ERR_FILE_TOO_SMALL);
-
-		die($HEAD . '<span class="error">Ошибка. Загружаемый файл имеет слишком маленький размер.</span>' . $FOOTER);
-    }
-
-	if(($dot_pos = strrpos($_FILES['Message_img']['name'], '.')) === false)
-	{
+	require 'thumb_processing.php';
+	$imageresult = array();
+	if(!thumb_check_image_type($recived_ext, $uploaded_file, $imageresult)) {
+		// not supported file name
 		if(KOTOBA_ENABLE_STAT)
 			kotoba_stat(ERR_WRONG_FILETYPE);
+		
+		die ($HEAD . '<span class="error">Ошибка. Недопустимый тип файла...</span>' . $FOOTER);
+	}
 
-		die ($HEAD . '<span class="error">Ошибка. Недопустимый тип файла.</span>' . $FOOTER);
-    }
-require 'post_processing.php';
-    //$recived_ext = strtolower(substr($_FILES['Message_img']['name'], $dot_pos + 1));
-$uploaded_file = $_FILES['Message_img']['tmp_name'];
-$uploaded_name = $_FILES['Message_img']['name'];
-$recived_ext = post_get_uploaded_extension($uploaded_name);
+	$original_ext = $imageresult['orig_extension'];
+	$recived_ext = $imageresult['extension'];
 
-require 'thumb_processing.php';
-$imageresult = array();
-if(!thumb_check_image_type($recived_ext, $uploaded_file, $imageresult)) {
-	// not supported file name
-	if(KOTOBA_ENABLE_STAT)
-		kotoba_stat(ERR_WRONG_FILETYPE);
-	
-	die ($HEAD . '<span class="error">Ошибка. Недопустимый тип файла...</span>' . $FOOTER);
-}
+	$filenames = post_create_filenames($recived_ext, $original_ext);
+	$saved_filename = $filenames[0];
+	$saved_thumbname = $filenames[1];
+	$raw_filename = $filenames[2];
 
-$original_ext = $imageresult['orig_extension'];
-$recived_ext = $imageresult['extension'];
+	$IMG_SRC_DIR = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$BOARD_NAME/img";
+	$IMG_THU_DIR = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb";
 
-$filenames = post_create_filenames($recived_ext, $original_ext);
-$saved_filename = $filenames[0];
-$saved_thumbname = $filenames[1];
-$raw_filename = $filenames[2];
-/*
-	// $internal_size: boolean flag indicates is picture dimensions
-	// calculated in this file (see below) matter to thumbnailing
-	$internal_size = true;
-	// $original_ext: original extension of posted filename
-	$original_ext;
-    switch($recived_ext)
-    {
-        case 'jpeg':
-            $recived_ext = 'jpg';
-			$original_ext = $recived_ext;
-            break;
-        case 'gif':
-        case 'png':
-        case 'jpg':
-			$original_ext = $recived_ext;
-            break;
-		case 'svg':
-			$internal_size = false;
-			$original_ext = $recived_ext;
-			$recived_ext = 'png';
-			break;
-        default:
-            if(KOTOBA_ENABLE_STAT)
-				kotoba_stat(ERR_WRONG_FILETYPE);
+	$saved_image_path = sprintf("%s/%s", $IMG_SRC_DIR, $saved_filename);
 
-			die ($HEAD . '<span class="error">Ошибка. Недопустимый тип файла.</span>' . $FOOTER);
-    }
-*/
-    /*list($usec, $sec) = explode(" ", microtime());
-    $saved_filename = $sec . substr($usec, 2, 5);
-    $saved_thumbname = $saved_filename . "t." . $recived_ext;
-    $raw_filename = $saved_filename;
-	$saved_filename .= ".$recived_ext"; */
-/*	list($usec, $sec) = explode(' ', microtime());
-	$saved_filename = $sec . substr($usec, 2, 5);				// Три знака после запятой.
-	$saved_thumbname = $saved_filename . 't.' . $recived_ext;   // Имена всех миниатюр заканчиваются на t.
-	$raw_filename = $saved_filename;
-	$saved_filename .= ".$original_ext";*/
-
-    $IMG_SRC_DIR = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$BOARD_NAME/img";
-    $IMG_THU_DIR = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb";
-
-    if (move_uploaded_file($_FILES['Message_img']['tmp_name'], "$IMG_SRC_DIR/$saved_filename") === false)
-    {
-        if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(ERR_FILE_NOT_SAVED);
-
-		die ($HEAD . '<span class="error">Ошибка. Файл не удалось сохранить.</span>' . $FOOTER);
-    }
-    
-    if(!KOTOBA_ALLOW_SAEMIMG)
-    {
-        if(($img_hash = hash_file('md5', "$IMG_SRC_DIR/$saved_filename")) === false)
-        {
-            if(KOTOBA_ENABLE_STAT)
-                kotoba_stat(ERR_FILE_HASH);
-
-            die ($HEAD . "<span class=\"error\">Ошибка. Не удалось вычислить хеш файла $IMG_SRC_DIR/$saved_filename.</span>" . $FOOTER);
-        }
-
-        if(($result = mysql_query("select `id`, `thread` from `posts` where `board` = $BOARD_NUM and LOCATE(\"HASH:$img_hash\",`Post Settings`) <> 0")) !== false)
-        {
-            if(mysql_num_rows($result) == 0)
-            {
-                mysql_free_result($result);
-            }
-            else
-            {
-                if(KOTOBA_ENABLE_STAT)
-					kotoba_stat(ERR_FILE_ALREADY_EXIST);
-
-				$row = mysql_fetch_array($result, MYSQL_ASSOC);
-				mysql_free_result($result);
-				unlink("$IMG_SRC_DIR/$saved_filename");
-				die($HEAD . "<span class=\"error\">Ошибка. Картинка уже была запощена <a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$row[thread]/$row[id]/\">тут</a></span>" . $FOOTER);
-
-            }
-        }
-        else
-        {
-            kotoba_stat("(0026) Ошибка. Не удалось проверить существание картинки на доске с именем $BOARD_NAME. Прична: " . mysql_error());
-            die($HEAD . "<span class=\"error\">Ошибка. Не удалось проверить существание картинки на доске с именем $BOARD_NAME. Прична: " .  mysql_error() . "</error>" . $FOOTER);
-        }
-    }
-
-/*		if($internal_size) { // calculate image dimensions
-			$srcimg_res = getimagesize("$IMG_SRC_DIR/$saved_filename");
-		}
-		else { // doesn't calculate iamge dimensions, thumbnailing procedure do it itself
-			// set dimensions size suitable to thumbnailing procedure not copy
-			$srcimg_res[0] = 201; $srcimg_res[1] = 201;
-		}
-
-		if($srcimg_res[0] < KOTOBA_MIN_IMGWIDTH && $srcimg_res[1] < KOTOBA_MIN_IMGHEIGTH)
+	if(!post_move_uploded_file($uploaded_file, $saved_image_path, "kotoba_stat", $error_message)) {
+		die($error_message);
+	}
+	if(!KOTOBA_ALLOW_SAEMIMG)
+	{
+		if(($img_hash = hash_file('md5', "$IMG_SRC_DIR/$saved_filename")) === false)
 		{
 			if(KOTOBA_ENABLE_STAT)
-				kotoba_stat(ERR_FILE_LOW_RESOLUTION);
+				kotoba_stat(ERR_FILE_HASH);
 
-			unlink("$IMG_SRC_DIR/$saved_filename");
-			die($HEAD . '<span class="error">Ошибка. Разрешение загружаемого изображения слишком маленькое.</span>' . $FOOTER);
-		}*/
+			die ($HEAD . "<span class=\"error\">Ошибка. Не удалось вычислить хеш файла $IMG_SRC_DIR/$saved_filename.</span>" . $FOOTER);
+		}
+		$error_message_array = array();
+		if(!post_get_same_image($BOARD_NUM, $BOARD_NAME, $img_hash, "kotoba_stat", $error_message_array)) {
+			unlink($saved_image_path);
+			if($error_message_array['sameimage']) {
+				$link = sprintf("<a href=\"%s/%s/%d#%d\">тут</a>", 
+					KOTOBA_DIR_PATH, $BOARD_NAME, $error_message_array['thread'], $error_message_array['post']);
+				die ($HEAD . '<span class="error">Ошибка. Картинка уже была запощена ' . $link . '</span>' . $FOOTER);
+			}
+			else {
+				die ($HEAD . '<span class="error">' . $error_message_array['error_message'] . '</span>' . $FOOTER);
+			}
+		}
+	}
 
-	// TODO Сделать проверку на слишком большое расширение.
-
-//    require 'thumb_processing.php';
 
 	if($imageresult['x'] < KOTOBA_MIN_IMGWIDTH && $imageresult['y'] < KOTOBA_MIN_IMGHEIGTH)
 	{
@@ -440,17 +244,6 @@ $raw_filename = $filenames[2];
 		die ($HEAD . '<span class="error">Ошибка. Не удалось создать уменьшенную копию изображения: ' . $message .'</span>' .  $FOOTER);
 	}
 
-//	$thumb_res = getimagesize("$IMG_THU_DIR/$saved_thumbname");
-
-    /*$Message_img_params = "IMGNAME:$raw_filename\n";
-    $Message_img_params .= "IMGEXT:$recived_ext\n";
-	$Message_img_params .= "ORIGIMGEXT:$original_ext\n";
-    $Message_img_params .= "IMGTW:$thumb_res[0]\n";
-    $Message_img_params .= "IMGTH:$thumb_res[1]\n";
-    $Message_img_params .= "IMGSW:$srcimg_res[0]\n";
-    $Message_img_params .= "IMGSH:$srcimg_res[1]\n";
-	$Message_img_params .= "IMGSIZE:{$_FILES['Message_img']['size']}\n";*/
-    
 	$Message_img_params = "IMGNAME:$raw_filename\n";
 	$Message_img_params .= "IMGEXT:$recived_ext\n";
 	$Message_img_params .= "ORIGIMGEXT:$original_ext\n";
@@ -459,11 +252,10 @@ $raw_filename = $filenames[2];
 	$Message_img_params .= "IMGSW:" . $imageresult['x'] . "\n";
 	$Message_img_params .= "IMGSH:" . $imageresult['y'] . "\n";
 	$Message_img_params .= 'IMGSIZE:' . $uploaded_file_size . "\n";
-    if(KOTOBA_ALLOW_SAEMIMG)
-        $Message_img_params .= "HASH:$img_hash\n";
-
-    $with_image = true;
+	if(! KOTOBA_ALLOW_SAEMIMG)
+		$Message_img_params .= "HASH:$img_hash\n";
 }
+
 
 $Message_settings = "THEME:$Message_theme\n";
 $Message_settings .= "NAME:$Message_name\n";

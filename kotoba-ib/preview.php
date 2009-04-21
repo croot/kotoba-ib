@@ -96,7 +96,7 @@ if(isset($_SESSION['isLoggedIn']))	// Зарегистрированный по�
 		{
 			$user = mysql_fetch_array($result, MYSQL_ASSOC);
 			$User_id = $user['id'];
-			$User_Settings = GetSettings('user', $user['User Settings']);
+			$User_Settings = get_settings('user', $user['User Settings']);
 			mysql_free_result($result);
 		}
 	}
@@ -275,7 +275,7 @@ if(($threads = mysql_query(
 
 					// Код ОП поста.
 					$post = mysql_fetch_array($posts, MYSQL_BOTH);
-					$Op_settings = GetSettings('post', $post['Post Settings']);
+					$Op_settings = get_settings('post', $post['Post Settings']);
 
 					// Урезание длинного текста.
                     $Message_text = $post['Text'];
@@ -323,7 +323,7 @@ if(($threads = mysql_query(
 					// Код остальных постов треда.
 					while (($post = mysql_fetch_array($posts, MYSQL_BOTH)) !== false)
 					{
-						$Replay_settings = GetSettings('post', $post['Post Settings']);
+						$Replay_settings = get_settings('post', $post['Post Settings']);
                         $Message_text = $post['Text'];
 						
 //                        if(($count = preg_match('/((?:.+?(?:<br>|<\/ul>|<\/ol>|<\/li>|$)){1,10})/', $post['Text'], $result)) === false)
