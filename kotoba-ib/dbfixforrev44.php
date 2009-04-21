@@ -1,4 +1,4 @@
-<?
+<?php
 /* fix database from releases up to 44 to new schema
  * (added new parameter to Post Settings)
  * place file in kotoba directory

@@ -187,6 +187,7 @@ else
 // Получение постов просматриваемого треда.
 $query = "select `id`, `Time`, `Text`, `Post Settings` from `posts` where `thread` = $THREAD_NUM and `board` = $BOARD_NUM order by `id` asc";
 $THREAD = '';
+$smarty = new SmartyKotobaSetup();
 
 if(($posts = mysql_query($query)))
 {
@@ -225,27 +226,37 @@ if(($posts = mysql_query($query)))
 		
 		while (($post = mysql_fetch_array($posts, MYSQL_ASSOC)) !== false)
 		{
-			$Replay_settings = GetSettings('post', $post['Post Settings']);
+			$Replay_settings = get_settings('post', $post['Post Settings']);
 
-			$THREAD .= "<table>\n";
-			$THREAD .= "<tr>\n\t<td class=\"reply\"><span class=\"filetitle\">$Replay_settings[THEME]</span> <span class=\"postername\">$Replay_settings[NAME]</span> $post[Time]";
-			
+			$smarty->assign('simple_theme', $Replay_settings['THEME']);
+            $smarty->assign('simple_name', $Replay_settings['NAME']);
+            $smarty->assign('simple_time', $post['Time']);
+            $smarty->assign('simple_id', $post['id']);
+            $smarty->assign('simple_link', KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/#$post[id]");
+            $smarty->assign('simple_remove_link', KOTOBA_DIR_PATH . "/$BOARD_NAME/r$post[id]/");
+            $smarty->assign('simple_text', ($post['Text'] == '' ? '<br>' : $post['Text']));
+
 			if(isset($Replay_settings['IMGNAME']))
 			{
 				$img_thumb_filename = $Replay_settings['IMGNAME'] . 't.' . $Replay_settings['IMGEXT'];
 				$img_filename = $Replay_settings['IMGNAME'] . '.' . $Replay_settings['ORIGIMGEXT'];
 
-				$THREAD .= " <span class=\"filesize\">Файл: <a target=\"_blank\" href=\"". KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename\">$img_filename</a> -(<em>$Replay_settings[IMGSIZE] Байт $Replay_settings[IMGSW]x$Replay_settings[IMGSH]</em>)</span> <span class=\"reflink\"><span onclick=\"insert('>>$post[id]');\">#</span> <a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/#$post[id]\">$post[id]</a></span> <span class=\"delbtn\">[<a href=\"" . KOTOBA_DIR_PATH. "/$BOARD_NAME/r$post[id]/\" title=\"Удалить\">×</a>]</span><a name=\"$post[id]\"></a>\n";
-				$THREAD .= "\t<br><a target=\"_blank\" href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename\"><img src=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb/$img_thumb_filename\" class=\"thumb\" width=\"$Replay_settings[IMGTW]\" heigth=\"$Replay_settings[IMGTH]\"></a>";
-				$THREAD .= "<blockquote>\n" . ($post['Text'] == "" ? "<br>" : $post['Text']) . "</blockquote>\n\t</td>\n</tr>\n";
+				$smarty->assign('with_image', true);
+                $smarty->assign('simple_file_link', KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename");
+                $smarty->assign('simple_file_name', $img_filename);
+                $smarty->assign('simple_file_size', $Replay_settings['IMGSIZE']);
+                $smarty->assign('simple_file_width', $Replay_settings['IMGSW']);
+                $smarty->assign('simple_file_heigth', $Replay_settings['IMGSH']);
+                $smarty->assign('simple_file_thumbnail_link', KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb/$img_thumb_filename");
+                $smarty->assign('simple_file_thumbnail_width', $Replay_settings['IMGTW']);
+                $smarty->assign('simple_file_thumbnail_heigth', $Replay_settings['IMGTH']);
 			}
 			else
 			{
-				$THREAD .= " <span class=\"reflink\"><span onclick=\"insert('>>$post[id]');\">#</span> <a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/#$post[id]\">$post[id]</a></span> <span class=\"delbtn\">[<a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/r$post[id]/\" title=\"Удалить\">×</a>]</span><a name=\"$post[id]\"></a>\n";
-				$THREAD .= "\t<br><blockquote>\n" . ($post['Text'] == "" ? "<br>" : $post['Text']) . "</blockquote>\n\t</td>\n</tr>\n";
+                $smarty->assign('with_image', false);
             }
 			
-			$THREAD .= "</table>\n";
+			$THREAD .= $smarty->fetch('post_simple.tpl');
         }
 
 		$THREAD .= "</div>\n</div>\n<br clear=\"left\">\n<hr>";

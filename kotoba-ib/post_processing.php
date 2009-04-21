@@ -1,4 +1,4 @@
-<?
+<?php
 /* postprocessing.php: module for post processing */
 
 
@@ -6,7 +6,7 @@
  * return values: positive integer board id
  * on error return -1
  * arguments:
- * $board_name is board name
+ * $board_name is board name (UNSAFE!)
  * $kotoba_stat is kotoba stat function name
  * $error_message is reference to variable which would contain error message if any
  */
@@ -188,7 +188,7 @@ KotobaMark($message_text);
 	if(!post_check_message_size($message_text, $kotoba_stat, $error_message)) {
 		return false;
 	}
-	// should it be placed before size checking?
+	// It not incrase size, so don't matter )
 	$message_text = preg_replace('/(<br>){3,}/', '<br><br>', $message_text);
 
 	$message_theme = str_replace("\n", '', $message_theme);
