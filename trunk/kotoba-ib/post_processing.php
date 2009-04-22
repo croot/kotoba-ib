@@ -82,7 +82,8 @@ function post_check_image_upload_error($error, $allow_no_uploads = false, $kotob
 		
 		case UPLOAD_ERR_NO_FILE:
 			if(KOTOBA_ENABLE_STAT)
-				call_user_func_array($kotoba_stat, array(ERR_UPLOAD_NO_FILE));
+				if(!$allow_no_uploads)
+					call_user_func_array($kotoba_stat, array(ERR_UPLOAD_NO_FILE));
 
 			$error_message = "Ошибка. Файл не был загружен.";
 			return $allow_no_uploads;
