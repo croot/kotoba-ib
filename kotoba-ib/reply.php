@@ -9,8 +9,9 @@
  * See license.txt for more info.*
  *********************************/
 
-require 'common.php';
-
+require_once('common.php');
+require('error_processing.php');
+/*
 $HEAD = 
 '<html>
 <head>
@@ -25,10 +26,10 @@ $FOOTER =
 '
 </body>
 </html>';
-
+ */
 if(KOTOBA_ENABLE_STAT === true)
     if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/reply.stat', 'a')) === false)
-        die($HEAD . '<span class="error">Ошибка. Не удалось открыть или создать файл статистики.</span>' . $FOOTER);
+        kotoba_error("Ошибка. Не удалось открыть или создать файл статистики");
 
 require 'events.php';
 
@@ -37,7 +38,7 @@ if(!isset($_POST['b']))
 	if(KOTOBA_ENABLE_STAT)
 		kotoba_stat(ERR_BOARD_NOT_SPECIFED);
 
-	die($HEAD . '<span class="error">Ошибка. Не задано имя доски.</span>' . $FOOTER);
+	kotoba_error("Ошибка. Не задано имя доски.");
 }
 
 if(!isset($_POST['t']))
@@ -45,7 +46,7 @@ if(!isset($_POST['t']))
 	if(KOTOBA_ENABLE_STAT)
 		kotoba_stat(ERR_THREAD_NOT_SPECIFED);
 
-	die($HEAD . '<span class="error">Ошибка. Не задан номер треда.</span>' . $FOOTER);
+	kotoba_error("Ошибка. Не задан номер треда.");
 }
 
 if(($BOARD_NAME = CheckFormat('board', $_POST['b'])) === false)
@@ -53,7 +54,7 @@ if(($BOARD_NAME = CheckFormat('board', $_POST['b'])) === false)
     if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_BOARD_BAD_FORMAT);
         
-    die($HEAD . '<span class="error">Ошибка. Имя доски имеет не верный формат.</span>' . $FOOTER);
+    kotoba_error("Ошибка. Имя доски имеет не верный формат.");
 }
 
 if(($THREAD_NUM = CheckFormat('thread', $_POST['t'])) === false)
@@ -61,7 +62,7 @@ if(($THREAD_NUM = CheckFormat('thread', $_POST['t'])) === false)
     if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_THREAD_BAD_FORMAT);
         
-    die($HEAD . '<span class="error">Ошибка. Номер треда имеет не верный формат.</span>' . $FOOTER);
+    kotoba_error("Ошибка. Номер треда имеет не верный формат.");
 }
 
 require 'databaseconnect.php';
@@ -73,7 +74,7 @@ $error_message = "";
 $BOARD_NUM = post_get_board_id($BOARD_NAME, "kotoba_stat", $error_message);
 
 if($BOARD_NUM < 0) {
-	die($HEAD . '<span class="error">' . $error_message . '</span>' . $FOOTER);
+	kotoba_error($error_message);
 }
 
 // Проверка существования треда $THREAD_NUM на доске с именем $BOARD_NAME.
@@ -87,7 +88,7 @@ if(($result = mysql_query("select t.`id`, count(p.`id`) `count`
 			kotoba_stat(sprintf(ERR_THREAD_NOT_FOUND, $THREAD_NUM, $BOARD_NAME));
 			
 		mysql_free_result($result);
-		die($HEAD . "<span class=\"error\">Ошибка. Треда с номером $THREAD_NUM на доске $BOARD_NAME не найдено.</span>" . $FOOTER);
+		kotoba_error("Ошибка. Треда с номером $THREAD_NUM на доске $BOARD_NAME не найдено");
 	}
 	else
 	{
@@ -101,11 +102,11 @@ else
 	if(KOTOBA_ENABLE_STAT)
         kotoba_stat(sprintf(ERR_THREAD_EXIST_CHECK, $THREAD_NUM, $BOARD_NAME, mysql_error()));
     
-	die($HEAD . "<span class=\"error\">Ошибка. Не удалось проверить существание треда с номером $THREAD_NUM на доске $BOARD_NAME. Прична: " .  mysql_error() . "</error>" . $FOOTER);
+	kotoba_error(sprintf("Ошибка. Не удалось проверить существание треда с номером %d на доске %s. Прична: %s", $THREAD_NUM, $BOARD_NAME, mysql_error()));
 }
 
 if(!post_check_image_upload_error($_FILES['Message_img']['error'], true, "kotoba_stat", $error_message)) {
-	die($HEAD . '<span class="error">' . $error_message . '</span>' . $FOOTER);
+	kotoba_error($error_message);
 }
 
 if($_FILES['Message_img']['error'] == UPLOAD_ERR_NO_FILE && (!isset($_POST['Message_text']) || $_POST['Message_text'] == ''))
@@ -113,7 +114,7 @@ if($_FILES['Message_img']['error'] == UPLOAD_ERR_NO_FILE && (!isset($_POST['Mess
 	if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_NO_FILE_AND_TEXT);
 		
-    die($HEAD . '<span class="error">Ошибка. Файл не был загружен и пустой текст сообщения.</error>' . $FOOTER);
+    kotoba_error('Ошибка. Файл не был загружен и пустой текст сообщения');
 }
 elseif($_FILES['Message_img']['error'] == UPLOAD_ERR_NO_FILE) { // no image
 	$with_image = false;
@@ -126,7 +127,7 @@ $uploaded_file_size = $_FILES['Message_img']['size'];
 
 if(!post_check_sizes($uploaded_file_size, $with_image, $_POST['Message_text'],
 	$_POST['Message_theme'], $_POST['Message_name'], "kotoba_stat", $error_message)) {
-	die($HEAD . '<span class="error">' . $error_message . '</span>' . $FOOTER);
+	kotoba_error($error_message);
 }
 
 $Message_text = htmlspecialchars($_POST['Message_text'], ENT_QUOTES);
@@ -135,13 +136,13 @@ $Message_name = htmlspecialchars($_POST['Message_name'], ENT_QUOTES);
 
 if(!post_check_sizes($uploaded_file_size, $with_image, $Message_text,
 	$Message_theme, $Message_name, "kotoba_stat", $error_message)) {
-	die($HEAD . '<span class="error">' . $error_message . '</span>' . $FOOTER);
+	kotoba_error($error_message);
 }
 
 // mark fuction here
 if(!post_mark($Message_text, 
 	$Message_theme, $Message_name, "kotoba_stat", $error_message)) {
-	die($HEAD . '<span class="error">' . $error_message . '</span>' . $FOOTER);
+	kotoba_error($error_message);
 }
 
 // post have attached image
@@ -157,7 +158,7 @@ if($with_image) {
 		if(KOTOBA_ENABLE_STAT)
 			kotoba_stat(ERR_WRONG_FILETYPE);
 		
-		die ($HEAD . '<span class="error">Ошибка. Недопустимый тип файла...</span>' . $FOOTER);
+		kotoba_error('Ошибка. Недопустимый тип файла');
 	}
 
 	$original_ext = $imageresult['orig_extension'];
@@ -174,7 +175,7 @@ if($with_image) {
 	$saved_image_path = sprintf("%s/%s", $IMG_SRC_DIR, $saved_filename);
 
 	if(!post_move_uploded_file($uploaded_file, $saved_image_path, "kotoba_stat", $error_message)) {
-		die($error_message);
+		kotoba_error($error_message);
 	}
 	if(!KOTOBA_ALLOW_SAEMIMG)
 	{
@@ -183,7 +184,7 @@ if($with_image) {
 			if(KOTOBA_ENABLE_STAT)
 				kotoba_stat(ERR_FILE_HASH);
 
-			die ($HEAD . "<span class=\"error\">Ошибка. Не удалось вычислить хеш файла $IMG_SRC_DIR/$saved_filename.</span>" . $FOOTER);
+			kotoba_error(sprintf("Ошибка. Не удалось вычислить хеш файла %s.", $saved_image_path));
 		}
 		$error_message_array = array();
 		if(!post_get_same_image($BOARD_NUM, $BOARD_NAME, $img_hash, "kotoba_stat", $error_message_array)) {
@@ -191,10 +192,10 @@ if($with_image) {
 			if($error_message_array['sameimage']) {
 				$link = sprintf("<a href=\"%s/%s/%d#%d\">тут</a>", 
 					KOTOBA_DIR_PATH, $BOARD_NAME, $error_message_array['thread'], $error_message_array['post']);
-				die ($HEAD . '<span class="error">Ошибка. Картинка уже была запощена ' . $link . '</span>' . $FOOTER);
+				kotoba_error(sprintf("Ошибка. Картинка уже была запощена %s", $link));
 			}
 			else {
-				die ($HEAD . '<span class="error">' . $error_message_array['error_message'] . '</span>' . $FOOTER);
+				kotoba_error($error_message_array['error_message']);
 			}
 		}
 	}
@@ -206,7 +207,7 @@ if($with_image) {
 			kotoba_stat(ERR_FILE_LOW_RESOLUTION);
 		
 		unlink("$IMG_SRC_DIR/$saved_filename");
-		die($HEAD . '<span class="error">Ошибка. Разрешение загружаемого изображения слишком маленькое.</span>' . $FOOTER);
+		kotoba_error("Ошибка. Разрешение загружаемого изображения слишком маленькое.");
 	}
 
 	$thumbnailresult = array();
@@ -241,7 +242,7 @@ if($with_image) {
 				break;
 		}
 
-		die ($HEAD . '<span class="error">Ошибка. Не удалось создать уменьшенную копию изображения: ' . $message .'</span>' .  $FOOTER);
+		kotoba_error(sprintf("Ошибка. Не удалось создать уменьшенную копию изображения: %s", $message));
 	}
 
 	$Message_img_params = "IMGNAME:$raw_filename\n";
@@ -279,7 +280,7 @@ if(isset($_POST['Message_pass']) && $_POST['Message_pass'] != '')
         
         unlink("$IMG_SRC_DIR/$saved_filename");
         unlink("$IMG_THU_DIR/$saved_thumbname");
-        die($HEAD . '<span class="error">Ошибка. Пароль для удаления имеет не верный формат.</span>' . $FOOTER);
+        kotoba_error("Ошибка. Пароль для удаления имеет не верный формат.");
 	}
 
 	if(!isset($_COOKIE['rempass']) || $_COOKIE['rempass'] != $REPLY_PASS)
@@ -299,7 +300,7 @@ if(mysql_query('start transaction') == false)
         unlink("$IMG_THU_DIR/$saved_thumbname");
     }
 
-    die ($HEAD . '<span class="error">Ошибка. Невозможно начать транзакцию. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
+    kotoba_error(sprintf("Ошибка. Невозможно начать транзакцию. Причина: %s", mysql_error()));
 }
 
 // Вычисление числа постов доски (в не утонувших тредах).
@@ -318,7 +319,7 @@ if(($result = mysql_query(
 
 	unlink("$IMG_SRC_DIR/$saved_filename");
     unlink("$IMG_THU_DIR/$saved_thumbname");
-    die ($HEAD . "<span class=\"error\">Ошибка. Невозможно подсчитать количество постов доски $BOARD_NAME. Причина: $temp.</span>" . $FOOTER);
+    kotoba_error(sprintf("Ошибка. Невозможно подсчитать количество постов доски %s. Причина: %s.", $BOARD_NAME, $temp));
 }
 elseif (mysql_num_rows($result) == 0)   // Нельзя ответить в тред которого нет, если доска пуста.
 {
@@ -328,7 +329,7 @@ elseif (mysql_num_rows($result) == 0)   // Нельзя ответить в тр
 	mysql_query('rollback');
     unlink("$IMG_SRC_DIR/$saved_filename");
     unlink("$IMG_THU_DIR/$saved_thumbname");
-    die ($HEAD . "<span class=\"error\">Ошибка. Невозможно подсчитать количество постов доски $BOARD_NAME. Причина: Возможно не верное имя доски.</span>" . $FOOTER);
+    kotoba_error(sprintf("Ошибка. Невозможно подсчитать количество постов доски %s. Причина: Возможно не верное имя доски.", $BOARD_NAME));
 }
 
 $row = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -360,7 +361,7 @@ while($POST_COUNT >= KOTOBA_POST_LIMIT)
 			unlink("$IMG_THU_DIR/$saved_thumbname");
 		}
 
-		die ($HEAD . "<span class=\"error\">Ошибка. Невозможно найти тред для сброса в архив. Причина: $temp.</span>" . $FOOTER);
+		kotoba_error(sprintf("Ошибка. Невозможно найти тред для сброса в архив. Причина: %s", $temp));
     }
     elseif (mysql_num_rows($result) == 0)
     {
@@ -374,7 +375,7 @@ while($POST_COUNT >= KOTOBA_POST_LIMIT)
 		}
 
         mysql_query('rollback');
-        die ($HEAD . "<span class=\"error\">Ошибка. Невозможно найти тред для сброса в архив. Причина: Возможно не верный номер доски $BOARD_NUM.</span>" . $FOOTER);
+        kotoba_error(sprintf("Ошибка. Невозможно найти тред для сброса в архив. Причина: Возможно не верный номер доски %d.", $BOARD_NUM));
     }
 
     $row = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -397,7 +398,7 @@ while($POST_COUNT >= KOTOBA_POST_LIMIT)
 			unlink("$IMG_THU_DIR/$saved_thumbname");
 		}
 
-		die ($HEAD . "<span class=\"error\">Ошибка. Невозможно пометить тред для архивирования. Причина: $temp.</span>" . $FOOTER);
+		kotoba_error(sprintf("Ошибка. Невозможно пометить тред для архивирования. Причина: %s.", $temp));
     }elseif (mysql_affected_rows() == 0)
     {
         if(KOTOBA_ENABLE_STAT)
@@ -410,7 +411,7 @@ while($POST_COUNT >= KOTOBA_POST_LIMIT)
 		}
 
         mysql_query('rollback');
-        die ($HEAD . "<span class=\"error\">Ошибка. Невозможно пометить тред на архивирование. Причина: Возможно не верный номер доски $BOARD_NUM или треда для архивирования $ARCH_THREAD_NUM.</span>" . $FOOTER);
+        kotoba_error(sprintf("Ошибка. Невозможно пометить тред на архивирование. Причина: Возможно не верный номер доски %d или треда для архивирования %d.", $BOARD_NUM, $ARCH_THREAD_NUM));
     }
     
     if(($result = mysql_query(
@@ -432,7 +433,7 @@ while($POST_COUNT >= KOTOBA_POST_LIMIT)
 			unlink("$IMG_THU_DIR/$saved_thumbname");
 		}
 
-		die ($HEAD . "<span class=\"error\">Ошибка. Невозможно подсчитать  количество постов доски $BOARD_NAME. Причина: $temp.</span>" . $FOOTER);
+		kotoba_error(sprintf("Ошибка. Невозможно подсчитать  количество постов доски %s. Причина: %s.", $BOARD_NAME, $temp));
     }
     elseif (mysql_num_rows($result) == 0)
     {
@@ -446,7 +447,7 @@ while($POST_COUNT >= KOTOBA_POST_LIMIT)
 		}
 
         mysql_query('rollback');
-        die ($HEAD . "<span class=\"error\">Ошибка. Невозможно подсчитать количество постов доски $BOARD_NAME. Причина: Возможно не верное имя доски.</span>" . $FOOTER);
+        kotoba_error(sprintf("Ошибка. Невозможно подсчитать количество постов доски %s. Причина: Возможно не верное имя доски.", $BOARD_NAME));
     }
 
     $row = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -472,7 +473,7 @@ if(mysql_query("select @post_num := `MaxPostNum` + 1 from `boards` where `id` = 
         unlink("$IMG_THU_DIR/$saved_thumbname");
     }
 
-    die ($HEAD . "<span class=\"error\"> Ошибка. Невозможно вычислить номер нового поста. Причина: $temp.</span>" . $FOOTER);
+    kotoba_error(sprintf("Ошибка. Невозможно вычислить номер нового поста. Причина: %s.", $temp));
 }
 
 if(mysql_query(
@@ -491,7 +492,7 @@ if(mysql_query(
         unlink("$IMG_THU_DIR/$saved_thumbname");
     }
 
-    die ($HEAD . "<span class=\"error\">Ошибка. Не удалось сохранить пост. Причина: $temp.</span>" . $FOOTER);
+    kotoba_error("Ошибка. Не удалось сохранить пост. Причина: %s.", $temp);
 }
 
 if(mysql_query("update `boards` set `MaxPostNum` = `MaxPostNum` + 1 where `id` = $BOARD_NUM") == false)
@@ -508,7 +509,7 @@ if(mysql_query("update `boards` set `MaxPostNum` = `MaxPostNum` + 1 where `id` =
 		unlink("$IMG_THU_DIR/$saved_thumbname");
 	}
 	
-    die ($HEAD . "<span class=\"error\">Ошибка. Невозможно установить наибольший номер поста доски. Причина: $temp.</span>" . $FOOTER);
+    kotoba_error(sprintf("Ошибка. Невозможно установить наибольший номер поста доски. Причина: %s.", $temp));
 }
 elseif (mysql_affected_rows() == 0)
 {
@@ -522,7 +523,7 @@ elseif (mysql_affected_rows() == 0)
 	}
 
     mysql_query('rollback');
-    die ($HEAD . "<span class=\"error\">Ошибка. Невозможно установить наибольший номер поста доски. Причина: $temp.</span>" . $FOOTER);
+    kotoba_error(sprintf("Ошибка. Невозможно установить наибольший номер поста доски. Причина: %s.", $temp));
 }
 
 if(mysql_query('commit') == false)
@@ -539,7 +540,7 @@ if(mysql_query('commit') == false)
         unlink("$IMG_THU_DIR/$saved_thumbname");
     }
     
-	die ($HEAD . "<span class=\"error\">Ошибка. Невозможно завершить транзакцию. Причина: $temp.</span>" . $FOOTER);
+	kotoba_error(sprintf("Ошибка. Невозможно завершить транзакцию. Причина: %s", $temp));
 }
 
 if(isset($_POST['goto']) && $_POST['goto'] == 'b')

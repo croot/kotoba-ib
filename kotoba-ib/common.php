@@ -55,7 +55,7 @@ class SmartyKotobaSetup extends Smarty
 		$this->compile_dir = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/smarty/kotoba/templates_c/';
 		$this->config_dir = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/smarty/kotoba/config/';
 		$this->cache_dir = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/smarty/kotoba/cache/';
-        //$this->caching = true;
+        $this->caching = 0;
 		
 		$this->assign('KOTOBA_DIR_PATH', KOTOBA_DIR_PATH);
     }
