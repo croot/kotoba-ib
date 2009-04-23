@@ -2,7 +2,7 @@
 /*************************************
  * Этот файл является частью Kotoba. *
  * Файл license.txt содержит условия *
- * распространения Kotoba.           *
+ * распространения Kotoba.		   *
  *************************************/
 /*********************************
  * This file is part of Kotoba.  *
@@ -18,49 +18,38 @@
 // выводимый текст в лог статистики, используйте константы в events.php.
 
 require 'common.php';
+require_once 'post_processing.php';
 require 'error_processing.php';
-/*
-$HEAD = 
-'<html>
-<head>
-	<title>Error page</title>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<link rel="stylesheet" type="text/css" href="' . KOTOBA_DIR_PATH . '/kotoba.css">
-</head>
-<body>
-';
-
-$FOOTER = 
-'
-</body>
-</html>';
- */
-if(KOTOBA_ENABLE_STAT)
-    if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/createthread.stat', 'a')) === false)
-        kotoba_error("Ошибка. Не удалось открыть или создать файл статистики.");
-
 require 'events.php';
+
+if(KOTOBA_ENABLE_STAT)
+{ // open stat file for appending
+	if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/createthread.stat',
+		'a')) === false)
+	{ // opening failed
+		kotoba_error("Ошибка. Не удалось открыть или создать файл статистики.");
+	}
+}
 
 // Этап 1. Проверка имени доски, на которой создаётся тред.
 
 if(!isset($_POST['b']))
 {
 	if(KOTOBA_ENABLE_STAT)
-        kotoba_stat(ERR_BOARD_NOT_SPECIFED);
-        
-    kotoba_error("Ошибка. Не задано имя доски.");
+		kotoba_stat(ERR_BOARD_NOT_SPECIFED);
+		
+	kotoba_error(ERR_BOARD_NOT_SPECIFED);
 }
 
 if(($BOARD_NAME = CheckFormat('board', $_POST['b'])) === false)
 {
-    if(KOTOBA_ENABLE_STAT)
-        kotoba_stat(ERR_BOARD_BAD_FORMAT);
-        
-    kotoba_error("Ошибка. Имя доски имеет не верный формат.");
+	if(KOTOBA_ENABLE_STAT)
+		kotoba_stat(ERR_BOARD_BAD_FORMAT);
+		
+	kotoba_error(ERR_BOARD_BAD_FORMAT);
 }
 
 require 'databaseconnect.php';
-require_once 'post_processing.php';
 
 $error_message = "";
 $BOARD_NUM = post_get_board_id($BOARD_NAME, "kotoba_stat", $error_message);
@@ -72,7 +61,9 @@ if($BOARD_NUM < 0) {
 // Этап 2. Обработка данных ОП поста.
 
 
-if(!post_check_image_upload_error($_FILES['Message_img']['error'], false, "kotoba_stat", $error_message)) {
+if(!post_check_image_upload_error($_FILES['Message_img']['error'], false, "kotoba_stat",
+	$error_message))
+{ // upload of image failed
 	kotoba_error($error_message);
 }
 
@@ -108,7 +99,7 @@ if(!thumb_check_image_type($recived_ext, $uploaded_file, $imageresult)) {
 	if(KOTOBA_ENABLE_STAT)
 		kotoba_stat(ERR_WRONG_FILETYPE);
 	
-	kotoba_error("Ошибка. Недопустимый тип файла.");
+	kotoba_error(ERR_WRONG_FILETYPE);
 }
 
 $original_ext = $imageresult['orig_extension'];
@@ -122,7 +113,10 @@ $raw_filename = $filenames[2];
 $IMG_SRC_DIR = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$BOARD_NAME/img";
 $IMG_THU_DIR = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb";
 
+
+// full path of uploaded image and generated thumbnail
 $saved_image_path = sprintf("%s/%s", $IMG_SRC_DIR, $saved_filename);
+$saved_thumbnail_path = sprintf("%s/%s", $IMG_THU_DIR, $saved_thumbname);
 
 if(!post_move_uploded_file($uploaded_file, $saved_image_path, "kotoba_stat", $error_message)) {
 	kotoba_error($error_message);
@@ -130,19 +124,22 @@ if(!post_move_uploded_file($uploaded_file, $saved_image_path, "kotoba_stat", $er
 
 if(! KOTOBA_ALLOW_SAEMIMG)
 {
-    if(($img_hash = hash_file('md5', $saved_image_path)) === false)
-    {
-        if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(ERR_FILE_HASH);
+	if(($img_hash = hash_file('md5', $saved_image_path)) === false)
+	{
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(ERR_FILE_HASH);
 
-        kotoba_error(sprintf("Ошибка. Не удалось вычислить хеш файла %s", $saved_image_path));
+		kotoba_error(sprintf("Ошибка. Не удалось вычислить хеш файла %s", $saved_image_path));
 	}
 	$error_message_array = array();
-	if(!post_get_same_image($BOARD_NUM, $BOARD_NAME, $img_hash, "kotoba_stat", $error_message_array)) {
+	if(!post_get_same_image($BOARD_NUM, $BOARD_NAME, $img_hash, "kotoba_stat",
+			$error_message_array))
+	{
 		unlink($saved_image_path);
 		if($error_message_array['sameimage']) {
 			$link = sprintf("<a href=\"%s/%s/%d#%d\">тут</a>", 
-				KOTOBA_DIR_PATH, $BOARD_NAME, $error_message_array['thread'], $error_message_array['post']);
+				KOTOBA_DIR_PATH, $BOARD_NAME,
+				$error_message_array['thread'], $error_message_array['post']);
 			kotoba_error(sprintf("Ошибка. Картинка уже была запощена %s", $link));
 		}
 		else {
@@ -153,11 +150,11 @@ if(! KOTOBA_ALLOW_SAEMIMG)
 
 if($imageresult['x'] < KOTOBA_MIN_IMGWIDTH && $imageresult['y'] < KOTOBA_MIN_IMGHEIGTH)
 {
-    if(KOTOBA_ENABLE_STAT)
-        kotoba_stat(ERR_FILE_LOW_RESOLUTION);
-    
-    unlink("$IMG_SRC_DIR/$saved_filename");
-    kotoba_error("Ошибка. Разрешение загружаемого изображения слишком маленькое.");
+	if(KOTOBA_ENABLE_STAT)
+		kotoba_stat(ERR_FILE_LOW_RESOLUTION);
+	
+	unlink($saved_image_path);
+	kotoba_error(ERR_FILE_LOW_RESOLUTION);
 }
 
 $thumbnailresult = array();
@@ -168,10 +165,10 @@ $thumb_res = create_thumbnail("$IMG_SRC_DIR/$saved_filename", "$IMG_THU_DIR/$sav
 
 if($thumb_res != KOTOBA_THUMB_SUCCESS)
 {
-    if(KOTOBA_ENABLE_STAT)
-        kotoba_stat(ERR_THUMB_CREATION);
+	if(KOTOBA_ENABLE_STAT)
+		kotoba_stat(ERR_THUMB_CREATION);
 
-	unlink("$IMG_SRC_DIR/$saved_filename");
+	unlink($saved_filename);
 
 	switch($thumb_res)
 	{
@@ -192,7 +189,8 @@ if($thumb_res != KOTOBA_THUMB_SUCCESS)
 			break;
 	}
 
-	kotoba_error(sprintf("Ошибка. Не удалось создать уменьшенную копию изображения: %s", $message));
+	kotoba_error(sprintf("Ошибка. Не удалось создать уменьшенную копию изображения: %s",
+		$message));
 }
 
 $Message_img_params = "IMGNAME:$raw_filename\n";
@@ -205,7 +203,7 @@ $Message_img_params .= "IMGSH:" . $imageresult['y'] . "\n";
 $Message_img_params .= 'IMGSIZE:' . $uploaded_file_size . "\n";
 
 if(!KOTOBA_ALLOW_SAEMIMG)
-    $Message_img_params .= "HASH:$img_hash\n";
+	$Message_img_params .= "HASH:$img_hash\n";
 
 
 // password settings
@@ -214,14 +212,14 @@ if(isset($_POST['Message_pass']) && $_POST['Message_pass'] != '')
 	if(($OPPOST_PASS = CheckFormat('pass', $_POST['Message_pass'])) === false)
 	{ // password have wrong format
 		if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(ERR_PASS_BAD_FORMAT);
-        // remove uploaded file
-        unlink("$IMG_SRC_DIR/$saved_filename");
-        unlink("$IMG_THU_DIR/$saved_thumbname");
-        kotoba_error("Ошибка. Пароль для удаления имеет не верный формат.");
+			kotoba_stat(ERR_PASS_BAD_FORMAT);
+		// remove uploaded file/////
+		post_remove_files($saved_filename, $saved_thumbname);
+		kotoba_error(ERR_PASS_BAD_FORMAT);
 	}
-
-	if(!isset($_COOKIE['rempass']) || $_COOKIE['rempass'] != $OPPOST_PASS) // save password in cookie
+	
+	// save password in cookie
+	if(!isset($_COOKIE['rempass']) || $_COOKIE['rempass'] != $OPPOST_PASS) 
 		setcookie("rempass", $OPPOST_PASS);
 }
 
@@ -229,60 +227,64 @@ if(isset($_POST['Message_pass']) && $_POST['Message_pass'] != '')
 
 if(mysql_query('start transaction') === false)
 { // transaction failed. why?
-    if(KOTOBA_ENABLE_STAT)
-        kotoba_stat(sprintf(ERR_TRAN_FAILED, mysql_error()));
-    // remove uploaded files
-    unlink("$IMG_SRC_DIR/$saved_filename");
-    unlink("$IMG_THU_DIR/$saved_thumbname");
-    kotoba_error(sprintf("Ошибка. Невозможно начать транзакцию. Причина: %s", mysql_error()));
+	if(KOTOBA_ENABLE_STAT)
+		kotoba_stat(sprintf(ERR_TRAN_FAILED, mysql_error()));
+	// remove uploaded files
+	post_remove_files($saved_filename, $saved_thumbname);
+	kotoba_error(sprintf(ERR_TRAN_FAILED, mysql_error()));
 }
 
 // Вычисление числа постов доски (в не утонувших тредах).
-if(($result = mysql_query(
-    "select count(p.`id`) `count`
-    from `posts` p 
-    join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board` 
-    where p.`board` = $BOARD_NUM and (position('ARCHIVE:YES' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null) 
-    group by p.`board`")) === false)
+//
+// 
+$sql = sprintf("select count(p.id) as count
+	from posts p
+	join threads t on p.thread = t.id and p.board = t.board 
+	where p.board = %d and (position('ARCHIVE:YES' in t.`Thread Settings`) = 0 or
+		t.`Thread Settings` is null) 
+	group by p.board", $BOARD_NUM);
+if(($result = mysql_query($sql)) === false)
 { // error getting posts in visible threads
-	$temp = mysql_error();
+	$sql_error = mysql_error();
 	mysql_query('rollback');
 		
-    if(KOTOBA_ENABLE_STAT)
-        kotoba_stat(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, $temp));
+	if(KOTOBA_ENABLE_STAT)
+		kotoba_stat(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, $sql_error));
 
-    unlink("$IMG_SRC_DIR/$saved_filename");
-    unlink("$IMG_THU_DIR/$saved_thumbname");
-    kotoba_error(sprintf("Ошибка. Невозможно подсчитать количество постов доски %s. Причина: %s", $BOARD_NAME, $temp));
+	post_remove_files($saved_filename, $saved_thumbname);
+	kotoba_error(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, $sql_error));
 }
-elseif (mysql_num_rows($result) == 0)   // У вновь созданной доски может и не быть ни постов ни тредов.
-{
-    mysql_free_result($result);
-    // get count of posts on board
-    if(($result = mysql_query("select count(`id`) `count` from `posts` where `board` = $BOARD_NUM")) === false)
-    { // get count faild
-        $temp = mysql_error();
-        mysql_query('rollback');
+elseif (mysql_num_rows($result) == 0)
+{ // У вновь созданной доски может и не быть ни постов ни тредов.
+	mysql_free_result($result);
+	// get count of posts on board
+	$sql = sprintf("select count(id) as count from posts
+		where board = %d", $BOARD_NUM);
+	if(($result = mysql_query($sql)) === false)
+	{ // get count faild
+		$sql_error = mysql_error();
+		mysql_query('rollback');
 
-        if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, $temp));
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, $sql_error));
 
-        unlink("$IMG_SRC_DIR/$saved_filename");
-        unlink("$IMG_THU_DIR/$saved_thumbname");
-        kotoba_error(sprintf("Ошибка. Невозможно подсчитать количество постов доски %s. Причина: %s", $BOARD_NAME, $temp));
-    }
-    elseif(mysql_num_rows($result) == 0)
-    { // nothing counted
-        if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, 'Возможно не верное имя доски'));
+		post_remove_files($saved_filename, $saved_thumbname);
+		kotoba_error(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, $sql_error));
+	}
+	elseif(mysql_num_rows($result) == 0)
+	{ // nothing counted
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(sprintf(ERR_POST_COUNT_CALC,
+				$BOARD_NAME, 'Возможно не верное имя доски'));
 
-        mysql_query('rollback');
-        unlink("$IMG_SRC_DIR/$saved_filename");
-        unlink("$IMG_THU_DIR/$saved_thumbname");
-        kotoba_error(sprintf("Ошибка. Невозможно подсчитать количество постов доски %s. Причина: Возможно не верное имя доски.", $BOARD_NAME));
-    }
+		mysql_query('rollback');
+		post_remove_files($saved_filename, $saved_thumbname);
+		kotoba_error(sprintf(ERR_POST_COUNT_CALC,
+			$BOARD_NAME, 'Возможно не верное имя доски'));
+	}
 }
 
+// have posts in non-drowned threads
 $row = mysql_fetch_array($result, MYSQL_ASSOC);
 $POST_COUNT = $row['count'];
 mysql_free_result($result);
@@ -290,134 +292,146 @@ mysql_free_result($result);
 // Топим треды.
 while($POST_COUNT >= KOTOBA_POST_LIMIT)
 {
-    // Выберем тред, ответ в который был наиболее ранним, и количество постов в нем.
-	if(($result = mysql_query(
-        "select p.`thread`, count(p.`id`) `count`
-        from `posts` p 
-        join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board` 
-        where t.`board` = $BOARD_NUM and (position('ARCHIVE:YES' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null) and (position('SAGE:Y' in p.`Post Settings`) = 0 or p.`Post Settings` is null) 
-        group by p.`thread` 
-        order by max(p.`id`) asc limit 1")) === false)
-    {
-        $temp = mysql_error();
-        mysql_query('rollback');
-        
-        if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_ARCH_THREAD_SEARCH, $temp));
-            
-        unlink("$IMG_SRC_DIR/$saved_filename");
-        unlink("$IMG_THU_DIR/$saved_thumbname");
-        kotoba_error(sprintf("Ошибка. Невозможно найти тред для сброса в архив. Причина: %s.", $temp));
-    }
-    elseif (mysql_num_rows($result) == 0)
-    {
-        if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_ARCH_THREAD_SEARCH, "Возможно не верный номер доски $BOARD_NUM"));
-        
-        mysql_query('rollback');
-        unlink("$IMG_SRC_DIR/$saved_filename");
-        unlink("$IMG_THU_DIR/$saved_thumbname");
-        kotoba_error(sprintf("Ошибка. Невозможно найти тред для сброса в архив. Причина: Возможно не верный номер доски %d.", $BOARD_NUM));
-    }
+	// Выберем тред, ответ в который был наиболее ранним, и количество постов в нем.
+	$sql = sprintf("select p.thread as thread, count(p.id) as count
+		from posts p 
+		join threads t on p.thread = t.id and p.board = t.board 
+		where t.board = %d and (position('ARCHIVE:YES' in t.`Thread Settings`) = 0
+			or t.`Thread Settings` is null)
+		and (position('SAGE:Y' in p.`Post Settings`) = 0 or p.`Post Settings` is null) 
+		group by p.thread 
+		order by max(p.id) asc limit 1", $BOARD_NUM);
+	if(($result = mysql_query($sql)) === false)
+	{ //error executing error
+		$sql_error = mysql_error();
+		mysql_query('rollback');
+		
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(sprintf(ERR_ARCH_THREAD_SEARCH, $sql_error));
+			
+		post_remove_files($saved_filename, $saved_thumbname);
+		kotoba_error(sprintf(ERR_ARCH_THREAD_SEARCH, $sql_error));
+	}
+	elseif (mysql_num_rows($result) == 0)
+	{ // nothing found
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(sprintf(ERR_ARCH_THREAD_SEARCH,
+				"Возможно не верный номер доски $BOARD_NUM"));
 
-    $row = mysql_fetch_array($result, MYSQL_ASSOC);
-    $ARCH_THREAD_NUM = $row['thread'];
-    $ARCH_THREAD_POSTCOUNT = $row['count'];
-    mysql_free_result($result);
-    $Thread_Settings = "ARCHIVE:YES\n";
+		mysql_query('rollback');
+		post_remove_files($saved_filename, $saved_thumbname);
+		kotoba_error(sprintf(ERR_ARCH_THREAD_SEARCH,
+			"Возможно не верный номер доски $BOARD_NUM"));
+	}
+	// have earlier posts
+	$row = mysql_fetch_array($result, MYSQL_ASSOC);
+	$ARCH_THREAD_NUM = $row['thread'];
+	$ARCH_THREAD_POSTCOUNT = $row['count'];
+	mysql_free_result($result);
+	$Thread_Settings = "ARCHIVE:YES\n";
 
-    if(mysql_query("update `threads` set `Thread Settings` = case when `Thread Settings` is null then concat('', '$Thread_Settings') else concat(`Thread Settings`, '$Thread_Settings') end where `id` = $ARCH_THREAD_NUM and `board` = $BOARD_NUM") === false)
-    {
-        $temp = mysql_error();
-        mysql_query('rollback');
-        
-        if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_ARCH_THREAD_MARK, $temp));
-            
-        unlink("$IMG_SRC_DIR/$saved_filename");
-        unlink("$IMG_THU_DIR/$saved_thumbname");
-        kotoba_error(sprintf("Ошибка. Невозможно пометить тред для архивирования. Причина: %s.", $temp));
+	$sql = sprintf("
+		update threads set 
+		`Thread Settings` = case 
+			when `Thread Settings` is null then concat('', '%s')
+			else concat(`Thread Settings`, '%s') 
+		end 
+		where id = %d and board = %d",
+		$Thread_Settings, $Thread_Settings, $ARCH_THREAD_NUM, $BOARD_NUM);
+	if(mysql_query($sql) === false)
+	{
+		$sql_error = mysql_error();
+		mysql_query('rollback');
+		
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(sprintf(ERR_ARCH_THREAD_MARK, $sql_error));
+			
+		post_remove_files($saved_filename, $saved_thumbname);
+		kotoba_error(sprintf(ERR_ARCH_THREAD_MARK, $sql_error));
 	}
 	elseif (mysql_affected_rows() == 0)
-    {
-        if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_ARCH_THREAD_MARK, "Возможно не верный номер доски $BOARD_NUM или треда для архивирования $ARCH_THREAD_NUM"));
-        
-        mysql_query('rollback');
-        unlink("$IMG_SRC_DIR/$saved_filename");
-        unlink("$IMG_THU_DIR/$saved_thumbname");
-        kotoba_error(sprintf("Ошибка. Невозможно пометить тред на архивирование. Причина: Возможно не верный номер доски %d или треда для архивирования %d.", $BOARD_NUM, $ARCH_THREAD_NUM));
-    }
-    
-    if(($result = mysql_query(
-        'select count(p.`id`) `count` ' .
-        'from `posts` p ' .
-        'join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board` ' .
-        'where p.`board` = ' . $BOARD_NUM . ' and (position(\'ARCHIVE:YES\' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null) ' .
-        'group by p.`board`')) == false)
-    {
-        $temp = mysql_error();
-        mysql_query('rollback');
-        
-        if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, $temp));
+	{
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(sprintf(ERR_ARCH_THREAD_MARK, 
+				"Возможно не верный номер доски $BOARD_NUM или
+				треда для архивирования $ARCH_THREAD_NUM"));
 
-        unlink("$IMG_SRC_DIR/$saved_filename");
-        unlink("$IMG_THU_DIR/$saved_thumbname");
-        kotoba_error(sprintf("Ошибка. Невозможно подсчитать  количество постов доски %s. Причина: %s.", $BOARD_NAME, $temp));
-    }
-    elseif (mysql_num_rows($result) == 0)   // У вновь созданной доски может и не быть ни постов ни тредов.
-    {
-        mysql_free_result($result);
+		mysql_query('rollback');
+		post_remove_files($saved_filename, $saved_thumbname);
+		kotoba_error(sprintf(ERR_ARCH_THREAD_MARK,
+			"Возможно не верный номер доски $BOARD_NUM или
+				треда для архивирования $ARCH_THREAD_NUM"));
+	}
+	$sql = sprintf("select count(p.id) as count
+		from posts p
+		join threads t on p.thread = t.id and p.board = t.board
+		where p.board =  %d  and 
+		(position('ARCHIVE:YES' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null)
+		group by p.board", $BOARD_NUM);
+	if(($result = mysql_query($sql)) == false)
+	{
+		$sql_error = mysql_error();
+		mysql_query('rollback');
+		
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, $sql_error));
 
-        if(($result = mysql_query("select count(`id`) `count` from `posts` where `board` = $BOARD_NUM")) === false)
-        {
-            $temp = mysql_error();
-            mysql_query('rollback');
+		post_remove_files($saved_filename, $saved_thumbname);
+		kotoba_error(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, $sql_error));
+	}
+	elseif (mysql_num_rows($result) == 0)
+	{ // У вновь созданной доски может и не быть ни постов ни тредов.
+		mysql_free_result($result);
+		$sql = sprintf("select count(id) as count from posts where board = %d", $BOARD_NUM);
+		if(($result = mysql_query($sql)) === false)
+		{
+			$sql_error = mysql_error();
+			mysql_query('rollback');
 
-            if(KOTOBA_ENABLE_STAT)
-                kotoba_stat(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, $temp));
+			if(KOTOBA_ENABLE_STAT)
+				kotoba_stat(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, $sql_error));
 
-            unlink("$IMG_SRC_DIR/$saved_filename");
-            unlink("$IMG_THU_DIR/$saved_thumbname");
-            kotoba_error(sprintf("Ошибка. Невозможно подсчитать количество постов доски %s. Причина: %s.", $BOARD_NAME, $temp));
-        }
-        elseif(mysql_num_rows($result) == 0)
-        {
-            if(KOTOBA_ENABLE_STAT)
-                kotoba_stat(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, 'Возможно не верное имя доски'));
+			post_remove_files($saved_filename, $saved_thumbname);
+			kotoba_error(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, $sql_error));
+		}
+		elseif(mysql_num_rows($result) == 0)
+		{
+			if(KOTOBA_ENABLE_STAT)
+				kotoba_stat(sprintf(ERR_POST_COUNT_CALC,
+					$BOARD_NAME, 'Возможно не верное имя доски'));
 
-            mysql_query('rollback');
-            unlink("$IMG_SRC_DIR/$saved_filename");
-            unlink("$IMG_THU_DIR/$saved_thumbname");
-            kotoba_error(sprintf("Ошибка. Невозможно подсчитать количество постов доски %s. Причина: Возможно не верное имя доски.", $BOARD_NAME));
-        }
-    }
+			mysql_query('rollback');
+			post_remove_files($saved_filename, $saved_thumbname);
+			kotoba_error(sprintf(ERR_POST_COUNT_CALC, 
+				$BOARD_NAME, 'Возможно не верное имя доски'));
+		}
+	}
 
-    $row = mysql_fetch_array($result, MYSQL_ASSOC);
-    $POST_COUNT = $row['count'];
-    mysql_free_result($result);
+	$row = mysql_fetch_array($result, MYSQL_ASSOC);
+	$POST_COUNT = $row['count'];
+	mysql_free_result($result);
 	
-    if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(INFO_THREAD_ARCHIVED, $ARCH_THREAD_NUM, $ARCH_THREAD_POSTCOUNT, $BOARD_NUM, $POST_COUNT), false);
+	if(KOTOBA_ENABLE_STAT)
+		kotoba_stat(sprintf(INFO_THREAD_ARCHIVED,
+			$ARCH_THREAD_NUM, $ARCH_THREAD_POSTCOUNT, $BOARD_NUM, $POST_COUNT), false);
 }
 
 // `MaxPostNum` не может быть NULL.
-if(($result = mysql_query("select @op_post_num := `MaxPostNum` + 1 from `boards` where `id` = $BOARD_NUM")) == false)
+$sql = sprintf("select @op_post_num := MaxPostNum + 1 from boards where id = %d", $BOARD_NUM);
+if(($result = mysql_query($sql)) == false)
 {
-    $temp = mysql_error();
-    mysql_query('rollback');
-        
-    if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_NEW_OPPOSTNUM_CALC, $temp));
+	$sql_error = mysql_error();
+	mysql_query('rollback');
+		
+	if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(sprintf(ERR_NEW_OPPOSTNUM_CALC, $sql_error));
 
-    unlink("$IMG_SRC_DIR/$saved_filename");
-    unlink("$IMG_THU_DIR/$saved_thumbname");
-    kotoba_error(sprintf("Ошибка. Невозможно вычислить номер нового оп поста. Причина: %s.", $temp));
+	post_remove_files($saved_filename, $saved_thumbname);
+	kotoba_error(sprintf(ERR_NEW_OPPOSTNUM_CALC, $sql_error));
 }
 
 $row = mysql_fetch_array($result, MYSQL_NUM);
-$THREAD_NUM = ($row[0]) ? $row[0] : 1;          // Номер оп поста и номер треда одно и тоже.
+$THREAD_NUM = ($row[0]) ? $row[0] : 1;		  // Номер оп поста и номер треда одно и тоже.
 mysql_free_result($result);
 
 $Message_settings  = "THEME:$Message_theme\n";
@@ -428,77 +442,76 @@ $Message_settings .= $Message_img_params;
 if(isset($OPPOST_PASS))
 	$Message_settings .= "REMPASS:$OPPOST_PASS\n";
 
-if(mysql_query("insert into `threads` (`id`, `board`) values (@op_post_num, $BOARD_NUM)") == false)
+$sql = sprintf("insert into threads (id, board) values (@op_post_num, %d)", $BOARD_NUM);
+if(mysql_query($sql) == false)
 {
-    $temp = mysql_error();
-    mysql_query('rollback');
-    
-    if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_NEW_THREAD_CREATE, $temp));
-    
-    unlink("$IMG_SRC_DIR/$saved_filename");
-    unlink("$IMG_THU_DIR/$saved_thumbname");
-    kotoba_error(sprintf("Ошибка. Невозможно создать новый тред. Причина: %s.", $temp));
+	$sql_error = mysql_error();
+	mysql_query('rollback');
+	
+	if(KOTOBA_ENABLE_STAT)
+		kotoba_stat(sprintf(ERR_NEW_THREAD_CREATE, $sql_error));
+	
+	post_remove_files($saved_filename, $saved_thumbname);
+	kotoba_error(sprintf(ERR_NEW_THREAD_CREATE, $sql_error));
 }
-
+// add post to database
 // Не будем пока проверять, добавила ли вставка строку в таблицу.
-if(mysql_query(
-    "insert into `posts` (`id`, `thread`, `board`, `Time`, `Text`, `Post Settings`) 
-    values (@op_post_num, @op_post_num, $BOARD_NUM, '" . date("Y-m-d H:i:s") . "', '$Message_text','$Message_settings')") == false)
+$sql = sprintf("insert into posts 
+	(id, thread, board, Time, Text, `Post Settings`) 
+	values (@op_post_num, @op_post_num, %d, '%s', '%s','%s')",
+		$BOARD_NUM, date("Y-m-d H:i:s"), $Message_text, $Message_settings);
+if(mysql_query($sql) == false)
 {
-    $temp = mysql_error();
-    mysql_query('rollback');
-    
-    if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_NEW_OPPOST_CREATE, $temp));
-    
-    unlink("$IMG_SRC_DIR/$saved_filename");
-    unlink("$IMG_THU_DIR/$saved_thumbname");
-    kotoba_error(sprintf("Ошибка. Невозможно создать новый оп пост. Причина: %s.", $temp));
+	$sql_error = mysql_error();
+	mysql_query('rollback');
+	
+	if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(sprintf(ERR_NEW_OPPOST_CREATE, $sql_error));
+	
+	post_remove_files($saved_filename, $saved_thumbname);
+	kotoba_error(sprintf(ERR_NEW_OPPOST_CREATE, $sql_error));
 }
-
-if(mysql_query("update `boards` set `MaxPostNum` = `MaxPostNum` + 1 where `id` = $BOARD_NUM") === false)
+// count posts(threads) on board
+$sql = sprintf("update boards set MaxPostNum = MaxPostNum + 1 where id = %d", $BOARD_NUM);
+if(mysql_query($sql) === false)
 {
-    $temp = mysql_error();
-    mysql_query('rollback');
+	$sql_error = mysql_error();
+	mysql_query('rollback');
 
-    if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_SET_MAXPOST, $temp));
-    
-    unlink("$IMG_SRC_DIR/$saved_filename");
-    unlink("$IMG_THU_DIR/$saved_thumbname");
-    kotoba_error(sprintf("Ошибка. Невозможно установить наибольший номер поста доски. Причина: %s.", $temp));
+	if(KOTOBA_ENABLE_STAT)
+		kotoba_stat(sprintf(ERR_SET_MAXPOST, $sql_error));
+
+	post_remove_files($saved_filename, $saved_thumbname);
+	kotoba_error(sprintf(ERR_SET_MAXPOST, $sql_error));
 }
 elseif (mysql_affected_rows() == 0)
 {
-    if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_SET_MAXPOST, "Возможно не верный номер доски: $BOARD_NUM"));
+	if(KOTOBA_ENABLE_STAT)
+		kotoba_stat(sprintf(ERR_SET_MAXPOST, "Возможно не верный номер доски: $BOARD_NUM"));
 
-    mysql_query('rollback');
-    unlink("$IMG_SRC_DIR/$saved_filename");
-    unlink("$IMG_THU_DIR/$saved_thumbname");
-    kotoba_error(sprintf("Ошибка. Невозможно установить наибольший номер поста доски. Причина: %s.", $temp));
+	mysql_query('rollback');
+	post_remove_files($saved_filename, $saved_thumbname);
+	kotoba_error(sprintf(ERR_SET_MAXPOST, "Возможно не верный номер доски: $BOARD_NUM"));
 }
 
 if(mysql_query('commit') == false)
-{
-    $temp = mysql_error();
-    mysql_query('rollback');
-    
-    if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_TRAN_COMMIT_FAILED,  $temp));
+{ // unable commit transaction, why?
+	$sql_error = mysql_error();
+	mysql_query('rollback');
+	
+	if(KOTOBA_ENABLE_STAT)
+		kotoba_stat(sprintf(ERR_TRAN_COMMIT_FAILED,  $sql_error));
 
-    unlink("$IMG_SRC_DIR/$saved_filename");
-    unlink("$IMG_THU_DIR/$saved_thumbname");
-    kotoba_error(sprintf("Ошибка. Невозможно завершить транзакцию. Причина: %s.", $temp));
+	post_remove_files($saved_filename, $saved_thumbname);
+	kotoba_error(sprintf(ERR_TRAN_COMMIT_FAILED,  $sql_error));
 }
 
 // Этап 4. Перенаправление.
 
 if(isset($_POST['goto']) && $_POST['goto'] == 't')
 {
-    header('Location: ' . KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/");
-    exit;
+	header('Location: ' . KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/");
+	exit;
 }
 
 header('Location: ' . KOTOBA_DIR_PATH . "/$BOARD_NAME/");
@@ -510,8 +523,8 @@ exit;
  */
 function kotoba_stat($errmsg, $close_file = true)
 {
-    global $stat_file;
-    fwrite($stat_file, "$errmsg (" . date("Y-m-d H:i:s") . ")\n");
+	global $stat_file;
+	fwrite($stat_file, "$errmsg (" . date("Y-m-d H:i:s") . ")\n");
 
 	if($close_file)
 		fclose($stat_file);
