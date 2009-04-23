@@ -9,6 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
+require 'config.php';
 require_once('common.php');
 require('error_processing.php');
 /*

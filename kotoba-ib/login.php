@@ -9,6 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
+require 'config.php';
 require 'common.php';
 
 $HEAD = '<html>

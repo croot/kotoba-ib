@@ -5,6 +5,7 @@
  * run either from command line or web-browser
  */
 
+require 'config.php';
 require('databaseconnect.php');
 require('common.php');
 
