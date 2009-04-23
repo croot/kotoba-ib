@@ -15,6 +15,7 @@
 	<link rel="stylesheet" type="text/css" href="{$KOTOBA_DIR_PATH}/kotoba.css">
 </head>
 <body>
+<p>Версия {$version}. Время модификации {$date}</p>
 {if isset($BOARDS_EXIST)}
 Список досок: {section name=name loop=$boardNames}/<a href="{$KOTOBA_DIR_PATH}/{$boardNames[name]}/">{$boardNames[name]}</a>/ {/section}
 {else}
