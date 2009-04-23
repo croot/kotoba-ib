@@ -51,6 +51,9 @@ else
 if(isset($_SESSION['isLoggedIn']))
 	$smarty->assign('isLoggedIn', '');
 
+$smarty->assign('version', '$Revision$');
+$smarty->assign('date', '$Date$');
+
 $smarty->display('index.tpl');
 ?>
 <?php
