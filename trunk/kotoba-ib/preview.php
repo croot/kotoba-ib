@@ -9,6 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
+require 'config.php';
 require 'common.php';
 
 ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH  . '/sessions/');

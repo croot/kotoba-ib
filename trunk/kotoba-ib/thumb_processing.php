@@ -9,6 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
+@require_once('config.php');
 @require_once("./common.php");
 
 /* check_module function:

@@ -17,6 +17,7 @@
 // Как, куда и когда выводить статистику решает скрипт. Что выводить - решает events.php. Если вы ходите изменить
 // выводимый текст в лог статистики, используйте константы в events.php.
 
+require 'config.php';
 require 'common.php';
 require_once 'post_processing.php';
 require 'error_processing.php';

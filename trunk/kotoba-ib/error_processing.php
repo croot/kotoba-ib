@@ -2,6 +2,7 @@
 /* error_processing: module for show errors from other Kotoba resources
  */
 
+@require_once('config.php');
 @require_once('common.php');
 
 /*

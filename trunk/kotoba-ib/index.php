@@ -9,6 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
+require 'config.php';
 require 'common.php';
 
 if(KOTOBA_ENABLE_STAT)
@@ -33,7 +34,7 @@ if(($result = mysql_query('select `Name`, `id` from `boards` order by `Name`')) 
 		$boardNames = array();
 		
 		while (($row = mysql_fetch_array($result, MYSQL_ASSOC)) !== false)
-			$boardNames[] = $row[Name];
+			$boardNames[] = $row['Name'];
 
 		$smarty->assign('boardNames', $boardNames);
     }
