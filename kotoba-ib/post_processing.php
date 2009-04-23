@@ -283,4 +283,14 @@ function post_get_same_image($board, $board_name, $hash, $kotoba_stat, &$result_
     }
 }
 
+/* post_remove_files: remove uploaded files
+ * return nothing
+ * $image uploaded image file name
+ * $thumbnail genereated thumbnail
+ */
+function post_remove_files($image, $thumbnail) {
+	@unlink($image);
+	@unlink($thumbnail);
+}
+
 ?>

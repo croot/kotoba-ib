@@ -38,7 +38,7 @@ if(!isset($_POST['b']))
 	if(KOTOBA_ENABLE_STAT)
 		kotoba_stat(ERR_BOARD_NOT_SPECIFED);
 
-	kotoba_error("Ошибка. Не задано имя доски.");
+	kotoba_error(ERR_BOARD_NOT_SPECIFED);
 }
 
 if(!isset($_POST['t']))
@@ -46,7 +46,7 @@ if(!isset($_POST['t']))
 	if(KOTOBA_ENABLE_STAT)
 		kotoba_stat(ERR_THREAD_NOT_SPECIFED);
 
-	kotoba_error("Ошибка. Не задан номер треда.");
+	kotoba_error(ERR_THREAD_NOT_SPECIFED);
 }
 
 if(($BOARD_NAME = CheckFormat('board', $_POST['b'])) === false)
@@ -54,7 +54,7 @@ if(($BOARD_NAME = CheckFormat('board', $_POST['b'])) === false)
     if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_BOARD_BAD_FORMAT);
         
-    kotoba_error("Ошибка. Имя доски имеет не верный формат.");
+    kotoba_error(ERR_BOARD_BAD_FORMAT);
 }
 
 if(($THREAD_NUM = CheckFormat('thread', $_POST['t'])) === false)
@@ -62,7 +62,7 @@ if(($THREAD_NUM = CheckFormat('thread', $_POST['t'])) === false)
     if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_THREAD_BAD_FORMAT);
         
-    kotoba_error("Ошибка. Номер треда имеет не верный формат.");
+    kotoba_error(ERR_THREAD_BAD_FORMAT);
 }
 
 require 'databaseconnect.php';
@@ -88,7 +88,7 @@ if(($result = mysql_query("select t.`id`, count(p.`id`) `count`
 			kotoba_stat(sprintf(ERR_THREAD_NOT_FOUND, $THREAD_NUM, $BOARD_NAME));
 			
 		mysql_free_result($result);
-		kotoba_error("Ошибка. Треда с номером $THREAD_NUM на доске $BOARD_NAME не найдено");
+		kotoba_error(sprintf(ERR_THREAD_NOT_FOUND, $THREAD_NUM, $BOARD_NAME));
 	}
 	else
 	{
@@ -102,7 +102,7 @@ else
 	if(KOTOBA_ENABLE_STAT)
         kotoba_stat(sprintf(ERR_THREAD_EXIST_CHECK, $THREAD_NUM, $BOARD_NAME, mysql_error()));
     
-	kotoba_error(sprintf("Ошибка. Не удалось проверить существание треда с номером %d на доске %s. Прична: %s", $THREAD_NUM, $BOARD_NAME, mysql_error()));
+	kotoba_error(sprintf(ERR_THREAD_EXIST_CHECK, $THREAD_NUM, $BOARD_NAME, mysql_error()));
 }
 
 if(!post_check_image_upload_error($_FILES['Message_img']['error'], true, "kotoba_stat", $error_message)) {
@@ -114,7 +114,7 @@ if($_FILES['Message_img']['error'] == UPLOAD_ERR_NO_FILE && (!isset($_POST['Mess
 	if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_NO_FILE_AND_TEXT);
 		
-    kotoba_error('Ошибка. Файл не был загружен и пустой текст сообщения');
+    kotoba_error(ERR_NO_FILE_AND_TEXT);
 }
 elseif($_FILES['Message_img']['error'] == UPLOAD_ERR_NO_FILE) { // no image
 	$with_image = false;
@@ -158,7 +158,7 @@ if($with_image) {
 		if(KOTOBA_ENABLE_STAT)
 			kotoba_stat(ERR_WRONG_FILETYPE);
 		
-		kotoba_error('Ошибка. Недопустимый тип файла');
+		kotoba_error(ERR_WRONG_FILETYPE);
 	}
 
 	$original_ext = $imageresult['orig_extension'];
@@ -184,7 +184,7 @@ if($with_image) {
 			if(KOTOBA_ENABLE_STAT)
 				kotoba_stat(ERR_FILE_HASH);
 
-			kotoba_error(sprintf("Ошибка. Не удалось вычислить хеш файла %s.", $saved_image_path));
+			kotoba_error(ERR_FILE_HASH);
 		}
 		$error_message_array = array();
 		if(!post_get_same_image($BOARD_NUM, $BOARD_NAME, $img_hash, "kotoba_stat", $error_message_array)) {
@@ -207,7 +207,7 @@ if($with_image) {
 			kotoba_stat(ERR_FILE_LOW_RESOLUTION);
 		
 		unlink("$IMG_SRC_DIR/$saved_filename");
-		kotoba_error("Ошибка. Разрешение загружаемого изображения слишком маленькое.");
+		kotoba_error(ERR_FILE_LOW_RESOLUTION);
 	}
 
 	$thumbnailresult = array();
@@ -280,7 +280,7 @@ if(isset($_POST['Message_pass']) && $_POST['Message_pass'] != '')
         
         unlink("$IMG_SRC_DIR/$saved_filename");
         unlink("$IMG_THU_DIR/$saved_thumbname");
-        kotoba_error("Ошибка. Пароль для удаления имеет не верный формат.");
+        kotoba_error(ERR_PASS_BAD_FORMAT);
 	}
 
 	if(!isset($_COOKIE['rempass']) || $_COOKIE['rempass'] != $REPLY_PASS)
@@ -300,7 +300,7 @@ if(mysql_query('start transaction') == false)
         unlink("$IMG_THU_DIR/$saved_thumbname");
     }
 
-    kotoba_error(sprintf("Ошибка. Невозможно начать транзакцию. Причина: %s", mysql_error()));
+    kotoba_error(sprintf(ERR_TRAN_FAILED, mysql_error()));
 }
 
 // Вычисление числа постов доски (в не утонувших тредах).
@@ -319,7 +319,7 @@ if(($result = mysql_query(
 
 	unlink("$IMG_SRC_DIR/$saved_filename");
     unlink("$IMG_THU_DIR/$saved_thumbname");
-    kotoba_error(sprintf("Ошибка. Невозможно подсчитать количество постов доски %s. Причина: %s.", $BOARD_NAME, $temp));
+    kotoba_error(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, $temp));
 }
 elseif (mysql_num_rows($result) == 0)   // Нельзя ответить в тред которого нет, если доска пуста.
 {
@@ -329,7 +329,7 @@ elseif (mysql_num_rows($result) == 0)   // Нельзя ответить в тр
 	mysql_query('rollback');
     unlink("$IMG_SRC_DIR/$saved_filename");
     unlink("$IMG_THU_DIR/$saved_thumbname");
-    kotoba_error(sprintf("Ошибка. Невозможно подсчитать количество постов доски %s. Причина: Возможно не верное имя доски.", $BOARD_NAME));
+    kotoba_error(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, 'Возможно не верное имя доски'));
 }
 
 $row = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -361,7 +361,7 @@ while($POST_COUNT >= KOTOBA_POST_LIMIT)
 			unlink("$IMG_THU_DIR/$saved_thumbname");
 		}
 
-		kotoba_error(sprintf("Ошибка. Невозможно найти тред для сброса в архив. Причина: %s", $temp));
+		kotoba_error(sprintf(ERR_ARCH_THREAD_SEARCH, $temp));
     }
     elseif (mysql_num_rows($result) == 0)
     {
@@ -375,7 +375,7 @@ while($POST_COUNT >= KOTOBA_POST_LIMIT)
 		}
 
         mysql_query('rollback');
-        kotoba_error(sprintf("Ошибка. Невозможно найти тред для сброса в архив. Причина: Возможно не верный номер доски %d.", $BOARD_NUM));
+        kotoba_error(sprintf(ERR_ARCH_THREAD_SEARCH, "Возможно не верный номер доски $BOARD_NUM"));
     }
 
     $row = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -398,7 +398,7 @@ while($POST_COUNT >= KOTOBA_POST_LIMIT)
 			unlink("$IMG_THU_DIR/$saved_thumbname");
 		}
 
-		kotoba_error(sprintf("Ошибка. Невозможно пометить тред для архивирования. Причина: %s.", $temp));
+		kotoba_error(sprintf(ERR_ARCH_THREAD_MARK, $temp));
     }elseif (mysql_affected_rows() == 0)
     {
         if(KOTOBA_ENABLE_STAT)
@@ -411,7 +411,7 @@ while($POST_COUNT >= KOTOBA_POST_LIMIT)
 		}
 
         mysql_query('rollback');
-        kotoba_error(sprintf("Ошибка. Невозможно пометить тред на архивирование. Причина: Возможно не верный номер доски %d или треда для архивирования %d.", $BOARD_NUM, $ARCH_THREAD_NUM));
+        kotoba_error(sprintf(ERR_ARCH_THREAD_MARK, "Возможно не верный номер доски $BOARD_NUM или треда для архивирования $ARCH_THREAD_NUM"));
     }
     
     if(($result = mysql_query(
@@ -433,7 +433,7 @@ while($POST_COUNT >= KOTOBA_POST_LIMIT)
 			unlink("$IMG_THU_DIR/$saved_thumbname");
 		}
 
-		kotoba_error(sprintf("Ошибка. Невозможно подсчитать  количество постов доски %s. Причина: %s.", $BOARD_NAME, $temp));
+		kotoba_error(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, $temp));
     }
     elseif (mysql_num_rows($result) == 0)
     {
@@ -447,7 +447,7 @@ while($POST_COUNT >= KOTOBA_POST_LIMIT)
 		}
 
         mysql_query('rollback');
-        kotoba_error(sprintf("Ошибка. Невозможно подсчитать количество постов доски %s. Причина: Возможно не верное имя доски.", $BOARD_NAME));
+        kotoba_error(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, 'Возможно не верное имя доски'));
     }
 
     $row = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -473,7 +473,7 @@ if(mysql_query("select @post_num := `MaxPostNum` + 1 from `boards` where `id` = 
         unlink("$IMG_THU_DIR/$saved_thumbname");
     }
 
-    kotoba_error(sprintf("Ошибка. Невозможно вычислить номер нового поста. Причина: %s.", $temp));
+    kotoba_error(sprintf(ERR_NEW_POSTNUM_CALC, $temp));
 }
 
 if(mysql_query(
@@ -492,7 +492,7 @@ if(mysql_query(
         unlink("$IMG_THU_DIR/$saved_thumbname");
     }
 
-    kotoba_error("Ошибка. Не удалось сохранить пост. Причина: %s.", $temp);
+    kotoba_error(sprintf(ERR_NEW_POST_CREATE, $temp));
 }
 
 if(mysql_query("update `boards` set `MaxPostNum` = `MaxPostNum` + 1 where `id` = $BOARD_NUM") == false)
@@ -509,7 +509,7 @@ if(mysql_query("update `boards` set `MaxPostNum` = `MaxPostNum` + 1 where `id` =
 		unlink("$IMG_THU_DIR/$saved_thumbname");
 	}
 	
-    kotoba_error(sprintf("Ошибка. Невозможно установить наибольший номер поста доски. Причина: %s.", $temp));
+    kotoba_error(sprintf(ERR_SET_MAXPOST, $temp));
 }
 elseif (mysql_affected_rows() == 0)
 {
@@ -523,7 +523,7 @@ elseif (mysql_affected_rows() == 0)
 	}
 
     mysql_query('rollback');
-    kotoba_error(sprintf("Ошибка. Невозможно установить наибольший номер поста доски. Причина: %s.", $temp));
+    kotoba_error(sprintf(ERR_SET_MAXPOST, "Возможно не верный номер доски: $BOARD_NUM"));
 }
 
 if(mysql_query('commit') == false)
@@ -540,7 +540,7 @@ if(mysql_query('commit') == false)
         unlink("$IMG_THU_DIR/$saved_thumbname");
     }
     
-	kotoba_error(sprintf("Ошибка. Невозможно завершить транзакцию. Причина: %s", $temp));
+	kotoba_error(sprintf(ERR_TRAN_COMMIT_FAILED,  $temp));
 }
 
 if(isset($_POST['goto']) && $_POST['goto'] == 'b')
