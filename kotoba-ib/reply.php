@@ -461,7 +461,7 @@ kotoba_error(sprintf(ERR_ARCH_THREAD_MARK,
 }
 
 // `MaxPostNum` не может быть NULL.
-$sql = sprintf("select @post_num := MaxPostNum + 1 from boards where id = %d", $BOARD_NUM)
+$sql = sprintf("select @post_num := MaxPostNum + 1 from boards where id = %d", $BOARD_NUM);
 if(mysql_query($sql) == false)
 {
 	$sql_error = mysql_error();
