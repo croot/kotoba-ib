@@ -247,21 +247,26 @@ function link_file($source, $destination) {
  */
 function im_create_png_thumbnail($source, $destination, $x, $y, $resize_x, $resize_y, &$result) {
 	$thumbnail = new Imagick($source);
-#	$x = $thumbnail->getImageWidth();
-#	$y = $thumbnail->getImageHeight();
-	$pixel = new ImagickPixel();
-	$pixel->setColor('none');
-	if($x >= $y) { // resize width to $resize_x, height is resized proportional
-		$thumbnail->thumbnailImage($resize_x, 0);
+	$resolution = $thumbnail->getImageResolution();
+	$resolution_ratio_x = $resolution['x'] / $x;
+	$resolution_ratio_y = $resolution['y'] / $y;
+	$color = $thumbnail->getImageBackgroundColor();
+	if($x >= $y) { // calculate proportions of destination image
+		$ratio = $y / $x;
+		$resize_y = $resize_y * $ratio;
 	}
-	else { //resize height to $resize_y, width resized proportional
-		$thumbnail->thumbnailImage(0, $resize_y);
+	else {
+		$ratio = $x / $y;
+		$resize_x = $resize_x * $ratio;
 	}
+	$thumbnail->removeImage();
+
+	$thumbnail->setResolution($resize_x * $resolution_ratio_x, $resize_y * $resolution_ratio_y);
+	$thumbnail->readImage($source);
 	if(!$thumbnail->setImageFormat('png')) {
 		die("conversion failed");
 	}
-	$thumbnail->setBackgroundColor($pixel);
-	$thumbnail->setImageBackgroundColor($pixel);
+	$thumbnail->paintTransparentImage($color, 0.0, 0);
 	$result['x'] = $thumbnail->getImageWidth();
 	$result['y'] = $thumbnail->getImageHeight();
 	$thumbnail->writeImage($destination);
