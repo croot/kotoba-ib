@@ -13,32 +13,18 @@ require 'config.php';
 require 'common.php';
 
 ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH  . '/sessions/');
-ini_set('session.gc_maxlifetime', 60 * 60 * 24);	// 1 день.
+ini_set('session.gc_maxlifetime', 60 * 60 * 24);	// Rus: 1 день. En: 1 day.
 ini_set('session.cookie_lifetime', 60 * 60 * 24);
 session_start();
 header("Cache-Control: private");
 
-$HEAD = 
-'<html>
-<head>
-	<title>Error page</title>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<link rel="stylesheet" type="text/css" href="' . KOTOBA_DIR_PATH . '/kotoba.css">
-</head>
-<body>
-';
-
-$FOOTER = 
-'
-</body>
-</html>';
-
-if(KOTOBA_ENABLE_STAT)
+if(KOTOBA_ENABLE_STAT)  // Rus: Включаем сбор статистики. En: Enable statistic system.
     if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/threads.stat', 'a')) === false)
         die($HEAD . '<span class="error">Ошибка. Не удалось открыть или создать файл статистики.</span>' . $FOOTER);
 
 require 'events.php';
 
+// Rus: Проверка имени доски.
 if(isset($_GET['b']))
 {
     if(($BOARD_NAME = CheckFormat('board', $_GET['b'])) === false)
@@ -57,6 +43,7 @@ else
 	die($HEAD . '<span class="error">Ошибка. Не задано имя доски.</span>' . $FOOTER);
 }
 
+// Rus: Проверка номер треда.
 if(isset($_GET['t']))
 {
     if(($THREAD_NUM = CheckFormat('thread', $_GET['t'])) === false)
@@ -75,54 +62,34 @@ else
 	die($HEAD . '<span class="error">Ошибка. Не задан номер треда.</span>' . $FOOTER);
 }
 
-require 'databaseconnect.php';
-
-$HEAD = 
-"<html>
-<head>
-	<title>Kotoba - $BOARD_NAME/$THREAD_NUM</title>
-	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
-	<link rel=\"stylesheet\" type=\"text/css\" href=\"" . KOTOBA_DIR_PATH . "/kotoba.css\">
-	<script type=\"text/javascript\" src=\"" . KOTOBA_DIR_PATH . "/kusaba.js\"></script>
-</head>
-<body>
-";
-
-$REPLY_PASS = '';
-
+// Rus: Проверка пароля удаления сообщений.
 if(isset($_COOKIE['rempass']))
 {
 	if(($REPLY_PASS = CheckFormat('pass', $_COOKIE['rempass'])) === false)
 	{
         if(KOTOBA_ENABLE_STAT)
             kotoba_stat(ERR_PASS_BAD_FORMAT);
-            
+
 		die($HEAD . '<span class="error">Ошибка. Пароль для удаления имеет не верный формат.</span>' . $FOOTER);
 	}
 }
+else
+{
+    $REPLY_PASS = '';
+}
 
-$FORM =
-'
-<form name="Reply_form" action="' . KOTOBA_DIR_PATH . "/reply.php\" method=\"post\" enctype=\"multipart/form-data\">
-<input type=\"hidden\" name=\"MAX_FILE_SIZE\" value=\"1560576\">
-<table align=\"center\" border=\"0\">
-<tr valign=\"top\"><td>Name: </td><td><input type=\"text\" name=\"Message_name\" size=\"30\"></td></tr>
-<tr valign=\"top\"><td>Theme: </td><td><input type=\"text\" name=\"Message_theme\" size=\"56\"> <input type=\"submit\" value=\"Reply\"></td></tr>
-<tr valign=\"top\"><td>Message: </td><td><textarea name=\"Message_text\" rows=\"7\" cols=\"50\"></textarea></td></tr>
-<tr valign=\"top\"><td>Image: </td><td><input type=\"file\" name=\"Message_img\" size=\"54\"></td></tr>
-<tr valign=\"top\"><td>Password: </td><td><input type=\"password\" name=\"Message_pass\" size=\"30\" value=\"$REPLY_PASS\"></td></tr>
-<tr valign=\"top\"><td>GoTo: </td><td>(thread: <input type=\"radio\" name=\"goto\" value=\"t\" checked>) (board: <input type=\"radio\" name=\"goto\" value=\"b\">)</td></tr>
-<tr valign=\"top\"><td>Sage: </td><td><input type=\"checkbox\" name=\"Sage\" value=\"sage\"></td></tr>
-</table>
-<input type=\"hidden\" name=\"b\" value=\"$BOARD_NAME\">
-<input type=\"hidden\" name=\"t\" value=\"$THREAD_NUM\">
-</form>
-";
+require 'databaseconnect.php';
 
-$BOARDS_LIST = '';
+$smarty = new SmartyKotobaSetup();
+$smarty->assign('page_title', "Kotoba - $BOARD_NAME/$THREAD_NUM");
+$smarty->assign('REPLY_PASS', $REPLY_PASS); // TODO Не подходящее название переменной для удаления.
+$smarty->assign('BOARD_NAME', $BOARD_NAME);
+$smarty->assign('THREAD_NUM', $THREAD_NUM);
+
+$boards_list = array();
 $BOARD_NUM = -1;
 
-// Получение списка досок и проверка существут ли доска с заданным именем.
+// Rus: Получение списка досок и проверка существут ли доска с заданным именем.
 if(($result = mysql_query('select `Name`, `id` from `boards` order by `Name`')) !== false)
 {
 	if(mysql_num_rows($result) == 0)
@@ -139,7 +106,8 @@ if(($result = mysql_query('select `Name`, `id` from `boards` order by `Name`')) 
 			if($row['Name'] == $BOARD_NAME)
 				$BOARD_NUM = $row['id'];
 
-            $BOARDS_LIST .= '/<a href="' . KOTOBA_DIR_PATH . "/$row[Name]/\">$row[Name]</a>/ ";
+            //$BOARDS_LIST .= '/<a href="' . KOTOBA_DIR_PATH . "/$row[Name]/\">$row[Name]</a>/ ";
+            $boards_list[] = $row['Name'];
 		}
     }
 
@@ -161,106 +129,111 @@ else
 	die($HEAD . '<span class="error">Ошибка. Невозможно получить список досок. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
 }
 
-$MENU = $BOARDS_LIST . "<br>\n<h4 align=center>βchan</h4>\n<br><center><b>/$BOARD_NAME/$THREAD_NUM/</b></center>\n<hr>\n";
+$smarty->assign('board_list', $boards_list);
+$smarty->assign('thread_location', "/$BOARD_NAME/$THREAD_NUM/");
 
-// Проверка существования треда $THREAD_NUM на доске с именем $BOARD_NAME.
+// Rus: Проверка существования треда $THREAD_NUM на доске с именем $BOARD_NAME.
 if(($result = mysql_query("select `id` from `threads` where `id` = $THREAD_NUM and `board` = $BOARD_NUM")) !== false)
 {
 	if(mysql_num_rows($result) != 1)
 	{
         if(KOTOBA_ENABLE_STAT)
 			kotoba_stat(sprintf(ERR_THREAD_NOT_FOUND, $THREAD_NUM, $BOARD_NAME));
-			
+
 		mysql_free_result($result);
 		die($HEAD . "<span class=\"error\">Ошибка. Треда с номером $THREAD_NUM на доске $BOARD_NAME не найдено.</span>" . $FOOTER);
 	}
-    
+
     mysql_free_result($result);
 }
 else
 {
 	if(KOTOBA_ENABLE_STAT)
         kotoba_stat(sprintf(ERR_THREAD_EXIST_CHECK, $THREAD_NUM, $BOARD_NAME, mysql_error()));
-    
+
 	die($HEAD . "<span class=\"error\">Ошибка. Не удалось проверить существание треда с номером $THREAD_NUM на доске $BOARD_NAME. Прична: " .  mysql_error() . "</error>" . $FOOTER);
 }
 
-// Получение постов просматриваемого треда.
+// Rus: Получение постов просматриваемого треда.
 $query = "select `id`, `Time`, `Text`, `Post Settings` from `posts` where `thread` = $THREAD_NUM and `board` = $BOARD_NUM order by `id` asc";
-$THREAD = '';
-$smarty = new SmartyKotobaSetup();
 
 if(($posts = mysql_query($query)))
 {
 	if(mysql_num_rows($posts) > 0)
 	{
-		//$isFirst = true;
 		$post = mysql_fetch_array($posts, MYSQL_ASSOC);
 		$Op_settings = get_settings('post', $post['Post Settings']);
 
-		$THREAD .= "\n<div>\n";
-		$THREAD .= "<span class=\"filetitle\">$Op_settings[THEME]</span> <span class=\"postername\">$Op_settings[NAME]</span> $post[Time]";
+        $smarty->assign('original_theme', $Op_settings['THEME']);
+        $smarty->assign('original_name', $Op_settings['NAME']);
+        $smarty->assign('original_time', $post['Time']);
+        $smarty->assign('original_id', $post['id']);
+        $smarty->assign('original_link', KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/#$post[id]");
+        $smarty->assign('original_remove_link', KOTOBA_DIR_PATH . "/$BOARD_NAME/r$post[id]/");
+        $smarty->assign('original_text', ($post['Text'] == "" ? "<br>" : $post['Text']));
 
 		if(isset($Op_settings['THEME']) && $Op_settings['THEME'] != '')
-			$HEAD = "<html>\n<head>\n
-				\t<title>Kotoba - $BOARD_NAME/$THREAD_NUM - " . $Op_settings['THEME'] . "</title>\n
-				\t<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n
-				\t<link rel=\"stylesheet\" type=\"text/css\" href=\"" . KOTOBA_DIR_PATH . "/kotoba.css\">\n
-				\t<script type=\"text/javascript\" src=\"" . KOTOBA_DIR_PATH . "/kusaba.js\"></script>\n</head>\n<body>\n";
-		
-		if(isset($Op_settings['IMGNAME']))  // С картинкой.
+            $smarty->assign('page_title', "Kotoba - $BOARD_NAME/$THREAD_NUM - " . $Op_settings['THEME']);
+
+		if(isset($Op_settings['IMGNAME']))  // Rus: С картинкой. En: With image.
 		{
 			$img_thumb_filename = $Op_settings['IMGNAME'] . 't.' . $Op_settings['IMGEXT'];
 			$img_filename = $Op_settings['IMGNAME'] . '.' . $Op_settings['ORIGIMGEXT'];
-			
-			$THREAD .= " <span class=\"filesize\">Файл: <a target=\"_blank\" href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename\">$img_filename</a> -(<em>$Op_settings[IMGSIZE] Байт, $Op_settings[IMGSW]x$Op_settings[IMGSH]</em>)</span> <span class=\"reflink\"><span onclick=\"insert('>>$post[id]');\">#</span> <a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/#$post[id]\">$post[id]</a></span> <span class=\"delbtn\">[<a href=\" " . KOTOBA_DIR_PATH . "/$BOARD_NAME/r$post[id]/\" title=\"Удалить\">×</a>]</span><a name=\"$post[id]\"></a>\n";
-			$THREAD .= "<br><a target=\"_blank\" href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename\"><img src=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb/$img_thumb_filename\" class=\"thumb\" width=\"$Op_settings[IMGTW]\" heigth=\"$Op_settings[IMGTH]\"></a>";
-			$THREAD .= "<blockquote>\n" . ($post['Text'] == "" ? "<br>" : $post['Text']) . "\n</blockquote>\n";
+
+            $smarty->assign('with_image', true);
+            $smarty->assign('original_file_link', KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename");
+            $smarty->assign('original_file_name', $img_filename);
+            $smarty->assign('original_file_size', $Op_settings['IMGSIZE']);
+            $smarty->assign('original_file_width', $Op_settings['IMGSW']);
+            $smarty->assign('original_file_heigth', $Op_settings['IMGSW']);
+            $smarty->assign('original_file_thumbnail_link', KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb/$img_thumb_filename");
+            $smarty->assign('original_file_thumbnail_width', $Op_settings['IMGTW']);
+            $smarty->assign('original_file_thumbnail_heigth', $Op_settings['IMGTH']);
 		}
 		else
 		{
-			$THREAD .= " <span class=\"reflink\"><span onclick=\"insert('>>$post[id]');\">#</span> <a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/#$post[id]\">$post[id]</a></span> <span class=\"delbtn\">[<a href=\"" . KOTOBA_DIR_PATH . "/$BOARD_NAME/r$post[id]/\" title=\"Удалить\">×</a>]</span><a name=\"$post[id]\"></a>\n";
-			$THREAD .= "<br><blockquote>\n" . ($post['Text'] == "" ? "<br>" : $post['Text']) . "\n</blockquote>\n";
+            $smarty->assign('with_image', false);
         }
 
-		$THREAD .= "<div>\n";
-		
+        $thread = array();
+
 		while (($post = mysql_fetch_array($posts, MYSQL_ASSOC)) !== false)
 		{
+            $post_data = array();
 			$Replay_settings = get_settings('post', $post['Post Settings']);
 
-			$smarty->assign('simple_theme', $Replay_settings['THEME']);
-            $smarty->assign('simple_name', $Replay_settings['NAME']);
-            $smarty->assign('simple_time', $post['Time']);
-            $smarty->assign('simple_id', $post['id']);
-            $smarty->assign('simple_link', KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/#$post[id]");
-            $smarty->assign('simple_remove_link', KOTOBA_DIR_PATH . "/$BOARD_NAME/r$post[id]/");
-            $smarty->assign('simple_text', ($post['Text'] == '' ? '<br>' : $post['Text']));
+            $post_data['simple_theme'] = $Replay_settings['THEME'];
+            $post_data['simple_name'] = $Replay_settings['NAME'];
+            $post_data['simple_time'] = $post['Time'];
+            $post_data['simple_id'] = $post['id'];
+            $post_data['simple_link'] = KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/#$post[id]";
+            $post_data['simple_remove_link'] = KOTOBA_DIR_PATH . "/$BOARD_NAME/r$post[id]/";
+            $post_data['simple_text'] = $post['Text'] == '' ? '<br>' : $post['Text'];
 
 			if(isset($Replay_settings['IMGNAME']))
 			{
 				$img_thumb_filename = $Replay_settings['IMGNAME'] . 't.' . $Replay_settings['IMGEXT'];
 				$img_filename = $Replay_settings['IMGNAME'] . '.' . $Replay_settings['ORIGIMGEXT'];
 
-				$smarty->assign('with_image', true);
-                $smarty->assign('simple_file_link', KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename");
-                $smarty->assign('simple_file_name', $img_filename);
-                $smarty->assign('simple_file_size', $Replay_settings['IMGSIZE']);
-                $smarty->assign('simple_file_width', $Replay_settings['IMGSW']);
-                $smarty->assign('simple_file_heigth', $Replay_settings['IMGSH']);
-                $smarty->assign('simple_file_thumbnail_link', KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb/$img_thumb_filename");
-                $smarty->assign('simple_file_thumbnail_width', $Replay_settings['IMGTW']);
-                $smarty->assign('simple_file_thumbnail_heigth', $Replay_settings['IMGTH']);
+                $post_data['with_image'] = true;
+                $post_data['simple_file_link'] = KOTOBA_DIR_PATH . "/$BOARD_NAME/img/$img_filename";
+                $post_data['simple_file_name'] = $img_filename;
+                $post_data['simple_file_size'] = $Replay_settings['IMGSIZE'];
+                $post_data['simple_file_width'] = $Replay_settings['IMGSW'];
+                $post_data['simple_file_heigth'] = $Replay_settings['IMGSH'];
+                $post_data['simple_file_thumbnail_link'] = KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb/$img_thumb_filename";
+                $post_data['simple_file_thumbnail_width'] = $Replay_settings['IMGTW'];
+                $post_data['simple_file_thumbnail_heigth'] = $Replay_settings['IMGTH'];
 			}
 			else
 			{
-                $smarty->assign('with_image', false);
+                $post_data['with_image'] = false;
             }
-			
-			$THREAD .= $smarty->fetch('post_simple.tpl');
+
+            array_push($thread, $post_data);
         }
 
-		$THREAD .= "</div>\n</div>\n<br clear=\"left\">\n<hr>";
+        $smarty->assign('thread', $thread);
 	}
     else
     {
@@ -280,11 +253,11 @@ else
     die($HEAD . "<span class=\"error\">Ошибка. Невозможно получить посты для предпросмотра треда $thread[id] доски $BOARD_NAME. Причина: " . mysql_error() . '.</span>' . $FOOTER);
 }
 
-echo $HEAD . $MENU . $FORM . '<hr>' . $THREAD . $FOOTER;
+$smarty->display('threads.tpl');
 ?>
 <?php
 /*
- * Выводит сообщение $errmsg в файл статистики $stat_file.
+ * Rus: Выводит сообщение $errmsg в файл статистики $stat_file.
  */
 function kotoba_stat($errmsg)
 {
