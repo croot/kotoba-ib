@@ -11,10 +11,11 @@
 
 require 'config.php';
 require 'common.php';
+require 'error_processing.php';
 
 if(KOTOBA_ENABLE_STAT)
     if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/index.stat', 'a')) == false)
-        die($HEAD . '<span class="error">Ошибка. Неудалось открыть или создать файл статистики.</span>' . $FOOTER);
+        kotoba_error("Ошибка. Не удалось открыть или создать файл статистики");
 
 ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/sessions/');
 ini_set('session.gc_maxlifetime', 60 * 60 * 24);
@@ -22,6 +23,7 @@ ini_set('session.cookie_lifetime', 60 * 60 * 24);
 session_start();
 
 require 'databaseconnect.php';
+require 'events.php';
 
 $smarty = new SmartyKotobaSetup();
 
@@ -46,7 +48,7 @@ else
     if(KOTOBA_ENABLE_STAT)
             kotoba_stat(sprintf(ERR_BOARDS_LIST, mysql_error()));
 
-	die($HEAD . '<span class="error">Ошибка. Невозможно получить список досок. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
+	kotoba_error(sprintf(ERR_BOARDS_LIST, mysql_error()));
 }
 
 if(isset($_SESSION['isLoggedIn']))

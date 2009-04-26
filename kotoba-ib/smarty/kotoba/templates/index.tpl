@@ -8,16 +8,10 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************}
-<html>
-<head>
-	<title>Kotoba Main</title>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<link rel="stylesheet" type="text/css" href="{$KOTOBA_DIR_PATH}/kotoba.css">
-</head>
-<body>
+{include file='header.tpl' page_title='Kotoba Main'}
 <p>Версия {$version}. Время модификации {$date}</p>
 {if isset($BOARDS_EXIST)}
-Список досок: {section name=name loop=$boardNames}/<a href="{$KOTOBA_DIR_PATH}/{$boardNames[name]}/">{$boardNames[name]}</a>/ {/section}
+Список досок: {include file='board_list.tpl' board_list=$boardNames}
 {else}
 <span class="error">Ошибка. Не создано ни одной доски.</span>
 {/if}
@@ -31,5 +25,4 @@
 	<a href="{$KOTOBA_DIR_PATH}/login.php">Войти</a>
 {/if}
 </p>
-</body>
-</html>
+{include file='footer.tpl'}
