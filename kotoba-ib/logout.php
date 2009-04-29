@@ -24,9 +24,7 @@ if(isset($_SESSION['isLoggedIn']))
 	unset($_SESSION['isLoggedIn']);
 
 session_destroy();
+$smarty = new SmartyKotobaSetup();
 
-die("<html>\n<head>\n\t<title>Kotoba Logout</title>\n\t<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n\t" .
-	"<link rel=\"stylesheet\" type=\"text/css\" href=\"" . KOTOBA_DIR_PATH . "/kotoba.css\">\n</head>\n<body>\n<p>\n\t" .
-	"Вы вышли.<br>\n\t<a href=\"" . KOTOBA_DIR_PATH . "/login.php\">Войти</a><br>\n\t" .
-	"<a href=\"" . KOTOBA_DIR_PATH . "/index.php\">На главную</a>\n</p>\n</body>\n</html>");
+$smarty->display('logout.tpl');
 ?>

@@ -5,28 +5,15 @@
  *********************************/
 ?>
 <?php
-$HEAD = 
-'<html>
-<head>
-	<title>Kotoba Register</title>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<link rel="stylesheet" type="text/css" href="kotoba.css">
-</head>
-<body>
-';
-$BODY = '<form action="register.php" method="post">
-	<p>Keyword: 
-	<input name="Keyword" type="text" size="80" maxlength="32"> 
-	<input type="submit" value="Register">
-	</p>
-	</form>';
-$FOOTER = 
-'
-</body>
-</html>';
+require 'config.php';
+require 'common.php';
+require 'error_processing.php';
+require 'events.php';
 
+$smarty = new SmartyKotobaSetup();
 if(isset($_POST['Keyword']))
 {
+	$smarty->assign('form', 0);
 	$keyword_code   = RawUrlEncode($_POST['Keyword']);
 	$keyword_length = strlen($keyword_code);
 	
@@ -35,42 +22,51 @@ if(isset($_POST['Keyword']))
 		$keyword_hash = md5($keyword_code);		
 		
 		require 'databaseconnect.php';
-		
-		if(($result = mysql_query('select `id` from `users` where `Key` = ' . "'$keyword_hash'")) != false)
+		$sql = sprintf("select id from users where `Key` = '%s'", $keyword_hash);
+		if(($result = mysql_query($sql)) != false)
 		{
 			if(mysql_num_rows($result) == 0)
 			{
-				if(mysql_query('insert into `users` (`Key`, `SID`, `User Settings`) values (\'' . $keyword_hash . '\', null, \'\')') != false)
+				$sql = sprintf("insert into users (`Key`, `SID`, `User Settings`) values ('%s', null, '')", $keyword_hash);
+				if(mysql_query($sql) != false)
 				{
-					$BODY = '<p>Registred successfull.</p>';
+					$smarty->assign('message', 'Registred successful');
 				}
 				else
 				{
-					$BODY = '<p>Error.<br>Registration failed by reason: ' . mysql_error() . '.</p>';
+					kotoba_error(sprintf("Error. Registration failed by reason: %s",
+						mysql_error()));
 				}
 			}
 			else
 			{
-				if(mysql_query('delete from `users` where `Key` = ' . "'$keyword_hash'") != false)
+				$sql = sprintf("delete from users where `Key` = '%s'", $keyword_hash);
+				if(mysql_query($sql) != false)
 				{
-					$BODY = '<p>UNREGISTRED!</p>';
+					$smarty->assign('message', 'Registration deleted');
 				}
 				else
 				{
-					$BODY = '<p>Error.<br>Unregistration failed by reason: ' . mysql_error() . '.</p>';
+					kotoba_error(sprintf("Error.<br>Unregistration failed by reason: %s",
+						mysql_error()));
 				}
 			}
 		}
 		else
 		{
-			$BODY = '<p>Error.<br>Searching in database falied by reason: ' . mysql_error() . '.</p>';
+			kotoba_error(sprintf("Error.<br>Searching in database falied by reason: %s",
+				mysql_error()));
 		}
 	}
 	else
 	{
-		$BODY .= "\n<br><p>Error.<br>Keyword: 16-32, A-Za-z0-9_-.</p>";
+		$smarty->assign('form', 1);
+		$smarty->assign('message', 'Error. Keyword: 16-32, A-Za-z0-9_-');
 	}
 }
+else {
+	$smarty->assign('form', 1);
+}
 
-echo($HEAD . $BODY . $FOOTER);
+$smarty->display('register.tpl');
 ?>
