@@ -456,6 +456,7 @@ BEGIN
 
 	close thread_view_cur;
 
+	select id from Tthreads_on_page;
 	drop temporary table if exists Tthreads_on_page;
 END|
 
