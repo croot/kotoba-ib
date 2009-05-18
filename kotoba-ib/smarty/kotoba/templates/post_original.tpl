@@ -39,7 +39,7 @@
 {/if}
 <span class="reflink"><span onclick="insert('>>{$original_id}');">#</span> <a href="{$original_link}">{$original_id}</a></span>
 <span class="delbtn">[<a href="{$original_remove_link}" title="Удалить">×</a>]</span>
-<a name="{$original_id}"></a>\n
+<a name="{$original_id}"></a>
 {if $with_image == true}<br><a target="_blank" href="{$original_file_link}"><img src="{$original_file_thumbnail_link}" class="thumb" width="{$original_file_thumbnail_width}" heigth="{$original_file_thumbnail_heigth}"></a>
 {/if}
 <blockquote>
