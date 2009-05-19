@@ -18,7 +18,6 @@ CREATE TABLE boards (
 	PRIMARY KEY (id),
 	unique index IX_boards (board_name)
 ) engine=innodb;
--- CREATE UNIQUE INDEX IX_boards ON boards (board_name);
 /*
 boards: boards in your kotoba
 id - board identifier
@@ -79,22 +78,33 @@ drop table if exists uploads;
 CREATE TABLE uploads (
 	id int auto_increment not null,
 	board_id int not null,
-	post_id int not null,
+--	post_id int not null,
 	hash varchar(32) not null,
+	is_image tinyint not null,
 	file_name varchar(256) not null,
-	file_x int,
-	file_y, int,
+	file_w int,
+	file_h, int,
 	thumbnail varchar(256) not null,
-	thumbnail_x int,
-	thumbnail_y int
+	thumbnail_w int,
+	thumbnail_h int
 ) engine=innodb;
 
+/* uploads: binary uploads information
+id - upload identifier
+board_id - board identifier where binary was uploaded
+hash - md5 (or sha-1) hash of upload
+is_image - is dimensions of original upload applicable?
+file_name - name of upload (href)
+file_w and file_h - widht and height, if upload is image
+thumbnail - thumbnail filename
+thumbnail_w and thumbnail_h - thumbnail width and height
+*/
 
 drop table if exists threads;
 CREATE TABLE threads (
 	id int auto_increment NOT NULL,
 	board_id int NOT NULL,
-	open_post_num int NULL,
+	original_post_num int NULL,
 	messages int NULL,
 	with_images int NULL,
 	last_post datetime NULL,
@@ -104,13 +114,22 @@ CREATE TABLE threads (
 	archive tinyint NOT NULL DEFAULT 0,
 	PRIMARY KEY (id),
 	INDEX IX_boards (board_id),
+	index IX_threads (last_post),
 	FOREIGN KEY (board_id) REFERENCES boards(id) ON DELETE RESTRICT
 ) engine=innodb;
-
-CREATE INDEX IX_threads using btree ON threads
-(
-	last_post DESC
-);
+/*
+threads: information about threads
+id - thread identifier
+board_id - thread belongs to board
+original_post_num - number of post (not id), which open thread
+messages - count of not deleted messages
+with_images - count of messages with images
+last_post - date time of last post, used for sorting (sage post should not update this field)
+delted - this thread is deleted
+bump_limit - max number of posts when last_post should be updated
+sage - last_post should be never updated if 1
+archive - thread prepared to be archived
+*/
 
 drop table if exists posts;
 CREATE TABLE posts(
@@ -118,34 +137,56 @@ CREATE TABLE posts(
 	board_id int NOT NULL,
 	thread_id int NULL,
 	post_number int NOT NULL,
+	name varchar(128) null,
+	email varchar(128) null,
+	subject varchar(128) null,
+	password varchar(128) null,
+	session_id varchar(128) null,
 	text text NULL,
 	date_time datetime NULL,
-	image varchar(64) NULL,
 	sage tinyint NULL,
 	deleted tinyint NULL DEFAULT 0,
 	INDEX IX_thread_id (thread_id),
 	INDEX IX_board_id (board_id),
+	index IX_posts_date_time (date_time)
+	unique index IX_posts (post_number, board_id),
 	PRIMARY KEY using btree (id ASC),
 	FOREIGN KEY (board_id) REFERENCES boards(id) ON DELETE RESTRICT,
 	FOREIGN KEY (thread_id) REFERENCES threads(id) ON DELETE RESTRICT
 ) engine=innodb;
 
-CREATE UNIQUE INDEX IX_posts using btree ON posts 
-(
-	post_number ASC,
-	board_id ASC
-);
+/*
+posts: information about posts
+id - post identifier
+board_id - post is on this board
+thread_id - post is on this thread
+post_number - is post number and it unique in board
+name - optional name for post (name-fags not welcome here)
+email - optional email
+subject - optional subject of post
+password - password for deleting post
+session_id - session id of user which posted message (may useful for deleting post by same user
+	even if password not set)
+text - post text
+date_time - date and time of post
+sage - sage flag of post
+deleted - this post is deleted if 1
+*/
 
-CREATE INDEX IX_posts_1 using btree ON posts 
-(
-	date_time ASC
-);
+drop table if exists posts_uploads;
+CREATE TABLE posts_uploads(
+	id int not null auto_increment,
+	post_id int not null,
+	upload_id not null,
+	primary key(id),
+	unique index IX_post_uploads (post_id, upload_id),
+	foreign key (post_id) references posts(id) on delete cascade,
+	foreign key (upload_id) references uploads(id) on delete cascade
+) engine=innodb;
 
 /*
-ALTER TABLE threads ADD  CONSTRAINT FK_threads_threads FOREIGN KEY(board_id)
-REFERENCES boards (id);
-ALTER TABLE posts  ADD  CONSTRAINT FK_posts_boards FOREIGN KEY(board_id)
-REFERENCES boards (id);
-ALTER TABLE posts ADD  CONSTRAINT FK_posts_threads FOREIGN KEY(thread_id)
-REFERENCES threads (id);
+posts_uploads: reduction table for uploads in posts
+id - reduction identifier
+post_id - identifier of post
+upload_id - identifier of upload
 */
