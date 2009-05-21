@@ -1,5 +1,125 @@
 use kotoba2;
+-- =============================================
+-- Author:		innomines
+-- Create date: 21.05.2009
+-- Description:	create new user
+-- =============================================
+delimiter |
+drop procedure if exists sp_add_user|
+create PROCEDURE sp_add_user(
+	-- auth key
+	authkey varchar(32),
+	-- user defined qty of posts
+	posts int,
+	-- user defined qty of threads
+	threads int,
+	-- user defined qty of pages
+	pages int,
+	-- default qty of posts
+	defaultposts int,
+	-- default qty of threads
+	defaultthreads int,
+	-- default of pages
+	defaultpages int
+)
+BEGIN
+	-- local calculated posts, threads and pages
+	-- declare postsqty threadsqty, pagesqty int;
+	insert into users (auth_key, preview_posts, preview_threads, preview_pages)
+	values (authkey, ifnull(posts, defaultposts), ifnull(threads, defaultthreads),
+		ifnull(pages, defaultpages));
 
+	select last_insert_id() as userid;
+END|
+
+-- =============================================
+-- Author:		innomines
+-- Create date: 21.05.2009
+-- Description:	change user settings
+-- =============================================
+delimiter |
+drop procedure if exists sp_change_user|
+create PROCEDURE sp_change_user(
+	userid int,
+	-- user defined qty of posts
+	userposts int,
+	-- user defined qty of threads
+	userthreads int,
+	-- user defined qty of pages
+	userpages int
+)
+begin
+	update users set
+		preview_posts = ifnull(userposts, preview_posts),
+		preview_threads = ifnull(userthreads, preview_threads),
+		preview_pages = ifnull(userpages, preview_pages)
+	where id = userid;
+end|
+
+-- =============================================
+-- Author:		innomines
+-- Create date: 21.05.2009
+-- Description:	set role for user
+-- =============================================
+delimiter |
+drop procedure if exists sp_set_user_role|
+create PROCEDURE sp_set_user_role(
+	-- user identifier
+	userid int,
+	-- role integer
+	userrole int
+)
+begin
+	update users set role = userrole where id = userid;
+end|
+
+-- =============================================
+-- Author:		innomines
+-- Create date: 21.05.2009
+-- Description:	add new supported file-type
+-- =============================================
+delimiter |
+drop procedure if exists sp_add_filetype|
+create PROCEDURE sp_add_filetype(
+	-- is this file type image?
+	isimage tinyint
+	-- file extension
+	fileext varchar(10),
+	-- store file extension
+	storefileext varchar(10),
+	-- handler method
+	exthandler tinyint,
+	-- default thumbnail
+	extthumbnail varchar(256)
+)
+begin
+	declare localhandler varchar(64);
+	select ifnull(storefileext, fileext) into storefileext;
+	select case exthandler 
+		when 1 then 'store'
+		when 2 then 'internal'
+		when 3 then 'internal_png' end
+	into localhandler;
+
+	insert into upload_types (image, extension, store_extension, handler, thumbnail_image)
+	values (isimage, fileext, storefileext, localhandler, extthumbnail);
+end|
+
+-- =============================================
+-- Author:		innomines
+-- Create date: 21.05.2009
+-- Description:	add supported file-type to board
+-- =============================================
+delimiter |
+drop procedure if exists sp_add_board_filetype|
+create PROCEDURE sp_add_board_filetype(
+	boardid int,
+	filetypeid int
+)
+begin
+	insert into board_upload_types (board_id, upload_id)
+	values (boardid, filetypeid);
+end|
 
 -- =============================================
 -- Author:		innomines
@@ -29,7 +149,7 @@ END|
 -- Description:	delete post. if post opened new thread, delete whole thread
 -- =============================================
 delimiter |
-drop procedure sp_delete_post|
+drop procedure if exists sp_delete_post|
 create PROCEDURE sp_delete_post(
 	-- post number field
 	postnum int,
@@ -244,7 +364,7 @@ END|
 
 -- =============================================
 -- Author:		innomines
--- Create date: 05.05.2009
+-- Create date: 21.05.2009
 -- Description:	create new board
 -- =============================================
 delimiter |
@@ -254,14 +374,27 @@ CREATE PROCEDURE sp_create_board(
 	boardname varchar(16),
 	-- board description like random, anime
 	boarddescription varchar(50),
+	boardtitle varchar(50),
 	-- default bump limit for board
 	bumplimit int,
-	-- maximum threads on board
-	maxthreads int
+	rubberboard tinyint,
+	-- maximum visible threads on board
+	visiblethreads int,
+	sameupload tinyint
 )
 BEGIN
-	insert into boards (board_name, board_description, bump_limit, max_threads) 
-	values (boardname, boarddescription, bumplimit, maxthreads);
+	declare localsameupload varchar(32);
+
+	select case sameupload
+		when 0 then 'yes'
+		when 1 then 'once'
+		when 2 then 'no' end
+	into localsameupload;
+
+	insert into boards (board_name, board_description, board_title,
+		bump_limit, rubber_board, visible_threads, same_upload) 
+	values (boardname, boarddescription, boardtitle,
+		bumplimit, rubberboard, visiblethreads, localsameupload);
 END|
 
 
@@ -456,7 +589,6 @@ BEGIN
 
 	close thread_view_cur;
 
-	select id from Tthreads_on_page;
 	drop temporary table if exists Tthreads_on_page;
 END|
 
@@ -594,10 +726,10 @@ BEGIN
 	select bump_limit into bumplimit from threads
 	where id = thread_id;
 	
-	-- thread may forcibly sage''d
+	-- thread may forcibly sage''d or unsaged
 	select sage into threadsage from threads where id = thread_id;
-	if threadsage = 1 then
-		set sage = 1;
+	if threadsage is not null then
+		set sage = threadsage;
 	end if;
 
 	-- thread reached bumplimit
@@ -620,3 +752,29 @@ BEGIN
 	values
 	(board_id, thread_id, post_number, text, image, sage, date);
 END|
+
+-- =============================================
+-- Author:		innomines
+-- Create date: 12.05.2009 - ...
+-- Description:	get thread id for post number
+-- =============================================
+delimiter |
+drop function if exists get_thread_id|
+create function get_thread_id
+(
+	boardid int,
+	postnumber int
+)
+RETURNS int
+deterministic
+begin
+	declare threadid int default 0;
+	select thread_id into threadid from posts where post_number = post_number and
+	board_id = boardid;
+	if threadid is null then
+		set threadid = 0;
+	end if;
+
+	return threadid;
+end|
+

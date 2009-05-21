@@ -34,16 +34,19 @@ same_upload - allow upload same binary files. values: 'yes' - allow, 'no' - disa
 drop table if exists upload_types;
 create table upload_types (
 	id int auto_increment not null,
+	image tinyint not null,
 	extension varchar(10) not null,
 	store_extension varchar(10) null,
 	handler varchar(64) not null default 'internal',
-	thumbnail_image varchar(256) not null default 'unknown.png',
-	primary key(id)
+	thumbnail_image varchar(256) null default '/img/unknown.png',
+	primary key(id),
+	unique index(extension)
 ) engine=innodb;
 
 /*
 upload_types: supported binary files for upload and how to handle them
 id - upload type identifier
+image - is upload image file?
 extension - binary file extension
 store_extension - binary file should be stored with this extension ('jpeg' as 'jpg')
 handler - how to handle files. values:
@@ -83,10 +86,12 @@ CREATE TABLE uploads (
 	is_image tinyint not null,
 	file_name varchar(256) not null,
 	file_w int,
-	file_h, int,
+	file_h int,
 	thumbnail varchar(256) not null,
 	thumbnail_w int,
-	thumbnail_h int
+	thumbnail_h int,
+	primary key(id),
+	index(hash)
 ) engine=innodb;
 
 /* uploads: binary uploads information
@@ -142,13 +147,14 @@ CREATE TABLE posts(
 	subject varchar(128) null,
 	password varchar(128) null,
 	session_id varchar(128) null,
+	ip int not null,
 	text text NULL,
 	date_time datetime NULL,
 	sage tinyint NULL,
 	deleted tinyint NULL DEFAULT 0,
 	INDEX IX_thread_id (thread_id),
 	INDEX IX_board_id (board_id),
-	index IX_posts_date_time (date_time)
+	index IX_posts_date_time (date_time),
 	unique index IX_posts (post_number, board_id),
 	PRIMARY KEY using btree (id ASC),
 	FOREIGN KEY (board_id) REFERENCES boards(id) ON DELETE RESTRICT,
@@ -167,6 +173,7 @@ subject - optional subject of post
 password - password for deleting post
 session_id - session id of user which posted message (may useful for deleting post by same user
 	even if password not set)
+ip - ip address of poster (integer, not 'a.b.c.d')
 text - post text
 date_time - date and time of post
 sage - sage flag of post
@@ -177,7 +184,7 @@ drop table if exists posts_uploads;
 CREATE TABLE posts_uploads(
 	id int not null auto_increment,
 	post_id int not null,
-	upload_id not null,
+	upload_id int not null,
 	primary key(id),
 	unique index IX_post_uploads (post_id, upload_id),
 	foreign key (post_id) references posts(id) on delete cascade,
@@ -189,4 +196,45 @@ posts_uploads: reduction table for uploads in posts
 id - reduction identifier
 post_id - identifier of post
 upload_id - identifier of upload
+*/
+
+drop table if exists banned_networks;
+CREATE TABLE banned_networks(
+	id int auto_increment not null,
+	network_address int not null,
+	network_broadcast int not null,
+	reason text,
+	till datetime,
+	primary key(id),
+	unique index(network_address, network_broadcast)
+) engine=innodb;
+/*
+banned_networks: table for current banned ip's and networks
+id - banned network identifier
+network_address - start of network (in integer, not a.b.c.d)
+network_broadcast - end of network (in integer too, see ip2long php manual)
+	sample: address: 10.0.0.0, brodcast: 10.0.0.255; means whole network 10.0.0.0/24 banned
+reason - why this network banned
+till - date time when ban should be gone
+*/
+
+drop table if exists users;
+CREATE TABLE users(
+	id int auto_increment not null,
+	auth_key  varchar(32) not null,
+	role int not null default 0,
+	preview_posts int,
+	preview_threads int,
+	preview_pages int,
+	primary key(id),
+	unique index(auth_key)
+) engine=innodb;
+/*
+users: users on kotoba
+id - user identifier
+auth_key - user authentication key (password)
+role - user role. 0 is usual user
+preview_posts - how many posts showd in preview mode
+preview_threads - how many threads on page in preview mode
+preview_pages - how many pages in preview mode
 */
