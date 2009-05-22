@@ -118,7 +118,7 @@ CREATE TABLE threads (
 	sage tinyint NOT NULL,
 	archive tinyint NOT NULL DEFAULT 0,
 	PRIMARY KEY (id),
-	INDEX IX_boards (board_id),
+	unique INDEX IX_boards (board_id, original_post_num),
 	index IX_threads (last_post),
 	FOREIGN KEY (board_id) REFERENCES boards(id) ON DELETE RESTRICT
 ) engine=innodb;
@@ -183,6 +183,7 @@ deleted - this post is deleted if 1
 drop table if exists posts_uploads;
 CREATE TABLE posts_uploads(
 	id int not null auto_increment,
+	thread_id int not null,
 	post_id int not null,
 	upload_id int not null,
 	primary key(id),
@@ -194,6 +195,7 @@ CREATE TABLE posts_uploads(
 /*
 posts_uploads: reduction table for uploads in posts
 id - reduction identifier
+thread_id - uploads in this thread
 post_id - identifier of post
 upload_id - identifier of upload
 */
