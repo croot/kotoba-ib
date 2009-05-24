@@ -175,7 +175,7 @@ define('ERR_USER_DATA', '(Ошибка) Невозможно получить д
 // 1. Идентификатор сессии.
 define('ERR_USER_SEARCH', '(Ошибка) Пользователя с сессией %s не найден.');
 
-define('ERR_DB_CONNECT', '(Ошибка) Неудалось установить соединение с сервром БД.');
+define('ERR_DB_CONNECT', '(Ошибка) Неудалось установить соединение с сервром БД :%s');
 
 // 1. Причина неудачи выбора бд.
 define('ERR_DB_SELECT', '(Ошибка) Неудалось выбрать базу данных. Причина: %s.');
@@ -190,4 +190,16 @@ define('ERR_UPLOAD_NO_FILE', '(Ошибка) Файл не был загруже
 define('ERR_UPLOAD_NO_TMP_DIR', '(Ошибка) Временная папка не найдена.');
 define('ERR_UPLOAD_CANT_WRITE', '(Ошибка) Не удалось записать файл на диск.');
 define('ERR_UPLOAD_EXTENSION', '(Ошибка) Загрузка файла прервана расширением.');
+
+define('ERR_ALREADY_LOGGED_MESSAGE', "Вы уже вошли<br>%s");
+define('ERR_BADKEYWORD', "Error. Keyword: 16-32, A-Za-z0-9_-");
+define('ERR_REGISTER_DATABASE', "Error. Searching in database falied by reason: %s");
+define('ERR_REGISTER_UNREGISTER', "Error. Unregistration failed by reason: %s");
+
+define('REG_UNREGISTERED', "Your registration data erased");
+define('REG_SUCCESSFUL', "Registered");
+
+define('LOGIN_ALREADY', "Вы уже вошли");
+define('LOGIN_SUCCESSFULY', "Вы успешно вошли.");
+define('ERR_LOGIN_NOTREGISTERED', "Ошибка. Вы не зарегистрированы.");
 ?>

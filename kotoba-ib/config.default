@@ -14,6 +14,12 @@ define('KOTOBA_ALLOW_SAEMIMG', false);	// Разрешить постить од
 define('KOTOBA_ENABLE_STAT', true);		// Включить сбор статистики. true or false.
 define('KOTOBA_BUMPLIMIT', 30);			// Глобальный бамплимит.
 
+// database settings
+define('KOTOBA_DB_HOST', 'localhost');	// database host
+define('KOTOBA_DB_USER', 'root');		// database username
+define('KOTOBA_DB_PASS', '');			// database password
+define('KOTOBA_DB_BASENAME', 'kotoba');	// database name
+
 define('KOTOBA_MIN_IMGWIDTH', 32);      // Мнимальная ширина загружаемого изображения.
 define('KOTOBA_MIN_IMGHEIGTH', 32);     // Минимальная высота загружаемого изображения.
 define('KOTOBA_MIN_IMGSIZE', 1000);     // Минимальный размер загружаемого файла.
