@@ -27,7 +27,7 @@ session_start();
 $smarty = new SmartyKotobaSetup();
 if(isset($_SESSION['isLoggedIn'])) {
 	$smarty->assign('form', 0);
-	$smarty->assign('message', 'Вы уже вошли');
+	$smarty->assign('message', LOGIN_ALREADY);
 	$smarty->display('login.tpl');
 	exit;
 }
@@ -45,7 +45,7 @@ if(isset($_POST['Keyword']))
 		if(($result = mysql_query($sql)) != false)
 		{
 			if(@mysql_num_rows($result) == 0) {
-				$smarty->assign('message', 'Ошибка. Вы не зарегистрированы.');
+				$smarty->assign('message', ERR_LOGIN_NOTREGISTERED);
 				$smarty->assign('form', 0);
 				$smarty->display('login.tpl');
 				exit;
@@ -64,7 +64,7 @@ if(isset($_POST['Keyword']))
 				else
 				{
 					$_SESSION['isLoggedIn'] = session_id();
-					$smarty->assign('message', 'Вы успешно вошли.');
+					$smarty->assign('message', LOGIN_SUCCESSFULY);
 					$smarty->assign('form', 0);
 					$smarty->display('login.tpl');
 					exit;
@@ -80,7 +80,7 @@ if(isset($_POST['Keyword']))
 		}
 	}
 	else {
-		$smarty->assign('message', 'Ошибка. Ключевое слово должно иметь длину 16-32 свимолов A-Z a-z 0-9 _ -');
+		$smarty->assign('message', ERR_BADKEYWORD);
 		$smarty->assign('form', 0);
 		$smarty->display('login.tpl');
 		exit;

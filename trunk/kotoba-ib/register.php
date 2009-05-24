@@ -30,12 +30,11 @@ if(isset($_POST['Keyword']))
 				$sql = sprintf("insert into users (`Key`, `SID`, `User Settings`) values ('%s', null, '')", $keyword_hash);
 				if(mysql_query($sql) != false)
 				{
-					$smarty->assign('message', 'Registred successful');
+					$smarty->assign('message', REG_SUCCESSFUL);
 				}
 				else
 				{
-					kotoba_error(sprintf("Error. Registration failed by reason: %s",
-						mysql_error()));
+					kotoba_error(sprintf(ERR_REGISTER_DATABASE, mysql_error()));
 				}
 			}
 			else
@@ -43,25 +42,23 @@ if(isset($_POST['Keyword']))
 				$sql = sprintf("delete from users where `Key` = '%s'", $keyword_hash);
 				if(mysql_query($sql) != false)
 				{
-					$smarty->assign('message', 'Registration deleted');
+					$smarty->assign('message', REG_UNREGISTERED);
 				}
 				else
 				{
-					kotoba_error(sprintf("Error.<br>Unregistration failed by reason: %s",
-						mysql_error()));
+					kotoba_error(sprintf(ERR_REGISTER_UNREGISTER, mysql_error()));
 				}
 			}
 		}
 		else
 		{
-			kotoba_error(sprintf("Error.<br>Searching in database falied by reason: %s",
-				mysql_error()));
+			kotoba_error(sprintf(ERR_REGISTER_DATABASE, mysql_error()));
 		}
 	}
 	else
 	{
 		$smarty->assign('form', 1);
-		$smarty->assign('message', 'Error. Keyword: 16-32, A-Za-z0-9_-');
+		$smarty->assign('message', ERR_BADKEYWORD);
 	}
 }
 else {
