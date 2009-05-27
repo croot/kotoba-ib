@@ -1,4 +1,3 @@
--- vim: set ft=mysql:
 use kotoba2;
 -- =============================================
 -- Author:		innomines
@@ -23,7 +22,7 @@ create PROCEDURE sp_add_user(
 	-- default of pages
 	defaultpages int
 )
-begin
+BEGIN
 	-- local calculated posts, threads and pages
 	-- declare postsqty threadsqty, pagesqty int;
 	insert into users (auth_key, preview_posts, preview_threads, preview_pages)
@@ -131,23 +130,18 @@ delimiter |
 drop function if exists  get_posts_count|
 CREATE FUNCTION get_posts_count
 (
-	-- voard id
-	boardid int,
-	-- open post number
-	postnum int
+	-- thread id
+	threadid int
 )
 RETURNS int
 not deterministic
 BEGIN
-	DECLARE countpost int;
-	declare threadid int;
-	select get_thread_id(boardid, postnum) into threadid;
+	DECLARE count_post int;
 
-	SELECT count(id) into countpost from posts where thread_id = threadid
+	SELECT count(id) into count_post from posts where thread_id = threadid
 	and deleted <> 1;
 
-
-	RETURN countpost;
+	RETURN count_post;
 END|
 -- =============================================
 -- Author:		innomines
@@ -171,6 +165,10 @@ BEGIN
 	declare wholethreadid int;
 	-- posts count in thread
 	declare postcount int;
+	-- image name
+	declare image varchar(64);
+	-- images count in thread
+	declare imagescount int;
 
 	-- find post id
 	select id into postid from posts
@@ -180,68 +178,30 @@ BEGIN
 	select thread_id into threadid from posts
 	where id = postid;
 
-	call sp_delete_uploads(boardid, postnum);
+	-- get image name
+	select image into image from posts
+	where id = postid;
+
 
 	-- find if post was opening for thread...
 	select id into wholethreadid from threads
 	where open_post_num = postnum;
 	-- ... if so delete thread
 	if wholethreadid is not null then
-		call sp_delete_thread(boardid, threadid);
+		call sp_delete_thread(threadid, boardid);
 	end if;
 	-- mark post as deleted
 	update posts set deleted = 1
 	where id = postid and board_id = boardid;
 
-	call sp_update_postscount(boardid, postnum);
+	-- get posts and images count
+	select  get_posts_count(threadid) into postcount;
+	select  get_images_count(threadid) into imagescount;
+	-- update counters in thread
+	update threads set messages = postcount, with_images = imagescount
+	where id = threadid;
 END|
 
--- =============================================
--- Author:		innomines
--- Create date: 22.05.2009
--- Description:	delete uploads for post
--- =============================================
-delimiter |
-drop procedure if exists sp_delete_uploads|
-create procedure sp_delete_uploads (
-	boardid int,
-	postnum int
-)
-begin
-	delete from posts_uploads where post_id = postnum;
-	call sp_update_imagescount(boardid, postnum);
-end|
-
--- =============================================
--- Author:		innomines
--- Create date: 22.05.2009
--- Description:	update posts count
--- =============================================
-delimiter |
-drop procedure if exists sp_update_postscount|
-create procedure sp_update_postscount (
-	boardid int,
-	postnum int
-)
-begin
-	update threads set messages = get_posts_count(boardid, postnum) 
-	where id = get_thread_id(boardid, postnum);
-end|
--- =============================================
--- Author:		innomines
--- Create date: 22.05.2009
--- Description:	update images (uploads) count
--- =============================================
-delimiter |
-drop procedure if exists sp_update_imagescount|
-create procedure sp_update_imagescount (
-	boardid int,
-	postnum int
-)
-begin
-	update threads set messages = get_images_count(boardid, postnum)
-	where id = get_thread_id(boardid, postnum);
-end|
 /*
 -- =============================================
 -- Author:		innomines
@@ -314,20 +274,20 @@ delimiter |
 drop function if exists get_images_count|
 CREATE FUNCTION get_images_count
 (
-	boardid int,
-	postnum int
+	-- thread id
+	threadid int
 )
 RETURNS int
 not deterministic
 BEGIN
 	DECLARE posts_with_images int;
 
-	SELECT count(id) into posts_with_images from posts_uploads
-		where thread_id = get_thread_id(boardid, postnum);
+	SELECT count(id) into posts_with_images from posts 
+		where thread_id = threadid and image is not null and deleted <> 1;
 	
---	if posts_with_images is null then
---		set posts_with_images = 0;
---	end if;
+	if posts_with_images is null then
+		set posts_with_images = 0;
+	end if;
 
 	RETURN posts_with_images;
 END|
@@ -343,8 +303,8 @@ drop procedure if exists  sp_thread_preview|
 CREATE PROCEDURE sp_thread_preview(
 	-- thread on board id
 	boardid int,
-	-- open post number
-	postnum int,
+	-- thread id
+	threadid int,
 	-- skip messages except last N
 	showlast int
 )
@@ -356,20 +316,18 @@ BEGIN
 	declare postskip int;
 	declare imageskip int;
 	declare hidedcount int;
-	declare imagevalue int;
+	declare imagevalue varchar(64);
 	declare done int default 0;
---	declare threadid int;
-	declare cur1 cursor for select id, post_number, image from posts where thread_id = get_thread_id(boardid, postnum) and deleted <> 1 order by post_number asc, date_time asc;
+	declare cur1 cursor for select id, post_number, image from posts where thread_id = threadid and deleted <> 1 order by post_number asc, date_time asc;
 	declare continue handler for not found set done = 1;
 
 	set count = 0;
 	set postskip = 0;
 	set imageskip = 0;
 
-	set postscount = get_posts_count(boardid, postnum);
---	select count(id) into postscount from posts
---		where thread_id = threadid
---			and deleted <> 1;
+	select count(id) into postscount from posts
+		where thread_id = threadid
+			and deleted <> 1;
 
 
 	set hidedcount = postscount - showlast;
@@ -387,9 +345,8 @@ BEGIN
 			insert into Tthread_preview (post_id, post_number) values (post, postn);
 		else
 			set postskip = postskip + 1;
-			select count(id) from posts_uploads where post_id = post into imagevalue;
 			if imagevalue is not null then
-				set imageskip = imageskip + imagevalue;
+				set imageskip = imageskip + 1;
 			end if;
 		end if;
 
@@ -449,15 +406,15 @@ END|
 delimiter |
 drop procedure if exists  sp_delete_thread|
 CREATE PROCEDURE sp_delete_thread (
+	-- thread id
+	threadid int,
 	-- board id
-	boardid int,
-	-- (open) post number
-	postnum int
+	boardid int
 )
 BEGIN
 	-- mark thread as deleted
 	update threads set deleted = 1
-	where id = get_thread_id(boardid, postnum);
+	where id = threadid;
 
 	-- update board threads count
 	update boards set threads = get_threads_count(boardid)
@@ -504,8 +461,6 @@ BEGIN
 		if not done then
 		if threadcount >= threadlimit then
 			update threads set archive = 1 where id = threadid;
-		else
-			update threads set archive = 0 where id = threadid;
 		end if;
 		
 		set threadcount = threadcount + 1;
@@ -535,22 +490,17 @@ BEGIN
 	declare threadscount int;
 	-- default bump limit for board
 	declare bumplimit int;
-	-- is board is rubber
-	decalre rubberboard int default 0;
 
 	select bump_limit into bumplimit from boards where id = boardid;
-	select rubber_board into rubberboard from boards where id = boardid;
 	select threads into threadscount from boards where id = boardid;
 	if threadscount is null then
 		set threadscount = 0;
 	end if;
 
 	-- mark threads which should drown
-	if rubberboard = 0 then
-		call sp_mark_archived(boardid);
-	end if;
+	call sp_mark_archived(boardid);
 
-	insert into threads (board_id, original_post_num, bump_limit, sage)
+	insert into threads (board_id, open_post_num, bump_limit, sage)
 	values (boardid, postnumber, bumplimit, 0);
 
 	-- update number of threads on board
@@ -591,7 +541,7 @@ END
 -- =============================================
 -- Author:		innomines
 -- Create date: 05.05.2009
--- Description:	get open posts numbers in board on page N
+-- Description:	get thread ids in board on page N
 -- =============================================
 delimiter |
 drop procedure if exists  sp_threads_on_page|
@@ -611,7 +561,7 @@ BEGIN
 	-- id of thread
 	declare threadid int;
 	declare done int default 0;
-	declare thread_view_cur cursor for select original_post_num from threads
+	declare thread_view_cur cursor for select id from threads
 		where board_id = boardid
 			and deleted <> 1 and archive <> 1
 		order by last_post desc;
@@ -619,7 +569,7 @@ BEGIN
 
 	-- store results here
 	drop temporary table if exists Tthreads_on_page;
-	create temporary table Tthreads_on_page (post_number int not null);
+	create temporary table Tthreads_on_page (id int not null);
 
 	set counter = 0;
 	set current = quantity * page;
@@ -638,8 +588,7 @@ BEGIN
 	until done end repeat;
 
 	close thread_view_cur;
-	
-	select post_number from Tthreads_on_page;
+
 	drop temporary table if exists Tthreads_on_page;
 END|
 
@@ -720,30 +669,25 @@ delimiter |
 drop procedure if exists  sp_post|
 CREATE PROCEDURE sp_post (
 	-- board id
-	boardid int,
+	board_id int,
 	-- thread id
-	openpostnum int,
-	name varchar(128),
-	email varchar(128),
-	subject varchar(128),
-	password varchar(128),
-	sessionid varchar(128),
-	ip int,
+	thread_id int,
 	-- post test
 	text text,
 	-- date and time of post
 	date datetime,
+	-- image for post
+	image varchar(64),
 	-- sage
 	sage bit
 )
 BEGIN
-	declare threadid int;
 	-- posts in thread
-	declare countposts int;
+	declare count_posts int;
 	-- posts in thread with images
-	declare countimages int;
+	declare count_images int;
 	-- number on post on thread
-	declare postnumber int;
+	declare post_number int;
 	-- number of bump posts (posts which brings thread to up)
 	declare bumplimit int;
 	-- whole thread sage
@@ -754,51 +698,59 @@ BEGIN
 		select now() into date;
 	end if;
 
---	set countimages = 0;
+	set count_images = 0;
 
 	-- get next post number on board
-	set postnumber = get_next_post_on_board(boardid);
-	if openpostnum = 0 then
+	set post_number = get_next_post_on_board(board_id);
+	if thread_id = 0 then
 		-- create new thread
-		call sp_create_thread(boardid, postnumber);
-		set threadid = LAST_INSERT_ID();
+		call sp_create_thread(board_id, post_number);
+		set thread_id = LAST_INSERT_ID();
+		set count_posts = 1;
 		-- sage never happens on new thread
 		set sage = 0;
 	else
 		-- existing thread
-		set threadid = get_thread_id(boardid, postnumber);
+		set count_posts = get_posts_count(thread_id);
+		set count_posts = count_posts + 1;
+	end if;
+	
+	-- count images in thread and...	
+	set count_images = get_images_count(thread_id);
+	-- ... update images counter if post has image
+	if image is not null then
+		set count_images = count_images + 1;
 	end if;
 	
 	-- each thread may have individual bump limit
 	select bump_limit into bumplimit from threads
-	where id = threadid;
+	where id = thread_id;
 	
 	-- thread may forcibly sage''d or unsaged
-	select sage into threadsage from threads where id = threadid;
+	select sage into threadsage from threads where id = thread_id;
 	if threadsage is not null then
 		set sage = threadsage;
 	end if;
 
-	set countposts = get_posts_count(boardid, postnumber);
-
 	-- thread reached bumplimit
-	if countposts > bumplimit then
+	if count_posts > bumplimit then
 		set sage = 1;
 	end if;
+
+	-- update thread counters
+	update threads set messages = count_posts, with_images = count_images 
+	where id = thread_id and board_id = board_id;
 
 	-- thread age''d
 	if sage = 0 then
 		update threads set last_post = date
-		where id = threadid and board_id = boardid;
+		where id = thread_id and board_id = board_id;
 	end if;
 
 	-- insert data of post in table
-	insert into posts(board_id, thread_id, post_number, name, email, 
-		subject, password, sessionid, ip, text, sage, date_time)
+	insert into posts(board_id, thread_id, post_number, text, image, sage, date_time)
 	values
-	(boardid, threadid, postnumber, name, email,
-		subject, password, sessionid, ip, text, sage, date);
-	call sp_update_postscount(boardid, postnumber);
+	(board_id, thread_id, post_number, text, image, sage, date);
 END|
 
 -- =============================================
@@ -817,7 +769,7 @@ RETURNS int
 deterministic
 begin
 	declare threadid int default 0;
-	select thread_id into threadid from posts where post_number = postnumber and
+	select thread_id into threadid from posts where post_number = post_number and
 	board_id = boardid;
 	if threadid is null then
 		set threadid = 0;
@@ -826,3 +778,31 @@ begin
 	return threadid;
 end|
 
+-- =============================================
+-- Author:		innomines
+-- Create date: 27.04.2009 - ...
+-- Description:	create new login
+-- =============================================
+delimiter |
+drop procedure if exists  sp_add_user|
+create procedure sp_add_user
+(
+
+)
+begin
+end|
+-- =============================================
+-- Author:		innomines
+-- Create date: 27.05.2009
+-- Description:	get all boards with settings
+-- =============================================
+delimiter |
+drop procedure if exists sp_get_boards_ex|
+create PROCEDURE sp_get_boards_ex(
+)
+begin
+	select id, board_name, board_description, board_title, threads, 
+	bump_limit, rubber_board, visible_threads, same_upload
+	from boards
+	order by board_name;
+end|
