@@ -75,6 +75,66 @@ end|
 
 -- =============================================
 -- Author:		innomines
+-- Create date: 28.05.2009
+-- Description:	get supported file-types with settings
+-- =============================================
+delimiter |
+drop procedure if exists sp_get_filetypes_ex|
+create PROCEDURE sp_get_filetypes_ex()
+begin
+	select id, image, extension, store_extension, handler, thumbnail_image
+	from upload_types
+	order by extension;
+end|
+-- =============================================
+-- Author:		innomines
+-- Create date: 28.05.2009
+-- Description:	get supported file-types without settings
+-- =============================================
+delimiter |
+drop procedure if exists sp_get_filetypes|
+create PROCEDURE sp_get_filetypes()
+begin
+	select id, extension, handler, thumbnail_image
+	from upload_types
+	order by extension;
+end|
+-- =============================================
+-- Author:		innomines
+-- Create date: 28.05.2009
+-- Description:	change supported file-type
+-- =============================================
+delimiter |
+drop procedure if exists sp_change_filetype|
+create PROCEDURE sp_change_filetype(
+	-- file type identifier
+	filetypeid int,
+	-- is this file type image?
+	isimage tinyint,
+	-- file extension
+	fileext varchar(10),
+	-- store file extension
+	storefileext varchar(10),
+	-- handler method
+	exthandler tinyint,
+	-- default thumbnail
+	extthumbnail varchar(256)
+)
+begin
+	declare localhandler varchar(64);
+	select ifnull(storefileext, fileext) into storefileext;
+	select case exthandler 
+		when 1 then 'store'
+		when 2 then 'internal'
+		when 3 then 'internal_png' end
+	into localhandler;
+
+	update upload_types set image = isimage, extension = fileext, store_extension = storefileext,
+	handler = localhandler, thumbnail_image = extthumbnail
+	where id = filetypeid;
+end|
+-- =============================================
+-- Author:		innomines
 -- Create date: 21.05.2009
 -- Description:	add new supported file-type
 -- =============================================
@@ -82,7 +142,7 @@ delimiter |
 drop procedure if exists sp_add_filetype|
 create PROCEDURE sp_add_filetype(
 	-- is this file type image?
-	isimage tinyint
+	isimage tinyint,
 	-- file extension
 	fileext varchar(10),
 	-- store file extension
@@ -398,6 +458,42 @@ BEGIN
 END|
 
 
+-- =============================================
+-- Author:		innomines
+-- Create date: 28.05.2009
+-- Description:	update board
+-- =============================================
+delimiter |
+drop procedure if exists  sp_save_board|
+CREATE PROCEDURE sp_save_board(
+	-- board identifier
+	boardid int,
+	-- board name ie b, a
+	boardname varchar(16),
+	-- board description like random, anime
+	boarddescription varchar(50),
+	boardtitle varchar(50),
+	-- default bump limit for board
+	bumplimit int,
+	rubberboard tinyint,
+	-- maximum visible threads on board
+	visiblethreads int,
+	sameupload tinyint
+)
+BEGIN
+	declare localsameupload varchar(32);
+
+	select case sameupload
+		when 0 then 'yes'
+		when 1 then 'once'
+		when 2 then 'no' end
+	into localsameupload;
+
+	update boards set board_name = boardname, board_description = boarddescription,
+		board_title = boardtitle, bump_limit = bumplimit, rubber_board = rubberboard,
+		visible_threads = visiblethreads, same_upload = localsameupload 
+	where id = boardid;
+END|
 -- =============================================
 -- Author:		innomines
 -- Create date: 05.05.2009
