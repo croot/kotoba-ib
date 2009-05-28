@@ -36,14 +36,62 @@ function get_boards($link) {
 	cleanup_link($link);
 	return $boards;
 }
+function add_new_board($link, &$params_array) {
+	$rubber = strval($params_array['rubberboard']) == 'on' ? 1 : 0;
+	list($board_name, $board_description, $board_title, $bump_limit, $visible_threads, $same_upload) = 
+		array(strval($params_array['board_name']), strval($params_array['board_description']),
+	strval($params_array['board_title']), intval($params_array['bump_limit']),
+	intval($params_array['visible_threads']), strval($params_array['same_upload']));
+//	echo "$board_name, $board_description, $board_title, $bump_limit,
+	//		$rubber, $visible_threads, $same_upload";
+	$st = mysqli_prepare($link, "call sp_create_board(?, ?, ?, ?, ?, ?, ?)");
+	if(! $st) {
+		kotoba_error(mysqli_error($link));
+	}
+	mysqli_stmt_bind_param($st, "sssiiii", $board_name, $board_description, $board_title,
+		$bump_limit, $rubber, $visible_threads, $same_upload);
+	if(! mysqli_stmt_execute($st)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	header("Location: boards.php");
+}
+function save_board($link, &$params_array) {
+	$rubber = strval($params_array['rubberboard']) == 'on' ? 1 : 0;
+	list($id, $board_name, $board_description, $board_title, $bump_limit,
+		$visible_threads, $same_upload) = 
+		array(strval($params_array['id']), strval($params_array['board_name']),
+			strval($params_array['board_description']),
+			strval($params_array['board_title']), intval($params_array['bump_limit']),
+			intval($params_array['visible_threads']), strval($params_array['same_upload']));
+	$st = mysqli_prepare($link, "call sp_save_board(?, ?, ?, ?, ?, ?, ?, ?)");
+	if(! $st) {
+		kotoba_error(mysqli_error($link));
+	}
+	mysqli_stmt_bind_param($st, "isssiiii", $id, $board_name, $board_description, $board_title,
+		$bump_limit, $rubber, $visible_threads, $same_upload);
+	if(! mysqli_stmt_execute($st)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	header("Location: boards.php");
+}
 $link = dbconn();
 
-$boards = get_boards($link);
+$action = strval($_GET['action']);
 
-// for new string
-$smarty = new SmartyKotobaSetup();
-$smarty->assign('boards', $boards);
-$smarty->display('adm_boardsview.tpl');
+if($action == 'new') {
+	add_new_board($link, $_GET);
+}
+elseif($action == 'save') {
+	save_board($link, $_GET);
+}
+else {
+	$boards = get_boards($link);
+
+	// for new board string with empty fields
+	$smarty = new SmartyKotobaSetup();
+	$smarty->assign('boards', $boards);
+	$smarty->display('adm_boardsview.tpl');
+}
 mysqli_close($link);
 
 ?>
