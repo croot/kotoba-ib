@@ -12,6 +12,11 @@
 <input type="text" name="board_title" value="{$board.board_title}">
 </td>
 <td>
+<a href="board-filetypes.php?board_id={$board.id}">Supported filetypes:</a><br>
+{assign var='id' value=$board.id}
+{foreach from=$board_types.$id item=type}{$type} {/foreach}
+</td>
+<td>
 <input type="text" name="bump_limit" value="{$board.bump_limit}">
 </td>
 <td>

@@ -5,7 +5,7 @@
 	<link rel="stylesheet" type="text/css" href="{$KOTOBA_DIR_PATH}/kotoba.css">
 </head>
 <body>
-<table>
+<table border="1">
 <tr>
 <td>
 ID
@@ -18,6 +18,9 @@ Description
 </td>
 <td>
 Title
+</td>
+<td>
+Supported
 </td>
 <td>
 Bump limit
