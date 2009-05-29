@@ -167,6 +167,22 @@ end|
 
 -- =============================================
 -- Author:		innomines
+-- Create date: 29.05.2009
+-- Description:	get supported file-types (extension field) of board
+-- =============================================
+delimiter |
+drop procedure if exists sp_get_board_filetypes|
+create PROCEDURE sp_get_board_filetypes(
+	boardid int
+)
+begin
+	select t.extension from board_upload_types bt, upload_types t
+	where bt.board_id = boardid and bt.upload_id = t.id
+	group by t.extension
+	order by t.extension;
+end|
+-- =============================================
+-- Author:		innomines
 -- Create date: 21.05.2009
 -- Description:	add supported file-type to board
 -- =============================================
@@ -181,6 +197,35 @@ begin
 	values (boardid, filetypeid);
 end|
 
+-- =============================================
+-- Author:		innomines
+-- Create date: 29.05.2009
+-- Description:	remove all supported filetypes from board
+-- =============================================
+delimiter |
+drop procedure if exists sp_delete_board_filetypes|
+create PROCEDURE sp_delete_board_filetypes(
+	boardid int
+)
+begin
+	delete from board_upload_types
+	where board_id = boardid;
+end|
+-- =============================================
+-- Author:		innomines
+-- Create date: 29.05.2009
+-- Description:	delete supported file-type from board
+-- =============================================
+delimiter |
+drop procedure if exists sp_delete_board_filetype|
+create PROCEDURE sp_delete_board_filetype(
+	boardid int,
+	filetypeid int
+)
+begin
+	delete from board_upload_types 
+	where board_id = boardid and filetype_id = filetypeid;
+end|
 -- =============================================
 -- Author:		innomines
 -- Create date: 05.05.2009

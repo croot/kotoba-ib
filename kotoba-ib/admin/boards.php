@@ -30,7 +30,8 @@ function get_boards($link) {
 			'board_name' => $board_name, 'board_description' => $board_description,
 			'board_title' => $board_title, 'threads' => $threads, 
 			'bump_limit' => $bump_limit, 'rubber_board' => $rubber_board,
-			'visible_threads' => $visible_threads, 'same_upload' => $same_upload));
+			'visible_threads' => $visible_threads, 'same_upload' => $same_upload,
+			));
 	}
 	mysqli_stmt_close($st);
 	cleanup_link($link);
@@ -53,7 +54,7 @@ function add_new_board($link, &$params_array) {
 	if(! mysqli_stmt_execute($st)) {
 		kotoba_error(mysqli_stmt_error($st));
 	}
-	header("Location: boards.php");
+	cleanup_link($link);
 }
 function save_board($link, &$params_array) {
 	$rubber = strval($params_array['rubberboard']) == 'on' ? 1 : 0;
@@ -72,7 +73,31 @@ function save_board($link, &$params_array) {
 	if(! mysqli_stmt_execute($st)) {
 		kotoba_error(mysqli_stmt_error($st));
 	}
-	header("Location: boards.php");
+	cleanup_link($link);
+}
+function gather_supported_filetypes($link, &$boards) {
+	$board_types = array();
+	foreach($boards as $board) {
+		$types = array();
+		$st = mysqli_prepare($link, "call sp_get_board_filetypes(?)");
+		if(! $st) {
+			kotoba_error(mysqli_error($link));
+		}
+		if(! mysqli_stmt_bind_param($st, "i", $board['id'])) {
+			kotoba_error(mysqli_stmt_error($st));
+		}
+		if(! mysqli_stmt_execute($st)) {
+			kotoba_error(mysqli_stmt_error($st));
+		}
+		mysqli_stmt_bind_result($st, $extension);
+		while(mysqli_stmt_fetch($st)) {
+			array_push($types, $extension);
+		}
+		$board_types[$board['id']] = $types;
+		mysqli_stmt_close($st);
+		cleanup_link($link);
+	}
+	return $board_types;
 }
 $link = dbconn();
 
@@ -80,16 +105,19 @@ $action = strval($_GET['action']);
 
 if($action == 'new') {
 	add_new_board($link, $_GET);
+	header("Location: boards.php");
 }
 elseif($action == 'save') {
 	save_board($link, $_GET);
+	header("Location: boards.php");
 }
 else {
 	$boards = get_boards($link);
+	$board_types = gather_supported_filetypes($link, $boards);
 
-	// for new board string with empty fields
 	$smarty = new SmartyKotobaSetup();
 	$smarty->assign('boards', $boards);
+	$smarty->assign('board_types', $board_types);
 	$smarty->display('adm_boardsview.tpl');
 }
 mysqli_close($link);
