@@ -18,21 +18,6 @@ ini_set('session.cookie_lifetime', 60 * 60 * 24);
 session_start();
 header("Cache-Control: private");
 
-$HEAD = 
-'<html>
-<head>
-	<title>Kotoba preview</title>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<link rel="stylesheet" type="text/css" href="' . KOTOBA_DIR_PATH . '/kotoba.css">
-</head>
-<body>
-';
-
-$FOOTER = 
-'
-</body>
-</html>';
-
 if(KOTOBA_ENABLE_STAT)
     if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/preview.stat', 'a')) == false)
         die($HEAD . '<span class="error">Ошибка. Неудалось открыть или создать файл статистики.</span>' . $FOOTER);
@@ -45,16 +30,14 @@ if(isset($_GET['b']))
 	{
 		if(KOTOBA_ENABLE_STAT)
 			kotoba_stat(ERR_BOARD_BAD_FORMAT);
-
-		die($HEAD . '<span class="error">Ошибка. Имя доски имеет неверный формат.</span>' . $FOOTER);
+		kotoba_error(ERR_BOARD_BAD_FORMAT);
 	}
 }
 else
 {
 	if(KOTOBA_ENABLE_STAT)
         kotoba_stat(ERR_BOARD_NOT_SPECIFED);
-
-	die($HEAD . '<span class="error">Ошибка. Не задано имя доски.</span>' . $FOOTER);
+	kotoba_error(ERR_BOARD_NOT_SPECIFED);
 }
 
 if(isset($_GET['p']))
@@ -63,8 +46,7 @@ if(isset($_GET['p']))
 	{
 		if(KOTOBA_ENABLE_STAT)
 			kotoba_stat(ERR_PAGE_BAD_FORMAT);
-
-		die($HEAD . '<span class="error">Ошибка. Номер страницы имеет неверный формат.</span>' . $FOOTER);
+		kotoba_error(ERR_PAGE_BAD_FORMAT);
 	}
 }
 else
@@ -76,10 +58,9 @@ if(isset($_COOKIE['rempass']))
 {
 	if(($OPPOST_PASS = CheckFormat('pass', $_COOKIE['rempass'])) == false)
 	{
-        if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(ERR_PASS_BAD_FORMAT);
-            
-		die($HEAD . '<span class="error">Ошибка. Пароль для удаления имеет неверный формат.</span>' . $FOOTER);
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(ERR_PASS_BAD_FORMAT);
+		kotoba_error(ERR_PASS_BAD_FORMAT);
 	}
 }
 else
@@ -87,8 +68,12 @@ else
 	$OPPOST_PASS = '';
 }
 
-require 'databaseconnect.php';
-
+require 'database_connect.php';
+require 'database_common.php';
+$link = dbconn();
+/*
+ * user settings will implemented later
+ *
 if(isset($_SESSION['isLoggedIn']))	// Зарегистрированный пользователь.
 {
 	if(($result = mysql_query('select `id`, `User Settings` from `users` where SID = \'' . session_id() . '\'')) !== false)
@@ -109,79 +94,29 @@ if(isset($_SESSION['isLoggedIn']))	// Зарегистрированный по�
 		die($HEAD . '<span class="error">Ошибка. Невозможно получить данные пользователя. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
 	}
 }
-
+ */
 // Получение списка досок и проверка существут ли доска с заданным именем.
-if(($result = mysql_query('select `Name`, `id` from `boards` order by `Name`')) !== false)
+
+$BOARD_NUM = db_get_board_id($link, $BOARD_NAME);
+
+if($BOARD_NUM == -1)
 {
-	if(mysql_num_rows($result) == 0)
-	{
-        if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(ERR_BOARDS_NOT_EXIST);
-
-        die($HEAD . '<span class="error">Ошибка. Не создано ни одной доски.</span>' . $FOOTER);
-	}
-	else
-	{
-		$BOARD_NUM = -1;
-		$BOARDS_LIST = '';
-		
-		while (($row = mysql_fetch_array($result, MYSQL_ASSOC)) !== false)
-		{
-			if($row['Name'] == $BOARD_NAME)
-				$BOARD_NUM = $row['id'];
-
-            $BOARDS_LIST .= '/<a href="' . KOTOBA_DIR_PATH . "/$row[Name]/\">$row[Name]</a>/ ";
-		}
-    }
-
-	mysql_free_result($result);
-
-	if($BOARD_NUM == -1)
-	{
-        if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_BOARD_NOT_FOUND, $BOARD_NAME));
-
-        die($HEAD . "<span class=\"error\">Ошибка. Доски с именем $BOARD_NAME не существует.</span>" . $FOOTER);
-    }
-}
-else
-{
-    if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_BOARDS_LIST, mysql_error()));
-
-	die($HEAD . '<span class="error">Ошибка. Невозможно получить список досок. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
+	if(KOTOBA_ENABLE_STAT)
+		kotoba_stat(sprintf(ERR_BOARD_NOT_FOUND, $BOARD_NAME));
+	kotoba_error(sprintf(ERR_BOARD_NOT_FOUND, $BOARD_NAME));
 }
 
-$FORM =
-'
-<form action="' . KOTOBA_DIR_PATH . "/createthread.php\" method=\"post\" enctype=\"multipart/form-data\">
-<input type=\"hidden\" name=\"MAX_FILE_SIZE\" value=\"1560576\">
-<table align=\"center\" border=\"0\">
-<tr valign=\"top\"><td>Name: </td><td><input type=\"text\" name=\"Message_name\" size=\"30\"></td></tr>
-<tr valign=\"top\"><td>Theme: </td><td><input type=\"text\" name=\"Message_theme\" size=\"48\"> <input type=\"submit\" value=\"Create Thread\"></td></tr>
-<tr valign=\"top\"><td>Message: </td><td><textarea name=\"Message_text\" rows=\"7\" cols=\"50\"></textarea></td></tr>
-<tr valign=\"top\"><td>Image: </td><td><input type=\"file\" name=\"Message_img\" size=\"54\"></td></tr>
-<tr valign=\"top\"><td>Password: </td><td><input type=\"password\" name=\"Message_pass\" size=\"30\" value=\"$OPPOST_PASS\"></td></tr>
-<tr valign=\"top\"><td>GoTo: </td><td>(thread: <input type=\"radio\" name=\"goto\" value=\"t\">) (board: <input type=\"radio\" name=\"goto\" value=\"b\" checked>)</td></tr>
-</table>
-<input type=\"hidden\" name=\"b\" value=\"$BOARD_NAME\">
-</form>
-";
-
-$result = mysql_query(
-	'select p.`board`, count(p.`id`) `count`
-	from `posts` p join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board`
-	where (position(\'ARCHIVE:YES\' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null)
-	group by p.`board`
-	having p.`board` = ' . $BOARD_NUM);
-$row = mysql_fetch_array($result, MYSQL_NUM);
-$POST_COUNT = $row[1];
-mysql_free_result($result);
-
-$MENU = $BOARDS_LIST . "<br>\n<h4 align=center>βchan</h4>\n<br><center><b>/$BOARD_NAME/</b></center>\nПостлимит: $POST_COUNT/" . KOTOBA_POST_LIMIT . "<br>\nБамплимит: " . KOTOBA_BUMPLIMIT . "<hr>\n";
+$POST_COUNT = db_get_post_count($link, $BOARD_NUM);
+$BUMP_LIMIT = db_board_bumplimit($link, $BOARD_NUM);
+if($BUMP_LIMIT == -1)
+{
+	if(KOTOBA_ENABLE_STAT)
+		kotoba_stat(sprintf(ERR_BOARD_NOT_FOUND, $BOARD_NAME));
+	kotoba_error(sprintf(ERR_BOARD_NOT_FOUND, $BOARD_NAME));
+}
 
 // Получение количества не утонувших тредов просматриваемой доски и постраничная разбивка.
-if(($result = mysql_query(
+/*if(($result = mysql_query(
 	"select count(*) `count`
 	from `threads`
 	where `board` = $BOARD_NUM and (position('ARCHIVE:YES' in `Thread Settings`) = 0 or `Thread Settings` is null)")) !== false)
@@ -215,20 +150,10 @@ else
 
 	die($HEAD . '<span class="error">Ошибка. Невозможно подсчитать количество тредов просматриваемой доски. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
 }
-
-$HEAD = 
-"<html>
-<head>
-	<title>Kotoba - $BOARD_NAME</title>
-	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
-	<link rel=\"stylesheet\" type=\"text/css\" href=\"" . KOTOBA_DIR_PATH . '/kotoba.css">
-</head>
-<body>
-';
-
+ */
 // Получение номеров не утонувших тредов просматривоемой доски в заданном (в зависимости от страницы)
 // диапазоне и отсортированных по убыванию номера последнего поста без сажи и не запощенного после бамплимита.
-if(($threads = mysql_query(
+/*if(($threads = mysql_query(
 	'select p.`thread` `id` ' .
 	"from `posts` p join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board` where t.`board` = $BOARD_NUM " .
 	'and (position(\'ARCHIVE:YES\' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null) ' .
@@ -397,8 +322,17 @@ else
 
 	die($HEAD . '<span class="error">Ошибка. Невозможно получить номера тредов. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
 }
+ */
+$smarty = new SmartyKotobaSetup();
+$smarty->assign('BOARD_NAME', $BOARD_NAME);
+$smarty->assign('page_title', "Kotoba - $BOARD_NAME");
+$boardNames = db_get_boards($link);
+$smarty->assign('board_list', $boardNames);
+$smarty->assign('POST_COUNT', $POST_COUNT);
+$smarty->assign('BOARD_BUMPLIMIT', $BUMP_LIMIT);
+$smarty->assign('KOTOBA_POST_LIMIT', KOTOBA_POST_LIMIT);
+$smarty->display('board_preview.tpl');
 
-echo $HEAD . $MENU . $FORM . '<hr>' . $PREVIEW . $PAGES . $FOOTER;
 ?>
 <?php
 /*

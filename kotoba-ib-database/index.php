@@ -22,34 +22,22 @@ ini_set('session.gc_maxlifetime', 60 * 60 * 24);
 ini_set('session.cookie_lifetime', 60 * 60 * 24);
 session_start();
 
-require 'databaseconnect.php';
+require 'database_connect.php';
+require 'database_common.php';
 require 'events.php';
 
+$link = dbconn();
 $smarty = new SmartyKotobaSetup();
 
 // Получение списка досок.
-if(($result = mysql_query('select `Name`, `id` from `boards` order by `Name`')) !== false)
-{
-	if(mysql_num_rows($result) != 0)
-	{
-		$smarty->assign('BOARDS_EXIST', '');
-		$boardNames = array();
-		
-		while (($row = mysql_fetch_array($result, MYSQL_ASSOC)) !== false)
-			$boardNames[] = $row['Name'];
 
-		$smarty->assign('boardNames', $boardNames);
-    }
+$boardNames = db_get_boards($link);
 
-	mysql_free_result($result);
+if(count($boardNames) > 1) {
+	$smarty->assign('BOARDS_EXIST', '');
+	$smarty->assign('boardNames', $boardNames);
 }
-else
-{
-    if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_BOARDS_LIST, mysql_error()));
 
-	kotoba_error(sprintf(ERR_BOARDS_LIST, mysql_error()));
-}
 
 if(isset($_SESSION['isLoggedIn']))
 	$smarty->assign('isLoggedIn', '');
@@ -58,6 +46,7 @@ $smarty->assign('version', '$Revision$');
 $smarty->assign('date', '$Date$');
 
 $smarty->display('index.tpl');
+mysqli_close($link);
 ?>
 <?php
 /*

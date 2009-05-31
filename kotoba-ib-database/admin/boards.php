@@ -37,12 +37,36 @@ function get_boards($link) {
 	cleanup_link($link);
 	return $boards;
 }
+function create_directories($board_name) {
+	$base = sprintf("%s%s/%s", $_SERVER['DOCUMENT_ROOT'], KOTOBA_DIR_PATH, $board_name);
+	if(mkdir ($base)) { 
+		chmod ($base, 0777); 
+		$subdirs = array("arch", "img", "thumb"); 
+		foreach($subdirs as $dir) { 
+			$subdir = sprintf("$base/%s", $dir); 
+			if(mkdir($subdir)) { 
+				chmod($subdir, 0777); 
+			} 
+			else { 
+				return false;
+            }
+        }
+	}
+	else {
+		return false;
+	}
+	return true;
+
+}
 function add_new_board($link, &$params_array) {
 	$rubber = strval($params_array['rubberboard']) == 'on' ? 1 : 0;
 	list($board_name, $board_description, $board_title, $bump_limit, $visible_threads, $same_upload) = 
 		array(strval($params_array['board_name']), strval($params_array['board_description']),
 	strval($params_array['board_title']), intval($params_array['bump_limit']),
 	intval($params_array['visible_threads']), strval($params_array['same_upload']));
+	if(!create_directories($board_name)) {
+		kotoba_error($php_errormsg);
+	}
 //	echo "$board_name, $board_description, $board_title, $bump_limit,
 	//		$rubber, $visible_threads, $same_upload";
 	$st = mysqli_prepare($link, "call sp_create_board(?, ?, ?, ?, ?, ?, ?)");
