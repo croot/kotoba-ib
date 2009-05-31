@@ -65,8 +65,13 @@ function link_board($link, $id, $types) {
 
 }
 
+
 $id = intval($_GET['board_id']);
 $action = strval($_POST['action']);
+
+if(! isset($id) || $id < 1) {
+	kotoba_error("id not set");
+}
 
 $link = dbconn();
 if($action == 'link') {
