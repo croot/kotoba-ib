@@ -934,6 +934,23 @@ begin
 end|
 -- =============================================
 -- Author:		innomines
+-- Create date: 31.05.2009
+-- Description:	get boards with filetypes enabled
+-- =============================================
+delimiter |
+drop procedure if exists sp_get_boards|
+create PROCEDURE sp_get_boards(
+)
+begin
+	select b.id, b.board_name, b.board_description 
+	from boards b, board_upload_types u 
+	where u.board_id = b.id 
+	group by b.id
+	order by b.board_name;
+
+end|
+-- =============================================
+-- Author:		innomines
 -- Create date: 27.05.2009
 -- Description:	get all boards with settings
 -- =============================================
@@ -946,4 +963,48 @@ begin
 	bump_limit, rubber_board, visible_threads, same_upload
 	from boards
 	order by board_name;
+end|
+-- =============================================
+-- Author:		innomines
+-- Create date: 31.05.2009
+-- Description:	get board id
+-- =============================================
+delimiter |
+drop procedure if exists sp_get_board_id|
+create PROCEDURE sp_get_board_id (
+	boardname varchar(16)
+)
+begin
+	select id from boards
+	where board_name = boardname;
+end|
+
+-- =============================================
+-- Author:		innomines
+-- Create date: 31.05.2009
+-- Description:	get board posts count
+-- TODO: more reliable count (deleted, archived...)
+-- =============================================
+delimiter |
+drop procedure if exists sp_get_board_post_count|
+create PROCEDURE sp_get_board_post_count (
+	boardid int
+)
+begin
+	select count(id) from posts
+	where board_id = boardid;
+end|
+-- =============================================
+-- Author:		innomines
+-- Create date: 31.05.2009
+-- Description:	get board bump limit
+-- =============================================
+delimiter |
+drop procedure if exists sp_get_board_bumplimit|
+create PROCEDURE sp_get_board_bumplimit (
+	boardid int
+)
+begin
+	select bump_limit from boards
+	where id = boardid;
 end|
