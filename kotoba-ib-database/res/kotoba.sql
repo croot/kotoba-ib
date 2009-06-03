@@ -101,6 +101,21 @@ begin
 end|
 -- =============================================
 -- Author:		innomines
+-- Create date: 03.06.2009
+-- Description:	get file-type settings if supported
+-- =============================================
+delimiter |
+drop procedure if exists sp_get_filetype|
+create PROCEDURE sp_get_filetype(
+	typeextension varchar(10)
+)
+begin
+	select image, extension, store_extension, handler, thumbnail_image
+	from upload_types
+	where extension = typeextension;
+end|
+-- =============================================
+-- Author:		innomines
 -- Create date: 28.05.2009
 -- Description:	change supported file-type
 -- =============================================
@@ -979,6 +994,21 @@ begin
 	where board_name = boardname;
 end|
 
+-- =============================================
+-- Author:		innomines
+-- Create date: 03.06.2009
+-- Description:	get board id and other settings
+-- =============================================
+delimiter |
+drop procedure if exists sp_get_board|
+create PROCEDURE sp_get_board (
+	boardname varchar(16)
+)
+begin
+	select id, board_description, board_title, bump_limit, rubber_board, visible_threads, same_upload
+	from boards
+	where board_name = boardname;
+end|
 -- =============================================
 -- Author:		innomines
 -- Create date: 31.05.2009
