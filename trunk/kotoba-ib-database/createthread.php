@@ -50,13 +50,22 @@ if(($BOARD_NAME = CheckFormat('board', $_POST['b'])) === false)
 	kotoba_error(ERR_BOARD_BAD_FORMAT);
 }
 
-require 'databaseconnect.php';
+require 'database_connect.php';
+require 'database_common.php';
 
-$error_message = "";
-$BOARD_NUM = post_get_board_id($BOARD_NAME, "kotoba_stat", $error_message);
+$link = dbconn();
+
+$error_message = "default error";
+$BOARD = db_get_board($link, $BOARD_NAME);
+
+if(count($BOARD) == 0) {
+	kotoba_error(ERR_BOARD_NOT_SPECIFED);
+}
+
+$BOARD_NUM = $BOARD['id'];
 
 if($BOARD_NUM < 0) {
-	kotoba_error($error_message);
+	kotoba_error(ERR_BOARD_NOT_SPECIFED);
 }
 
 // Этап 2. Обработка данных ОП поста.
@@ -95,7 +104,7 @@ $recived_ext = post_get_uploaded_extension($uploaded_name);
 
 require 'thumb_processing.php';
 $imageresult = array();
-if(!thumb_check_image_type($recived_ext, $uploaded_file, $imageresult)) {
+if(!thumb_check_image_type($link, $recived_ext, $uploaded_file, $imageresult)) {
 	// not supported file name
 	if(KOTOBA_ENABLE_STAT)
 		kotoba_stat(ERR_WRONG_FILETYPE);
@@ -117,21 +126,28 @@ $IMG_THU_DIR = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb
 
 // full path of uploaded image and generated thumbnail
 $saved_image_path = sprintf("%s/%s", $IMG_SRC_DIR, $saved_filename);
-$saved_thumbnail_path = sprintf("%s/%s", $IMG_THU_DIR, $saved_thumbname);
+if($imageresult['image'] == 1) {
+	$saved_thumbnail_path = sprintf("%s/%s", $IMG_THU_DIR, $saved_thumbname);
+}
+else {
+	$saved_thumbnail_path = $imageresult['thumbnail'];
+}
 
 if(!post_move_uploded_file($uploaded_file, $saved_image_path, "kotoba_stat", $error_message)) {
 	kotoba_error($error_message);
 }
 
+// calculate upload hash
+if(($img_hash = hash_file('md5', $saved_image_path)) === false)
+{
+	if(KOTOBA_ENABLE_STAT)
+		kotoba_stat(ERR_FILE_HASH);
+
+	kotoba_error(ERR_FILE_HASH);
+}
+/*
 if(! KOTOBA_ALLOW_SAEMIMG)
 {
-	if(($img_hash = hash_file('md5', $saved_image_path)) === false)
-	{
-		if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(ERR_FILE_HASH);
-
-		kotoba_error(sprintf("Ошибка. Не удалось вычислить хеш файла %s", $saved_image_path));
-	}
 	$error_message_array = array();
 	if(!post_get_same_image($BOARD_NUM, $BOARD_NAME, $img_hash, "kotoba_stat",
 			$error_message_array))
@@ -148,8 +164,9 @@ if(! KOTOBA_ALLOW_SAEMIMG)
 		}
 	}
 }
-
-if($imageresult['x'] < KOTOBA_MIN_IMGWIDTH && $imageresult['y'] < KOTOBA_MIN_IMGHEIGTH)
+ */
+if($imageresult['image'] == 1 && 
+	$imageresult['x'] < KOTOBA_MIN_IMGWIDTH && $imageresult['y'] < KOTOBA_MIN_IMGHEIGTH)
 {
 	if(KOTOBA_ENABLE_STAT)
 		kotoba_stat(ERR_FILE_LOW_RESOLUTION);
@@ -157,55 +174,58 @@ if($imageresult['x'] < KOTOBA_MIN_IMGWIDTH && $imageresult['y'] < KOTOBA_MIN_IMG
 	unlink($saved_image_path);
 	kotoba_error(ERR_FILE_LOW_RESOLUTION);
 }
+if($imageresult['image'] == 1) {
+	$thumbnailresult = array();
+	$thumb_res = create_thumbnail($link, "$IMG_SRC_DIR/$saved_filename", "$IMG_THU_DIR/$saved_thumbname",
+		$original_ext, $imageresult['x'], $imageresult['y'], 200, 200,
+		$imageresult['force_thumbnail'], $thumbnailresult);
 
-$thumbnailresult = array();
-$thumb_res = create_thumbnail("$IMG_SRC_DIR/$saved_filename", "$IMG_THU_DIR/$saved_thumbname",
-	$original_ext, $imageresult['x'], $imageresult['y'], 200, 200,
-	$imageresult['force_thumbnail'], $thumbnailresult);
 
-
-if($thumb_res != KOTOBA_THUMB_SUCCESS)
-{
-	if(KOTOBA_ENABLE_STAT)
-		kotoba_stat(ERR_THUMB_CREATION);
-
-	unlink($saved_filename);
-
-	switch($thumb_res)
+	if($thumb_res != KOTOBA_THUMB_SUCCESS)
 	{
-		case KOTOBA_THUMB_UNSUPPORTED:	// unsupported format
-			$message = "usupported file format";
-			break;
-		case KOTOBA_THUMB_NOLIBRARY:	// no suitable library
-			$message = "no suitable library for image processing";
-			break;
-		case KOTOBA_THUMB_TOOBIG	:	// file too big
-			$message = "image file too big";
-			break;
-		case KOTOBA_THUMB_UNKNOWN:	// unknown error
-			$message = "unknown error";
-			break;
-		default:
-			$message = "...";
-			break;
-	}
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(ERR_THUMB_CREATION);
 
-	kotoba_error(sprintf("Ошибка. Не удалось создать уменьшенную копию изображения: %s",
-		$message));
+		unlink($saved_filename);
+
+		switch($thumb_res)
+		{
+			case KOTOBA_THUMB_UNSUPPORTED:	// unsupported format
+				$message = "usupported file format";
+				break;
+			case KOTOBA_THUMB_NOLIBRARY:	// no suitable library
+				$message = "no suitable library for image processing";
+				break;
+			case KOTOBA_THUMB_TOOBIG	:	// file too big
+				$message = "image file too big";
+				break;
+			case KOTOBA_THUMB_UNKNOWN:	// unknown error
+				$message = "unknown error";
+				break;
+			default:
+				$message = "...";
+				break;
+		}
+
+		kotoba_error(sprintf("Ошибка. Не удалось создать уменьшенную копию изображения: %s",
+			$message));
+	}
 }
 
-$Message_img_params = "IMGNAME:$raw_filename\n";
-$Message_img_params .= "IMGEXT:$recived_ext\n";
-$Message_img_params .= "ORIGIMGEXT:$original_ext\n";
-$Message_img_params .= "IMGTW:" . $thumbnailresult['x'] . "\n";
-$Message_img_params .= "IMGTH:" . $thumbnailresult['y'] . "\n";
-$Message_img_params .= "IMGSW:" . $imageresult['x'] . "\n";
-$Message_img_params .= "IMGSH:" . $imageresult['y'] . "\n";
-$Message_img_params .= 'IMGSIZE:' . $uploaded_file_size . "\n";
+header("Content-type: text/plain");
 
-if(!KOTOBA_ALLOW_SAEMIMG)
-	$Message_img_params .= "HASH:$img_hash\n";
+echo 
+"IMGNAME:$raw_filename\n".
+"IMGEXT:$recived_ext\n".
+"ORIGIMGEXT:$original_ext\n".
+"IMGTW:" . $thumbnailresult['x'] .
+"IMGTH:" . $thumbnailresult['y'] .
+"IMGSW:" . $imageresult['x'] .
+"IMGSH:" . $imageresult['y'] .
+'IMGSIZE:' . $uploaded_file_size .
+"HASH:$img_hash\n";
 
+exit();
 
 // password settings
 if(isset($_POST['Message_pass']) && $_POST['Message_pass'] != '')
@@ -495,17 +515,19 @@ elseif (mysql_affected_rows() == 0)
 	kotoba_error(sprintf(ERR_SET_MAXPOST, "Возможно не верный номер доски: $BOARD_NUM"));
 }
 
-if(mysql_query('commit') == false)
-{ // unable commit transaction, why?
-	$sql_error = mysql_error();
-	mysql_query('rollback');
-	
-	if(KOTOBA_ENABLE_STAT)
-		kotoba_stat(sprintf(ERR_TRAN_COMMIT_FAILED,  $sql_error));
+//if(mysql_query('commit') == false)
+//{ // unable commit transaction, why?
+//	$sql_error = mysql_error();
+//	mysql_query('rollback');
+//	
+//	if(KOTOBA_ENABLE_STAT)
+//		kotoba_stat(sprintf(ERR_TRAN_COMMIT_FAILED,  $sql_error));
+//
+//	post_remove_files($saved_filename, $saved_thumbname);
+//	kotoba_error(sprintf(ERR_TRAN_COMMIT_FAILED,  $sql_error));
+//}
 
-	post_remove_files($saved_filename, $saved_thumbname);
-	kotoba_error(sprintf(ERR_TRAN_COMMIT_FAILED,  $sql_error));
-}
+mysql_close($link);
 
 // Этап 4. Перенаправление.
 

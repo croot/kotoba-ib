@@ -33,7 +33,7 @@ $smarty = new SmartyKotobaSetup();
 
 $boardNames = db_get_boards($link);
 
-if(count($boardNames) > 1) {
+if(count($boardNames) > 0) {
 	$smarty->assign('BOARDS_EXIST', '');
 	$smarty->assign('boardNames', $boardNames);
 }

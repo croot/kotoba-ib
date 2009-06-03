@@ -32,7 +32,6 @@ function db_get_boards($link) {
 }
 
 function db_get_board_id($link, $board_name) {
-	$boards = array();
 	$st = mysqli_prepare($link, "call sp_get_board_id(?)");
 	if(! $st) {
 		kotoba_error(mysqli_error($link));
@@ -53,6 +52,31 @@ function db_get_board_id($link, $board_name) {
 	mysqli_stmt_close($st);
 	cleanup_link($link);
 	return $id;
+}
+function db_get_board($link, $board_name) {
+	$st = mysqli_prepare($link, "call sp_get_board(?)");
+	if(! $st) {
+		kotoba_error(mysqli_error($link));
+	}
+	if(! mysqli_stmt_bind_param($st, "s", $board_name)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+
+	if(! mysqli_stmt_execute($st)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	mysqli_stmt_bind_result($st, $id, $board_description, $board_title, $bump_limit, $rubber_board, $visible_threads, $same_upload);
+	if(! mysqli_stmt_fetch($st)) {
+		mysqli_stmt_close($st);
+		cleanup_link($link);
+		return array();
+	}
+	mysqli_stmt_close($st);
+	cleanup_link($link);
+	return array('id' => $id, 'board_description' => $board_description,
+		'board_title' => $board_title, 'bump_limit' => $bump_limit, 
+		'rubber_board' => $rubber_board, 'visible_threads' => $visible_threads, 
+		'same_upload' => $same_upload);
 }
 function db_get_post_count($link, $board_id) {
 	$boards = array();
