@@ -122,15 +122,19 @@ $raw_filename = $filenames[2];
 
 $IMG_SRC_DIR = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$BOARD_NAME/img";
 $IMG_THU_DIR = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb";
+$image_virtual_base = sprintf("%s/%s/img", KOTOBA_DIR_PATH, $BOARD_NAME);
+$thumbnail_virtual_base = sprintf("%s/%s/thumb", KOTOBA_DIR_PATH, $BOARD_NAME);
 
 
 // full path of uploaded image and generated thumbnail
 $saved_image_path = sprintf("%s/%s", $IMG_SRC_DIR, $saved_filename);
+$image_virtual_path = sprintf("%s/%s", $image_virtual_base, $saved_filename);
 if($imageresult['image'] == 1) {
 	$saved_thumbnail_path = sprintf("%s/%s", $IMG_THU_DIR, $saved_thumbname);
+	$thumbnail_virtual_path = sprintf("%s/%s", $thumbnail_virtual_base, $saved_thumbname);
 }
 else {
-	$saved_thumbnail_path = $imageresult['thumbnail'];
+	$thumbnail_virtual_path = $imageresult['thumbnail'];
 }
 
 if(!post_move_uploded_file($uploaded_file, $saved_image_path, "kotoba_stat", $error_message)) {
@@ -211,21 +215,36 @@ if($imageresult['image'] == 1) {
 			$message));
 	}
 }
+else {
+	$saved_thumbname = $imageresult['thumbnail'];
+}
 
 header("Content-type: text/plain");
 
 echo 
 "IMGNAME:$raw_filename\n".
 "IMGEXT:$recived_ext\n".
+"IMG:$saved_image_path\n".
+"THUIMG:$saved_thumbnail_path\n".
 "ORIGIMGEXT:$original_ext\n".
-"IMGTW:" . $thumbnailresult['x'] .
-"IMGTH:" . $thumbnailresult['y'] .
-"IMGSW:" . $imageresult['x'] .
-"IMGSH:" . $imageresult['y'] .
-'IMGSIZE:' . $uploaded_file_size .
-"HASH:$img_hash\n";
+"\nIMGTW:" . $thumbnailresult['x'] .
+"\nIMGTH:" . $thumbnailresult['y'] .
+"\nIMGSW:" . $imageresult['x'] .
+"\nIMGSH:" . $imageresult['y'] .
+"\nIMGSIZE:" . $uploaded_file_size .
+"\nHASH:$img_hash\n";
 
-exit();
+var_dump($BOARD);
+var_dump($imageresult);
+var_dump($thumbnailresult);
+
+$image = upload($link, $BOARD_NUM, $img_hash, $imageresult['image'], 
+	$image_virtual_path, $imageresult['x'], $imageresult['y'],
+	$thumbnail_virtual_path, $thumbnailresult['x'], $thumbnailresult['y']);
+
+if($image < 0) {
+	kotoba_error("Cannot store information about upload");
+}
 
 // password settings
 if(isset($_POST['Message_pass']) && $_POST['Message_pass'] != '')
@@ -244,8 +263,18 @@ if(isset($_POST['Message_pass']) && $_POST['Message_pass'] != '')
 		setcookie("rempass", $OPPOST_PASS);
 }
 
-// Этап 3. Сохранение ОП поста в БД.
+// TODO: sage etc
+$postid = post($link, $BOARD_NUM, 0, $Message_name, '', $Message_theme, $OPPOST_PASS, session_id(),
+	ip2long($_SERVER['REMOTE_ADDR']), $Message_text, gmdate("Y-m-d H:i:s"), 0);
 
+if($postid < 0) {
+	kotoba_error("Cannot store information about post");
+}
+echo "$image: $postid";
+if(link_post_upload($link, $BOARD_NUM, $image, $postid)) {
+	kotoba_error("Cannot link information about post and upload");
+}
+exit();
 if(mysql_query('start transaction') === false)
 { // transaction failed. why?
 	if(KOTOBA_ENABLE_STAT)
