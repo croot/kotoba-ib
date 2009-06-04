@@ -18,6 +18,48 @@ ini_set('session.cookie_lifetime', 60 * 60 * 24);
 session_start();
 header("Cache-Control: private");
 
+function get_threads_on_page($link, $boardid, $threadsqty, $page) {
+	$threads = array();
+	$st = mysqli_prepare($link, "call sp_threads_on_page(?, ?, ?)");
+	if(! $st) {
+		kotoba_error(mysqli_error($link));
+	}
+	if(! mysqli_stmt_bind_param($st, "iii", $boardid, $threadsqty, $page)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	if(! mysqli_stmt_execute($st)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	mysqli_stmt_bind_result($st, $num);
+	while(mysqli_stmt_fetch($st)) {
+		array_push($threads, $num);
+	}
+	mysqli_stmt_close($st);
+	cleanup_link($link);
+	return $threads;
+}
+function get_thread_preview($link, $boardid, $open_post, $last) {
+	$posts = array();
+	$st = mysqli_prepare($link, "call sp_thread_preview(?, ?, ?)");
+	if(! $st) {
+		kotoba_error(mysqli_error($link));
+	}
+	if(! mysqli_stmt_bind_param($st, "iii", $boardid, $open_post, $last)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	if(! mysqli_stmt_execute($st)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	mysqli_stmt_bind_result($st, $num, $skipped, $uploads);
+	while(mysqli_stmt_fetch($st)) {
+		array_push($posts, array('post_number' => $num, 'skipped' => $skipped,
+			'uploads' => $uploads));
+	}
+	mysqli_stmt_close($st);
+	cleanup_link($link);
+	return $posts;
+}
+
 if(KOTOBA_ENABLE_STAT)
     if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/preview.stat', 'a')) == false)
         die($HEAD . '<span class="error">Ошибка. Неудалось открыть или создать файл статистики.</span>' . $FOOTER);
@@ -97,7 +139,9 @@ if(isset($_SESSION['isLoggedIn']))	// Зарегистрированный по�
  */
 // Получение списка досок и проверка существут ли доска с заданным именем.
 
-$BOARD_NUM = db_get_board_id($link, $BOARD_NAME);
+$BOARD = db_get_board($link, $BOARD_NAME);
+
+$BOARD_NUM = $BOARD['id'];
 
 if($BOARD_NUM == -1)
 {
@@ -107,12 +151,36 @@ if($BOARD_NUM == -1)
 }
 
 $POST_COUNT = db_get_post_count($link, $BOARD_NUM);
-$BUMP_LIMIT = db_board_bumplimit($link, $BOARD_NUM);
+$BUMP_LIMIT = $BOARD['bump_limit'];
 if($BUMP_LIMIT == -1)
 {
 	if(KOTOBA_ENABLE_STAT)
 		kotoba_stat(sprintf(ERR_BOARD_NOT_FOUND, $BOARD_NAME));
 	kotoba_error(sprintf(ERR_BOARD_NOT_FOUND, $BOARD_NAME));
+}
+
+$pages_count = db_get_pages($link, $BOARD_NUM, 10);
+
+$pages = array();
+for($page = 1; $page <= $pages_count; $page ++) {
+	$settings = array('page' => sprintf("%02d", $page));
+	if($PAGE == $page) {
+		$settings["selected"] = 1;
+	}
+	array_push($pages, $settings);
+}
+
+$db_page = $PAGE - 1;
+
+$threads = get_threads_on_page($link, $BOARD_NUM, 10, $db_page);
+
+
+
+foreach($threads as $open_post) {
+	$posts = get_thread_preview($link, $BOARD_NUM, $open_post, 10);
+	foreach($posts as $post) {
+
+	}
 }
 
 // Получение количества не утонувших тредов просматриваемой доски и постраничная разбивка.
@@ -331,6 +399,8 @@ $smarty->assign('board_list', $boardNames);
 $smarty->assign('POST_COUNT', $POST_COUNT);
 $smarty->assign('BOARD_BUMPLIMIT', $BUMP_LIMIT);
 $smarty->assign('KOTOBA_POST_LIMIT', KOTOBA_POST_LIMIT);
+$smarty->assign('PAGES', $pages);
+$smarty->assign('THREADS', $threads);
 $smarty->display('board_preview.tpl');
 
 ?>

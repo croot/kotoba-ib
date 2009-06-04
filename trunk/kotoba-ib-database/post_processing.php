@@ -293,4 +293,73 @@ function post_remove_files($image, $thumbnail) {
 	@unlink($thumbnail);
 }
 
+function upload($link, $boardid, $hash, $image, $upload, $upload_w, $upload_h, $thu, $thu_w, $thu_h)
+{
+	$st = mysqli_prepare($link, "call sp_upload(?, ?, ?, ?, ?, ?, ?, ?, ?)");
+	if(! $st) {
+		kotoba_error(mysqli_error($link));
+	}
+	if(! mysqli_stmt_bind_param($st, "isisiisii", $boardid, $hash, $image, $upload, $upload_w, $upload_h,
+		$thu, $thu_w, $thu_h)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+
+	if(! mysqli_stmt_execute($st)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	mysqli_stmt_bind_result($st, $uploadid);
+	if(! mysqli_stmt_fetch($st)) {
+		mysqli_stmt_close($st);
+		cleanup_link($link);
+		return -1;
+	}
+	mysqli_stmt_close($st);
+	cleanup_link($link);
+	return $uploadid;
+}
+
+function post($link, $boardid,$threadid,$postname,$postemail,$postsubject,$postpassword,
+	$postersessionid,$posterip,$posttext,$datetime,$sage)
+{
+	$st = mysqli_prepare($link, "call sp_post(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+	if(! $st) {
+		kotoba_error(mysqli_error($link));
+	}
+	if(! mysqli_stmt_bind_param($st, "iisssssissi", $boardid,$threadid,$postname,$postemail,
+		$postsubject,$postpassword,
+		$postersessionid,$posterip,$posttext,$datetime,$sage)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+
+	if(! mysqli_stmt_execute($st)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	mysqli_stmt_bind_result($st, $postid);
+	if(! mysqli_stmt_fetch($st)) {
+		mysqli_stmt_close($st);
+		cleanup_link($link);
+		return -1;
+	}
+	mysqli_stmt_close($st);
+	cleanup_link($link);
+	return $postid;
+}
+
+function link_post_upload($link, $boardid, $uploadid, $postid)
+{
+	$st = mysqli_prepare($link, "call sp_post_upload(?, ?, ?)");
+	if(! $st) {
+		kotoba_error(mysqli_error($link));
+	}
+	if(! mysqli_stmt_bind_param($st, "iii", $boardid, $postid, $uploadid)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+
+	if(! mysqli_stmt_execute($st)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	mysqli_stmt_close($st);
+	cleanup_link($link);
+}
+
 ?>

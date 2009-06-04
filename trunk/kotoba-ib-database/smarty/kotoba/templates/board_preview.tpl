@@ -17,4 +17,16 @@
 </table>
 <input type="hidden" name="b" value="{$BOARD_NAME}">
 </form>
+
+{foreach from=$THREADS item=thread}
+<p>
+{$thread}
+</p>
+{/foreach}
+
+<hr>
+<br>
+{foreach from=$PAGES item=page}
+({if $page.selected == 1}{$page.page}{else}<a href="{$KOTOBA_DIR_PATH}/{$BOARD_NAME}/p{$page.page}">{$page.page}</a>{/if})
+{/foreach}
 {include file='footer.tpl'}

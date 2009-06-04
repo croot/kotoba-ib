@@ -148,7 +148,7 @@ function thumb_check_image_type($link, $ext, $file, &$result) {
 */
 function create_thumbnail($link, $source, $destination, $type, $x, $y, 
 	$resize_x, $resize_y, $force = false, &$result) {
-	echo sprintf("%s, %s, %s, %d, %d, %d, %d", $source, $destination, $type, $x, $y, $resize_x, $resize_y);
+	//echo sprintf("%s, %s, %s, %d, %d, %d, %d", $source, $destination, $type, $x, $y, $resize_x, $resize_y);
 	if(!$force && $x < $resize_x && $y < $resize_y) { // small image doesn't need to be thumbnailed
 		if(filesize($source) > KOTOBA_SMALLIMAGE_LIMIT_FILE_SIZE) { // big file but small image is some kind of trolling
 			return KOTOBA_THUMB_TOOBIG;
@@ -170,7 +170,7 @@ function create_thumbnail($link, $source, $destination, $type, $x, $y,
 			return gd_create_thumbnail($source, $destination, $type, $x, $y, $resize_x, $resize_y, $result);
 		}
 		elseif($has_im) {
-			return im_create_thumbnail($source, $destination, $x, $y, $resize_x, $resize_y, $result);
+			return im_create_thumbnail($source, $destination, $x, $y, $resize_x, $resize_y, false, $result);
 		}
 		else {
 			return KOTOBA_THUMB_NOLIBRARY;
@@ -288,7 +288,7 @@ function link_file($source, $destination) {
  * $result: see description in create_thumbnail function
  */
 function im_create_png_thumbnail($source, $destination, $x, $y, $resize_x, $resize_y, &$result) {
-	echo "$source, $destination, $x, $y, $resize_x, $resize_y<br>\n";
+//	echo "$source, $destination, $x, $y, $resize_x, $resize_y<br>\n";
 	$thumbnail = new Imagick($source);
 	$resolution = $thumbnail->getImageResolution();
 	$resolution_ratio_x = $resolution['x'] / $x;
