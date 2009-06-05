@@ -186,7 +186,6 @@ $smarty->display('board_preview.tpl');
 
 foreach($threads as $open_post) {
 	$posts = get_thread_preview($link, $BOARD_NUM, $open_post, 10);
-	var_dump($posts);
 	$count = 0;
 	foreach($posts as $post) {
 		$smarty_thread = new SmartyKotobaSetup();

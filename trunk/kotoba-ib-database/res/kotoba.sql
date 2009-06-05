@@ -850,8 +850,8 @@ drop procedure if exists  sp_post|
 CREATE PROCEDURE sp_post (
 	-- board id
 	boardid int,
-	-- thread id
-	threadid int,
+	-- open post number
+	openpost int,
 	-- name field
 	postname varchar(128),
 	-- email field
@@ -872,6 +872,8 @@ CREATE PROCEDURE sp_post (
 	sage tinyint
 )
 BEGIN
+	-- thread id (real)
+	declare threadid int;
 	-- posts in thread
 	declare count_posts int;
 	-- number on post on thread
@@ -888,12 +890,14 @@ BEGIN
 
 	-- get next post number on board
 	set post_number = get_next_post_on_board(boardid);
-	if threadid = 0 then
+	if openpost = 0 then
 		-- create new thread
 		call sp_create_thread(boardid, post_number);
 		set threadid = LAST_INSERT_ID();
 		-- sage never happens on new thread
 		set sage = 0;
+	else
+		set threadid = get_thread_id(boardid, openpost);
 	end if;
 	-- count posts in thread
 	select get_posts_count(threadid) into count_posts;
@@ -1121,7 +1125,7 @@ create PROCEDURE sp_get_post(
 begin
 	select post_number, name, email, subject, text, date_time, sage
 	from posts
-	where post_number = postnum;
+	where post_number = postnum and board_id = boardid;
 
 	select u.is_image, u.file, u.size, u.file_name, u.file_w, u.file_h, u.thumbnail, u.thumbnail_w, u.thumbnail_h
 	from uploads u, posts_uploads p where p.post_id = get_postid(boardid, postnum) and p.upload_id = u.id;
@@ -1168,6 +1172,6 @@ begin
 
 	select post_number
 	from posts
-	where thread_id = threadid
+	where thread_id = threadid and board_id = boardid
 	order by date_time asc;
 end|
