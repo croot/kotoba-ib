@@ -174,14 +174,49 @@ $db_page = $PAGE - 1;
 
 $threads = get_threads_on_page($link, $BOARD_NUM, 10, $db_page);
 
+$smarty = new SmartyKotobaSetup();
+$smarty->assign('BOARD_NAME', $BOARD_NAME);
+$smarty->assign('page_title', "Kotoba - $BOARD_NAME");
+$boardNames = db_get_boards($link);
+$smarty->assign('board_list', $boardNames);
+$smarty->assign('POST_COUNT', $POST_COUNT);
+$smarty->assign('BOARD_BUMPLIMIT', $BUMP_LIMIT);
+$smarty->assign('KOTOBA_POST_LIMIT', KOTOBA_POST_LIMIT);
+$smarty->display('board_preview.tpl');
 
 
 foreach($threads as $open_post) {
 	$posts = get_thread_preview($link, $BOARD_NUM, $open_post, 10);
 	foreach($posts as $post) {
+		$smarty_thread = new SmartyKotobaSetup();
+		$smarty_thread->assign('BOARD_NAME', $BOARD_NAME);
+		$whole_post = db_get_post($link, $BOARD_NUM, $post['post_number']);
+		$txt_post = $whole_post[0];
+		// post may contain more than one upoads!
+		if(count($whole_post[1]) > 0) {
+			$upload = $whole_post[1][0];
+			$smarty_thread->assign('with_image', 1);
+			$smarty_thread->assign('original_file_name', $upload['file']);
+			$smarty_thread->assign('original_file_link', $upload['file_name']);
+			$smarty_thread->assign('original_file_size', $upload['size']);
+			$smarty_thread->assign('original_file_heigth', $upload['file_h']);
+			$smarty_thread->assign('original_file_width', $upload['file_w']);
+			$smarty_thread->assign('original_file_thumbnail_link', $upload['thumbnail']);
+			$smarty_thread->assign('original_file_thumbnail_heigth', $upload['thumbnail_h']);
+			$smarty_thread->assign('original_file_thumbnail_width', $upload['thumbnail_w']);
 
+		}
+		$smarty_thread->assign('original_theme', $txt_post['subject']);
+		$smarty_thread->assign('original_name', $txt_post['name']);
+		$smarty_thread->assign('original_time', $txt_post['date_time']);
+		$smarty_thread->assign('original_id', $txt_post['post_number']);
+		$smarty_thread->assign('original_text', $txt_post['text']);
+		$smarty_thread->display('post_original.tpl');
 	}
 }
+
+$smarty->assign('PAGES', $pages);
+$smarty->display('board_preview_footer.tpl');
 
 // Получение количества не утонувших тредов просматриваемой доски и постраничная разбивка.
 /*if(($result = mysql_query(
@@ -391,17 +426,6 @@ else
 	die($HEAD . '<span class="error">Ошибка. Невозможно получить номера тредов. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
 }
  */
-$smarty = new SmartyKotobaSetup();
-$smarty->assign('BOARD_NAME', $BOARD_NAME);
-$smarty->assign('page_title', "Kotoba - $BOARD_NAME");
-$boardNames = db_get_boards($link);
-$smarty->assign('board_list', $boardNames);
-$smarty->assign('POST_COUNT', $POST_COUNT);
-$smarty->assign('BOARD_BUMPLIMIT', $BUMP_LIMIT);
-$smarty->assign('KOTOBA_POST_LIMIT', KOTOBA_POST_LIMIT);
-$smarty->assign('PAGES', $pages);
-$smarty->assign('THREADS', $threads);
-$smarty->display('board_preview.tpl');
 
 ?>
 <?php

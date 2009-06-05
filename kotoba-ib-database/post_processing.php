@@ -293,13 +293,13 @@ function post_remove_files($image, $thumbnail) {
 	@unlink($thumbnail);
 }
 
-function upload($link, $boardid, $hash, $image, $upload, $upload_w, $upload_h, $thu, $thu_w, $thu_h)
+function upload($link, $boardid, $name, $size, $hash, $image, $upload, $upload_w, $upload_h, $thu, $thu_w, $thu_h)
 {
-	$st = mysqli_prepare($link, "call sp_upload(?, ?, ?, ?, ?, ?, ?, ?, ?)");
+	$st = mysqli_prepare($link, "call sp_upload(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 	if(! $st) {
 		kotoba_error(mysqli_error($link));
 	}
-	if(! mysqli_stmt_bind_param($st, "isisiisii", $boardid, $hash, $image, $upload, $upload_w, $upload_h,
+	if(! mysqli_stmt_bind_param($st, "isisisiisii", $boardid, $name, $size, $hash, $image, $upload, $upload_w, $upload_h,
 		$thu, $thu_w, $thu_h)) {
 		kotoba_error(mysqli_stmt_error($st));
 	}

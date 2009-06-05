@@ -22,6 +22,9 @@ function dbconn() {
 	if(!$link) {
 		kotoba_error(mysqli_connect_error());
 	}
+	if(!mysqli_set_charset($link, 'utf8')) {
+		kotoba_error(mysqli_error($link));
+	}
 	return $link;
 }
 // cleanup all results on link. useful when stored procedure.

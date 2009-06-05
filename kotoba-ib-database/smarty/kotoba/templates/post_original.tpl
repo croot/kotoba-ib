@@ -14,7 +14,7 @@
 Описание переменных:
     $with_image - логическая переменная, указывает на то, содержит ли
         сообщение прикреплённую картинку или нет.
-    $thread - массив обычных сообщений треда.
+--    $thread - Ссылка на нить
 
     $original_theme - тема сообщения.
     $original_name - имя отправителя.
@@ -37,7 +37,7 @@
 <span class="filetitle">{$original_theme}</span> <span class="postername">{$original_name}</span> {$original_time}
 {if $with_image == true}<span class="filesize">Файл: <a target="_blank" href="{$original_file_link}">{$original_file_name}</a> -(<em>{$original_file_size} Байт {$original_file_width}x{$original_file_heigth}</em>)</span>
 {/if}
-<span class="reflink"><span onclick="insert('>>{$original_id}');">#</span> <a href="{$original_link}">{$original_id}</a></span>
+<span class="reflink"><span onclick="insert('>>{$original_id}');">#</span> <a href="{$KOTOBA_DIR_PATH}/{$BOARD_NAME}/#{$original_id}">{$original_id}</a> [<a href="{$KOTOBA_DIR_PATH}/{$BOARD_NAME}/{$original_id}">Ответить</a>]</span>
 <span class="delbtn">[<a href="{$original_remove_link}" title="Удалить">×</a>]</span>
 <a name="{$original_id}"></a>
 {if $with_image == true}<br><a target="_blank" href="{$original_file_link}"><img src="{$original_file_thumbnail_link}" class="thumb" width="{$original_file_thumbnail_width}" heigth="{$original_file_thumbnail_heigth}"></a>
@@ -45,28 +45,6 @@
 <blockquote>
 {$original_text}
 </blockquote>
-<div>
-{section name = simple_post loop = $thread}
-{include file = 'post_simple.tpl'
-    with_image = $thread[simple_post].with_image
-    simple_theme = $thread[simple_post].simple_theme
-    simple_name = $thread[simple_post].simple_name
-    simple_time = $thread[simple_post].simple_time
-    simple_file_link = $thread[simple_post].simple_file_link
-    simple_file_name = $thread[simple_post].simple_file_name
-    simple_file_size = $thread[simple_post].simple_file_size
-    simple_file_width = $thread[simple_post].simple_file_width
-    simple_file_heigth = $thread[simple_post].simple_file_heigth
-    simple_id = $thread[simple_post].simple_id
-    simple_link = $thread[simple_post].simple_link
-    simple_remove_link = $thread[simple_post].simple_remove_link
-    simple_file_thumbnail_link = $thread[simple_post].simple_file_thumbnail_link
-    simple_file_thumbnail_width = $thread[simple_post].simple_file_thumbnail_width
-    simple_file_thumbnail_heigth = $thread[simple_post].simple_file_thumbnail_heigth
-    simple_text = $thread[simple_post].simple_text}
-
-{/section}
-</div>
 </div>
 <br clear="left">
 <hr>

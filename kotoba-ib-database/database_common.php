@@ -145,26 +145,35 @@ function db_board_bumplimit($link, $board_id) {
 	cleanup_link($link);
 	return $bumplimit;
 }
-/*function db_get_post($link, $board_id, $post_number) {
-	$st = mysqli_prepare($link, "call sp_get_post(?, ?)");
-	if(! $st) {
+function db_get_post($link, $board_id, $post_number) {
+	$post = array();
+	$uploads = array();
+	$query = sprintf("call sp_get_post(%d, %d)", $board_id, $post_number);
+
+	if(mysqli_multi_query($link, $query)) {
+		$count = 0;
+		do {
+			if($result = mysqli_store_result($link)) {
+				if($count == 0) {
+					$row = mysqli_fetch_assoc($result);
+					$post = $row;
+				}
+				else {
+					while($row = mysqli_fetch_assoc($result)) {
+						array_push($uploads, $row);
+					}
+				}
+				// sometimes it throw warning
+				@mysql_free_result($result);
+			}
+			$count ++;
+		} while(mysqli_next_result($link));
+	}
+	else {
 		kotoba_error(mysqli_error($link));
 	}
-	if(! mysqli_stmt_bind_param($st, "ii", $board_id, $post_number)) {
-		kotoba_error(mysqli_stmt_error($st));
-	}
-
-	if(! mysqli_stmt_execute($st)) {
-		kotoba_error(mysqli_stmt_error($st));
-	}	
-	if(! mysqli_stmt_fetch($st)) {
-		mysqli_stmt_close($st);
-		cleanup_link($link);
-		return -1;
-	}
-	mysqli_stmt_close($st);
 	cleanup_link($link);
-	return $bumplimit;
-}*/
+	return array($post, $uploads);
+}
 
 ?>

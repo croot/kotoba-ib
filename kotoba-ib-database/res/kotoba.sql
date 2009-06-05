@@ -180,6 +180,12 @@ begin
 	values (isimage, fileext, storefileext, localhandler, extthumbnail);
 end|
 
+-- add default filetypes
+call sp_add_filetype(1, 'jpg', 'jpg', 2, null)|
+call sp_add_filetype(1, 'jpeg', 'jpg', 2, null)|
+call sp_add_filetype(1, 'gif', 'gif', 2, null)|
+call sp_add_filetype(1, 'png', 'png', 2, null)|
+call sp_add_filetype(1, 'svg', 'png', 3, null)|
 -- =============================================
 -- Author:		innomines
 -- Create date: 29.05.2009
@@ -1065,6 +1071,8 @@ delimiter |
 drop procedure if exists sp_upload|
 create PROCEDURE sp_upload(
 	boardid int,
+	name varchar(256),
+	filesize int,
 	uploadhash varchar(32),
 	isimage tinyint,
 	filename varchar(256),
@@ -1075,10 +1083,10 @@ create PROCEDURE sp_upload(
 	thuheight int
 )
 begin
-	insert into uploads (board_id, hash, is_image, file_name, file_w, file_h,
+	insert into uploads (board_id, file, size, hash, is_image, file_name, file_w, file_h,
 	thumbnail, thumbnail_w, thumbnail_h)
 	values
-	(boardid, uploadhash, isimage, filename, width, height, thumbnailfile, thuwidth, thuheight);
+	(boardid, name, filesize, uploadhash, isimage, filename, width, height, thumbnailfile, thuwidth, thuheight);
 	select last_insert_id();
 end|
 -- =============================================
@@ -1115,7 +1123,7 @@ begin
 	from posts
 	where post_number = postnum;
 
-	select u.is_image, u.file_name, u.file_w, u.file_h, u.thumbnail, u.thumbnail_w, u.thumbnail_h
+	select u.is_image, u.file, u.size, u.file_name, u.file_w, u.file_h, u.thumbnail, u.thumbnail_w, u.thumbnail_h
 	from uploads u, posts_uploads p where p.post_id = get_postid(boardid, postnum) and p.upload_id = u.id;
 end|
 

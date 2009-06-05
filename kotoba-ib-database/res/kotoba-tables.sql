@@ -17,7 +17,7 @@ CREATE TABLE boards (
 	same_upload varchar(32) not null default 'yes',
 	PRIMARY KEY (id),
 	unique index IX_boards (board_name)
-) engine=innodb;
+) engine=innodb CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*
 boards: boards in your kotoba
 id - board identifier
@@ -41,7 +41,7 @@ create table upload_types (
 	thumbnail_image varchar(256) null default '/img/unknown.png',
 	primary key(id),
 	unique index(extension)
-) engine=innodb;
+) engine=innodb CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 /*
 upload_types: supported binary files for upload and how to handle them
@@ -63,7 +63,7 @@ create table board_upload_types(
 	unique index IX_but (board_id, upload_id),
 	foreign key (board_id) references boards(id) on delete cascade,
 	foreign key (upload_id) references upload_types(id) on delete cascade
-) engine=innodb;
+) engine=innodb CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*
 board_upload_types: reduction table. stores information about board binary upload supported.
 board_id - board id
@@ -84,6 +84,8 @@ CREATE TABLE uploads (
 --	post_id int not null,
 	hash varchar(32) not null,
 	is_image tinyint not null,
+	file varchar(256) not null,
+	size int not null,
 	file_name varchar(256) not null,
 	file_w int,
 	file_h int,
@@ -92,7 +94,7 @@ CREATE TABLE uploads (
 	thumbnail_h int,
 	primary key(id),
 	index(hash)
-) engine=innodb;
+) engine=innodb CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 /* uploads: binary uploads information
 id - upload identifier
@@ -121,7 +123,7 @@ CREATE TABLE threads (
 	unique INDEX IX_boards (board_id, original_post_num),
 	index IX_threads (last_post),
 	FOREIGN KEY (board_id) REFERENCES boards(id) ON DELETE RESTRICT
-) engine=innodb;
+) engine=innodb CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*
 threads: information about threads
 id - thread identifier
@@ -159,7 +161,7 @@ CREATE TABLE posts(
 	PRIMARY KEY using btree (id ASC),
 	FOREIGN KEY (board_id) REFERENCES boards(id) ON DELETE RESTRICT,
 	FOREIGN KEY (thread_id) REFERENCES threads(id) ON DELETE RESTRICT
-) engine=innodb;
+) engine=innodb CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 /*
 posts: information about posts
@@ -190,7 +192,7 @@ CREATE TABLE posts_uploads(
 	unique index IX_post_uploads (post_id, upload_id),
 	foreign key (post_id) references posts(id) on delete cascade,
 	foreign key (upload_id) references uploads(id) on delete cascade
-) engine=innodb;
+) engine=innodb CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 /*
 posts_uploads: reduction table for uploads in posts
@@ -209,7 +211,7 @@ CREATE TABLE banned_networks(
 	till datetime,
 	primary key(id),
 	unique index(network_address, network_broadcast)
-) engine=innodb;
+) engine=innodb CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*
 banned_networks: table for current banned ip's and networks
 id - banned network identifier
@@ -230,7 +232,7 @@ CREATE TABLE users(
 	preview_pages int,
 	primary key(id),
 	unique index(auth_key)
-) engine=innodb;
+) engine=innodb CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*
 users: users on kotoba
 id - user identifier
