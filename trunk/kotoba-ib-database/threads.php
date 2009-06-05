@@ -78,7 +78,7 @@ else
     $REPLY_PASS = '';
 }
 
-require 'databaseconnect.php';
+require 'database_connect.php';
 
 $smarty = new SmartyKotobaSetup();
 $smarty->assign('page_title', "Kotoba - $BOARD_NAME/$THREAD_NUM");
