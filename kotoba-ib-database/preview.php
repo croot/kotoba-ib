@@ -184,9 +184,10 @@ $smarty->assign('BOARD_BUMPLIMIT', $BUMP_LIMIT);
 $smarty->assign('KOTOBA_POST_LIMIT', KOTOBA_POST_LIMIT);
 $smarty->display('board_preview.tpl');
 
-
 foreach($threads as $open_post) {
 	$posts = get_thread_preview($link, $BOARD_NUM, $open_post, 10);
+	var_dump($posts);
+	$count = 0;
 	foreach($posts as $post) {
 		$smarty_thread = new SmartyKotobaSetup();
 		$smarty_thread->assign('BOARD_NAME', $BOARD_NAME);
@@ -211,8 +212,19 @@ foreach($threads as $open_post) {
 		$smarty_thread->assign('original_time', $txt_post['date_time']);
 		$smarty_thread->assign('original_id', $txt_post['post_number']);
 		$smarty_thread->assign('original_text', $txt_post['text']);
-		$smarty_thread->display('post_original.tpl');
+		if($count > 0) {
+			$smarty_thread->assign('original_thread', $open_post);
+			$smarty_thread->display('post_thread.tpl');
+		}
+		else {
+			$smarty_thread->assign('skipped', $post['skipped']);
+			$smarty_thread->assign('skipped_uploads', $post['uploads']);
+			$smarty_thread->display('post_original.tpl');
+			$smarty_thread->display('post_footer.tpl');
+		}
+		$count ++;
 	}
+	$smarty->display('preview_thread_footer.tpl');
 }
 
 $smarty->assign('PAGES', $pages);
