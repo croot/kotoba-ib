@@ -45,5 +45,5 @@
 <blockquote>
 {$original_text}
 </blockquote>
-{if $skipped > 0}<span class="omittedposts">Сообщений пропущено: {$skipped}, с прикрепленными файлами: {$skipped_uploads}
+{if $skipped > 0}<span class="omittedposts">Сообщений пропущено: {$skipped}, прикрепленных файлов: {$skipped_uploads}
 <br><br>{/if}

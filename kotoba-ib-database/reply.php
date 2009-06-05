@@ -279,6 +279,7 @@ if(isset($_POST['Message_pass']) && $_POST['Message_pass'] != '')
 		setcookie("rempass", $OPPOST_PASS);
 }
 
+//echo "$BOARD_NUM, $THREAD_NUM";
 // TODO: sage etc
 $postid = post($link, $BOARD_NUM, $THREAD_NUM, $Message_name, '', $Message_theme, $OPPOST_PASS, session_id(),
 	ip2long($_SERVER['REMOTE_ADDR']), $Message_text, gmdate("Y-m-d H:i:s"), 0);
