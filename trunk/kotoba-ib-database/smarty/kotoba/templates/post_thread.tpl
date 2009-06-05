@@ -9,12 +9,12 @@
  * See license.txt for more info.*
  *********************************}
 {*
-Этот шаблон содержит код оригинального сообщения, с которого начинается нить.
+Этот шаблон содержит код обычного сообщения, которые образуют нити. Это не
+то же самое, что оригинальное сообщение, с которого начинается нить.
 
 Описание переменных:
     $with_image - логическая переменная, указывает на то, содержит ли
         сообщение прикреплённую картинку или нет.
---    $thread - Ссылка на нить
 
     $original_theme - тема сообщения.
     $original_name - имя отправителя.
@@ -34,16 +34,21 @@
     $original_text - текст сообщения.
 *}
 <div>
-<span class="filetitle">{$original_theme}</span> <span class="postername">{$original_name}</span> {$original_time}
-{if $with_image == true}<span class="filesize">Файл: <a target="_blank" href="{$original_file_link}">{$original_file_name}</a> -(<em>{$original_file_size} Байт {$original_file_width}x{$original_file_heigth}</em>)</span>
+    <table>
+    <tr>
+        <td class="reply">
+            <span class="filetitle">{$original_theme}</span> <span class="postername">{$original_name}</span> {$original_time}
+{if $with_image == true}            <span class="filesize">Файл: <a target="_blank" href="{$original_file_link}">{$original_file_name}</a> -(<em>{$original_file_size} Байт {$original_file_width}x{$original_file_heigth}</em>)</span>
 {/if}
-<span class="reflink"><span onclick="insert('>>{$original_id}');">#</span> <a href="{$KOTOBA_DIR_PATH}/{$BOARD_NAME}/#{$original_id}">{$original_id}</a> [<a href="{$KOTOBA_DIR_PATH}/{$BOARD_NAME}/{$original_id}">Ответить</a>]</span>
-<span class="delbtn">[<a href="{$original_remove_link}" title="Удалить">×</a>]</span>
-<a name="{$original_id}"></a>
-{if $with_image == true}<br><a target="_blank" href="{$original_file_link}"><img src="{$original_file_thumbnail_link}" class="thumb" width="{$original_file_thumbnail_width}" heigth="{$original_file_thumbnail_heigth}"></a>
+            <span class="reflink"><span onclick="insert('>>{$original_id}');">#</span> <a href="{$KOTOBA_DIR_PATH}/{$BOARD_NAME}/{$original_thread}#{$original_id}">{$original_id}</a></span>
+            <span class="delbtn">[<a href="{$original_remove_link}" title="Удалить">×</a>]</span>
+            <a name="{$original_id}"></a>
+{if $with_image == true}            <br><a target="_blank" href="{$original_file_link}"><img src="{$original_file_thumbnail_link}" class="thumb" width="{$original_file_thumbnail_width}" heigth="{$original_file_thumbnail_heigth}"></a>
 {/if}
-<blockquote>
-{$original_text}
-</blockquote>
-{if $skipped > 0}<span class="omittedposts">Сообщений пропущено: {$skipped}, с прикрепленными файлами: {$skipped_uploads}
-<br><br>{/if}
+            <blockquote>
+            {$original_text}
+            </blockquote>
+        </td>
+    </tr>
+    </table>
+</div>

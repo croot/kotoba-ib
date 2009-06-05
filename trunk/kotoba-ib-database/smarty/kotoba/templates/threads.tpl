@@ -44,23 +44,3 @@
 <input type="hidden" name="t" value="{$THREAD_NUM}">
 </form>
 <hr>
-{include file = 'post_original.tpl'
-    with_image = $with_image
-    thread = $thread
-    original_theme = $original_theme
-    original_name = $original_name
-    original_time = $original_time
-    original_file_link = $original_file_link
-    original_file_name = $original_file_name
-    original_file_size = $original_file_size
-    original_file_width = $original_file_width
-    original_file_heigth = $original_file_heigth
-    original_id = $original_id
-    original_link = $original_link
-    original_remove_link = $original_remove_link
-    original_file_thumbnail_link = $original_file_thumbnail_link
-    original_file_thumbnail_width = $original_file_thumbnail_width
-    original_file_thumbnail_heigth = $original_file_thumbnail_heigth
-    original_text = $original_text}
-
-{include file='footer.tpl'}

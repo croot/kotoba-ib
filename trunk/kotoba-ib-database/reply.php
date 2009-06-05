@@ -9,29 +9,37 @@
  * See license.txt for more info.*
  *********************************/
 
-require 'config.php';
-require_once('common.php');
-require('error_processing.php');
-if(KOTOBA_ENABLE_STAT === true)
-	if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/reply.stat', 'a')) === false)
-		kotoba_error("Ошибка. Не удалось открыть или создать файл статистики");
+// Заметки:
+//
+// Для каждого скрипта, при включенном сборе статистики, создаётся файл имя_скрипта.stat в котором будет хранится статистика.
+// Такой файл называется Лог статистики.
+//
+// Как, куда и когда выводить статистику решает скрипт. Что выводить - решает events.php. Если вы ходите изменить
+// выводимый текст в лог статистики, используйте константы в events.php.
 
+require 'config.php';
+require 'common.php';
+require_once 'post_processing.php';
+require 'error_processing.php';
 require 'events.php';
+
+if(KOTOBA_ENABLE_STAT)
+{ // open stat file for appending
+	if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/createthread.stat',
+		'a')) === false)
+	{ // opening failed
+		kotoba_error("Ошибка. Не удалось открыть или создать файл статистики.");
+	}
+}
+
+// Этап 1. Проверка имени доски, на которой создаётся тред.
 
 if(!isset($_POST['b']))
 {
 	if(KOTOBA_ENABLE_STAT)
 		kotoba_stat(ERR_BOARD_NOT_SPECIFED);
-
+		
 	kotoba_error(ERR_BOARD_NOT_SPECIFED);
-}
-
-if(!isset($_POST['t']))
-{
-	if(KOTOBA_ENABLE_STAT)
-		kotoba_stat(ERR_THREAD_NOT_SPECIFED);
-
-	kotoba_error(ERR_THREAD_NOT_SPECIFED);
 }
 
 if(($BOARD_NAME = CheckFormat('board', $_POST['b'])) === false)
@@ -41,6 +49,13 @@ if(($BOARD_NAME = CheckFormat('board', $_POST['b'])) === false)
 		
 	kotoba_error(ERR_BOARD_BAD_FORMAT);
 }
+if(!isset($_POST['t']))
+{
+	if(KOTOBA_ENABLE_STAT)
+		kotoba_stat(ERR_THREAD_NOT_SPECIFED);
+
+	kotoba_error(ERR_THREAD_NOT_SPECIFED);
+}
 
 if(($THREAD_NUM = CheckFormat('thread', $_POST['t'])) === false)
 {
@@ -49,53 +64,26 @@ if(($THREAD_NUM = CheckFormat('thread', $_POST['t'])) === false)
 		
 	kotoba_error(ERR_THREAD_BAD_FORMAT);
 }
+require 'database_connect.php';
+require 'database_common.php';
 
-require 'databaseconnect.php';
-require_once 'post_processing.php';
-$BOARD_NUM = -1;
+$link = dbconn();
 
-// Проверка существования доски с именем $BOARD_NAME.
-$error_message = "";
-$BOARD_NUM = post_get_board_id($BOARD_NAME, "kotoba_stat", $error_message);
+$error_message = "default error";
+$BOARD = db_get_board($link, $BOARD_NAME);
+
+if(count($BOARD) == 0) {
+	kotoba_error(ERR_BOARD_NOT_SPECIFED);
+}
+
+$BOARD_NUM = $BOARD['id'];
 
 if($BOARD_NUM < 0) {
-	kotoba_error($error_message);
+	kotoba_error(ERR_BOARD_NOT_SPECIFED);
 }
 
-// Проверка существования треда $THREAD_NUM на доске с именем $BOARD_NAME.
-$sql = sprintf("select t.id, count(p.id) as count
-	from threads t join posts p on t.id = p.thread and t.board = p.board
-	where t.id = %d and t.board = %d group by t.id", $THREAD_NUM, $BOARD_NUM);
-if(($result = mysql_query($sql)) !== false)
-{
-	if(mysql_num_rows($result) != 1)
-	{
-		if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(sprintf(ERR_THREAD_NOT_FOUND, $THREAD_NUM, $BOARD_NAME));
-			
-		mysql_free_result($result);
-		kotoba_error(sprintf(ERR_THREAD_NOT_FOUND, $THREAD_NUM, $BOARD_NAME));
-	}
-	else
-	{
-		$row = mysql_fetch_array($result, MYSQL_ASSOC);
-		$THREAD_POSTCOUNT = $row['count'];
-		mysql_free_result($result);
-	}
-}
-else
-{
-	if(KOTOBA_ENABLE_STAT)
-		kotoba_stat(sprintf(ERR_THREAD_EXIST_CHECK, $THREAD_NUM, $BOARD_NAME, mysql_error()));
-	
-	kotoba_error(sprintf(ERR_THREAD_EXIST_CHECK, $THREAD_NUM, $BOARD_NAME, mysql_error()));
-}
+// Этап 2. Обработка данных ОП поста.
 
-if(!post_check_image_upload_error($_FILES['Message_img']['error'], true, "kotoba_stat", 
-	$error_message)) 
-{
-	kotoba_error($error_message);
-}
 
 if($_FILES['Message_img']['error'] == UPLOAD_ERR_NO_FILE &&
    	(!isset($_POST['Message_text']) || $_POST['Message_text'] == ''))
@@ -111,11 +99,16 @@ elseif($_FILES['Message_img']['error'] == UPLOAD_ERR_NO_FILE) { // no image
 else { // image and text
 	$with_image = true;
 }
+if($with_image && !post_check_image_upload_error($_FILES['Message_img']['error'], false, "kotoba_stat",
+	$error_message))
+{ // upload of image failed
+	kotoba_error($error_message);
+}
 
 $uploaded_file_size = $_FILES['Message_img']['size'];
 
-if(!post_check_sizes($uploaded_file_size, $with_image, $_POST['Message_text'],
-	$_POST['Message_theme'], $_POST['Message_name'], "kotoba_stat", $error_message)) {
+if(!post_check_sizes($uploaded_file_size, true, $_POST['Message_text'],
+	$_POST['Message_theme'], $_POST['Message_name'], "kotoba_stat", $error_message, $with_image)) {
 	kotoba_error($error_message);
 }
 
@@ -123,26 +116,25 @@ $Message_text = htmlspecialchars($_POST['Message_text'], ENT_QUOTES);
 $Message_theme = htmlspecialchars($_POST['Message_theme'], ENT_QUOTES);
 $Message_name = htmlspecialchars($_POST['Message_name'], ENT_QUOTES);
 
-if(!post_check_sizes($uploaded_file_size, $with_image, $Message_text,
-	$Message_theme, $Message_name, "kotoba_stat", $error_message)) {
+if(!post_check_sizes($uploaded_file_size, true, $Message_text,
+	$Message_theme, $Message_name, "kotoba_stat", $error_message, $with_image)) {
 	kotoba_error($error_message);
 }
 
 // mark fuction here
 if(!post_mark($Message_text, 
-	$Message_theme, $Message_name, "kotoba_stat", $error_message)) {
+	$Message_theme, $Message_name, "kotoba_stat", $error_message)) 
+{
 	kotoba_error($error_message);
 }
-
-// post have attached image
 if($with_image) {
 	$uploaded_file = $_FILES['Message_img']['tmp_name'];
 	$uploaded_name = $_FILES['Message_img']['name'];
 	$recived_ext = post_get_uploaded_extension($uploaded_name);
 
-	require 'thumb_processing.php';
+require 'thumb_processing.php';
 	$imageresult = array();
-	if(!thumb_check_image_type($recived_ext, $uploaded_file, $imageresult)) {
+	if(!thumb_check_image_type($link, $recived_ext, $uploaded_file, $imageresult)) {
 		// not supported file name
 		if(KOTOBA_ENABLE_STAT)
 			kotoba_stat(ERR_WRONG_FILETYPE);
@@ -160,62 +152,78 @@ if($with_image) {
 
 	$IMG_SRC_DIR = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$BOARD_NAME/img";
 	$IMG_THU_DIR = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/$BOARD_NAME/thumb";
+	$image_virtual_base = sprintf("%s/%s/img", KOTOBA_DIR_PATH, $BOARD_NAME);
+	$thumbnail_virtual_base = sprintf("%s/%s/thumb", KOTOBA_DIR_PATH, $BOARD_NAME);
 
+
+	// full path of uploaded image and generated thumbnail
 	$saved_image_path = sprintf("%s/%s", $IMG_SRC_DIR, $saved_filename);
-	$saved_thumbnail_path = sprintf("%s/%s", $IMG_THU_DIR, $saved_thumbname);
+	$image_virtual_path = sprintf("%s/%s", $image_virtual_base, $saved_filename);
+	if($imageresult['image'] == 1) {
+		$saved_thumbnail_path = sprintf("%s/%s", $IMG_THU_DIR, $saved_thumbname);
+		$thumbnail_virtual_path = sprintf("%s/%s", $thumbnail_virtual_base, $saved_thumbname);
+	}
+	else {
+		$thumbnail_virtual_path = $imageresult['thumbnail'];
+	}
 
-	if(!post_move_uploded_file($uploaded_file, $saved_image_path, "kotoba_stat",
-		$error_message)) 
-	{
+	if(!post_move_uploded_file($uploaded_file, $saved_image_path, "kotoba_stat", $error_message)) {
 		kotoba_error($error_message);
 	}
-	if(!KOTOBA_ALLOW_SAEMIMG)
-	{
-		if(($img_hash = hash_file('md5', $saved_image_path)) === false)
-		{
-			if(KOTOBA_ENABLE_STAT)
-				kotoba_stat(ERR_FILE_HASH);
+}
 
-			kotoba_error(ERR_FILE_HASH);
-		}
-		$error_message_array = array();
-		if(!post_get_same_image($BOARD_NUM, $BOARD_NAME, $img_hash, "kotoba_stat",
-			$error_message_array))
-		{
-			unlink($saved_image_path);
-			if($error_message_array['sameimage']) {
-				$link = sprintf("<a href=\"%s/%s/%d#%d\">тут</a>",
-					KOTOBA_DIR_PATH, $BOARD_NAME, $error_message_array['thread'], 
-					$error_message_array['post']);
-				kotoba_error(sprintf("Ошибка. Картинка уже была запощена %s", $link));
-			}
-			else {
-				kotoba_error($error_message_array['error_message']);
-			}
-		}
-	}
-
-	if($imageresult['x'] < KOTOBA_MIN_IMGWIDTH && $imageresult['y'] < KOTOBA_MIN_IMGHEIGTH)
+// calculate upload hash
+if($with_image) {
+	if(($img_hash = hash_file('md5', $saved_image_path)) === false)
 	{
 		if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(ERR_FILE_LOW_RESOLUTION);
-		
-		unlink($saved_image_path);
-		kotoba_error(ERR_FILE_LOW_RESOLUTION);
-	}
+			kotoba_stat(ERR_FILE_HASH);
 
+		kotoba_error(ERR_FILE_HASH);
+	}
+}
+/*
+if(! KOTOBA_ALLOW_SAEMIMG)
+{
+	$error_message_array = array();
+	if(!post_get_same_image($BOARD_NUM, $BOARD_NAME, $img_hash, "kotoba_stat",
+			$error_message_array))
+	{
+		unlink($saved_image_path);
+		if($error_message_array['sameimage']) {
+			$link = sprintf("<a href=\"%s/%s/%d#%d\">тут</a>", 
+				KOTOBA_DIR_PATH, $BOARD_NAME,
+				$error_message_array['thread'], $error_message_array['post']);
+			kotoba_error(sprintf("Ошибка. Картинка уже была запощена %s", $link));
+		}
+		else {
+			kotoba_error($error_message_array['error_message']);
+		}
+	}
+}
+ */
+if($with_image && $imageresult['image'] == 1 && 
+	$imageresult['x'] < KOTOBA_MIN_IMGWIDTH && $imageresult['y'] < KOTOBA_MIN_IMGHEIGTH)
+{
+	if(KOTOBA_ENABLE_STAT)
+		kotoba_stat(ERR_FILE_LOW_RESOLUTION);
+	
+	unlink($saved_image_path);
+	kotoba_error(ERR_FILE_LOW_RESOLUTION);
+}
+if($with_image && $imageresult['image'] == 1) {
 	$thumbnailresult = array();
-	$thumb_res = create_thumbnail($saved_image_path, $saved_thumbnail_path,
+	$thumb_res = create_thumbnail($link, "$IMG_SRC_DIR/$saved_filename", "$IMG_THU_DIR/$saved_thumbname",
 		$original_ext, $imageresult['x'], $imageresult['y'], 200, 200,
 		$imageresult['force_thumbnail'], $thumbnailresult);
 
+
 	if($thumb_res != KOTOBA_THUMB_SUCCESS)
 	{
-		// TODO Сделать вывод причины неудачи создания тумбочки в лог.
 		if(KOTOBA_ENABLE_STAT)
 			kotoba_stat(ERR_THUMB_CREATION);
 
-		unlink($saved_image_path);
+		unlink($saved_filename);
 
 		switch($thumb_res)
 		{
@@ -236,326 +244,61 @@ if($with_image) {
 				break;
 		}
 
-		kotoba_error(sprintf("Ошибка. Не удалось создать уменьшенную копию изображения: %s", $message));
+		kotoba_error(sprintf("Ошибка. Не удалось создать уменьшенную копию изображения: %s",
+			$message));
 	}
-
-	$Message_img_params = "IMGNAME:$raw_filename\n";
-	$Message_img_params .= "IMGEXT:$recived_ext\n";
-	$Message_img_params .= "ORIGIMGEXT:$original_ext\n";
-	$Message_img_params .= "IMGTW:" . $thumbnailresult['x'] . "\n";
-	$Message_img_params .= "IMGTH:" . $thumbnailresult['y'] . "\n";
-	$Message_img_params .= "IMGSW:" . $imageresult['x'] . "\n";
-	$Message_img_params .= "IMGSH:" . $imageresult['y'] . "\n";
-	$Message_img_params .= 'IMGSIZE:' . $uploaded_file_size . "\n";
-	if(! KOTOBA_ALLOW_SAEMIMG)
-		$Message_img_params .= "HASH:$img_hash\n";
+}
+else {
+	$saved_thumbname = $imageresult['thumbnail'];
 }
 
+if($with_image) {
+	$image = upload($link, $BOARD_NUM, $saved_filename, $uploaded_file_size, $img_hash, 
+		$imageresult['image'], $image_virtual_path, $imageresult['x'], $imageresult['y'],
+		$thumbnail_virtual_path, $thumbnailresult['x'], $thumbnailresult['y']);
 
-$Message_settings = "THEME:$Message_theme\n";
-$Message_settings .= "NAME:$Message_name\n";
-$Message_settings .= "IP:$_SERVER[REMOTE_ADDR]\n";
+	if($image < 0) {
+		kotoba_error("Cannot store information about upload");
+	}
+}
 
-if(isset($_POST['Sage']) && $_POST['Sage'] == 'sage')
-	$Message_settings .= "SAGE:Y\n";
-
-if($THREAD_POSTCOUNT > KOTOBA_BUMPLIMIT)
-	$Message_settings .= "BLIMIT:Y\n";
-
-if($with_image)
-	$Message_settings .= $Message_img_params;
-
+// password settings
 if(isset($_POST['Message_pass']) && $_POST['Message_pass'] != '')
-{
-	if(($REPLY_PASS = CheckFormat('pass', $_POST['Message_pass'])) === false)
-	{
+{ // password is set and not empty
+	if(($OPPOST_PASS = CheckFormat('pass', $_POST['Message_pass'])) === false)
+	{ // password have wrong format
 		if(KOTOBA_ENABLE_STAT)
 			kotoba_stat(ERR_PASS_BAD_FORMAT);
-		
+		// remove uploaded file/////
 		post_remove_files($saved_filename, $saved_thumbname);
 		kotoba_error(ERR_PASS_BAD_FORMAT);
 	}
-
-	if(!isset($_COOKIE['rempass']) || $_COOKIE['rempass'] != $REPLY_PASS)
-		setcookie("rempass", $REPLY_PASS);
-		
-	$Message_settings .= "REMPASS:$REPLY_PASS\n";
-}
-
-if(mysql_query('start transaction') == false)
-{
-	if(KOTOBA_ENABLE_STAT)
-		kotoba_stat(sprintf(ERR_TRAN_FAILED, mysql_error()));
-		
-	if($with_image)
-	{
-		post_remove_files($saved_filename, $saved_thumbname);
-	}
-
-	kotoba_error(sprintf(ERR_TRAN_FAILED, mysql_error()));
-}
-
-// Вычисление числа постов доски (в не утонувших тредах).
-$sql = sprintf("select count(p.id) as count
-	from posts p
-	join threads t on p.thread = t.id and p.board = t.board
-	where p.board = %d and 
-		(position('ARCHIVE:YES' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null)
-	group by p.board", $BOARD_NUM);
-if(($result = mysql_query($sql)) == false || mysql_num_rows($result) == 0)
-{
-	$sql_error = mysql_error();
-	mysql_query('rollback');
 	
-	if(KOTOBA_ENABLE_STAT)
-		kotoba_stat(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, $sql_error));
-
-	post_remove_files($saved_filename, $saved_thumbname);
-	kotoba_error(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, $sql_error));
-}
-elseif (mysql_num_rows($result) == 0)   // Нельзя ответить в тред которого нет, если доска пуста.
-{
-	if(KOTOBA_ENABLE_STAT)
-		kotoba_stat(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, 'Возможно не верное имя доски'));
-
-	mysql_query('rollback');
-	post_remove_files($saved_filename, $saved_thumbname);
-	kotoba_error(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, 'Возможно не верное имя доски'));
+	// save password in cookie
+	if(!isset($_COOKIE['rempass']) || $_COOKIE['rempass'] != $OPPOST_PASS) 
+		setcookie("rempass", $OPPOST_PASS);
 }
 
-$row = mysql_fetch_array($result, MYSQL_ASSOC);
-$POST_COUNT = $row['count'];
-mysql_free_result($result);
+// TODO: sage etc
+$postid = post($link, $BOARD_NUM, $THREAD_NUM, $Message_name, '', $Message_theme, $OPPOST_PASS, session_id(),
+	ip2long($_SERVER['REMOTE_ADDR']), $Message_text, gmdate("Y-m-d H:i:s"), 0);
 
-// Топим треды.
-// TODO Косяк с тредами, в которых постов больше чем лимит постов на доске.
-while($POST_COUNT >= KOTOBA_POST_LIMIT)
-{
-	// Выберем тред, ответ в который был наиболее ранним, и количество постов в нем.
-	$sql = sprintf("select p.thread, count(p.id) as count
-		from posts p 
-		join threads t on p.thread = t.id and p.board = t.board 
-		where t.board = %d and 
-			(position('ARCHIVE:YES' in t.`Thread Settings`) = 0 or
-			t.`Thread Settings` is null) and (position('SAGE:Y' in p.`Post Settings`) = 0 or
-			p.`Post Settings` is null) 
-		group by p.thread 
-		order by max(p.id) asc limit 1", $BOARD_NUM);
-	if(($result = mysql_query($sql)) == false)
-	{
-		$sql_error = mysql_error();
-		mysql_query('rollback');
-		
-		if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(sprintf(ERR_ARCH_THREAD_SEARCH, $sql_error));
-		
-		if($with_image === true)
-		{
-			post_remove_files($saved_filename, $saved_thumbname);
-		}
-
-		kotoba_error(sprintf(ERR_ARCH_THREAD_SEARCH, $sql_error));
+if($postid < 0) {
+	kotoba_error("Cannot store information about post");
+}
+if($with_image) {
+	if(link_post_upload($link, $BOARD_NUM, $image, $postid)) {
+		kotoba_error("Cannot link information about post and upload");
 	}
-	elseif (mysql_num_rows($result) == 0)
-	{
-		if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(sprintf(ERR_ARCH_THREAD_SEARCH, 
-				"Возможно не верный номер доски $BOARD_NUM"));
-		
-		if($with_image === true)
-		{
-			post_remove_files($saved_filename, $saved_thumbname);
-		}
-
-		mysql_query('rollback');
-		kotoba_error(sprintf(ERR_ARCH_THREAD_SEARCH, 
-			"Возможно не верный номер доски $BOARD_NUM"));
-	}
-
-	$row = mysql_fetch_array($result, MYSQL_ASSOC);
-	$ARCH_THREAD_NUM = $row['thread'];
-	$ARCH_THREAD_POSTCOUNT = $row['count'];
-	mysql_free_result($result);
-	$Thread_Settings = "ARCHIVE:YES\n";
-
-	$sql = sprintf("update threads set `Thread Settings` = case
-		when `Thread Settings` is null then concat('', '%s') 
-		else concat(`Thread Settings`, '%s')
-		end 
-		where id = %d and board = %d",
-		$Thread_Settings, $Thread_Settings, $ARCH_THREAD_NUM, $BOARD_NUM);
-	if(mysql_query($sql) === false)
-	{
-		$sql_error = mysql_error();
-		mysql_query('rollback');
-		
-		if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(sprintf(ERR_ARCH_THREAD_MARK, $sql_error));
-		
-		if($with_image === true)
-		{
-			post_remove_files($saved_filename, $saved_thumbname);
-		}
-
-		kotoba_error(sprintf(ERR_ARCH_THREAD_MARK, $sql_error));
-	}
-	elseif (mysql_affected_rows() == 0)
-	{
-		if(KOTOBA_ENABLE_STAT) {
-kotoba_stat(sprintf(ERR_ARCH_THREAD_MARK, 
-	"Возможно не верный номер доски $BOARD_NUM или треда для архивирования $ARCH_THREAD_NUM"));
-		}
-		
-		if($with_image === true)
-		{
-			post_remove_files($saved_filename, $saved_thumbname);
-		}
-
-		mysql_query('rollback');
-kotoba_error(sprintf(ERR_ARCH_THREAD_MARK,
-	"Возможно не верный номер доски $BOARD_NUM или треда для архивирования $ARCH_THREAD_NUM"));
-	}
-
-	$sql = sprintf("select count(p.id) as count
-		from posts p
-		join threads t on p.thread = t.id and p.board = t.board
-		where p.board = %d and 
-			(position('ARCHIVE:YES' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null)
-		group by p.board", $BOARD_NUM);
-	if(($result = mysql_query($sql)) == false)
-	{
-		$sql_error = mysql_error();
-		mysql_query('rollback');
-		
-		if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, $sql_error));
-
-		if($with_image === true)
-		{
-			post_remove_files($saved_filename, $saved_thumbname);
-		}
-
-		kotoba_error(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, $sql_error));
-	}
-	elseif (mysql_num_rows($result) == 0)
-	{
-		if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, 'Возможно не верное имя доски'));
-			
-		if($with_image === true)
-		{
-			post_remove_files($saved_filename, $saved_thumbname);
-		}
-
-		mysql_query('rollback');
-		kotoba_error(sprintf(ERR_POST_COUNT_CALC, $BOARD_NAME, 'Возможно не верное имя доски'));
-	}
-
-	$row = mysql_fetch_array($result, MYSQL_ASSOC);
-	$POST_COUNT = $row['count'];
-	mysql_free_result($result);
-	
-	if(KOTOBA_ENABLE_STAT)
-		kotoba_stat(sprintf(INFO_THREAD_ARCHIVED,
-			$ARCH_THREAD_NUM, $ARCH_THREAD_POSTCOUNT, $BOARD_NUM, $POST_COUNT), false);
 }
 
-// `MaxPostNum` не может быть NULL.
-$sql = sprintf("select @post_num := MaxPostNum + 1 from boards where id = %d", $BOARD_NUM);
-if(mysql_query($sql) == false)
+if(isset($_POST['goto']) && $_POST['goto'] == 't')
 {
-	$sql_error = mysql_error();
-	mysql_query('rollback');
-		
-	if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(sprintf(ERR_NEW_POSTNUM_CALC, $sql_error));
-	
-	if($with_image === true)
-	{
-		post_remove_files($saved_filename, $saved_thumbname);
-	}
-
-	kotoba_error(sprintf(ERR_NEW_POSTNUM_CALC, $sql_error));
-}
-/*
- * "insert into `posts` (`id`, `thread`, `board`, `Time`, `Text`, `Post Settings`)
- values (@post_num, $THREAD_NUM, $BOARD_NUM, '" . date("Y-m-d H:i:s") . "', '$Message_text', '$Message_settings')"
- */
-
-$sql = sprintf("insert into posts 
-	(id, thread, board, Time, Text, `Post Settings`)
-	values (@post_num, %d, %d, '%s', '%s', '%s')",
-	$THREAD_NUM, $BOARD_NUM, date("Y-m-d H:i:s"), $Message_text, $Message_settings);
-if(mysql_query($sql) == false)
-{
-	$sql_error = mysql_error();
-	mysql_query('rollback');
-	
-	if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(sprintf(ERR_NEW_POST_CREATE, $sql_error));
-
-	if($with_image === true)
-	{
-		post_remove_files($saved_filename, $saved_thumbname);
-	}
-
-	kotoba_error(sprintf(ERR_NEW_POST_CREATE, $sql_error));
-}
-
-$sql = sprintf("update boards set MaxPostNum = MaxPostNum + 1 where id = %d", $BOARD_NUM);
-if(mysql_query($sql) == false)
-{
-	$sql_error = mysql_error();
-	mysql_query('rollback');
-
-	if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(sprintf(ERR_SET_MAXPOST, $sql_error));
-	
-	if($with_image === true)
-	{
-		post_remove_files($saved_filename, $saved_thumbname);
-	}
-	
-	kotoba_error(sprintf(ERR_SET_MAXPOST, $sql_error));
-}
-elseif (mysql_affected_rows() == 0)
-{
-	if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(sprintf(ERR_SET_MAXPOST, "Возможно не верный номер доски: $BOARD_NUM"));
-
-	if($with_image === true)
-	{
-		post_remove_files($saved_filename, $saved_thumbname);
-	}
-
-	mysql_query('rollback');
-	kotoba_error(sprintf(ERR_SET_MAXPOST, "Возможно не верный номер доски: $BOARD_NUM"));
-}
-
-if(mysql_query('commit') == false)
-{
-	$sql_error = mysql_error();
-	mysql_query('rollback');
-	
-	if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(sprintf(ERR_TRAN_COMMIT_FAILED,  $sql_error));
-
-	if($with_image === true)
-	{
-		unlink("$IMG_SRC_DIR/$saved_filename");
-		unlink("$IMG_THU_DIR/$saved_thumbname");
-	}
-	
-	kotoba_error(sprintf(ERR_TRAN_COMMIT_FAILED,  $sql_error));
-}
-
-if(isset($_POST['goto']) && $_POST['goto'] == 'b')
-{
-	header('Location: ' . KOTOBA_DIR_PATH . "/$BOARD_NAME/");
+	header('Location: ' . KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/");
 	exit;
 }
 
-header('Location: ' . KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/");
+header('Location: ' . KOTOBA_DIR_PATH . "/$BOARD_NAME/");
 exit;
 ?>
 <?php

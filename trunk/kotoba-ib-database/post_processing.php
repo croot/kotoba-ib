@@ -131,9 +131,9 @@ function post_check_image_upload_error($error, $allow_no_uploads = false, $kotob
  * $error_message is reference to variable which would contain error message if any
  */
 function post_check_sizes($uplodedFileSize, $with_image, &$message_text, &$message_theme, 
-	&$message_name, $kotoba_stat, &$error_message) {
+	&$message_name, $kotoba_stat, &$error_message, $upload = true) {
 
-	if($uplodedFileSize < KOTOBA_MIN_IMGSIZE && $with_image)
+	if($upload && $uplodedFileSize < KOTOBA_MIN_IMGSIZE && $with_image)
 	{
 		if(KOTOBA_ENABLE_STAT)
 			call_user_func_array($kotoba_stat, array(ERR_FILE_TOO_SMALL));

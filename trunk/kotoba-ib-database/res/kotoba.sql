@@ -445,7 +445,7 @@ BEGIN
 	declare imageskip int;
 	declare hidedcount int;
 	declare done int default 0;
-	declare cur1 cursor for select id, post_number from posts where post_number = postid and board_id = boardid and deleted <> 1 order by post_number asc, date_time asc;
+	declare cur1 cursor for select id, post_number from posts where thread_id = threadid and board_id = boardid and deleted <> 1 order by post_number asc, date_time asc;
 	declare continue handler for not found set done = 1;
 
 	set count = 0;
@@ -1129,7 +1129,7 @@ end|
 
 -- =============================================
 -- Author:		innomines
--- Create date: 16.06.2009 - ...
+-- Create date: 04.06.2009 - ...
 -- Description:	get post id for post number
 -- =============================================
 delimiter |
@@ -1150,4 +1150,24 @@ begin
 	end if;
 
 	return postid;
+end|
+-- =============================================
+-- Author:		innomines
+-- Create date: 06.06.2009
+-- Description: get thread posts (not deleted)
+-- =============================================
+delimiter |
+drop procedure if exists sp_get_thread|
+create PROCEDURE sp_get_thread(
+	boardid int,
+	openpostnum int
+)
+begin
+	declare threadid int;
+	select get_thread_id(boardid, openpostnum) into threadid;
+
+	select post_number
+	from posts
+	where thread_id = threadid
+	order by date_time asc;
 end|
