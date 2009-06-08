@@ -12,6 +12,7 @@
 require 'config.php';
 require 'common.php';
 
+kotoba_setup();
 ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH  . '/sessions/');
 ini_set('session.gc_maxlifetime', 60 * 60 * 24);    // 1 день.
 ini_set('session.cookie_lifetime', 60 * 60 * 24);
@@ -153,7 +154,7 @@ $count = 0;
 foreach($posts as $post) {
 	$smarty_thread = new SmartyKotobaSetup();
 	$smarty_thread->assign('BOARD_NAME', $BOARD_NAME);
-	$smarty_thread->assign('mode', 'reply');
+	$smarty_thread->assign('reply', 0);
 	$whole_post = db_get_post($link, $BOARD_NUM, $post);
 	$txt_post = $whole_post[0];
 	// post may contain more than one upoads!

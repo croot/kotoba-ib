@@ -147,4 +147,9 @@ class SmartyKotobaSetup extends Smarty
 		$this->assign('KOTOBA_DIR_PATH', KOTOBA_DIR_PATH);
     }
 }
+
+function kotoba_setup() {
+	mb_internal_encoding("UTF-8");
+}
+
 ?>

@@ -19,6 +19,7 @@
 
 require 'config.php';
 require 'common.php';
+kotoba_setup();
 require_once 'post_processing.php';
 require 'error_processing.php';
 require 'events.php';
@@ -111,10 +112,12 @@ if(!post_check_sizes($uploaded_file_size, true, $_POST['Message_text'],
 	$_POST['Message_theme'], $_POST['Message_name'], "kotoba_stat", $error_message, $with_image)) {
 	kotoba_error($error_message);
 }
-
 $Message_text = htmlspecialchars($_POST['Message_text'], ENT_QUOTES);
 $Message_theme = htmlspecialchars($_POST['Message_theme'], ENT_QUOTES);
 $Message_name = htmlspecialchars($_POST['Message_name'], ENT_QUOTES);
+$Message_text = stripslashes($Message_text);
+$Message_theme = stripslashes($Message_theme);
+$Message_name = stripslashes($Message_name);
 
 if(!post_check_sizes($uploaded_file_size, true, $Message_text,
 	$Message_theme, $Message_name, "kotoba_stat", $error_message, $with_image)) {
@@ -279,10 +282,15 @@ if(isset($_POST['Message_pass']) && $_POST['Message_pass'] != '')
 		setcookie("rempass", $OPPOST_PASS);
 }
 
+$sage = 0;
+if(array_key_exists('Sage', $_POST) && $_POST['Sage'] == 'sage') {
+	$sage = 1;
+}
+
 //echo "$BOARD_NUM, $THREAD_NUM";
 // TODO: sage etc
 $postid = post($link, $BOARD_NUM, $THREAD_NUM, $Message_name, '', $Message_theme, $OPPOST_PASS, session_id(),
-	ip2long($_SERVER['REMOTE_ADDR']), $Message_text, gmdate("Y-m-d H:i:s"), 0);
+	ip2long($_SERVER['REMOTE_ADDR']), $Message_text, gmdate("Y-m-d H:i:s"), $sage);
 
 if($postid < 0) {
 	kotoba_error("Cannot store information about post");

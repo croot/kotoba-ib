@@ -32,12 +32,12 @@
 <form name="Reply_form" action="{$KOTOBA_DIR_PATH}/reply.php" method="post" enctype="multipart/form-data">
 <input type="hidden" name="MAX_FILE_SIZE" value="1560576">
 <table align="center" border="0">
-<tr valign="top"><td>Name: </td><td><input type="text" name="Message_name" size="30"></td></tr>
-<tr valign="top"><td>Theme: </td><td><input type="text" name="Message_theme" size="56"> <input type="submit" value="Ответить"></td></tr>
-<tr valign="top"><td>Message: </td><td><textarea name="Message_text" rows="7" cols="50"></textarea></td></tr>
-<tr valign="top"><td>Image: </td><td><input type="file" name="Message_img" size="54"></td></tr>
-<tr valign="top"><td>Password: </td><td><input type="password" name="Message_pass" size="30" value="{$REPLY_PASS}"></td></tr>
-<tr valign="top"><td>GoTo: </td><td>(thread: <input type="radio" name="goto" value="t" checked>) (board: <input type="radio" name="goto" value="b">)</td></tr>
+<tr valign="top"><td>Имя: </td><td><input type="text" name="Message_name" size="30"></td></tr>
+<tr valign="top"><td>Тема: </td><td><input type="text" name="Message_theme" size="56"> <input type="submit" value="Ответить"></td></tr>
+<tr valign="top"><td>Сообщение: </td><td><textarea name="Message_text" rows="7" cols="50"></textarea></td></tr>
+<tr valign="top"><td>Изображение: </td><td><input type="file" name="Message_img" size="54"></td></tr>
+<tr valign="top"><td>Пароль: </td><td><input type="password" name="Message_pass" size="30" value="{$REPLY_PASS}"></td></tr>
+<tr valign="top"><td>Перейти к: </td><td>(нити: <input type="radio" name="goto" value="t" checked>) (доске: <input type="radio" name="goto" value="b">)</td></tr>
 <tr valign="top"><td>Sage: </td><td><input type="checkbox" name="Sage" value="sage"></td></tr>
 </table>
 <input type="hidden" name="b" value="{$BOARD_NAME}">

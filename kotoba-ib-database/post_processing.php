@@ -170,7 +170,7 @@ function post_check_sizes($uplodedFileSize, $with_image, &$message_text, &$messa
  * TODO
  */
 function post_check_message_size(&$message_text, $kotoba_stat, &$error_message) {
-	if(strlen($message_text) > KOTOBA_MAX_MESSAGE_LENGTH)
+	if(mb_strlen($message_text) > KOTOBA_MAX_MESSAGE_LENGTH)
 	{
 		if(KOTOBA_ENABLE_STAT)
 			call_user_func_array($kotoba_stat, array(ERR_TEXT_TOO_LONG));
