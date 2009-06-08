@@ -12,12 +12,25 @@
 require 'config.php';
 require 'common.php';
 
+kotoba_setup();
+
 ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH  . '/sessions/');
 ini_set('session.gc_maxlifetime', 60 * 60 * 24);    // 1 день.
 ini_set('session.cookie_lifetime', 60 * 60 * 24);
 session_start();
 header("Cache-Control: private");
 
+function preview_message(&$message, $preview_lines, &$is_cutted) {
+	$lines = explode("<br>", $message);
+	if(count($lines) > $preview_lines) {
+		$is_cutted = 1;
+		return implode("<br>", array_slice($lines, 0, $preview_lines));
+	}
+	else {
+		$is_cutted = 0;
+		return $message;
+	}
+}
 function get_threads_on_page($link, $boardid, $threadsqty, $page) {
 	$threads = array();
 	$st = mysqli_prepare($link, "call sp_threads_on_page(?, ?, ?)");
@@ -171,7 +184,6 @@ for($page = 1; $page <= $pages_count; $page ++) {
 }
 
 $db_page = $PAGE - 1;
-
 $threads = get_threads_on_page($link, $BOARD_NUM, 10, $db_page);
 
 $smarty = new SmartyKotobaSetup();
@@ -190,8 +202,11 @@ foreach($threads as $open_post) {
 	foreach($posts as $post) {
 		$smarty_thread = new SmartyKotobaSetup();
 		$smarty_thread->assign('BOARD_NAME', $BOARD_NAME);
+		$smarty_thread->assign('reply', 1);
 		$whole_post = db_get_post($link, $BOARD_NUM, $post['post_number']);
 		$txt_post = $whole_post[0];
+		$long = 0;
+		$preview_lines = preview_message($txt_post['text'], KOTOBA_LONGPOST_LINES, $long);
 		// post may contain more than one upoads!
 		if(count($whole_post[1]) > 0) {
 			$upload = $whole_post[1][0];
@@ -210,12 +225,15 @@ foreach($threads as $open_post) {
 		$smarty_thread->assign('original_name', $txt_post['name']);
 		$smarty_thread->assign('original_time', $txt_post['date_time']);
 		$smarty_thread->assign('original_id', $txt_post['post_number']);
-		$smarty_thread->assign('original_text', $txt_post['text']);
+
+		$smarty_thread->assign('original_text_cutted', $long);
+		$smarty_thread->assign('original_text', $preview_lines);
 		if($count > 0) {
 			$smarty_thread->assign('original_thread', $open_post);
 			$smarty_thread->display('post_thread.tpl');
 		}
 		else {
+			$smarty_thread->assign('original_thread', $open_post);
 			$smarty_thread->assign('skipped', $post['skipped']);
 			$smarty_thread->assign('skipped_uploads', $post['uploads']);
 			$smarty_thread->display('post_original.tpl');

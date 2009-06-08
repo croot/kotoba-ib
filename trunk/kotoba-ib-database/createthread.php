@@ -83,10 +83,12 @@ if(!post_check_sizes($uploaded_file_size, true, $_POST['Message_text'],
 	$_POST['Message_theme'], $_POST['Message_name'], "kotoba_stat", $error_message)) {
 	kotoba_error($error_message);
 }
-
 $Message_text = htmlspecialchars($_POST['Message_text'], ENT_QUOTES);
 $Message_theme = htmlspecialchars($_POST['Message_theme'], ENT_QUOTES);
 $Message_name = htmlspecialchars($_POST['Message_name'], ENT_QUOTES);
+$Message_text = stripslashes($Message_text);
+$Message_theme = stripslashes($Message_theme);
+$Message_name = stripslashes($Message_name);
 
 if(!post_check_sizes($uploaded_file_size, true, $Message_text,
 	$Message_theme, $Message_name, "kotoba_stat", $error_message)) {

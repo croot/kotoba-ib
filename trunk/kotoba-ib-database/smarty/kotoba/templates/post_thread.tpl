@@ -48,6 +48,7 @@
             <blockquote>
             {$original_text}
             </blockquote>
+{if $original_text_cutted == 1}<br><span class="omittedposts">Нажмите "Ответ" для просмотра полного сообщения</span>{/if}
         </td>
     </tr>
     </table>

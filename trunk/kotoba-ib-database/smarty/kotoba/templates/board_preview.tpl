@@ -17,5 +17,5 @@
 </table>
 <input type="hidden" name="b" value="{$BOARD_NAME}">
 </form>
-
+<hr>
 
