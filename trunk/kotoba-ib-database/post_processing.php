@@ -184,9 +184,9 @@ function post_check_message_size(&$message_text, $kotoba_stat, &$error_message) 
  * postMark format text
  * TODO
  */
-function post_mark(&$message_text, &$message_theme, &$message_name, $kotoba_stat, &$error_message) {
+function post_mark($link, &$message_text, &$message_theme, &$message_name, $kotoba_stat, &$error_message) {
 require 'mark.php';
-KotobaMark($message_text);
+KotobaMark($link, $message_text);
 	$message_text = preg_replace("/\n/", '<br>', $message_text);
 	if(!post_check_message_size($message_text, $kotoba_stat, $error_message)) {
 		return false;

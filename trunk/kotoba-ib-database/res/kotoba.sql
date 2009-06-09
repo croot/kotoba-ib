@@ -1175,3 +1175,36 @@ begin
 	where thread_id = threadid and board_id = boardid
 	order by date_time asc;
 end|
+-- =============================================
+-- Author:		innomines
+-- Create date: 09.06.2009
+-- Description: get post thread number and board name
+---- for links etc
+-- =============================================
+delimiter |
+drop procedure if exists sp_get_post_link|
+create PROCEDURE sp_get_post_link(
+	boardname varchar(16),
+	postnum int
+)
+begin
+	select b.board_name, t.original_post_num, p.post_number 
+	from boards b,threads t, posts p 
+	where b.board_name = boardname and p.thread_id = t.id and p.board_id = b.id and
+	p.post_number=postnum and t.archive <> 1 and t.deleted <> 1;
+end|
+-- =============================================
+-- Author:		innomines
+-- Create date: 09.06.2009
+-- Description: get thread info (useful for thread exsisting check)
+-- =============================================
+delimiter |
+drop procedure if exists sp_get_thread_info|
+create PROCEDURE sp_get_thread_info(
+	boardid int,
+	openpostnum int
+)
+begin
+	select original_post_num, messages, bump_limit, sage from threads
+	where board_id = boardid and original_post_num = openpostnum;
+end|

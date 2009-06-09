@@ -125,7 +125,7 @@ if(!post_check_sizes($uploaded_file_size, true, $Message_text,
 }
 
 // mark fuction here
-if(!post_mark($Message_text, 
+if(!post_mark($link, $Message_text, 
 	$Message_theme, $Message_name, "kotoba_stat", $error_message)) 
 {
 	kotoba_error($error_message);

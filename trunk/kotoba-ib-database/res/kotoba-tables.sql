@@ -1,6 +1,5 @@
 /* DO NOT USE ME*/
 delimiter ;
-select "do not use me!";
 
 use kotoba2
 

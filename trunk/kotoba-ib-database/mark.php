@@ -21,7 +21,33 @@
  * Основные правила разметки можно найти в файле http://coyc.net/wakaba_mark.htm
  * Дополнения и техническое описание находится в файле /res/Kotoba mark 1.txt
  */
-function KotobaMark(&$src_text)
+function get_link_on_post($link, $board_name, $post_num) {
+	$post = array();
+	$st = mysqli_prepare($link, "call sp_get_post_link(?, ?)");
+	if(! $st) {
+		kotoba_error(mysqli_error($link));
+	}
+	if(! mysqli_stmt_bind_param($st, "si", $board_name, $post_num)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+
+	if(! mysqli_stmt_execute($st)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	mysqli_stmt_bind_result($st, $fetch_board_name, $open_thread_num, $post_number);
+	if(! mysqli_stmt_fetch($st)) {
+		mysqli_stmt_close($st);
+		cleanup_link($link);
+		return $post;
+	}
+	$post = array('board_name' => $fetch_board_name,
+		'original_post_num' => $open_thread_num, 
+		'post_number' => $post_number);
+	mysqli_stmt_close($st);
+	cleanup_link($link);
+	return $post;
+}
+function KotobaMark($link, &$src_text)
 {
 	$src_text = str_replace("\r\n", "\n", $src_text);	// Заменим переносы строки Windows на переносы Unix.
 	$src_text = str_replace("\r", "\n", $src_text);		// Заменим переносы строки Mac на переносы Unix.
@@ -97,7 +123,7 @@ function KotobaMark(&$src_text)
 	else
 		$output = $src_text;
 
-	// Шаг 1. Выделение спойлеров.
+	// Шаг 2. Выделение спойлеров.
 
 	if(preg_match('/\%\%/', $output) == 1)
 	{
@@ -182,17 +208,21 @@ function KotobaMark(&$src_text)
 		// А так же константы: KOTOBA_DIR_PATH, KOTOBA_ENABLE_STAT, ERR_GET_POSTS_THREADS,
 		// ERR_BOARDS_POSTS_THREADS.
 		
-		$HEAD = "<html>\n<head>\n\t<title>Mark error page</title>\n\t<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n\t" .
-				"<link rel=\"stylesheet\" type=\"text/css\" href=\"" . KOTOBA_DIR_PATH . "/kotoba.css\">\n</head>\n<body>\n";
-		$FOOTER = "\n</body>\n</html>";
 
 		if(isset($TextBlocks))
 			unset($TextBlocks);
 
-		if((isset($CodeBlocks) && count($CodeBlocks) > 0) || (isset($Spoilers) && count($Spoilers) > 0))
-			$TextBlocks = preg_split('/(code:\d+|spoiler:\d+)/', $output, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+		if((isset($CodeBlocks) && count($CodeBlocks) > 0) ||
+			(isset($Spoilers) && count($Spoilers) > 0))
+		{
+
+			$TextBlocks = preg_split('/(code:\d+|spoiler:\d+)/', $output, -1,
+				PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+		}
 		else
+		{
 			$TextBlocks[] = $output;
+		}
 
 		$Links = array();
 		$LinkNum = 0;
@@ -229,7 +259,7 @@ function KotobaMark(&$src_text)
 					$LinkNum++;
 					continue;
 				}
-
+				// link in board
 				if(preg_match('/(?<=\s|^)\&gt\;\&gt\;(\d+)(?=\s|$)/', $tokens[$j], $matches) == 1)
 				{
 					if(!isset($BOARD_NAME) || !isset($BOARD_NUM) || !defined('KOTOBA_DIR_PATH') 
@@ -239,7 +269,7 @@ function KotobaMark(&$src_text)
 						$Links[$LinkNum++] = $tokens[$j];
 						continue;
                     }
-
+/*
 					if(!$isThreadsDataRecived)	//Получение номеров постов и тредов доски.
 					{
 						if(($result = mysql_query("select p.`id`, p.`thread` from `posts` p join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board` where p.`board` = $BOARD_NUM and (position('ARCHIVE:YES' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null)")) !== false)
@@ -254,16 +284,20 @@ function KotobaMark(&$src_text)
 							if(KOTOBA_ENABLE_STAT)
 								kotoba_stat(sprintf(ERR_GET_POSTS_THREADS, $BOARD_NAME, mysql_error()));
 
-							die($HEAD . "<span class=\"error\">Ошибка. Не удалось получить номера постов и тредов доски $BOARD_NAME. Прична: " .  mysql_error() . '</span>' . $FOOTER);
+							kotoba_error(sprintf(ERR_GET_POSTS_THREADS, $BOARD_NAME, mysql_error()));
 						}                                   
 
 						$isThreadsDataRecived = true;
                     }
-
-					if(in_array($matches[1], array_keys($ThreadsData)))	// TODO Номер поста из реги имеет тип string, а номер поста из БД - int
+ */
+					$post_link = get_link_on_post($link, $BOARD_NAME, $matches[1]);
+//					if(in_array($matches[1], array_keys($ThreadsData)))	// TODO Номер поста из реги имеет тип string, а номер поста из БД - int
+					if(count($post_link) > 0)
 					{
 						$output .= "link:$LinkNum";
-						$Links[$LinkNum++] = '<a href="' . KOTOBA_DIR_PATH . "/$BOARD_NAME/{$ThreadsData[$matches[1]]}/#$matches[1]\">$tokens[$j]</a>";
+						$Links[$LinkNum++] = sprintf("<a href=\"%s/%s/%d#%d\">%s</a>",
+							KOTOBA_DIR_PATH, $BOARD_NAME, $post_link['original_post_num'],
+							$post_link['post_number'], $tokens[$j]);
 						continue;
 					}
 					else
@@ -284,34 +318,24 @@ function KotobaMark(&$src_text)
 						continue;
                     }
 
-					if(!$isBoardsDataRecived)
-					{
-						// Получение номеров постов и тредов всех досок.
-						if(($result = mysql_query('select b.`Name` `board`, p.`id`, p.`thread` from `posts` p join `threads` t on p.`thread` = t.`id` and p.`board` = t.`board` join `boards` b on p.`board` = b.`id` where (position(\'ARCHIVE:YES\' in t.`Thread Settings`) = 0 or t.`Thread Settings` is null) order by  p.`board`, p.`thread`, p.`id`')) !== false)
-						{
-							while(($row = mysql_fetch_array($result, MYSQL_ASSOC)) !== false)
-								$BoardsData[$row['board']][$row['id']] = $row['thread'];
-
-							mysql_free_result($result);
-						}
-						else
-						{
-							if(KOTOBA_ENABLE_STAT)
-								kotoba_stat(sprintf(ERR_BOARDS_POSTS_THREADS, mysql_error()));
-
-							die($HEAD . "<span class=\"error\">Ошибка. Не удалось получить номера постов и тредов на досках. Прична: " .  mysql_error() . '</span>' . $FOOTER);
-						}
-						
-						$isBoardsDataRecived = true;
-                    }
+					$post_link = get_link_on_post($link, $matches[1], $matches[2]);
 
 					// TODO Номер поста из реги имеет тип string, а номер поста из БД - int
-				    if(in_array($matches[1], array_keys($BoardsData), true) && in_array($matches[2], array_keys($BoardsData[$matches[1]])))	// Есть такая доска и тред.
+/*				    if(in_array($matches[1], array_keys($BoardsData), true) && in_array($matches[2], array_keys($BoardsData[$matches[1]])))	// Есть такая доска и тред.
 					{
 						$output .= "link:$LinkNum";
 						$Links[$LinkNum++] = '<a href="' . KOTOBA_DIR_PATH . "/$matches[1]/{$BoardsData[$matches[1]][$matches[2]]}/#$matches[2]\">$tokens[$j]</a>";
 						continue;
-                    }
+					}
+*/
+					if(count($post_link) > 0)
+					{
+						$output .= "link:$LinkNum";
+						$Links[$LinkNum++] = sprintf("<a href=\"%s/%s/%d#%d\">%s</a>",
+							KOTOBA_DIR_PATH, $post_link['board_name'], $post_link['original_post_num'],
+							$post_link['post_number'], $tokens[$j]);
+						continue;
+					}
 					else
 					{
 						$output .= "link:$LinkNum";

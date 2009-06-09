@@ -27,7 +27,7 @@
 {include file='header.tpl' page_title=$page_title}
 {include file='board_list.tpl' board_list=$board_list}<br>
 <h4 align=center>βchan</h4>
-<br><center><b>{$thread_location}</b></center>
+<br><center><b>Kotoba - {$BOARD_NAME}/{$THREAD_NUM}</b></center>
 <hr>
 <form name="Reply_form" action="{$KOTOBA_DIR_PATH}/reply.php" method="post" enctype="multipart/form-data">
 <input type="hidden" name="MAX_FILE_SIZE" value="1560576">
