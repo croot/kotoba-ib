@@ -176,4 +176,27 @@ function db_get_post($link, $board_id, $post_number) {
 	return array($post, $uploads);
 }
 
+function db_get_thread($link, $board_id, $thread_num) {
+	$st = mysqli_prepare($link, "call sp_get_thread_info(?, ?)");
+	if(! $st) {
+		kotoba_error(mysqli_error($link));
+	}
+	if(! mysqli_stmt_bind_param($st, "ii", $board_id, $thread_num)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+
+	if(! mysqli_stmt_execute($st)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	mysqli_stmt_bind_result($st, $original_post_num, $messages, $bump_limit, $sage);
+	if(! mysqli_stmt_fetch($st)) {
+		mysqli_stmt_close($st);
+		cleanup_link($link);
+		return array();
+	}
+	mysqli_stmt_close($st);
+	cleanup_link($link);
+	return array('original_post_num' => $original_post_num, 'messages' => $messages, 'bump_limit' => $bump_limit, 'sage' => $sage);
+}
+
 ?>
