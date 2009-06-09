@@ -127,6 +127,12 @@ if(isset($_SESSION['isLoggedIn']))	// Зарегистрированный по�
 $BOARD = db_get_board($link, $BOARD_NAME);
 
 $BOARD_NUM = $BOARD['id'];
+$THREAD = db_get_thread($link, $BOARD_NUM, $THREAD_NUM);
+if(count($THREAD) == 0) { // thread not found
+	if(KOTOBA_ENABLE_STAT)
+		kotoba_stat(sprintf(ERR_THREAD_NOT_FOUND, $THREAD_NUM, $BOARD_NAME));
+	kotoba_error(sprintf(ERR_THREAD_NOT_FOUND, $THREAD_NUM, $BOARD_NAME));
+}
 
 if($BOARD_NUM == -1)
 {
