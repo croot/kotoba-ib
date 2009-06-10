@@ -185,9 +185,11 @@ for($page = 1; $page <= $pages_count; $page ++) {
 
 $db_page = $PAGE - 1;
 $threads = get_threads_on_page($link, $BOARD_NUM, 10, $db_page);
+$types = db_get_board_types($link, $BOARD_NUM);
 
 $smarty = new SmartyKotobaSetup();
 $smarty->assign('BOARD_NAME', $BOARD_NAME);
+$smarty->assign('BOARD_TYPES', $types);
 $smarty->assign('page_title', "Kotoba - $BOARD_NAME");
 $boardNames = db_get_boards($link);
 $smarty->assign('board_list', $boardNames);

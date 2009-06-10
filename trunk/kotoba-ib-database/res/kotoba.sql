@@ -1123,7 +1123,7 @@ create PROCEDURE sp_get_post(
 	postnum int
 )
 begin
-	select post_number, name, email, subject, text, date_time, sage
+	select post_number, name, email, subject, text, unix_timestamp(date_time) as date_time, sage
 	from posts
 	where post_number = postnum and board_id = boardid;
 
@@ -1208,3 +1208,38 @@ begin
 	select original_post_num, messages, bump_limit, sage from threads
 	where board_id = boardid and original_post_num = openpostnum;
 end|
+-- =============================================
+-- Author:		innomines
+-- Create date: 10.06.2009
+-- Description: get same uploads
+-- =============================================
+delimiter |
+drop procedure if exists sp_same_uploads|
+create PROCEDURE sp_same_uploads(
+	boardid int,
+	uploadhash varchar(32)
+)
+begin
+	select id from uploads
+	where board_id = boardid and hash = uploadhash;
+end|
+
+-- =============================================
+-- Author:		innomines
+-- Create date: 10.06.2009
+-- Description: get post(s) with this upload
+-- =============================================
+delimiter |
+drop procedure if exists sp_upload_post|
+create PROCEDURE sp_upload_post(
+	boardid int,
+	uploadid int
+)
+begin
+	select b.board_name, t.original_post_num, p.post_number
+	from boards b, threads t, posts p, posts_uploads pu
+	where p.thread_id = t.id and p.board_id = b.id and 
+	t.archive <> 1 and t.deleted <> 1 and p.deleted <> 1 
+	and pu.post_id = p.id and b.id = boardid and pu.upload_id = uploadid;
+end|
+
