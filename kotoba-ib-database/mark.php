@@ -641,6 +641,7 @@ function KotobaMark($link, &$src_text)
 function BasicMark(&$line, $delimeter, $tag)
 {
 	$regDelimeter = '';
+	$tokens = array();
 
 	for($i = 0; $i < strlen($delimeter); $i++)
 		$regDelimeter .= "\\$delimeter[$i]";

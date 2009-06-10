@@ -12,6 +12,7 @@
 /* admin/boards.php: manage boards */
 
 require_once("../database_connect.php");
+require_once("../database_common.php");
 require_once("../common.php");
 
 function get_boards($link) {
@@ -102,23 +103,8 @@ function save_board($link, &$params_array) {
 function gather_supported_filetypes($link, &$boards) {
 	$board_types = array();
 	foreach($boards as $board) {
-		$types = array();
-		$st = mysqli_prepare($link, "call sp_get_board_filetypes(?)");
-		if(! $st) {
-			kotoba_error(mysqli_error($link));
-		}
-		if(! mysqli_stmt_bind_param($st, "i", $board['id'])) {
-			kotoba_error(mysqli_stmt_error($st));
-		}
-		if(! mysqli_stmt_execute($st)) {
-			kotoba_error(mysqli_stmt_error($st));
-		}
-		mysqli_stmt_bind_result($st, $extension);
-		while(mysqli_stmt_fetch($st)) {
-			array_push($types, $extension);
-		}
+		$types = db_get_board_types($link, $board['id']);
 		$board_types[$board['id']] = $types;
-		mysqli_stmt_close($st);
 		cleanup_link($link);
 	}
 	return $board_types;

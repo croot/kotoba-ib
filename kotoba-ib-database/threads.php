@@ -127,6 +127,7 @@ if(isset($_SESSION['isLoggedIn']))	// Зарегистрированный по�
 $BOARD = db_get_board($link, $BOARD_NAME);
 
 $BOARD_NUM = $BOARD['id'];
+$types = db_get_board_types($link, $BOARD_NUM);
 $THREAD = db_get_thread($link, $BOARD_NUM, $THREAD_NUM);
 if(count($THREAD) == 0) { // thread not found
 	if(KOTOBA_ENABLE_STAT)
@@ -145,6 +146,7 @@ $POST_COUNT = db_get_post_count($link, $BOARD_NUM);
 
 $smarty = new SmartyKotobaSetup();
 $smarty->assign('BOARD_NAME', $BOARD_NAME);
+$smarty->assign('BOARD_TYPES', $types);
 $smarty->assign('page_title', "Kotoba - $BOARD_NAME/$THREAD_NUM");
 $smarty->assign('THREAD_NUM', $THREAD_NUM);
 $boardNames = db_get_boards($link);

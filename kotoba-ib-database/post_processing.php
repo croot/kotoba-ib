@@ -1,6 +1,7 @@
 <?php
 /* postprocessing.php: module for post processing */
 
+error_reporting(E_ALL);
 
 /* post_get_board_id: get board id
  * return values: positive integer board id
@@ -360,6 +361,71 @@ function link_post_upload($link, $boardid, $uploadid, $postid)
 	}
 	mysqli_stmt_close($st);
 	cleanup_link($link);
+}
+
+// TODO: do not want array values search
+function post_check_supported_type($extension, &$types) {
+	return array_search($extension, $types, true);
+}
+
+function post_find_same_uploads($link, $boardid, $img_hash) {
+	$uploads = array();
+	$st = mysqli_prepare($link, "call sp_same_uploads(?, ?)");
+	if(! $st) {
+		kotoba_error(mysqli_error($link));
+	}
+	if(! mysqli_stmt_bind_param($st, "is", $boardid, $img_hash)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+
+	if(! mysqli_stmt_execute($st)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	if(! mysqli_stmt_bind_result($st, $id)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	while(mysqli_stmt_fetch($st)) {
+		array_push($uploads, array('id' => $id));
+	}
+	mysqli_stmt_close($st);
+	cleanup_link($link);
+	return $uploads;
+}
+
+function post_show_uploads_links($link, $boardid, &$same_uploads) {
+	$links = array();
+	foreach($same_uploads as $uploadid) {
+		array_push($links, post_get_uploadlink($link, $boardid, $uploadid['id']));
+	}
+
+	$smarty = new SmartyKotobaSetup();
+	$smarty->assign('links', $links);
+	$smarty->display('post_same_uploads.tpl');
+	exit;
+}
+function post_get_uploadlink($link, $boardid, $uploadid) {
+	$posts = array();
+	$st = mysqli_prepare($link, "call sp_upload_post(?, ?)");
+	if(! $st) {
+		kotoba_error(mysqli_error($link));
+	}
+	if(! mysqli_stmt_bind_param($st, "ii", $boardid, $uploadid)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+
+	if(! mysqli_stmt_execute($st)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	if(! mysqli_stmt_bind_result($st, $board_name, $thread_num, $post_num)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	while(mysqli_stmt_fetch($st)) {
+		array_push($posts, array('board_name' => $board_name, 'thread_num' => $thread_num, 
+			'post_num' => $post_num));
+	}
+	mysqli_stmt_close($st);
+	cleanup_link($link);
+	return $posts;
 }
 
 ?>

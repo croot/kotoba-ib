@@ -17,6 +17,7 @@
 // Как, куда и когда выводить статистику решает скрипт. Что выводить - решает events.php. Если вы ходите изменить
 // выводимый текст в лог статистики, используйте константы в events.php.
 
+error_reporting(E_ALL);
 require 'config.php';
 require 'common.php';
 kotoba_setup();
@@ -79,11 +80,14 @@ if(count($BOARD) == 0) {
 
 $BOARD_NUM = $BOARD['id'];
 
+$types = db_get_board_types($link, $BOARD_NUM);
+
 if($BOARD_NUM < 0) {
 	kotoba_error(ERR_BOARD_NOT_SPECIFED);
 }
 
 // Этап 2. Обработка данных ОП поста.
+
 
 
 if($_FILES['Message_img']['error'] == UPLOAD_ERR_NO_FILE &&
@@ -97,8 +101,17 @@ if($_FILES['Message_img']['error'] == UPLOAD_ERR_NO_FILE &&
 elseif($_FILES['Message_img']['error'] == UPLOAD_ERR_NO_FILE) { // no image
 	$with_image = false;
 }
-else { // image and text
+else { // image and may be text
 	$with_image = true;
+	$uploaded_file = $_FILES['Message_img']['tmp_name'];
+	$uploaded_name = $_FILES['Message_img']['name'];
+	$recived_ext = post_get_uploaded_extension($uploaded_name);
+	if(!post_check_supported_type($recived_ext, $types)) {
+		if(KOTOBA_ENABLE_STAT)
+			kotoba_stat(ERR_WRONG_FILETYPE);
+			
+		kotoba_error(ERR_WRONG_FILETYPE);
+	}
 }
 if($with_image && !post_check_image_upload_error($_FILES['Message_img']['error'], false, "kotoba_stat",
 	$error_message))
@@ -131,9 +144,6 @@ if(!post_mark($link, $Message_text,
 	kotoba_error($error_message);
 }
 if($with_image) {
-	$uploaded_file = $_FILES['Message_img']['tmp_name'];
-	$uploaded_name = $_FILES['Message_img']['name'];
-	$recived_ext = post_get_uploaded_extension($uploaded_name);
 
 require 'thumb_processing.php';
 	$imageresult = array();
@@ -185,6 +195,28 @@ if($with_image) {
 		kotoba_error(ERR_FILE_HASH);
 	}
 }
+
+$already_posted = false;
+$same_uplodads = post_find_same_uploads($link, $BOARD_NUM, $img_hash);
+$same_uplodads_qty = count($same_uplodads);
+switch($BOARD['same_upload']) {
+case 'no':
+	if($same_uplodads_qty > 0) {
+		@unlink($saved_image_path);
+		post_show_uploads_links($link, $BOARD_NUM, $same_uplodads);
+	}
+	break;
+case 'once':
+	if($same_uplodads_qty > 0) {
+		unlink($saved_image_path);
+		$already_posted = true;
+	}
+	break;
+case 'yes':
+default:
+break;
+}
+
 /*
 if(! KOTOBA_ALLOW_SAEMIMG)
 {
@@ -205,7 +237,7 @@ if(! KOTOBA_ALLOW_SAEMIMG)
 	}
 }
  */
-if($with_image && $imageresult['image'] == 1 && 
+if(!$already_posted && $with_image && $imageresult['image'] == 1 && 
 	$imageresult['x'] < KOTOBA_MIN_IMGWIDTH && $imageresult['y'] < KOTOBA_MIN_IMGHEIGTH)
 {
 	if(KOTOBA_ENABLE_STAT)
@@ -214,7 +246,7 @@ if($with_image && $imageresult['image'] == 1 &&
 	unlink($saved_image_path);
 	kotoba_error(ERR_FILE_LOW_RESOLUTION);
 }
-if($with_image && $imageresult['image'] == 1) {
+if(!$already_posted && $with_image && $imageresult['image'] == 1) {
 	$thumbnailresult = array();
 	$thumb_res = create_thumbnail($link, "$IMG_SRC_DIR/$saved_filename", "$IMG_THU_DIR/$saved_thumbname",
 		$original_ext, $imageresult['x'], $imageresult['y'], 200, 200,
@@ -255,7 +287,7 @@ else {
 	$saved_thumbname = $imageresult['thumbnail'];
 }
 
-if($with_image) {
+if(!$already_posted && $with_image) {
 	$image = upload($link, $BOARD_NUM, $saved_filename, $uploaded_file_size, $img_hash, 
 		$imageresult['image'], $image_virtual_path, $imageresult['x'], $imageresult['y'],
 		$thumbnail_virtual_path, $thumbnailresult['x'], $thumbnailresult['y']);
@@ -266,8 +298,10 @@ if($with_image) {
 }
 
 // password settings
+$OPPOST_PASS = '';
 if(isset($_POST['Message_pass']) && $_POST['Message_pass'] != '')
 { // password is set and not empty
+	$OPPOST_PASS = $_POST['Message_pass'];
 	if(($OPPOST_PASS = CheckFormat('pass', $_POST['Message_pass'])) === false)
 	{ // password have wrong format
 		if(KOTOBA_ENABLE_STAT)
@@ -288,15 +322,19 @@ if(array_key_exists('Sage', $_POST) && $_POST['Sage'] == 'sage') {
 }
 
 //echo "$BOARD_NUM, $THREAD_NUM";
-// TODO: sage etc
 $postid = post($link, $BOARD_NUM, $THREAD_NUM, $Message_name, '', $Message_theme, $OPPOST_PASS, session_id(),
-	ip2long($_SERVER['REMOTE_ADDR']), $Message_text, gmdate("Y-m-d H:i:s"), $sage);
+	ip2long($_SERVER['REMOTE_ADDR']), $Message_text, date("Y-m-d H:i:s"), $sage);
 
 if($postid < 0) {
 	kotoba_error("Cannot store information about post");
 }
-if($with_image) {
+if(!$already_posted && $with_image) {
 	if(link_post_upload($link, $BOARD_NUM, $image, $postid)) {
+		kotoba_error("Cannot link information about post and upload");
+	}
+}
+elseif($already_posted) {
+	if(link_post_upload($link, $BOARD_NUM, $same_uplodads[0]['id'], $postid)) {
 		kotoba_error("Cannot link information about post and upload");
 	}
 }

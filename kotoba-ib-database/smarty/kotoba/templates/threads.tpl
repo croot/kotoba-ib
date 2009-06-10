@@ -39,6 +39,10 @@
 <tr valign="top"><td>Пароль: </td><td><input type="password" name="Message_pass" size="30" value="{$REPLY_PASS}"></td></tr>
 <tr valign="top"><td>Перейти к: </td><td>(нити: <input type="radio" name="goto" value="t" checked>) (доске: <input type="radio" name="goto" value="b">)</td></tr>
 <tr valign="top"><td>Sage: </td><td><input type="checkbox" name="Sage" value="sage"></td></tr>
+<tr valign="top">
+<td>Расширения:</td>
+<td>{foreach from=$BOARD_TYPES item=type}{$type}&nbsp;{/foreach}</td>
+</tr>
 </table>
 <input type="hidden" name="b" value="{$BOARD_NAME}">
 <input type="hidden" name="t" value="{$THREAD_NUM}">

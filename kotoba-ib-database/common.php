@@ -149,7 +149,12 @@ class SmartyKotobaSetup extends Smarty
 }
 
 function kotoba_setup() {
+	// todo: configure locales!
 	mb_internal_encoding("UTF-8");
+	$res = setlocale(LC_ALL, 'ru_RU.UTF-8', 'ru', 'rus', 'russian');
+	if(!$res) {
+		kotoba_error("locale failed");
+	}
 }
 
 ?>

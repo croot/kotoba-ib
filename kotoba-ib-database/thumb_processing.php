@@ -82,6 +82,7 @@ function thumb_check_image_type($link, $ext, $file, &$result) {
 	$has_gd = (check_module('gd') | check_module('gd2')) & KOTOBA_TRY_IMAGE_GD;
 	$has_im = check_module('imagick') & KOTOBA_TRY_IMAGE_IM;
 	$image_settings = db_image_settings($link, $ext);
+	$result['force_thumbnail'] = false;
 	if(count($image_settings) == 0) {
 		return false;
 	}

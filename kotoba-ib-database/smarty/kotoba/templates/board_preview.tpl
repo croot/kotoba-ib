@@ -14,6 +14,10 @@
 <tr valign="top"><td>Файл: </td><td><input type="file" name="Message_img" size="54"></td></tr>
 <tr valign="top"><td>Пароль: </td><td><input type="password" name="Message_pass" size="30" value="{$OPPOST_PASS}"></td></tr>
 <tr valign="top"><td>Перейти: </td><td>(нить: <input type="radio" name="goto" value="t">) (доска: <input type="radio" name="goto" value="b" checked>)</td></tr>
+<tr valign="top">
+<td>Расширения:</td>
+<td>{foreach from=$BOARD_TYPES item=type}{$type}&nbsp;{/foreach}</td>
+</tr>
 </table>
 <input type="hidden" name="b" value="{$BOARD_NAME}">
 </form>

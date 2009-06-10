@@ -156,6 +156,8 @@ function db_get_post($link, $board_id, $post_number) {
 			if($result = mysqli_store_result($link)) {
 				if($count == 0) {
 					$row = mysqli_fetch_assoc($result);
+					$row['date_time'] = strftime(KOTOBA_DATETIME_FORMAT,
+						$row['date_time']);
 					$post = $row;
 				}
 				else {
@@ -199,4 +201,25 @@ function db_get_thread($link, $board_id, $thread_num) {
 	return array('original_post_num' => $original_post_num, 'messages' => $messages, 'bump_limit' => $bump_limit, 'sage' => $sage);
 }
 
+function db_get_board_types($link, $boardid) {
+	$types = array();
+	$st = mysqli_prepare($link, "call sp_get_board_filetypes(?)");
+	if(! $st) {
+		kotoba_error(mysqli_error($link));
+	}
+	if(! mysqli_stmt_bind_param($st, "i", $boardid)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	if(! mysqli_stmt_execute($st)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	mysqli_stmt_bind_result($st, $extension);
+	while(mysqli_stmt_fetch($st)) {
+		array_push($types, $extension);
+	}
+	$board_types[$boardid] = $types;
+	mysqli_stmt_close($st);
+	cleanup_link($link);
+	return $types;
+}
 ?>
