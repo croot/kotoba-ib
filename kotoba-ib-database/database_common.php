@@ -215,9 +215,8 @@ function db_get_board_types($link, $boardid) {
 	}
 	mysqli_stmt_bind_result($st, $extension);
 	while(mysqli_stmt_fetch($st)) {
-		array_push($types, $extension);
+		$types[$extension] = 1;
 	}
-	$board_types[$boardid] = $types;
 	mysqli_stmt_close($st);
 	cleanup_link($link);
 	return $types;

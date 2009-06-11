@@ -9,6 +9,8 @@
  * See license.txt for more info.*
  *********************************/
 
+error_reporting(E_ALL);
+
 /*
  * Разбирает строку настроек $settings.
  * Вовзращает ассоциированный массив с 
@@ -149,6 +151,10 @@ class SmartyKotobaSetup extends Smarty
 }
 
 function kotoba_setup() {
+	ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH  . '/sessions/');
+	ini_set('session.gc_maxlifetime', 60 * 60 * 24);    // 1 день.
+	ini_set('session.cookie_lifetime', 60 * 60 * 24);
+	session_start();
 	// todo: configure locales!
 	mb_internal_encoding("UTF-8");
 	$res = setlocale(LC_ALL, 'ru_RU.UTF-8', 'ru', 'rus', 'russian');

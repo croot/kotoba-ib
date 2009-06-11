@@ -14,10 +14,6 @@ require 'common.php';
 
 kotoba_setup();
 
-ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH  . '/sessions/');
-ini_set('session.gc_maxlifetime', 60 * 60 * 24);    // 1 день.
-ini_set('session.cookie_lifetime', 60 * 60 * 24);
-session_start();
 header("Cache-Control: private");
 
 function preview_message(&$message, $preview_lines, &$is_cutted) {
@@ -189,7 +185,7 @@ $types = db_get_board_types($link, $BOARD_NUM);
 
 $smarty = new SmartyKotobaSetup();
 $smarty->assign('BOARD_NAME', $BOARD_NAME);
-$smarty->assign('BOARD_TYPES', $types);
+$smarty->assign('BOARD_TYPES', array_keys($types));
 $smarty->assign('page_title', "Kotoba - $BOARD_NAME");
 $boardNames = db_get_boards($link);
 $smarty->assign('board_list', $boardNames);
@@ -198,8 +194,10 @@ $smarty->assign('BOARD_BUMPLIMIT', $BUMP_LIMIT);
 $smarty->assign('KOTOBA_POST_LIMIT', KOTOBA_POST_LIMIT);
 $smarty->display('board_preview.tpl');
 
+var_dump($threads);
 foreach($threads as $open_post) {
 	$posts = get_thread_preview($link, $BOARD_NUM, $open_post, 10);
+	var_dump($posts);
 	$count = 0;
 	foreach($posts as $post) {
 		$smarty_thread = new SmartyKotobaSetup();
