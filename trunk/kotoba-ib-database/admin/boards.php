@@ -111,13 +111,15 @@ function gather_supported_filetypes($link, &$boards) {
 }
 $link = dbconn();
 
-$action = strval($_GET['action']);
+if(isset($_GET['action'])) {
+	$action = strval($_GET['action']);
+}
 
-if($action == 'new') {
+if(isset($action) && $action == 'new') {
 	add_new_board($link, $_GET);
 	header("Location: boards.php");
 }
-elseif($action == 'save') {
+elseif(isset($action) && $action == 'save') {
 	save_board($link, $_GET);
 	header("Location: boards.php");
 }

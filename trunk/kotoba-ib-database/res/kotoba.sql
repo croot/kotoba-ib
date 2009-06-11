@@ -197,8 +197,9 @@ create PROCEDURE sp_get_board_filetypes(
 	boardid int
 )
 begin
-	select t.extension from board_upload_types bt, upload_types t
-	where bt.board_id = boardid and bt.upload_id = t.id
+	select t.extension from board_upload_types bt join upload_types t
+	on (bt.upload_id = t.id)
+	where bt.board_id = boardid
 	group by t.extension
 	order by t.extension;
 end|
@@ -210,6 +211,7 @@ end|
 delimiter |
 drop procedure if exists sp_add_board_filetype|
 create PROCEDURE sp_add_board_filetype(
+
 	boardid int,
 	filetypeid int
 )
@@ -619,6 +621,7 @@ BEGIN
 	select rubber_board into rubber from boards
 	where id = boardid;
 
+	-- todo: maximum integer from documentation
 	if rubber = 1 then
 		set threadlimit = 2147483647;
 	else
@@ -828,7 +831,7 @@ BEGIN
 
 	SELECT count(id) into threadscount from threads
 	where board_id = boardid 
-		and deleted <> 1;
+		and deleted <> 1 and archive <> 1;
 
 	if threadscount is null then
 		set threadscount = 0;
@@ -986,8 +989,8 @@ create PROCEDURE sp_get_boards(
 )
 begin
 	select b.id, b.board_name, b.board_description 
-	from boards b, board_upload_types u 
-	where u.board_id = b.id 
+	from boards b join board_upload_types u 
+	on (u.board_id = b.id)
 	group by b.id
 	order by b.board_name;
 
@@ -1127,8 +1130,11 @@ begin
 	from posts
 	where post_number = postnum and board_id = boardid;
 
-	select u.is_image, u.file, u.size, u.file_name, u.file_w, u.file_h, u.thumbnail, u.thumbnail_w, u.thumbnail_h
-	from uploads u, posts_uploads p where p.post_id = get_postid(boardid, postnum) and p.upload_id = u.id;
+	select u.is_image, u.file, u.size, u.file_name, u.file_w, u.file_h,
+	u.thumbnail, u.thumbnail_w, u.thumbnail_h
+	from uploads u 
+	join posts_uploads p on (p.upload_id = u.id)
+	where p.post_id = get_postid(boardid, postnum);
 end|
 
 -- =============================================
@@ -1173,6 +1179,7 @@ begin
 	select post_number
 	from posts
 	where thread_id = threadid and board_id = boardid
+	and deleted <> 1
 	order by date_time asc;
 end|
 -- =============================================
@@ -1189,9 +1196,10 @@ create PROCEDURE sp_get_post_link(
 )
 begin
 	select b.board_name, t.original_post_num, p.post_number 
-	from boards b,threads t, posts p 
-	where b.board_name = boardname and p.thread_id = t.id and p.board_id = b.id and
-	p.post_number=postnum and t.archive <> 1 and t.deleted <> 1;
+	from boards b 
+	join threads t on  (t.archive <> 1 and t.deleted <> 1)
+	join posts p on (p.deleted <> 1 and p.thread_id = t.id and p.board_id = b.id)
+	where b.board_name = boardname and p.post_number = postnum;
 end|
 -- =============================================
 -- Author:		innomines
@@ -1220,8 +1228,11 @@ create PROCEDURE sp_same_uploads(
 	uploadhash varchar(32)
 )
 begin
-	select id from uploads
-	where board_id = boardid and hash = uploadhash;
+	select u.id from uploads u 
+	join threads t on (t.archive <> 1 and t.deleted <> 1) 
+	join posts p on (p.deleted <> 1 and p.thread_id = t.id)
+	join posts_uploads pu on (pu.post_id = p.id and pu.upload_id = u.id) 
+	where u.board_id = boardid and u.hash=uploadhash;
 end|
 
 -- =============================================
@@ -1236,10 +1247,93 @@ create PROCEDURE sp_upload_post(
 	uploadid int
 )
 begin
-	select b.board_name, t.original_post_num, p.post_number
-	from boards b, threads t, posts p, posts_uploads pu
-	where p.thread_id = t.id and p.board_id = b.id and 
-	t.archive <> 1 and t.deleted <> 1 and p.deleted <> 1 
-	and pu.post_id = p.id and b.id = boardid and pu.upload_id = uploadid;
+	select b.board_name, t.original_post_num, p.post_number from boards b
+	join threads t on (t.archive <> 1 and t.deleted <> 1)     
+	join posts p on (p.thread_id = t.id and p.board_id = b.id and p.deleted <> 1)
+	join posts_uploads pu on (p.id = pu.post_id)
+	where b.id = boardid and pu.upload_id = uploadid;
 end|
 
+-- =============================================
+-- Author:		innomines
+-- Create date: 11.06.2009
+-- Description: add group
+-- =============================================
+delimiter |
+drop procedure if exists sp_addgroup|
+create procedure sp_addgroup (
+	groupname varchar(32)
+)
+begin
+	insert into groups (group_name)
+	values (groupname);
+end|
+-- =============================================
+-- Author:		innomines
+-- Create date: 11.06.2009
+-- Description: add user to group
+-- =============================================
+delimiter |
+drop procedure if exists sp_add_membership|
+create procedure sp_addmembership(
+	userid int,
+	groupid int
+)
+begin
+	insert into membership (user_id, group_id)
+	values (userid, groupid);
+end|
+
+-- =============================================
+-- Author:		innomines
+-- Create date: 11.06.2009
+-- Description: add per-board group access settings
+-- =============================================
+delimiter |
+drop procedure if exists sp_addaccess|
+create procedure sp_addaccess(
+	boardid int,
+	groupid int,
+	mayread int,
+	maythread tinyint,
+	maypost int,
+	maypostimage int,
+	maydeletepost int,
+	maydeleteimage int,
+	maybanuser int,
+	maycreateboard tinyint
+)
+begin
+	insert into access_lists (board_id, group_id,
+		readboard, thread, post, postimage, delpost, delimage, banuser, createboard)
+	values
+	(boardid, groupid, 
+		mayread,
+		maythread,
+		maypost,
+		maypostimage,
+		maydeletepost,
+		maydeleteimage,
+		maybanuser,
+		maycreateboard);
+end|
+
+-- =============================================
+-- Author:		innomines
+-- Create date: 11.06.2009
+-- Description: get user per-board access settings
+-- =============================================
+delimiter |
+drop procedure if exists sp_getaccess|
+create procedure sp_getaccess(
+	boardid int,
+	userid int
+)
+begin
+	select a.readboard, a.thread, a.post, a.postimage,
+		a.delpost, a.delimage, a.banuser, a.createboard
+	from access_lists a
+	join boards b on (b.id = boardid and a.board_id = boardid)
+	join membership m on (m.user_id = userid)
+	join groups g on (g.id = m.group_id and a.group_id = m.group_id);
+end|

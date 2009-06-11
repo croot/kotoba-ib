@@ -365,7 +365,7 @@ function link_post_upload($link, $boardid, $uploadid, $postid)
 
 // TODO: do not want array values search
 function post_check_supported_type($extension, &$types) {
-	return array_search($extension, $types, true);
+	return array_key_exists($extension, $types);
 }
 
 function post_find_same_uploads($link, $boardid, $img_hash) {

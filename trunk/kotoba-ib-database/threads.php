@@ -13,10 +13,6 @@ require 'config.php';
 require 'common.php';
 
 kotoba_setup();
-ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH  . '/sessions/');
-ini_set('session.gc_maxlifetime', 60 * 60 * 24);    // 1 день.
-ini_set('session.cookie_lifetime', 60 * 60 * 24);
-session_start();
 header("Cache-Control: private");
 
 function get_thread($link, $boardid, $open_post_num) {
@@ -146,13 +142,13 @@ $POST_COUNT = db_get_post_count($link, $BOARD_NUM);
 
 $smarty = new SmartyKotobaSetup();
 $smarty->assign('BOARD_NAME', $BOARD_NAME);
-$smarty->assign('BOARD_TYPES', $types);
+$smarty->assign('BOARD_TYPES', array_keys($types));
 $smarty->assign('page_title', "Kotoba - $BOARD_NAME/$THREAD_NUM");
 $smarty->assign('THREAD_NUM', $THREAD_NUM);
 $boardNames = db_get_boards($link);
 $smarty->assign('board_list', $boardNames);
-$smarty->assign('POST_COUNT', $POST_COUNT);
-$smarty->assign('BOARD_BUMPLIMIT', $BUMP_LIMIT);
+$smarty->assign('POST_COUNT', $THREAD['messages']);
+$smarty->assign('THREAD_BUMPLIMIT', $THREAD['bump_limit']);
 $smarty->assign('KOTOBA_POST_LIMIT', KOTOBA_POST_LIMIT);
 $smarty->display('threads.tpl');
 

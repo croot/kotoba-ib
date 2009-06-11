@@ -225,10 +225,13 @@ drop table if exists users;
 CREATE TABLE users(
 	id int auto_increment not null,
 	auth_key  varchar(32) not null,
-	role int not null default 0,
+--	role int not null default 0,
 	preview_posts int,
+	preview_lines int,
 	preview_threads int,
 	preview_pages int,
+	language varchar(16),
+	style text,
 	primary key(id),
 	unique index(auth_key)
 ) engine=innodb CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -236,8 +239,68 @@ CREATE TABLE users(
 users: users on kotoba
 id - user identifier
 auth_key - user authentication key (password)
-role - user role. 0 is usual user
+xxx role - user role. 0 is usual user
 preview_posts - how many posts showd in preview mode
+preview_lines - how many lines show of begining of long post in preview
 preview_threads - how many threads on page in preview mode
 preview_pages - how many pages in preview mode
+language - user language interface
+style - user defined styles
+*/
+drop table if exists groups;
+create table groups(
+	id int auto_increment not null,
+	group_name varchar(32),
+	primary key(id),
+	unique index (group_name)
+) engine=innodb CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*
+groups: user groups
+id - group identifier
+group_name - name of group
+*/
+
+drop table if exists membership;
+create table membership(
+	id int auto_increment not null,
+	user_id int,
+	group_id int,
+	primary key(id),
+	unique index (user_id, group_id)
+) engine=innodb CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*
+membership: users in groups
+user_id - user identifier
+group_id - group identifier
+*/
+
+drop table if exists access_lists;
+create table access_lists(
+	id int auto_increment not null,
+	board_id int,
+	group_id int,
+	readboard tinyint not null default 1,
+	thread tinyint,
+	post tinyint,
+	postimage tinyint,
+	delpost tinyint,
+	delimage tinyint,
+	banuser tinyint,
+	createboard tinyint,
+	primary key(id),
+	unique index (board_id, group_id)
+) engine=innodb CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+/*
+access_lists: group access list (global and per board)
+board_id - board identifier
+group_id - group identifier
+readboard - group may read board
+thread - group may create new threads
+post - group may answer in threads
+postimage - may attach an upload to posts
+delpost - may delete posts (even from other users)
+delimage - may delete uploads
+banuser - may ban user ip (TODO: ban only on allowed board?)
+createboard - may create boards (global)
 */

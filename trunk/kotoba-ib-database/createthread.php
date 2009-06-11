@@ -20,6 +20,7 @@
 error_reporting(E_ALL);
 require 'config.php';
 require 'common.php';
+kotoba_setup();
 require_once 'post_processing.php';
 require 'error_processing.php';
 require 'events.php';
@@ -87,7 +88,7 @@ $recived_ext = post_get_uploaded_extension($uploaded_name);
 if(!post_check_supported_type($recived_ext, $types)) {
 	if(KOTOBA_ENABLE_STAT)
 		kotoba_stat(ERR_WRONG_FILETYPE);
-		
+
 	kotoba_error(ERR_WRONG_FILETYPE);
 }
 
@@ -168,7 +169,7 @@ $same_uplodads_qty = count($same_uplodads);
 switch($BOARD['same_upload']) {
 case 'no':
 	if($same_uplodads_qty > 0) {
-		@unlink($saved_image_path);
+		unlink($saved_image_path);
 		post_show_uploads_links($link, $BOARD_NUM, $same_uplodads);
 	}
 	break;

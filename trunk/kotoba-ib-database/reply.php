@@ -197,24 +197,26 @@ if($with_image) {
 }
 
 $already_posted = false;
-$same_uplodads = post_find_same_uploads($link, $BOARD_NUM, $img_hash);
-$same_uplodads_qty = count($same_uplodads);
-switch($BOARD['same_upload']) {
-case 'no':
-	if($same_uplodads_qty > 0) {
-		@unlink($saved_image_path);
-		post_show_uploads_links($link, $BOARD_NUM, $same_uplodads);
-	}
+if($with_image) {
+	$same_uplodads = post_find_same_uploads($link, $BOARD_NUM, $img_hash);
+	$same_uplodads_qty = count($same_uplodads);
+	switch($BOARD['same_upload']) {
+	case 'no':
+		if($same_uplodads_qty > 0) {
+			unlink($saved_image_path);
+			post_show_uploads_links($link, $BOARD_NUM, $same_uplodads);
+		}
+		break;
+	case 'once':
+		if($same_uplodads_qty > 0) {
+			unlink($saved_image_path);
+			$already_posted = true;
+		}
+		break;
+	case 'yes':
+	default:
 	break;
-case 'once':
-	if($same_uplodads_qty > 0) {
-		unlink($saved_image_path);
-		$already_posted = true;
 	}
-	break;
-case 'yes':
-default:
-break;
 }
 
 /*
@@ -283,7 +285,7 @@ if(!$already_posted && $with_image && $imageresult['image'] == 1) {
 			$message));
 	}
 }
-else {
+elseif(!$already_posted && $with_image) {
 	$saved_thumbname = $imageresult['thumbnail'];
 }
 
