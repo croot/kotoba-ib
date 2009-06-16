@@ -294,6 +294,23 @@ function post_remove_files($image, $thumbnail) {
 	@unlink($thumbnail);
 }
 
+/* upload: create database record about apload
+ * return upload identifier on success, -1 on error
+ * arguments: 
+ * $link - database link
+ * $boardid - board id
+ * $name - filename
+ * $size - file size
+ * $hash - upload checksum
+ * $image - upload image boolean flag
+ * $upload - upload uri
+ * $upload_w - upload width
+ * $upload_h - upload height
+ * $thu - thumbnail uri
+ * $thu_w - thumbnail width
+ * $thu_h - thumbnail height
+ */
+
 function upload($link, $boardid, $name, $size, $hash, $image, $upload, $upload_w, $upload_h, $thu, $thu_w, $thu_h)
 {
 	$st = mysqli_prepare($link, "call sp_upload(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -319,6 +336,22 @@ function upload($link, $boardid, $name, $size, $hash, $image, $upload, $upload_w
 	return $uploadid;
 }
 
+/* post: stores post in database
+ * return post identifier on success, -1 on error
+ * arguments: 
+ * $link - database link
+ * $boardid - board id
+ * $threadid - thread num (open post number)
+ * $postname - name of poster
+ * $postemail - email of poster
+ * $postsubject - subject of post
+ * $postpassword - password for deletion
+ * $postersessionid - session id of poster
+ * $posterip - poster ip (integer)
+ * $posttext - post text
+ * $datetime - date time in sql format
+ * $sage - post doesn't up thread
+ */
 function post($link, $boardid,$threadid,$postname,$postemail,$postsubject,$postpassword,
 	$postersessionid,$posterip,$posttext,$datetime,$sage)
 {
@@ -346,6 +379,15 @@ function post($link, $boardid,$threadid,$postname,$postemail,$postsubject,$postp
 	return $postid;
 }
 
+/* link_post_upload: link post and upload
+ * returns nothing
+ * arguments:
+ * $link - database link
+ * $boardid - board id
+ * $uploadid - upload identifier (see upload function)
+ * $postid - post identifier (see post function)
+ */
+
 function link_post_upload($link, $boardid, $uploadid, $postid)
 {
 	$st = mysqli_prepare($link, "call sp_post_upload(?, ?, ?)");
@@ -363,11 +405,24 @@ function link_post_upload($link, $boardid, $uploadid, $postid)
 	cleanup_link($link);
 }
 
-// TODO: do not want array values search
+// TODO: non-effective search
+/* post_check_supported_type: check if extension of uploaded file is allowed to post
+ * returns boolean
+ * arguments:
+ * $extension - extension of uploaded file
+ * $types - array where keys is allowed to post extensions
+ */
 function post_check_supported_type($extension, &$types) {
 	return array_key_exists($extension, $types);
 }
 
+/* post_find_same_uploads: find same uploads on board
+ * return array of identifiers of uploads (empty if there is wasn't same uploads)
+ * arguments:
+ * $link - database link
+ * $boardid - board id
+ * $img_hash - hash of upload
+ */
 function post_find_same_uploads($link, $boardid, $img_hash) {
 	$uploads = array();
 	$st = mysqli_prepare($link, "call sp_same_uploads(?, ?)");
@@ -392,6 +447,14 @@ function post_find_same_uploads($link, $boardid, $img_hash) {
 	return $uploads;
 }
 
+/* post_show_uploads_links: show information about same uploads
+ * XXX: warning! terminates script!
+ * returns nothing
+ * arguments:
+ * $link - database link
+ * $boardid - board id
+ * $same_uploads - array of identifiers of uploads (see post_find_same_uploads function)
+ */
 function post_show_uploads_links($link, $boardid, &$same_uploads) {
 	$links = array();
 	foreach($same_uploads as $uploadid) {
@@ -403,6 +466,16 @@ function post_show_uploads_links($link, $boardid, &$same_uploads) {
 	$smarty->display('post_same_uploads.tpl');
 	exit;
 }
+
+/* post_get_uploadlink: get post information linked with upload id
+ * returns array with fields:
+ * board_name, thread_num, post_num
+ * arguments:
+ * $link - database link
+ * $boardid - board id
+ * $uploadid - upload identifier
+ */
+
 function post_get_uploadlink($link, $boardid, $uploadid) {
 	$posts = array();
 	$st = mysqli_prepare($link, "call sp_upload_post(?, ?)");

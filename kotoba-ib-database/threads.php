@@ -9,12 +9,21 @@
  * See license.txt for more info.*
  *********************************/
 
+/* show thread */
+
 require 'config.php';
 require 'common.php';
 
 kotoba_setup();
 header("Cache-Control: private");
 
+/* get_thread - get thread posts
+ * return array of post numbers
+ * arguments:
+ * $link - database link
+ * $boardid - board id
+ * $open_post_num - thread open post number
+ */
 function get_thread($link, $boardid, $open_post_num) {
 	$posts = array();
 	$st = mysqli_prepare($link, "call sp_get_thread(?, ?)");

@@ -150,6 +150,10 @@ class SmartyKotobaSetup extends Smarty
     }
 }
 
+/* kotoba_setup - initialize global variables, start session and so on
+ * nothing returns and dont expect arguments
+ * locale setings hardcoded!
+ */
 function kotoba_setup() {
 	ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH  . '/sessions/');
 	ini_set('session.gc_maxlifetime', 60 * 60 * 24);    // 1 день.
