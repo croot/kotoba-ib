@@ -16,6 +16,14 @@ kotoba_setup();
 
 header("Cache-Control: private");
 
+/* preview_message - crop long message
+ * TODO: limit only lines
+ * return cropped (if need) message
+ * arguments:
+ * $message - message text
+ * $preview_lines - how many lines to preview
+ * $is_cutted - (pointer) notifies caller if message was cutted
+ */
 function preview_message(&$message, $preview_lines, &$is_cutted) {
 	$lines = explode("<br>", $message);
 	if(count($lines) > $preview_lines) {
@@ -27,6 +35,14 @@ function preview_message(&$message, $preview_lines, &$is_cutted) {
 		return $message;
 	}
 }
+/* get_threads_on_page: get threads on page
+ * returns array of thread id
+ * arguments:
+ * $link - database link
+ * $boardid - board id
+ * $threadsqty - threads quantity on page
+ * $page - page number
+ */
 function get_threads_on_page($link, $boardid, $threadsqty, $page) {
 	$threads = array();
 	$st = mysqli_prepare($link, "call sp_threads_on_page(?, ?, ?)");
@@ -47,6 +63,17 @@ function get_threads_on_page($link, $boardid, $threadsqty, $page) {
 	cleanup_link($link);
 	return $threads;
 }
+
+/* get_thread_preview: get thread posts and skipped posts and skipped uploads
+ * returns array with fields:
+ * post_number, skipped, uploads
+ * arguments:
+ * $link - database link
+ * $boardid - board id
+ * $open_post - thread open post number
+ * $last - show N last posts
+ */
+
 function get_thread_preview($link, $boardid, $open_post, $last) {
 	$posts = array();
 	$st = mysqli_prepare($link, "call sp_thread_preview(?, ?, ?)");

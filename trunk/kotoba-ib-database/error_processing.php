@@ -28,7 +28,7 @@ function kotoba_error($error_message) {
 		$smarty->assign('error_message', $error_message);
 	}
 	else {
-		$smarty->assign('error_message', 'General Protection Fault');
+		$smarty->assign('error_message', 'Unknown error');
 	}
 
 	die($smarty->fetch('error.tpl'));

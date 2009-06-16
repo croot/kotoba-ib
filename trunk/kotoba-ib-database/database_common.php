@@ -11,6 +11,13 @@
 
 
 /* database_common.php: common functions may used by all kotoba modules */
+
+/* db_get_boards: get all allowed to use boards
+ * returns array with fields:
+ * 'id', 'board_name', 'board_description'
+ * arguments:
+ * $link - database link (mysqli)
+ */
 function db_get_boards($link) {
 	$boards = array();
 	$st = mysqli_prepare($link, "call sp_get_boards()");
@@ -30,6 +37,13 @@ function db_get_boards($link) {
 	cleanup_link($link);
 	return $boards;
 }
+
+/* db_get_board_id: get board id by name
+ * returns board id (positive) on success, otherwise return -1
+ * arguments:
+ * $link - database link
+ * $board_name - board name
+ */
 
 function db_get_board_id($link, $board_name) {
 	$st = mysqli_prepare($link, "call sp_get_board_id(?)");
@@ -53,6 +67,16 @@ function db_get_board_id($link, $board_name) {
 	cleanup_link($link);
 	return $id;
 }
+
+/* db_get_pages: get pages quantity
+ * remark: on board preview threads splitted on pages
+ * return number of pages (0 or more), -1 on error
+ * arguments:
+ * $link - database link
+ * $boardid - board id
+ * $threads - number of threads on page
+ */
+
 function db_get_pages($link, $boardid, $threads) {
 	$st = mysqli_prepare($link, "select get_pages(?, ?)");
 	if(! $st) {
@@ -75,6 +99,15 @@ function db_get_pages($link, $boardid, $threads) {
 	cleanup_link($link);
 	return $pages;
 }
+
+/* db_get_board: get all board settings
+ * return array with fields:
+ * id, board_description, board_title, bump_limit, rubber_board, visible_threads, same_upload
+ * arguments:
+ * $link - database link
+ * $board_name - board name
+ */
+
 function db_get_board($link, $board_name) {
 	$st = mysqli_prepare($link, "call sp_get_board(?)");
 	if(! $st) {
@@ -87,7 +120,8 @@ function db_get_board($link, $board_name) {
 	if(! mysqli_stmt_execute($st)) {
 		kotoba_error(mysqli_stmt_error($st));
 	}
-	mysqli_stmt_bind_result($st, $id, $board_description, $board_title, $bump_limit, $rubber_board, $visible_threads, $same_upload);
+	mysqli_stmt_bind_result($st, $id, $board_description, $board_title, 
+		$bump_limit, $rubber_board, $visible_threads, $same_upload);
 	if(! mysqli_stmt_fetch($st)) {
 		mysqli_stmt_close($st);
 		cleanup_link($link);
@@ -100,6 +134,14 @@ function db_get_board($link, $board_name) {
 		'rubber_board' => $rubber_board, 'visible_threads' => $visible_threads, 
 		'same_upload' => $same_upload);
 }
+
+/* db_get_post_count: get post count on board
+ * return 0 or more on success, -1 on error
+ * arguments:
+ * $link - database link
+ * $board_id - board id
+ */
+
 function db_get_post_count($link, $board_id) {
 	$boards = array();
 	$st = mysqli_prepare($link, "call sp_get_board_post_count(?)");
@@ -123,6 +165,14 @@ function db_get_post_count($link, $board_id) {
 	cleanup_link($link);
 	return $count;
 }
+
+/* db_board_bumplimit: get board bumplimit
+ * returns 0 or more if success, otherwise return -1
+ * arguments:
+ * $link - database link
+ * $board_id - board id
+ */
+
 function db_board_bumplimit($link, $board_id) {
 	$st = mysqli_prepare($link, "call sp_get_board_bumplimit(?)");
 	if(! $st) {
@@ -145,6 +195,20 @@ function db_board_bumplimit($link, $board_id) {
 	cleanup_link($link);
 	return $bumplimit;
 }
+
+/* db_get_post: get post
+ * return array of arrays:
+ * [0] is post itself, array fields:
+ * post_number, name, email, subject, text, date_time, sage
+ * XXX: date_time formatted internally by this function
+ * [1] and more is uploads linked with this post. fileds are:
+ * is_image, file, size, file_name, file_w, file_h, thumbnail, thumbnail_w, thumbnail_h
+ * arguments:
+ * $link - database link
+ * $board_id - board id
+ * $post_number - post number
+ */
+
 function db_get_post($link, $board_id, $post_number) {
 	$post = array();
 	$uploads = array();
@@ -178,6 +242,14 @@ function db_get_post($link, $board_id, $post_number) {
 	return array($post, $uploads);
 }
 
+/* db_get_thread: get thread information
+ * return array with fileds:
+ * original_post_num, messages, bump_limit, sage
+ * arguments:
+ * $link - database link
+ * $board_id - board id
+ * $thread_num - thread number (number of open post)
+ */
 function db_get_thread($link, $board_id, $thread_num) {
 	$st = mysqli_prepare($link, "call sp_get_thread_info(?, ?)");
 	if(! $st) {
@@ -198,8 +270,16 @@ function db_get_thread($link, $board_id, $thread_num) {
 	}
 	mysqli_stmt_close($st);
 	cleanup_link($link);
-	return array('original_post_num' => $original_post_num, 'messages' => $messages, 'bump_limit' => $bump_limit, 'sage' => $sage);
+	return array('original_post_num' => $original_post_num, 'messages' => $messages, 
+		'bump_limit' => $bump_limit, 'sage' => $sage);
 }
+
+/* db_get_board_types: get board types (filetypes which allowed to upload on this board)
+ * return array where key is name of supported extension
+ * arguments:
+ * $link - database link
+ * $boardid - board id
+ */
 
 function db_get_board_types($link, $boardid) {
 	$types = array();
