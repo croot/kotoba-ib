@@ -104,7 +104,7 @@ function gather_supported_filetypes($link, &$boards) {
 	$board_types = array();
 	foreach($boards as $board) {
 		$types = db_get_board_types($link, $board['id']);
-		$board_types[$board['id']] = $types;
+		$board_types[$board['id']] = array_keys($types);
 		cleanup_link($link);
 	}
 	return $board_types;

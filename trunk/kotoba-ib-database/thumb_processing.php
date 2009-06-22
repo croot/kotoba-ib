@@ -30,7 +30,8 @@ function check_module($module_name) {
 	}
 }
 /* db_image_settings: get uploaded file type settings from database
- * return settings array
+ * return settings array with fields:
+ * image, extension, store_extension, handler, thumbnail_image
  * arguments:
  * $link is database link
  * $extension is file extension
@@ -83,6 +84,7 @@ function thumb_check_image_type($link, $ext, $file, &$result) {
 	$has_im = check_module('imagick') & KOTOBA_TRY_IMAGE_IM;
 	$image_settings = db_image_settings($link, $ext);
 	$result['force_thumbnail'] = false;
+	// if nothing found
 	if(count($image_settings) == 0) {
 		return false;
 	}
@@ -94,17 +96,21 @@ function thumb_check_image_type($link, $ext, $file, &$result) {
 	if($result['image'] == 0) {
 		if(!isset($image_settings['thumbnail_image']) && 
 			strlen($image_settings['thumbnail_image']) == 0)
-		{
+		{ // if upload is not image, and no thumbnails set then we're don't know how to handle upload
 			return false;
 		}
 		$result['thumbnail'] = $image_settings['thumbnail_image'];
 		return true;
 	}
-
+	if($image_settings['handler'] == 'internal_png' && $image_settings['image'] == 1) {
+		// internal_png usually is for 'special' image formats like svg
+		$result['force_thumbnail'] = true;
+	}
 	if($has_gd) { //gd library formats
-		// fill result
+		// fill result fields
 		if($image_settings['handler'] == 'internal' || $image_settings['handler'] == 'internal_png') {
 			if($image_settings['image'] == 1) {
+				// get image size using libgd
 				$dimensions = getimagesize($file);
 				$result['x'] = $dimensions[0];
 				$result['y'] = $dimensions[1];
@@ -112,9 +118,10 @@ function thumb_check_image_type($link, $ext, $file, &$result) {
 		}
 		return true;
 	}
-	elseif($has_im) {
+	elseif($has_im) { //image magick library
 		if($image_settings['handler'] == 'internal' || $image_settings['handler'] == 'internal_png') {
 			if($image_settings['image'] == 1) {
+				// get image size using imagick
 				$image = new Imagick($file);
 				if(!$image->setImageFormat($result['orig_extension'])) {
 					kotoba_error("imagemagick: format failed");
@@ -150,8 +157,10 @@ function thumb_check_image_type($link, $ext, $file, &$result) {
 function create_thumbnail($link, $source, $destination, $type, $x, $y, 
 	$resize_x, $resize_y, $force = false, &$result) {
 	//echo sprintf("%s, %s, %s, %d, %d, %d, %d", $source, $destination, $type, $x, $y, $resize_x, $resize_y);
-	if(!$force && $x < $resize_x && $y < $resize_y) { // small image doesn't need to be thumbnailed
-		if(filesize($source) > KOTOBA_SMALLIMAGE_LIMIT_FILE_SIZE) { // big file but small image is some kind of trolling
+	if(!$force && $x < $resize_x && $y < $resize_y)
+	{ // small image doesn't need to be thumbnailed
+		if(filesize($source) > KOTOBA_SMALLIMAGE_LIMIT_FILE_SIZE)
+		{ // big file but small image is some kind of trolling
 			return KOTOBA_THUMB_TOOBIG;
 		}
 		$result['x'] = $x;
@@ -160,13 +169,14 @@ function create_thumbnail($link, $source, $destination, $type, $x, $y,
 	}
 	$has_gd = (check_module('gd') | check_module('gd2')) & KOTOBA_TRY_IMAGE_GD;
 	$has_im = check_module('imagick') & KOTOBA_TRY_IMAGE_IM;
+	// TODO: one query twice. needs attraction
 	$image_settings = db_image_settings($link, $type);
 	if(count($image_settings) == 0) {
 		return KOTOBA_THUMB_UNSUPPORTED;
 	}
 	if($image_settings['image'] == 1 && 
 		$image_settings['handler'] == 'internal') 
-	{
+	{ // known image format
 		if($has_gd) {
 			return gd_create_thumbnail($source, $destination, $type, $x, $y, $resize_x, $resize_y, $result);
 		}
@@ -179,7 +189,7 @@ function create_thumbnail($link, $source, $destination, $type, $x, $y,
 	}
 	if($image_settings['image'] == 1 && 
 		$image_settings['handler'] == 'internal_png') 
-	{
+	{ // known image format but thumbnail in png
 		if($has_im) {
 			return im_create_png_thumbnail($source, $destination, $x, $y, $resize_x, $resize_y, $result);
 		}
@@ -187,66 +197,6 @@ function create_thumbnail($link, $source, $destination, $type, $x, $y,
 			return KOTOBA_THUMB_NOLIBRARY;
 		}
 	}
-/*
-	if($has_gd && $has_im) { //all image formats supported
-		switch(strtolower($type)) {
-			case 'jpg':
-			case 'jpeg':
-				return gd_create_thumbnail($source, $destination, $type, $x, $y, $resize_x, $resize_y, $result);
-				break;
-			case 'png':
-			case 'bmp':
-			case 'gif':
-				return im_create_thumbnail($source, $destination, $x, $y, $resize_x, $resize_y, $result);
-				break;
-			case 'svg':
-				// svg format
-				return im_create_png_thumbnail($source, $destination, $x, $y, $resize_x, $resize_y, $result);
-				break;
-			default:
-				// unknown image format
-				return KOTOBA_THUMB_UNSUPPORTED;
-				break;
-		}
-	}
-	elseif ($has_gd && ! $has_im ) {
-		switch(strtolower($type)) {
-			case 'jpg':
-			case 'gif':
-			case 'jpeg':
-			case 'png':
-				return gd_create_thumbnail($source, $destination, $type, $x, $y, $resize_x, $resize_y, $result);
-				break;
-			default:
-				// unknown image format
-				return KOTOBA_THUMB_UNSUPPORTED;
-				break;
-		}
-	}
-	elseif ($has_im && ! $has_gd ) {
-		switch(strtolower($type)) {
-			case 'jpg':
-			case 'gif':
-			case 'jpeg':
-			case 'png':
-			case 'bmp':
-				return im_create_thumbnail($source, $destination, $x, $y, $resize_x, $resize_y, $false, $result);
-				break;
-			case 'svg':
-				// svg format
-				return im_create_png_thumbnail($source, $destination, $x, $y, $resize_x, $resize_y, $result);
-				break;
-			default:
-				// unknown image format
-				return KOTOBA_THUMB_UNSUPPORTED;
-				break;
-		}
-	}
-	else { // there is no libraries known to handle images. Instant fail.
-		return KOTOBA_THUMB_NOLIBRARY;
-	}
-	return KOTOBA_THUMB_UNKNOWN;
- */
 }
 
 /*
@@ -294,6 +244,7 @@ function im_create_png_thumbnail($source, $destination, $x, $y, $resize_x, $resi
 	$resolution = $thumbnail->getImageResolution();
 	$resolution_ratio_x = $resolution['x'] / $x;
 	$resolution_ratio_y = $resolution['y'] / $y;
+	// get background color of source image
 	$color = $thumbnail->getImageBackgroundColor();
 	if($x >= $y) { // calculate proportions of destination image
 		$ratio = $y / $x;
@@ -308,8 +259,10 @@ function im_create_png_thumbnail($source, $destination, $x, $y, $resize_x, $resi
 	$thumbnail->setResolution($resize_x * $resolution_ratio_x, $resize_y * $resolution_ratio_y);
 	$thumbnail->readImage($source);
 	if(!$thumbnail->setImageFormat('png')) {
-		die("conversion failed");
+		kotoba_error("conversion failed");
 	}
+	// fill destination image with source image background color
+	// (for transparency in svg for example)
 	$thumbnail->paintTransparentImage($color, 0.0, 0);
 	$result['x'] = $thumbnail->getImageWidth();
 	$result['y'] = $thumbnail->getImageHeight();
