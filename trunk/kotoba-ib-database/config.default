@@ -26,7 +26,11 @@ define('KOTOBA_MIN_IMGSIZE', 1000);     // Минимальный размер �
 
 define('KOTOBA_DATETIME_FORMAT', '%d-%m-%Y (%a) %H:%M:%S'); // date and time format
 
-define('KOTOBA_LONGPOST_LINES', 10);    // Число строк поста, отображаемое в предпросмотре доски.
+define('KOTOBA_LONGPOST_LINES', 11);    // Число строк поста, отображаемое в предпросмотре доски.
+define('KOTOBA_POSTS_PREVIEW', 11);    // Last posts quantity in threads in board preview
+define('KOTOBA_THREADS_ONPAGE', 11);    // Threads quantity on page in board preview
+define('KOTOBA_PAGES_ONBOARD', 11);    // No more than pages in board preview
+
 define('KOTOBA_POST_LIMIT', 600);       // Число постов доски, по достижению которого начинают тонуть треды.
 
 define('KOTOBA_MAX_MESSAGE_LENGTH', 30000);	// Максимальная длина текста сообщения в байтах.

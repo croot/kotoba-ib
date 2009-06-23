@@ -1,3 +1,4 @@
+-- vim: set ft=mysql:
 use kotoba2;
 -- =============================================
 -- Author:		innomines
@@ -5,32 +6,36 @@ use kotoba2;
 -- Description:	create new user
 -- =============================================
 delimiter |
-drop procedure if exists sp_add_user|
-create PROCEDURE sp_add_user(
-	-- auth key
-	authkey varchar(32),
-	-- user defined qty of posts
-	posts int,
-	-- user defined qty of threads
-	threads int,
-	-- user defined qty of pages
-	pages int,
-	-- default qty of posts
-	defaultposts int,
-	-- default qty of threads
-	defaultthreads int,
-	-- default of pages
-	defaultpages int
+drop procedure if exists `sp_add_user`|
+create procedure `sp_add_user`(
+    -- auth key
+    authkey varchar(32),
+    -- user defined qty of posts
+    posts int,
+    -- user defined qty of lines
+    userlines int,
+    -- user defined qty of threads
+    threads int,
+    -- user defined qty of pages
+    pages int,
+    -- default qty of posts
+    defaultposts int,
+    -- default qty if lines
+    defaultlines int,
+    -- default qty of threads
+    defaultthreads int,
+    -- default of pages
+    defaultpages int
 )
-BEGIN
-	-- local calculated posts, threads and pages
-	-- declare postsqty threadsqty, pagesqty int;
-	insert into users (auth_key, preview_posts, preview_threads, preview_pages)
-	values (authkey, ifnull(posts, defaultposts), ifnull(threads, defaultthreads),
-		ifnull(pages, defaultpages));
+begin
+    -- local calculated posts, threads and pages
+    -- declare postsqty threadsqty, pagesqty int;
+    insert into users (auth_key, preview_posts, preview_lines, preview_threads, preview_pages)
+    values (authkey, ifnull(posts, defaultposts), ifnull(userlines, defaultlines), 
+        ifnull(threads, defaultthreads), ifnull(pages, defaultpages));
 
-	select last_insert_id() as userid;
-END|
+    select last_insert_id() as userid;
+end|
 
 -- =============================================
 -- Author:		innomines
@@ -43,6 +48,8 @@ create PROCEDURE sp_change_user(
 	userid int,
 	-- user defined qty of posts
 	userposts int,
+	-- user defined preview lines
+	userlines int,
 	-- user defined qty of threads
 	userthreads int,
 	-- user defined qty of pages
@@ -51,6 +58,7 @@ create PROCEDURE sp_change_user(
 begin
 	update users set
 		preview_posts = ifnull(userposts, preview_posts),
+		preview_lines = ifnull(userlines, preview_lines),
 		preview_threads = ifnull(userthreads, preview_threads),
 		preview_pages = ifnull(userpages, preview_pages)
 	where id = userid;
@@ -249,6 +257,33 @@ begin
 	delete from board_upload_types 
 	where board_id = boardid and filetype_id = filetypeid;
 end|
+-- =============================================
+-- Author:		innomines
+-- Create date: 22.06.2009
+-- Description:	get posts count in thread (by thread open post number)
+-- =============================================
+delimiter |
+drop function if exists  get_thread_posts_count|
+CREATE FUNCTION get_thread_posts_count
+(
+	-- board id
+	boardid int,
+	-- thread id
+	threadopenpostnum int
+)
+RETURNS int
+not deterministic
+BEGIN
+	declare count_post int default 0;
+	declare threadid int default 0;
+
+	select get_thread_id(boardid, threadopenpostnum) into threadid;
+
+	select COUNT(ID) INTO count_post FROM posts WHERE board_id = boardid and thread_id = threadid and
+	deleted <> 1;
+
+	RETURN count_post;
+END|
 -- =============================================
 -- Author:		innomines
 -- Create date: 05.05.2009
@@ -1275,7 +1310,7 @@ end|
 -- =============================================
 delimiter |
 drop procedure if exists sp_add_membership|
-create procedure sp_addmembership(
+create procedure sp_add_membership(
 	userid int,
 	groupid int
 )

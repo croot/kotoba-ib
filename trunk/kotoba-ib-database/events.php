@@ -19,6 +19,8 @@
 // Объявляя константы, зависящие от параметров, обязательно указывайте в комментариях, что значат эти параметры.
 // Описывайте параметры в том порядке, в котором они встречаются в значении константы.
 
+define('ERR_STATFILE', '(Ошибка) Не удалось открыть или создать файл статистики.');
+
 // TODO Убрать из названий констант слова типа FALTURE, FAILED. Масло маленное.
 // TODO Переписать тексты ошибок.
 
@@ -191,8 +193,11 @@ define('ERR_UPLOAD_NO_TMP_DIR', '(Ошибка) Временная папка н
 define('ERR_UPLOAD_CANT_WRITE', '(Ошибка) Не удалось записать файл на диск.');
 define('ERR_UPLOAD_EXTENSION', '(Ошибка) Загрузка файла прервана расширением.');
 
-define('ERR_ALREADY_LOGGED_MESSAGE', "Вы уже вошли<br>%s");
-define('ERR_BADKEYWORD', "Error. Keyword: 16-32, A-Za-z0-9_-");
+define('ERR_ALREADY_LOGGED_MESSAGE', "Вы уже вошли %s");
+define('ERR_USEREXISTS', "Такой пользователь уже существует");
+define('ERR_BADKEYWORD', "(Ошибка) Длинна ключего слова должна быть от 16 до 32 символов, допустимые значения: A-Za-z0-9_-");
+define('ERR_BAD_REGISTERINFO', "(Ошибка) Значения настроек не верны.");
+
 define('ERR_REGISTER_DATABASE', "Error. Searching in database falied by reason: %s");
 define('ERR_REGISTER_UNREGISTER', "Error. Unregistration failed by reason: %s");
 
@@ -200,6 +205,7 @@ define('REG_UNREGISTERED', "Your registration data erased");
 define('REG_SUCCESSFUL', "Registered");
 
 define('LOGIN_ALREADY', "Вы уже вошли");
+define('LOGIN_UPDATED', "Данные успешно обновлены");
 define('LOGIN_SUCCESSFULY', "Вы успешно вошли.");
 define('ERR_LOGIN_NOTREGISTERED', "Ошибка. Вы не зарегистрированы.");
 ?>
