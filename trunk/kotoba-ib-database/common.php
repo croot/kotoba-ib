@@ -160,6 +160,7 @@ function kotoba_setup() {
 	ini_set('session.cookie_lifetime', 60 * 60 * 24);
 	session_start();
 	// todo: configure locales!
+	mb_language('ru');
 	mb_internal_encoding("UTF-8");
 	$res = setlocale(LC_ALL, 'ru_RU.UTF-8', 'ru', 'rus', 'russian');
 	if(!$res) {
@@ -167,4 +168,5 @@ function kotoba_setup() {
 	}
 }
 
+// vim: set encoding=utf-8:
 ?>

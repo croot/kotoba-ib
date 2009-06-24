@@ -37,7 +37,7 @@ if(count($boardNames) > 0) {
 
 
 if(isset($_SESSION['isLoggedIn']))
-	$smarty->assign('isLoggedIn', '');
+	$smarty->assign('isLoggedIn', '1');
 
 $smarty->assign('version', '$Revision$');
 $smarty->assign('date', '$Date$');
@@ -55,4 +55,5 @@ function kotoba_stat($errmsg)
     fwrite($stat_file, "$errmsg (" . date("Y-m-d H:i:s") . ")\n");
     fclose($stat_file);
 }
+// vim: set encoding=utf-8:
 ?>

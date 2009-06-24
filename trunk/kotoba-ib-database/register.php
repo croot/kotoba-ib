@@ -21,6 +21,11 @@ require_once('session_processing.php');
 
 kotoba_setup();
 
+/* get_user_registerinfo: gather data from POST'ed registration info
+* returns gathered data as array
+* arguments:
+*  $POST - pointer to array of POST variables
+*/
 function get_user_registerinfo(&$POST) {
 //	var_dump($POST);
 	$result = array();
@@ -57,6 +62,16 @@ function get_user_registerinfo(&$POST) {
 
 	return $result;
 }
+
+/* register_user: register user in database
+ * return user id
+ * arguments:
+ * $keyword_hash - user keywoard hash
+ * $posts - posts in preview
+ * $lines - lines in poreview of big post
+ * $threads - threads on page in preview
+ * $pages - pages in preview
+ */
 function register_user($keyword_hash, $posts, $lines, $threads, $pages) {
 	$link = dbconn();
 	$st = mysqli_prepare($link, "call sp_add_user(?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -91,6 +106,15 @@ function register_user($keyword_hash, $posts, $lines, $threads, $pages) {
 	return $userid;
 }
 
+/* update_user: update user registration
+ * return nothing
+ * arguments:
+ * $id - user id
+ * $posts - posts in preview
+ * $lines - lines in poreview of big post
+ * $threads - threads on page in preview
+ * $pages - pages in preview
+ */
 function update_user($id, $posts, $lines, $threads, $pages) {
 	$link = dbconn();
 	$st = mysqli_prepare($link, "call sp_change_user(?, ?, ?, ?, ?)");
@@ -113,10 +137,10 @@ function update_user($id, $posts, $lines, $threads, $pages) {
 
 $smarty = new SmartyKotobaSetup();
 
-// show keyword line
+// show keyword line by default
 $smarty->assign('keyword', 1);
 
-if(isset($_SESSION['userid'])) {
+if(isset($_SESSION['isLoggedIn']) && isset($_SESSION['userid'])) {
 	$smarty->assign('keyword', 0);
 	$smarty->assign('posts', $_SESSION['preview_posts']);
 	$smarty->assign('lines', $_SESSION['preview_lines']);
@@ -132,7 +156,7 @@ else {
 }
 
 if(isset($_POST['keyword']) && strlen($_POST['keyword']) > 0) 
-{ // keyword which is like password is sent
+{ // keyword sent
 	list($keyword, $posts, $lines, $threads, $pages) = get_user_registerinfo($_POST);
 	$keyword_length = strlen($keyword);
 	echo "$keyword, $posts, $lines, $threads, $pages";
@@ -163,13 +187,14 @@ if(isset($_POST['keyword']) && strlen($_POST['keyword']) > 0)
 		exit;
 	}
 }
-elseif(isset($_POST['keyword']) && strlen($_POST['keyword']) <= 0) {
+elseif(isset($_POST['keyword']) && strlen($_POST['keyword']) <= 0) 
+{ // keyword is sent but it too small
 	$smarty->assign('form', 1);
 	$smarty->assign('message', ERR_BADKEYWORD);
 	$smarty->display('register.tpl');
 	exit;
 }
-elseif(isset($_SESSION['userid']) && isset($_POST['posts'])) 
+elseif(isset($_SESSION['isLoggedIn']) && isset($_SESSION['userid']) && isset($_POST['posts'])) 
 { // registered user updating info
 	$smarty->assign('keyword', 0);
 	$id = intval($_SESSION['userid']);
@@ -192,3 +217,5 @@ else {
 	$smarty->display('register.tpl');
 	exit;
 }
+// vim: set encoding=utf-8:
+?>

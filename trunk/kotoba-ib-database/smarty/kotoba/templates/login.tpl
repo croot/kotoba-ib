@@ -20,12 +20,11 @@
 	</div>
 </table>
 </form>
-{else}
+{/if}
 <center>
 <p>{$message}</p>
 <a href="{$KOTOBA_DIR_PATH}/logout.php">Выйти</a> |
 <a href="{$KOTOBA_DIR_PATH}/index.php">На главную</a>
 </center>
-{/if}
 </body>
 </html>

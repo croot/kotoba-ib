@@ -19,10 +19,9 @@
 <p>
 {if isset($isLoggedIn)}
 	<a href="{$KOTOBA_DIR_PATH}/logout.php">Выйти</a><br>
-	<a href="{$KOTOBA_DIR_PATH}/addboard.php">Добавить доску</a><br>
-	<a href="{$KOTOBA_DIR_PATH}/remboard.php">Удалить доску</a>
 {else}
 	<a href="{$KOTOBA_DIR_PATH}/login.php">Войти</a>
+	(<a href="{$KOTOBA_DIR_PATH}/register.php">Регистрация</a>)
 {/if}
 </p>
 {include file='footer.tpl'}

@@ -149,7 +149,7 @@ if(count($THREAD) == 0) { // thread not found
 		kotoba_stat(sprintf(ERR_THREAD_NOT_FOUND, $THREAD_NUM, $BOARD_NAME));
 	kotoba_error(sprintf(ERR_THREAD_NOT_FOUND, $THREAD_NUM, $BOARD_NAME));
 }
-var_dump($THREAD);
+// var_dump($THREAD);
 
 $POST_COUNT = db_get_post_count($link, $BOARD_NUM);
 

@@ -18,6 +18,7 @@ require_once('common.php');
 /* session_processing.php - session related routines */
 
 function sess_setup_user($id, $posts, $lines, $threads, $pages) {
+	$_SESSION['isLoggedIn'] = 1;
 	$_SESSION['userid'] = $id;
 	$_SESSION['preview_lines'] = $lines;
 	$_SESSION['preview_posts'] = $posts;
