@@ -2,6 +2,21 @@
 use kotoba2;
 -- =============================================
 -- Author:		innomines
+-- Create date: 24.06.2009
+-- Description:	login user and get settings
+-- =============================================
+delimiter |
+drop procedure if exists `sp_login_user`|
+create procedure `sp_login_user`(
+	authkey varchar(32)
+)
+begin
+	select id, preview_posts, preview_lines, preview_threads, preview_pages 
+	from users 
+	where auth_key = authkey;
+end|
+-- =============================================
+-- Author:		innomines
 -- Create date: 21.05.2009
 -- Description:	create new user
 -- =============================================
@@ -1000,19 +1015,6 @@ begin
 	return threadid;
 end|
 
--- =============================================
--- Author:		innomines
--- Create date: 27.04.2009 - ...
--- Description:	create new login
--- =============================================
-delimiter |
-drop procedure if exists  sp_add_user|
-create procedure sp_add_user
-(
-
-)
-begin
-end|
 -- =============================================
 -- Author:		innomines
 -- Create date: 31.05.2009

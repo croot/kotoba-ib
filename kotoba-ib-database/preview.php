@@ -221,10 +221,10 @@ $smarty->assign('BOARD_BUMPLIMIT', $BUMP_LIMIT);
 $smarty->assign('KOTOBA_POST_LIMIT', KOTOBA_POST_LIMIT);
 $smarty->display('board_preview.tpl');
 
-var_dump($threads);
+// var_dump($threads);
 foreach($threads as $open_post) {
 	$posts = get_thread_preview($link, $BOARD_NUM, $open_post, 10);
-	var_dump($posts);
+//	var_dump($posts);
 	$count = 0;
 	foreach($posts as $post) {
 		$smarty_thread = new SmartyKotobaSetup();
@@ -494,4 +494,5 @@ function kotoba_stat($errmsg)
     fwrite($stat_file, "$errmsg (" . date("Y-m-d H:i:s") . ")\n");
 	fclose($stat_file);
 }
+// vim: set encoding=utf-8:
 ?>
