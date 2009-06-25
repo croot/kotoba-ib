@@ -6,6 +6,17 @@
 <input type="text" name="board_name" value="{$board.board_name}">
 </td>
 <td>
+<input type="text" name="order" value="{$board.order}" size="3">
+</td>
+<td>
+<select name="cid">
+{foreach from=$categories item=category}
+<option value="{$category.cid}" {if $category.cid == $board.cid}selected{/if}>{$category.cname}</option>
+{/foreach}
+</select><br>
+<a href="categories.php">new</a>
+</td>
+<td>
 <input type="text" name="board_description" value="{$board.board_description}">
 </td>
 <td>
@@ -17,7 +28,7 @@
 {foreach from=$board_types.$id item=type}{$type} {/foreach}
 </td>
 <td>
-<input type="text" name="bump_limit" value="{$board.bump_limit}">
+<input type="text" name="bump_limit" value="{$board.bump_limit}" size="3">
 </td>
 <td>
 <input type="checkbox" name="rubberboard" value="on" {if $board.rubber_board == 1}checked{/if}>

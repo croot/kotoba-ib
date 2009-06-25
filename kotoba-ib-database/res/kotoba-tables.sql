@@ -3,10 +3,20 @@ delimiter ;
 
 use kotoba2
 
+drop table if exists board_categories;
+create table board_categories (
+	id int auto_increment not null,
+	orderby int,
+	name varchar(256),
+	primary key (id)
+) engine=innodb CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
 drop table if exists boards;
 CREATE TABLE boards (
 	id int AUTO_INCREMENT NOT NULL,
+	orderby int,
 	board_name varchar(16) NOT NULL,
+	categroy int,
 	board_description varchar(50) NULL,
 	board_title varchar(50) NOT NULL,
 	threads int NULL DEFAULT 0,
@@ -15,7 +25,9 @@ CREATE TABLE boards (
 	visible_threads int NOT NULL DEFAULT 10,
 	same_upload varchar(32) not null default 'yes',
 	PRIMARY KEY (id),
-	unique index IX_boards (board_name)
+	unique index ix_category_sort (orderby, category),
+	unique index IX_boards (board_name),
+	foreign key (category) references board_categories(id) on delete cascade
 ) engine=innodb CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*
 boards: boards in your kotoba

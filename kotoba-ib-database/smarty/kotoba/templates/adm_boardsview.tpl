@@ -14,6 +14,12 @@ ID
 Board name
 </td>
 <td>
+Sort (integer)
+</td>
+<td>
+Category
+</td>
+<td>
 Description
 </td>
 <td>
