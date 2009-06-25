@@ -545,7 +545,51 @@ select postnumber, skipped, uploads from Tthread_preview;
 drop temporary table if exists Tthread_preview;
 END|
 
+-- =============================================
+-- Author:		innomines
+-- Create date: 26.06.2009
+-- Description:	create new board category
+-- =============================================
+delimiter |
+drop procedure if exists  sp_create_category|
+CREATE PROCEDURE sp_create_category(
+	categoryorder int,
+	categoryname varchar(256)
+)
+begin
+	insert into board_categories (orderby, name)
+	values
+	(categoryorder, categoryname);
 
+	select last_insert_id();
+end|
+
+-- =============================================
+-- Author:		innomines
+-- Create date: 26.06.2009
+-- Description:	get board categories
+-- =============================================
+delimiter |
+drop procedure if exists  sp_get_categories|
+CREATE PROCEDURE sp_get_categories(
+)
+begin
+	select id, name from board_categories
+	order by orderby asc;
+end|
+-- =============================================
+-- Author:		innomines
+-- Create date: 26.06.2009
+-- Description:	get board categories with settings
+-- =============================================
+delimiter |
+drop procedure if exists  sp_get_categories_ex|
+CREATE PROCEDURE sp_get_categories_ex(
+)
+begin
+	select id, orderby, name from board_categories
+	order by orderby asc;
+end|
 -- =============================================
 -- Author:		innomines
 -- Create date: 21.05.2009
@@ -554,6 +598,8 @@ END|
 delimiter |
 drop procedure if exists  sp_create_board|
 CREATE PROCEDURE sp_create_board(
+	boardsort int,
+	boardcategory int,
 	-- board name ie b, a
 	boardname varchar(16),
 	-- board description like random, anime
@@ -575,9 +621,9 @@ BEGIN
 		when 2 then 'no' end
 	into localsameupload;
 
-	insert into boards (board_name, board_description, board_title,
+	insert into boards (orderby, category, board_name, board_description, board_title,
 		bump_limit, rubber_board, visible_threads, same_upload) 
-	values (boardname, boarddescription, boardtitle,
+	values (boardsort, boardcategory, boardname, boarddescription, boardtitle,
 		bumplimit, rubberboard, visiblethreads, localsameupload);
 END|
 
@@ -592,6 +638,8 @@ drop procedure if exists  sp_save_board|
 CREATE PROCEDURE sp_save_board(
 	-- board identifier
 	boardid int,
+	boardsort int,
+	boardcategory int,
 	-- board name ie b, a
 	boardname varchar(16),
 	-- board description like random, anime
@@ -614,6 +662,7 @@ BEGIN
 	into localsameupload;
 
 	update boards set board_name = boardname, board_description = boarddescription,
+	orderby = boardsort, category = boardcategory,
 		board_title = boardtitle, bump_limit = bumplimit, rubber_board = rubberboard,
 		visible_threads = visiblethreads, same_upload = localsameupload 
 	where id = boardid;
@@ -1025,12 +1074,12 @@ drop procedure if exists sp_get_boards|
 create PROCEDURE sp_get_boards(
 )
 begin
-	select b.id, b.board_name, b.board_description 
-	from boards b join board_upload_types u 
-	on (u.board_id = b.id)
+	select c.id, b.id, b.board_name, b.board_description 
+	from boards b
+	join board_upload_types u on (u.board_id = b.id)
+	join board_categories c on (b.category = c.id)
 	group by b.id
-	order by b.board_name;
-
+	order by c.orderby, b.orderby asc;
 end|
 -- =============================================
 -- Author:		innomines
@@ -1042,10 +1091,11 @@ drop procedure if exists sp_get_boards_ex|
 create PROCEDURE sp_get_boards_ex(
 )
 begin
-	select id, board_name, board_description, board_title, threads, 
-	bump_limit, rubber_board, visible_threads, same_upload
-	from boards
-	order by board_name;
+	select c.id, c.name, b.id, b.board_name, b.board_description, b.board_title, b.threads, 
+	b.bump_limit, b.rubber_board, b.visible_threads, b.same_upload, b.orderby
+	from boards b
+	join board_categories c on (b.category = c.id)
+	order by c.orderby, b.orderby;
 end|
 -- =============================================
 -- Author:		innomines

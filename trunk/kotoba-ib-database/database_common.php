@@ -27,9 +27,9 @@ function db_get_boards($link) {
 	if(! mysqli_stmt_execute($st)) {
 		kotoba_error(mysqli_stmt_error($st));
 	}
-	mysqli_stmt_bind_result($st, $id, $board_name, $board_description);
+	mysqli_stmt_bind_result($st, $cid, $id, $board_name, $board_description);
 	while(mysqli_stmt_fetch($st)) {
-		array_push($boards, array('id' => $id,
+		array_push($boards, array('cid' => $cid, 'id' => $id,
 			'board_name' => $board_name, 'board_description' => $board_description
 			));
 	}

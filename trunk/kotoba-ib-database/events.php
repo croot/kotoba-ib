@@ -208,4 +208,6 @@ define('LOGIN_ALREADY', "Вы уже вошли");
 define('LOGIN_UPDATED', "Данные успешно обновлены");
 define('LOGIN_SUCCESSFULY', "Вы успешно вошли.");
 define('ERR_LOGIN_NOTREGISTERED', "Ошибка. Вы не зарегистрированы.");
+
+// vim: set encoding=utf-8:
 ?>
