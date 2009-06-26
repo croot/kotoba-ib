@@ -956,6 +956,8 @@ CREATE PROCEDURE sp_post (
 	openpost int,
 	-- name field
 	postname varchar(128),
+	-- classic trip code
+	posttrip varchar(10),
 	-- email field
 	postemail varchar(128),
 	-- subject field
@@ -1026,11 +1028,13 @@ BEGIN
 	end if;
 
 	-- insert data of post in table
-	insert into posts(board_id, thread_id, post_number, name, email, subject,
-	password, session_id, ip, text, date_time)
+	insert into posts(board_id, thread_id, post_number, name, tripcode, 
+		email, subject, password, session_id,
+		ip, text, date_time)
 	values
-	(boardid, threadid, post_number, postname, postemail, postsubject,
-	postpassword, postersessionid, posterip, posttext, datetime);
+	(boardid, threadid, post_number, postname, posttrip,
+		postemail, postsubject, postpassword, postersessionid,
+		posterip, posttext, datetime);
 	select last_insert_id();
 
 	set count_posts = count_posts + 1;
@@ -1213,7 +1217,8 @@ create PROCEDURE sp_get_post(
 	postnum int
 )
 begin
-	select post_number, name, email, subject, text, unix_timestamp(date_time) as date_time, sage
+	select post_number, name, tripcode, email, subject, text,
+	unix_timestamp(date_time) as date_time, sage
 	from posts
 	where post_number = postnum and board_id = boardid;
 

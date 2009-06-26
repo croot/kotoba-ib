@@ -35,7 +35,7 @@
     $original_text - текст сообщения.
 *}
 <div>
-<span class="filetitle">{$original_theme}</span> <span class="postername">{$original_name}</span> {$original_time}
+<span class="filetitle">{$original_theme}</span> <span class="postername">{$original_name}</span>{if $original_hascode == 1}<span class="postertrip">!{$original_tripcode}</span>{/if} {$original_time}
 {if $with_image == true}<span class="filesize">Файл: <a target="_blank" href="{$original_file_link}">{$original_file_name}</a> -(<em>{$original_file_size} Байт {$original_file_width}x{$original_file_heigth}</em>)</span>
 {/if}
 <span class="reflink"><span onclick="insert('>>{$original_id}');">#</span> <a href="{$KOTOBA_DIR_PATH}/{$BOARD_NAME}/{$original_thread}#{$original_id}">{$original_id}</a> {if $reply == 1}[<a href="{$KOTOBA_DIR_PATH}/{$BOARD_NAME}/{$original_id}">Ответить</a>]{/if}</span>
