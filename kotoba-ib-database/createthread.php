@@ -114,6 +114,16 @@ if(!post_mark($link, $Message_text,
 	kotoba_error($error_message);
 }
 
+// trip code
+$namecode = post_tripcode($Message_name);
+if(is_array($namecode)) {
+	$Message_name = $namecode[0];
+	$tripcode = $namecode[1];
+}
+else {
+	$tripcode = null;
+	$Message_name = $namecode;
+}
 
 require 'thumb_processing.php';
 $imageresult = array();
@@ -285,7 +295,7 @@ if(isset($_POST['Message_pass']) && $_POST['Message_pass'] != '')
 }
 
 // TODO: sage etc
-$postid = post($link, $BOARD_NUM, 0, $Message_name, '', $Message_theme, $OPPOST_PASS, session_id(),
+$postid = post($link, $BOARD_NUM, 0, $Message_name, $tripcode, '', $Message_theme, $OPPOST_PASS, session_id(),
 	ip2long($_SERVER['REMOTE_ADDR']), $Message_text, date("Y-m-d H:i:s"), 0);
 
 if($postid < 0) {

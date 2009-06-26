@@ -250,6 +250,10 @@ foreach($threads as $open_post) {
 		}
 		$smarty_thread->assign('original_theme', $txt_post['subject']);
 		$smarty_thread->assign('original_name', $txt_post['name']);
+		if(strlen($txt_post['tripcode']) > 0) {
+			$smarty_thread->assign('original_hascode', 1);
+			$smarty_thread->assign('original_tripcode', $txt_post['tripcode']);
+		}
 		$smarty_thread->assign('original_time', $txt_post['date_time']);
 		$smarty_thread->assign('original_id', $txt_post['post_number']);
 

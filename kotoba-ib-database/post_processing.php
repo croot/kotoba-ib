@@ -352,14 +352,15 @@ function upload($link, $boardid, $name, $size, $hash, $image, $upload, $upload_w
  * $datetime - date time in sql format
  * $sage - post doesn't up thread
  */
-function post($link, $boardid,$threadid,$postname,$postemail,$postsubject,$postpassword,
+function post($link, $boardid,$threadid,$postname,$tripcode,
+	$postemail,$postsubject,$postpassword,
 	$postersessionid,$posterip,$posttext,$datetime,$sage)
 {
-	$st = mysqli_prepare($link, "call sp_post(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+	$st = mysqli_prepare($link, "call sp_post(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 	if(! $st) {
 		kotoba_error(mysqli_error($link));
 	}
-	if(! mysqli_stmt_bind_param($st, "iisssssissi", $boardid,$threadid,$postname,$postemail,
+	if(! mysqli_stmt_bind_param($st, "iissssssissi", $boardid,$threadid,$postname,$tripcode, $postemail,
 		$postsubject,$postpassword,
 		$postersessionid,$posterip,$posttext,$datetime,$sage)) {
 		kotoba_error(mysqli_stmt_error($st));
@@ -499,6 +500,20 @@ function post_get_uploadlink($link, $boardid, $uploadid) {
 	mysqli_stmt_close($st);
 	cleanup_link($link);
 	return $posts;
+}
+
+function post_tripcode($name, $encoding = "utf-8") {
+	@list($first, $code) = @preg_split("/[#!]/", $name);
+	if(!isset($code) || strlen($code) == 0) {
+		return $name;
+	}
+	$enc = mb_convert_encoding($code, 'Shift_JIS', $encoding);
+	$salt = substr($enc.'H..', 1, 2);
+	$salt2 = preg_replace("/![\.-z]/", '.', $salt);
+	$salt3 = strtr($salt2, ":;<=>?@[\]^_`", "ABCDEFGabcdef");
+	$cr = crypt($code, $salt3);
+	$trip = substr($cr, -10);
+	return array($first, $trip);
 }
 
 ?>
