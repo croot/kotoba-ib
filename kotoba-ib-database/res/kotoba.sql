@@ -842,7 +842,8 @@ BEGIN
 	-- sorting filed
 	declare threaddatetime datetime;
 	declare done int default 0;
-	declare thread_view_cur cursor for select original_post_num,last_post from threads
+	declare thread_view_cur cursor for select t.original_post_num,t.last_post 
+		from threads t
 		where board_id = boardid
 			and deleted <> 1 and archive <> 1
 		order by last_post desc;
@@ -883,6 +884,8 @@ delimiter |
 drop function if exists  get_pages|
 CREATE FUNCTION get_pages
 (
+	-- user id
+	userid int,
 	-- board id
 	boardid int,
 	-- threads on page is N
@@ -901,10 +904,15 @@ BEGIN
 
 	select cast(threadsonpage as decimal(5,2)) into quantity;
 
+	select count(t.id) into threadscount from threads t
+	left join user_hidden_threads h on (h.thread = t.id and h.user = userid)
+	where h.thread is null and t.board_id = boardid
+	and t.archive <> 1 and t.deleted <> 1 order by t.last_post desc;
+/*
 	select count(id) into threadscount from threads
 		where board_id = boardid
 		and archive <> 1 and deleted <> 1;
-
+*/
 	set tempresult = threadscount / quantity;
 
 	select ceiling(tempresult) into result;
@@ -1116,6 +1124,25 @@ begin
 	where board_name = boardname;
 end|
 
+-- =============================================
+-- Author:		innomines
+-- Create date: 30.06.2009
+-- Description:	function: get board id
+-- =============================================
+delimiter |
+drop function if exists get_board_id|
+create function get_board_id (
+	boardname varchar(16)
+)
+returns int
+deterministic
+begin
+	declare boardid int;
+	select id into boardid from boards
+	where board_name = boardname;
+
+	return boardid;
+end|
 -- =============================================
 -- Author:		innomines
 -- Create date: 03.06.2009
@@ -1428,4 +1455,142 @@ begin
 	join boards b on (b.id = boardid and a.board_id = boardid)
 	join membership m on (m.user_id = userid)
 	join groups g on (g.id = m.group_id and a.group_id = m.group_id);
+end|
+
+-- =============================================
+-- Author:		innomines
+-- Create date: 30.06.2009
+-- Description: hide thread
+-- =============================================
+delimiter |
+drop procedure if exists sp_hide_thread|
+create procedure sp_hide_thread(
+	boardname varchar(16),
+	userid int,
+	openpost int,
+	hidereason text
+)
+begin
+	declare threadid int;
+	declare boardid int;
+
+	select get_board_id(boardname) into boardid;
+	select get_thread_id(boardid, openpost) into threadid;
+
+	insert into user_hidden_threads (user, thread, reason)
+	values (userid, threadid, hidereason);
+end|
+
+-- =============================================
+-- Author:		innomines
+-- Create date: 30.06.2009
+-- Description: unhide thread
+-- =============================================
+delimiter |
+drop procedure if exists sp_unhide_thread|
+create procedure sp_unhide_thread(
+	boardname varchar(16),
+	userid int,
+	openpost int
+)
+begin
+	declare threadid int;
+	declare boardid int;
+
+	select get_board_id(boardname) into boardid;
+	select get_thread_id(boardid, openpost) into threadid;
+	delete from user_hidden_threads
+	where user = userid and thread = threadid;
+end|
+
+-- =============================================
+-- Author:		innomines
+-- Create date: 30.06.2009
+-- Description:	get thread ids in board on page N for user (with hidden threads if any)
+-- =============================================
+delimiter |
+drop procedure if exists sp_threads_on_page_for_user|
+create procedure sp_threads_on_page_for_user (
+	-- user id
+	userid int,
+	-- board id
+	boardid int,
+	-- quantity of threads on page
+	quantity int,
+	-- page N
+	page int
+)
+BEGIN
+	-- first thread to be displayed
+	declare current int;
+	-- counter of threads
+	declare counter int;
+	-- open post num of thread
+	declare postid int;
+	-- sorting filed
+	declare threaddatetime datetime;
+	declare threadhidden tinyint;
+	declare hidereason text;
+	declare done int default 0;
+	declare thread_view_cur cursor for select t.original_post_num,t.last_post
+        from threads t 
+        left join user_hidden_threads h on(h.user = userid and h.thread = t.id)
+        where h.thread is null and t.board_id = boardid and t.deleted <> 1 and t.archive <> 1
+        order by t.last_post desc;
+/*	select t.original_post_num,t.last_post 
+		from threads t
+		where board_id = boardid
+			and deleted <> 1 and archive <> 1
+		order by last_post desc;
+*/
+	declare continue handler for not found set done = 1;
+
+	-- store results here
+	drop temporary table if exists Tthreads_on_page;
+	create temporary table Tthreads_on_page (num int not null, ordertime datetime);
+
+	set counter = 0;
+	set current = quantity * page;
+	set quantity = quantity + current;
+
+	open thread_view_cur;
+
+	repeat
+		fetch next from thread_view_cur into postid, threaddatetime;
+		if not done then
+		if counter >= current and counter < quantity then
+			insert into Tthreads_on_page values (postid, threaddatetime);
+		end if;
+		set counter = counter + 1;
+/*		if threadhidden <> 1 then
+			set counter = counter + 1;
+		end if; */
+		end if;
+	until done end repeat;
+
+	close thread_view_cur;
+	select num from Tthreads_on_page order by ordertime desc;
+
+	drop temporary table if exists Tthreads_on_page;
+END|
+
+-- =============================================
+-- Author:		innomines
+-- Create date: 01.07.2009
+-- Description:	get hidden threads for user
+-- =============================================
+delimiter |
+drop procedure if exists sp_user_hidden_threads|
+create procedure sp_user_hidden_threads (
+	-- user id
+	userid int,
+	-- board id
+	boardid int
+)
+begin
+	select t.original_post_num, h.reason
+        from threads t 
+        join user_hidden_threads h on (h.user = userid and h.thread = t.id)
+        where t.board_id = boardid and t.deleted <> 1 and t.archive <> 1
+        order by t.last_post desc;
 end|
