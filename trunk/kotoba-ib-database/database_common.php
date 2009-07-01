@@ -77,12 +77,12 @@ function db_get_board_id($link, $board_name) {
  * $threads - number of threads on page
  */
 
-function db_get_pages($link, $boardid, $threads) {
-	$st = mysqli_prepare($link, "select get_pages(?, ?)");
+function db_get_pages($link, $userid, $boardid, $threads) {
+	$st = mysqli_prepare($link, "select get_pages(?, ?, ?)");
 	if(! $st) {
 		kotoba_error(mysqli_error($link));
 	}
-	if(! mysqli_stmt_bind_param($st, "ii", $boardid, $threads)) {
+	if(! mysqli_stmt_bind_param($st, "iii", $userid, $boardid, $threads)) {
 		kotoba_error(mysqli_stmt_error($st));
 	}
 

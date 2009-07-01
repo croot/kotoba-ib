@@ -316,3 +316,17 @@ delimage - may delete uploads
 banuser - may ban user ip (TODO: ban only on allowed board?)
 createboard - may create boards (global)
 */
+
+
+drop table if exists user_hidden_threads;
+create table user_hidden_threads(
+	id int auto_increment not null,
+	user int not null,
+	thread int not null,
+	reason text,
+	primary key(id),
+	unique index ix_user_hidden_threads (user, thread),
+	foreign key (user) references users(id) on delete cascade,
+	foreign key (thread) references threads(id) on delete cascade
+) engine=innodb CHARSET=utf8 COLLATE=utf8_unicode_ci;
+

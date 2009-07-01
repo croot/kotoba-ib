@@ -9,19 +9,29 @@
  * See license.txt for more info.*
  *********************************/
 
-/* register.php - register user in kotoba */
-
 require_once('config.php');
 require_once('common.php');
 
 
 /* session_processing.php - session related routines */
 
+// fucking php with register_globals. shame on you.
+
 function sess_setup_user($id, $posts, $lines, $threads, $pages) {
 	$_SESSION['isLoggedIn'] = 1;
-	$_SESSION['userid'] = $id;
-	$_SESSION['preview_lines'] = $lines;
-	$_SESSION['preview_posts'] = $posts;
-	$_SESSION['preview_threads'] = $threads;
-	$_SESSION['preview_pages'] = $pages;
+	$_SESSION['sess_userid'] = $id;
+	$_SESSION['sess_preview_lines'] = $lines;
+	$_SESSION['sess_preview_posts'] = $posts;
+	$_SESSION['sess_preview_threads'] = $threads;
+	$_SESSION['sess_preview_pages'] = $pages;
+}
+
+function sess_get_user_settings() {
+	return array(
+		'userid' => $_SESSION['sess_userid'],
+		'preview_lines' => $_SESSION['sess_preview_lines'],
+		'preview_posts' => $_SESSION['sess_preview_posts'],
+		'preview_threads' => $_SESSION['sess_preview_threads'],
+		'preview_pages' => $_SESSION['sess_preview_pages'],
+	);
 }

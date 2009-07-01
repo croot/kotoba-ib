@@ -10,6 +10,7 @@
  *********************************/
 
 error_reporting(E_ALL);
+ini_set("register_globals", false);
 
 /*
  * Разбирает строку настроек $settings.
