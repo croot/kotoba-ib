@@ -35,3 +35,13 @@ function sess_get_user_settings() {
 		'preview_pages' => $_SESSION['sess_preview_pages'],
 	);
 }
+function sess_get_user_id() {
+	return $_SESSION['sess_userid'];
+}
+function sess_id() {
+	return session_id();
+}
+
+function home($board) {
+	header(sprintf("Location: %s/%s", KOTOBA_DIR_PATH, $board));
+}

@@ -353,15 +353,15 @@ function upload($link, $boardid, $name, $size, $hash, $image, $upload, $upload_w
  * $sage - post doesn't up thread
  */
 function post($link, $boardid,$threadid,$postname,$tripcode,
-	$postemail,$postsubject,$postpassword,
+	$postemail,$postsubject,$postpassword, $postuserid,
 	$postersessionid,$posterip,$posttext,$datetime,$sage)
 {
-	$st = mysqli_prepare($link, "call sp_post(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+	$st = mysqli_prepare($link, "call sp_post(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 	if(! $st) {
 		kotoba_error(mysqli_error($link));
 	}
-	if(! mysqli_stmt_bind_param($st, "iissssssissi", $boardid,$threadid,$postname,$tripcode, $postemail,
-		$postsubject,$postpassword,
+	if(! mysqli_stmt_bind_param($st, "iisssssisissi", $boardid,$threadid,$postname,$tripcode, $postemail,
+		$postsubject,$postpassword, $postuserid,
 		$postersessionid,$posterip,$posttext,$datetime,$sage)) {
 		kotoba_error(mysqli_stmt_error($st));
 	}

@@ -24,6 +24,9 @@ kotoba_setup();
 require_once 'post_processing.php';
 require 'error_processing.php';
 require 'events.php';
+require 'database_connect.php';
+require 'database_common.php';
+require 'session_processing.php';
 
 if(KOTOBA_ENABLE_STAT)
 { // open stat file for appending
@@ -52,8 +55,13 @@ if(($BOARD_NAME = CheckFormat('board', $_POST['b'])) === false)
 	kotoba_error(ERR_BOARD_BAD_FORMAT);
 }
 
-require 'database_connect.php';
-require 'database_common.php';
+if(isset($_SESSION['isLoggedIn']) && $_SESSION['isLoggedIn'] > 0) {
+	$userid = sess_get_user_id();
+}
+else {
+	$userid = 0;
+}
+
 
 $link = dbconn();
 
@@ -295,8 +303,8 @@ if(isset($_POST['Message_pass']) && $_POST['Message_pass'] != '')
 }
 
 // TODO: sage etc
-$postid = post($link, $BOARD_NUM, 0, $Message_name, $tripcode, '', $Message_theme, $OPPOST_PASS, session_id(),
-	ip2long($_SERVER['REMOTE_ADDR']), $Message_text, date("Y-m-d H:i:s"), 0);
+$postid = post($link, $BOARD_NUM, 0, $Message_name, $tripcode, '', $Message_theme, $OPPOST_PASS, $userid,
+	session_id(), ip2long($_SERVER['REMOTE_ADDR']), $Message_text, date("Y-m-d H:i:s"), 0);
 
 if($postid < 0) {
 	kotoba_error("Cannot store information about post");
