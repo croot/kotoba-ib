@@ -159,6 +159,7 @@ CREATE TABLE posts(
 	email varchar(128) null,
 	subject varchar(128) null,
 	password varchar(128) null,
+	userid int default 0,
 	session_id varchar(128) null,
 	ip int not null,
 	text text NULL,
@@ -184,6 +185,7 @@ name - optional name for post (name-fags not welcome here)
 email - optional email
 subject - optional subject of post
 password - password for deleting post
+userid - identifier of user posted message
 session_id - session id of user which posted message (may useful for deleting post by same user
 	even if password not set)
 ip - ip address of poster (integer, not 'a.b.c.d')

@@ -329,57 +329,52 @@ END|
 delimiter |
 drop procedure if exists sp_delete_post|
 create PROCEDURE sp_delete_post(
-	-- post number field
-	postnum int,
-	-- board id
-	boardid int
+	-- board name
+	board varchar(16),
+	-- post number
+	postnum int
 )
-BEGIN
-	-- post id	
-	declare postid int;
-	-- post in thread
-	declare threadid int;
-	-- thread id if we're deleting opening post
-	declare wholethreadid int;
-	-- posts count in thread
-	declare postcount int;
-	-- image name
-	declare image varchar(64);
-	-- images count in thread
-	declare imagescount int;
+begin
+	declare uploadid int default 0;
+	declare threadid int default 0;
+	declare boardid int default 0;
+	declare postid int default 0;
 
-	-- find post id
-	select id into postid from posts
-	where post_number = postnum and board_id = boardid;
+	select t.id into threadid from threads t
+	join boards b on (b.board_name = board and b.id = t.board_id and t.original_post_num = postnum);
 
-	-- find thread id
-	select thread_id into threadid from posts
-	where id = postid;
-
-	-- get image name
-	select image into image from posts
-	where id = postid;
-
-
-	-- find if post was opening for thread...
-	select id into wholethreadid from threads
-	where open_post_num = postnum;
-	-- ... if so delete thread
-	if wholethreadid is not null then
-		call sp_delete_thread(threadid, boardid);
+	if threadid > 0 then
+		call sp_delete_thread(threadid);
 	end if;
-	-- mark post as deleted
-	update posts set deleted = 1
-	where id = postid and board_id = boardid;
 
-	-- get posts and images count
-	select  get_posts_count(threadid) into postcount;
-	select  get_images_count(threadid) into imagescount;
-	-- update counters in thread
-	update threads set messages = postcount, with_images = imagescount
+	select p.id,b.id into postid,boardid from posts p
+	join boards b  on (b.board_name = board and b.id = p.board_id and p.post_number = postnum);
+
+	select postid, boardid;
+
+	update posts set deleted = 1 where id = postid;
+
+	update threads set messages = get_posts_count(threadid)
 	where id = threadid;
-END|
 
+	call sp_delete_uploads_links(boardid, postid);
+
+end|
+-- =============================================
+-- Author:		innomines
+-- Create date: 08.07.2009
+-- Description:	delete upload links
+-- =============================================
+delimiter |
+drop procedure if exists sp_delete_uploads_links|
+create PROCEDURE sp_delete_uploads_links(
+	boardid int,
+	postid int
+)
+begin
+	delete from posts_uploads
+	where post_id = postid;
+end|
 /*
 -- =============================================
 -- Author:		innomines
@@ -676,11 +671,14 @@ delimiter |
 drop procedure if exists  sp_delete_thread|
 CREATE PROCEDURE sp_delete_thread (
 	-- thread id
-	threadid int,
+	threadid int
 	-- board id
-	boardid int
+	-- boardid int
 )
 BEGIN
+	declare boardid int default 0;
+
+	select board_id into boardid from threads where id = threadid;
 	-- mark thread as deleted
 	update threads set deleted = 1
 	where id = threadid;
@@ -972,6 +970,8 @@ CREATE PROCEDURE sp_post (
 	postsubject varchar(128),
 	-- pasword for deleteion
 	postpassword varchar(128),
+	-- user id
+	postuserid int,
 	-- session id of poster
 	postersessionid varchar(128),
 	-- ip of poster
@@ -1037,11 +1037,11 @@ BEGIN
 
 	-- insert data of post in table
 	insert into posts(board_id, thread_id, post_number, name, tripcode, 
-		email, subject, password, session_id,
+		email, subject, password, userid, session_id,
 		ip, text, date_time)
 	values
 	(boardid, threadid, post_number, postname, posttrip,
-		postemail, postsubject, postpassword, postersessionid,
+		postemail, postsubject, postpassword, postuserid, postersessionid,
 		posterip, posttext, datetime);
 	select last_insert_id();
 
@@ -1593,4 +1593,21 @@ begin
         join user_hidden_threads h on (h.user = userid and h.thread = t.id)
         where t.board_id = boardid and t.deleted <> 1 and t.archive <> 1
         order by t.last_post desc;
+end|
+
+-- =============================================
+-- Author:		innomines
+-- Create date: 08.07.2009
+-- Description:	get information about poster
+-- =============================================
+delimiter |
+drop procedure if exists sp_get_post_userinfo|
+create procedure sp_get_post_userinfo (
+	boardname varchar(16),
+	postnumber int
+)
+begin
+	select p.password, p.userid, p.session_id from boards b
+	join posts p on (b.board_name = boardname and b.id = p.board_id and p.post_number = postnumber)
+	where p.deleted <> 1;
 end|

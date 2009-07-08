@@ -41,7 +41,7 @@
 {if $with_image == true}            <span class="filesize">Файл: <a target="_blank" href="{$original_file_link}">{$original_file_name}</a> -(<em>{$original_file_size} Байт {$original_file_width}x{$original_file_heigth}</em>)</span>
 {/if}
             <span class="reflink"><span onclick="insert('>>{$original_id}');">#</span> <a href="{$KOTOBA_DIR_PATH}/{$BOARD_NAME}/{$original_thread}#{$original_id}">{$original_id}</a></span>
-            <span class="delbtn">[<a href="{$original_remove_link}" title="Удалить">×</a>]</span>
+            <span class="delbtn">[<a href="{$KOTOBA_DIR_PATH}/{$BOARD_NAME}/r{$original_id}" title="Удалить">×</a>]</span>
             <a name="{$original_id}"></a>
 {if $with_image == true}            <br><a target="_blank" href="{$original_file_link}"><img src="{$original_file_thumbnail_link}" class="thumb" width="{$original_file_thumbnail_width}" heigth="{$original_file_thumbnail_heigth}"></a>
 {/if}

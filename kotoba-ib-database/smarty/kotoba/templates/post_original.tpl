@@ -43,7 +43,7 @@
 	<a href="{$KOTOBA_DIR_PATH}/{$BOARD_NAME}/{$original_thread}#{$original_id}">{$original_id}</a>
 	{if $reply == 1}[<a href="{$KOTOBA_DIR_PATH}/{$BOARD_NAME}/{$original_id}">Ответить</a>]{/if}
 	</span>
-<span class="delbtn">[<a href="{$original_remove_link}" title="Удалить">×</a>]</span> 
+<span class="delbtn">[<a href="{$KOTOBA_DIR_PATH}/{$BOARD_NAME}/r{$original_id}" title="Удалить">×</a>]</span> 
 <a href="{$KOTOBA_DIR_PATH}/un-hide.php?action=hide&b={$BOARD_NAME}&t={$original_id}">[-]</a>
 <a name="{$original_id}"></a>
 {if $with_image == true}<br><a target="_blank" href="{$original_file_link}"><img src="{$original_file_thumbnail_link}" class="thumb" width="{$original_file_thumbnail_width}" heigth="{$original_file_thumbnail_heigth}"></a>
