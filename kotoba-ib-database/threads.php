@@ -14,6 +14,8 @@
 require 'config.php';
 require 'common.php';
 require 'events.php';
+require 'database_connect.php';
+require 'database_common.php';
 
 kotoba_setup();
 // firefox caching fix
@@ -102,8 +104,6 @@ else
     $REPLY_PASS = '';
 }
 
-require 'database_connect.php';
-require 'database_common.php';
 $link = dbconn();
 /*
  * user settings will implemented later
@@ -140,6 +140,14 @@ if($BOARD_NUM == -1)
 	if(KOTOBA_ENABLE_STAT)
 		kotoba_stat(sprintf(ERR_BOARD_NOT_FOUND, $BOARD_NAME));
 	kotoba_error(sprintf(ERR_BOARD_NOT_FOUND, $BOARD_NAME));
+}
+
+/* check thread state */
+$flags = db_thread_flags($link, $BOARD_NUM, $THREAD_NUM);
+if(count($flags) > 0 && ($flags['deleted'] > 0 || $flags['archived'] > 0)) {
+	if(KOTOBA_ENABLE_STAT)
+		kotoba_stat(sprintf(ERR_THREAD_NOT_FOUND, $THREAD_NUM, $BOARD_NAME));
+	kotoba_error(sprintf(ERR_THREAD_NOT_FOUND, $THREAD_NUM, $BOARD_NAME));
 }
 
 $types = db_get_board_types($link, $BOARD_NUM);
