@@ -678,6 +678,9 @@ CREATE PROCEDURE sp_delete_thread (
 BEGIN
 	declare boardid int default 0;
 
+	update posts set deleted = 1
+	where thread_id = threadid;
+
 	select board_id into boardid from threads where id = threadid;
 	-- mark thread as deleted
 	update threads set deleted = 1
@@ -1043,7 +1046,8 @@ BEGIN
 	(boardid, threadid, post_number, postname, posttrip,
 		postemail, postsubject, postpassword, postuserid, postersessionid,
 		posterip, posttext, datetime);
-	select last_insert_id();
+--	select last_insert_id();
+	select post_number;
 
 	set count_posts = count_posts + 1;
 	-- update thread counters
@@ -1171,7 +1175,7 @@ create PROCEDURE sp_get_board_post_count (
 )
 begin
 	select count(id) from posts
-	where board_id = boardid;
+	where board_id = boardid and deleted <> 1;
 end|
 -- =============================================
 -- Author:		innomines
@@ -1223,12 +1227,15 @@ delimiter |
 drop procedure if exists sp_post_upload|
 create PROCEDURE sp_post_upload(
 	boardid int,
-	postid int,
+	postnumber int,
 	uploadid int
 )
 begin
 	declare threadid int;
+	declare postid int default 0;
+	select get_postid(boardid,postnumber) into postid;
 	select get_thread_id(boardid, postid) into threadid;
+
 	insert into posts_uploads (thread_id, post_id, upload_id)
 	values (threadid, postid, uploadid);
 end|
@@ -1610,4 +1617,49 @@ begin
 	select p.password, p.userid, p.session_id from boards b
 	join posts p on (b.board_name = boardname and b.id = p.board_id and p.post_number = postnumber)
 	where p.deleted <> 1;
+end|
+
+-- =============================================
+-- Author:		innomines
+-- Create date: 10.07.2009
+-- Description:	get information about thread
+-- =============================================
+delimiter |
+drop procedure if exists sp_thread_flags|
+create procedure sp_thread_flags (
+	boardid int,
+	openpost int
+)
+begin
+	select deleted,archive from threads
+	where board_id = boardid and original_post_num = openpost;
+end|
+
+-- =============================================
+-- Author:		innomines
+-- Create date: 10.07.2009
+-- Description:	get lost (not in any post anymore) uploads
+-- =============================================
+delimiter |
+drop procedure if exists sp_lost_uploads|
+create procedure sp_lost_uploads (
+)
+begin
+	select u.id,u.file_name,u.thumbnail from uploads u 
+	left join posts_uploads p on (u.id = p.upload_id)
+	where p.upload_id is null
+	group by u.id;
+end|
+-- =============================================
+-- Author:		innomines
+-- Create date: 10.07.2009
+-- Description:	remove upload record
+-- =============================================
+delimiter |
+drop procedure if exists sp_remove_upload|
+create procedure sp_remove_upload (
+	uploadid int
+)
+begin
+	delete from uploads where id = uploadid;
 end|

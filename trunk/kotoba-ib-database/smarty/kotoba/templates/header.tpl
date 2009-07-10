@@ -18,6 +18,7 @@
 	<title>{$page_title}</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<link rel="stylesheet" type="text/css" href="{$KOTOBA_DIR_PATH}/kotoba.css">
+	<script src="{$KOTOBA_DIR_PATH}/kotoba.js"></script>
 </head>
 <body>
 

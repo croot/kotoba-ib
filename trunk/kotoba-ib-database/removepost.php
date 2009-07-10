@@ -17,6 +17,7 @@ require 'session_processing.php';
 require 'events.php';
 require 'error_processing.php';
 require 'database_connect.php';
+require 'post_processing.php';
 
 kotoba_setup();
 
@@ -33,7 +34,9 @@ function get_post_userinfo($board, $postnumber) {
 	if(! mysqli_stmt_execute($st)) {
 		kotoba_error(mysqli_stmt_error($st));
 	}
-	mysqli_stmt_bind_result($st, $password, $userid, $sessionid);
+	if(!mysqli_stmt_bind_result($st, $password, $userid, $sessionid)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
 	if(! mysqli_stmt_fetch($st)) {
 		mysqli_stmt_close($st);
 		cleanup_link($link);
@@ -62,7 +65,50 @@ function delete_post($board, $postnumber) {
 	}
 	mysqli_stmt_close($st);
 	cleanup_link($link);
+	delete_lost_uploads($link);
 	mysqli_close($link);
+}
+
+function delete_lost_uploads($link) {
+	$uploads = array();
+	$st = mysqli_prepare($link, "call sp_lost_uploads()");
+	if(! $st) {
+		kotoba_error(mysqli_error($link));
+	}
+
+	if(! mysqli_stmt_execute($st)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	if(!mysqli_stmt_bind_result($st, $id, $file, $thumbnail)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	while(mysqli_stmt_fetch($st)) {
+		$realfile = sprintf("%s/%s", $_SERVER['DOCUMENT_ROOT'], $file);
+		$realthumbnail = sprintf("%s/%s", $_SERVER['DOCUMENT_ROOT'], $thumbnail);
+		post_remove_files($realfile, $realthumbnail);
+		array_push($uploads, $id);
+	}
+	mysqli_stmt_close($st);
+	cleanup_link($link);
+	delete_upload_record($link, $uploads);
+}
+
+function delete_upload_record($link, $uploads) {
+	foreach($uploads as $id) {
+		$st = mysqli_prepare($link, "call sp_remove_upload(?)");
+		if(! $st) {
+			kotoba_error(mysqli_error($link));
+		}
+		if(! mysqli_stmt_bind_param($st, "i", $id)) {
+			kotoba_error(mysqli_stmt_error($st));
+		}
+
+		if(! mysqli_stmt_execute($st)) {
+			kotoba_error(mysqli_stmt_error($st));
+		}
+		mysqli_stmt_close($st);
+		cleanup_link($link);
+	}
 }
 
 if(isset($_GET['b']))

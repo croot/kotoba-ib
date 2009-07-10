@@ -20,13 +20,14 @@
 error_reporting(E_ALL);
 require 'config.php';
 require 'common.php';
-kotoba_setup();
 require_once 'post_processing.php';
 require 'error_processing.php';
 require 'events.php';
 require 'database_connect.php';
 require 'database_common.php';
 require 'session_processing.php';
+
+kotoba_setup();
 
 if(KOTOBA_ENABLE_STAT)
 { // open stat file for appending
@@ -94,6 +95,12 @@ if($BOARD_NUM < 0) {
 	kotoba_error(ERR_BOARD_NOT_SPECIFED);
 }
 
+$flags = db_thread_flags($link, $BOARD_NUM, $THREAD_NUM);
+if(count($flags) > 0 && ($flags['deleted'] > 0 || $flags['archived'] > 0)) {
+	if(KOTOBA_ENABLE_STAT)
+		kotoba_stat(sprintf(ERR_THREAD_NOT_FOUND, $THREAD_NUM, $BOARD_NAME));
+	kotoba_error(sprintf(ERR_THREAD_NOT_FOUND, $THREAD_NUM, $BOARD_NAME));
+}
 // Этап 2. Обработка данных ОП поста.
 
 

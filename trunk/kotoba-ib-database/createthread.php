@@ -324,7 +324,7 @@ $THREAD_NUM = $postid;
 
 if(isset($_POST['goto']) && $_POST['goto'] == 't')
 {
-	header('Location: ' . KOTOBA_DIR_PATH . "/$BOARD_NAME/$THREAD_NUM/");
+	header('Location: ' . KOTOBA_DIR_PATH . "/$BOARD_NAME/$postid/");
 	exit;
 }
 

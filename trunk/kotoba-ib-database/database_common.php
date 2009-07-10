@@ -301,4 +301,26 @@ function db_get_board_types($link, $boardid) {
 	cleanup_link($link);
 	return $types;
 }
+
+
+function db_thread_flags($link, $boardid, $open_post_num) {
+	$result = array();
+	$st = mysqli_prepare($link, "call sp_threads_flags(?, ?)");
+	if(! $st) {
+		kotoba_error(mysqli_error($link));
+	}
+	if(! mysqli_stmt_bind_param($st, "ii", $boardid, $open_post_num)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	if(! mysqli_stmt_execute($st)) {
+		kotoba_error(mysqli_stmt_error($st));
+	}
+	mysqli_stmt_bind_result($st, $deleted, $archived);
+	while(mysqli_stmt_fetch($st)) {
+		$result['deleted'] = $deleted; $result['archived'] = $archived;
+	}
+	mysqli_stmt_close($st);
+	cleanup_link($link);
+	return $result;
+}
 ?>

@@ -113,8 +113,8 @@ function KotobaMark($link, &$src_text)
 						$isSlash = true;
 						continue;
 					}
-
-					$CodeBlocks[$CodeBlockNum] .= $src_text[$i];
+					if(isset($CodeBlocks[$CodeBlockNum])) $CodeBlocks[$CodeBlockNum] .= $src_text[$i];
+					else $CodeBlocks[$CodeBlockNum] = $src_text[$i];
 				}
 				else
 					$output .= $src_text[$i];
@@ -695,14 +695,15 @@ function BasicMark(&$line, $delimeter, $tag)
 		{
 			if($style)	// Открывающая.
 			{
-				$line .= "<$tag>$text</$tag>$matches[1]";
+				$line .= "<$tag>$text</$tag>";
+				if(count($matches) > 0) $line .= $matches[1];
 				$style = false;
 				$text = '';
             }
 			else		// Закрывающая.
 			{
 				$style = true;
-				$line .= $matches[1];
+				if(count($matches) > 0) $line .= $matches[1];
             }
 
 			continue;
