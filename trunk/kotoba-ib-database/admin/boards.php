@@ -180,5 +180,4 @@ mysqli_close($link);
 
 ?>
 <pre>
-<?var_dump($board_categories)?>
 </pre>
