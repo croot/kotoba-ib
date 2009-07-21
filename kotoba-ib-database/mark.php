@@ -16,11 +16,6 @@
  * для получения доступа к функции KotobaMark()
  */
 
-/*
- * Размечает текст в сообщении $src_text.
- * Основные правила разметки можно найти в файле http://coyc.net/wakaba_mark.htm
- * Дополнения и техническое описание находится в файле /res/Kotoba mark 1.txt
- */
 function get_link_on_post($link, $board_name, $post_num) {
 	$post = array();
 	$st = mysqli_prepare($link, "call sp_get_post_link(?, ?)");
@@ -47,6 +42,11 @@ function get_link_on_post($link, $board_name, $post_num) {
 	cleanup_link($link);
 	return $post;
 }
+/*
+ * Размечает текст в сообщении $src_text.
+ * Основные правила разметки можно найти в файле http://coyc.net/wakaba_mark.htm
+ * Дополнения и техническое описание находится в файле /res/Kotoba mark 1.txt
+ */
 function KotobaMark($link, &$src_text)
 {
 	$src_text = str_replace("\r\n", "\n", $src_text);	// Заменим переносы строки Windows на переносы Unix.
@@ -750,4 +750,6 @@ function BasicMark(&$line, $delimeter, $tag)
 
 	return $line;
 }
+
+// vim: set encoding=utf-8:
 ?>

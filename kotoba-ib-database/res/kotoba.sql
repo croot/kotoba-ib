@@ -1386,8 +1386,8 @@ end|
 -- Description: add group
 -- =============================================
 delimiter |
-drop procedure if exists sp_addgroup|
-create procedure sp_addgroup (
+drop procedure if exists sp_add_group|
+create procedure sp_add_group (
 	groupname varchar(32)
 )
 begin
@@ -1418,30 +1418,20 @@ end|
 delimiter |
 drop procedure if exists sp_addaccess|
 create procedure sp_addaccess(
-	boardid int,
 	groupid int,
-	mayread int,
-	maythread tinyint,
-	maypost int,
-	maypostimage int,
-	maydeletepost int,
-	maydeleteimage int,
-	maybanuser int,
-	maycreateboard tinyint
+	boardid int,
+	threadid int,
+	postid int,
+	mayview tinyint,
+	mayedit tinyint,
+	maymod tinyint
 )
 begin
-	insert into access_lists (board_id, group_id,
-		readboard, thread, post, postimage, delpost, delimage, banuser, createboard)
+	insert into access_lists (`group`,board,thread,post,
+		view, edit, `modify`)
 	values
-	(boardid, groupid, 
-		mayread,
-		maythread,
-		maypost,
-		maypostimage,
-		maydeletepost,
-		maydeleteimage,
-		maybanuser,
-		maycreateboard);
+	(groupid,boardid,threadid,postid,
+		mayview, mayedit, maymod);
 end|
 
 -- =============================================

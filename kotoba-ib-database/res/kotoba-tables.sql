@@ -291,32 +291,21 @@ group_id - group identifier
 drop table if exists access_lists;
 create table access_lists(
 	id int auto_increment not null,
-	board_id int,
-	group_id int,
-	readboard tinyint not null default 1,
-	thread tinyint,
-	post tinyint,
-	postimage tinyint,
-	delpost tinyint,
-	delimage tinyint,
-	banuser tinyint,
-	createboard tinyint,
+	`group` int,
+	board int,
+	thread int,
+	post int,
+	`view` tinyint,
+	edit tinyint,
+	`modify` tinyint,
 	primary key(id),
-	unique index (board_id, group_id)
+	index ix_acl_references (`group`, board, thread, post),
+	index ix_acl_rights (post, `view`, edit),
+	foreign key fx_acl_group (`group`) references groups(id) on delete cascade
 ) engine=innodb CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 /*
 access_lists: group access list (global and per board)
-board_id - board identifier
-group_id - group identifier
-readboard - group may read board
-thread - group may create new threads
-post - group may answer in threads
-postimage - may attach an upload to posts
-delpost - may delete posts (even from other users)
-delimage - may delete uploads
-banuser - may ban user ip (TODO: ban only on allowed board?)
-createboard - may create boards (global)
 */
 
 

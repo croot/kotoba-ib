@@ -216,8 +216,8 @@ input, textarea {
 	color: #C2C2EE !important;
 }
 .spoiler:hover {
-	background: #C2D311;
-	color: #000000;
+	background: #C2D311 !important;
+	color: #000000 !important;
 }
 .spoiler:hover blockquote{
 	color:#789922 !important;
