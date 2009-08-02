@@ -9,32 +9,76 @@
  * See license.txt for more info.*
  *********************************/
 
-require 'config.php';
-require 'common.php';
-require 'error_processing.php';
+require_once 'config.php';
+require_once 'common.php';
+require_once 'exception_processing.php';
 
 if(KOTOBA_ENABLE_STAT)
-    if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/index.stat', 'a')) == false)
+    if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/stat/index.stat', 'a')) == false)
         kotoba_error("Ошибка. Не удалось открыть или создать файл статистики");
 
 kotoba_setup();
 
-require 'database_connect.php';
-require 'database_common.php';
-require 'events.php';
+if(!session_start())
+    exit;
 
-$link = dbconn();
+require_once 'database_connect.php';
+require_once 'database_common.php';
+require_once 'events.php';
+
+$link = dbconnect();
 $smarty = new SmartyKotobaSetup();
 
-// Получение списка досок.
-
-$boardNames = db_get_boards($link);
-
-if(count($boardNames) > 0) {
-	$smarty->assign('BOARDS_EXIST', '');
-	$smarty->assign('boardNames', $boardNames);
+if(($ban = db_check_banned($link, ip2long($_SERVER['REMOTE_ADDR']))) !== false)
+{
+    $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
+    $smarty->assign('reason', $ban['reason']);
+    session_destroy();
+    die($smarty->fetch('banned.tpl'));
 }
 
+/*
+ * По умолчанию пользователь является Гостем. Гость всегда имеет идетификатор
+ * равный 1 и входит в группу Guests.
+ */
+if(!isset($_SESSION['user']))
+{
+    $_SESSION['user'] = 1;
+    $_SESSION['groups'] = array('Guests');
+    $_SESSION['stylesheet'] = 'kotoba.css';
+}
+
+$boardNames = db_get_boards_list($link, $_SESSION['user']);
+mysqli_close($link);
+
+if(in_array('Guests', $_SESSION['groups']))
+{
+    $smarty->assign('load_settings_panel', true);
+}
+elseif (in_array('Users', $_SESSION['groups']))
+{
+    
+}
+elseif (in_array('Moderators', $_SESSION['groups']))
+{
+    $smarty->assign('mod_panel', true);
+}
+elseif (in_array('Administrators', $_SESSION['groups']))
+{
+    $smarty->assign('adm_panel', true);
+}
+else
+{
+    exit;
+}
+
+$smarty->assign('stylesheet', $_SESSION['stylesheet']);
+
+if(count($boardNames) > 0)
+{
+	$smarty->assign('BOARDS_EXIST', true);
+	$smarty->assign('boardNames', $boardNames);
+}
 
 if(isset($_SESSION['isLoggedIn']))
 	$smarty->assign('isLoggedIn', '1');
@@ -43,17 +87,4 @@ $smarty->assign('version', '$Revision$');
 $smarty->assign('date', '$Date$');
 
 $smarty->display('index.tpl');
-mysqli_close($link);
-?>
-<?php
-/*
- * Выводит сообщение $errmsg в файл статистики $stat_file.
- */
-function kotoba_stat($errmsg)
-{
-    global $stat_file;
-    fwrite($stat_file, "$errmsg (" . date("Y-m-d H:i:s") . ")\n");
-    fclose($stat_file);
-}
-// vim: set encoding=utf-8:
 ?>
