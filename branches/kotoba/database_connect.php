@@ -8,43 +8,29 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
+/*
+ * en: database connect module with mysqli interface
+ * ru: Скрипт соединения с базой данных при помощи библиотеки mysqli
+ */
 
-/* database connect module with mysqli interface */
+require_once 'config.php';
+require_once 'exception_processing.php';
 
-require_once('config.php');
-require_once('error_processing.php');
-
-
-// connect to database
-/* dbconn - connect to database 
+/*
+ * en: Connect to database
  * return database link
  * no arguments
- * */
+ * ru: Устанавливает соединение с сервером баз данных и возвращает
+ * соединение (объект, представляющий соединение с бд).
+ */
 
-function dbconn() {
+function dbconnect() {
 	$link = @mysqli_connect(KOTOBA_DB_HOST, KOTOBA_DB_USER, KOTOBA_DB_PASS, KOTOBA_DB_BASENAME);
-
-	if(!$link) {
+    if(!$link)
 		kotoba_error(mysqli_connect_error());
-	}
 	// TODO: charset should be configurable
-	if(!mysqli_set_charset($link, 'utf8')) {
+	if(!mysqli_set_charset($link, 'utf8'))
 		kotoba_error(mysqli_error($link));
-	}
 	return $link;
 }
-/* cleanup: cleanup all results on link. useful when stored procedure used.
- * no returns
- * argumnets:
- * $link - database link
- */
-function cleanup_link($link) {
-	do {
-		$result = mysqli_use_result($link);
-		if($result)
-			mysqli_free_result($result);
-
-	} while(mysqli_next_result($link));
-}
-
 ?>

@@ -8,9 +8,75 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
+/*
+ * en: common functions may used by all kotoba modules
+ * ru: Интерфейс работы с базой данных.
+ */
 
+require_once 'config.php';
+require_once 'exception_processing.php';
 
-/* database_common.php: common functions may used by all kotoba modules */
+/*
+ * Проверяет, забанен ли узел с адресом $ip.
+ */
+function db_check_banned($link, $ip)
+{
+//    mysqli_query($link, "call sp_ban($ip, $ip, 'Sorc banned', '2009-07-29 16:51:00')");
+//    mysqli_query($link, "call sp_ban(" . ip2long('127.0.0.0') . ", " . ip2long('127.255.255.255') . ", 'local ban', '2009-07-07 16:58:00')");
+//    echo "\n" . mysqli_error($link);
+//    exit;
+    if(($result = mysqli_query($link, "call sp_check_ban($ip)")) == false)
+        kotoba_error(mysqli_error($link));
+    
+    if(($count = mysqli_affected_rows($link)) > 0)
+    {
+        $row = mysqli_fetch_assoc($result);
+        mysqli_free_result($result);
+        cleanup_link($link);
+        return array('range_beg' => $row['range_beg'],'range_end' => $row['range_end'],'untill' => $row['untill'],'reason' => $row['reason']);
+    }
+    else
+    {
+        mysqli_free_result($result);
+        cleanup_link($link);
+        return false;
+    }
+}
+
+/*
+ * cleanup all results on link. useful when stored procedure used.
+ * no returns
+ * argumnets:
+ * $link - database link
+ */
+function cleanup_link($link)
+{
+	do
+    {
+		if(($result = mysqli_use_result($link)) != false)
+			mysqli_free_result($result);
+	}
+    while(mysqli_next_result($link));
+}
+
+/*
+ * Возвращает доски, видимые пользователю $user.
+ */
+function db_get_boards_list($link, $user)
+{
+	$boards = array();
+
+    if(($result = mysqli_query($link, "call sp_get_boards_list($user)")) == false)
+        kotoba_error(mysqli_error($link));
+
+    if(mysqli_affected_rows($link) > 0)
+        while(($row = mysqli_fetch_assoc($result)) != null)
+            array_push($boards, $row);
+
+    mysqli_free_result($result);
+	cleanup_link($link);
+	return $boards;
+}
 
 /* db_get_boards: get all allowed to use boards
  * returns array with fields:
@@ -18,7 +84,7 @@
  * arguments:
  * $link - database link (mysqli)
  */
-function db_get_boards($link) {
+/*function db_get_boards($link) {
 	$boards = array();
 	$st = mysqli_prepare($link, "call sp_get_boards()");
 	if(! $st) {
@@ -36,7 +102,7 @@ function db_get_boards($link) {
 	mysqli_stmt_close($st);
 	cleanup_link($link);
 	return $boards;
-}
+}*/
 
 /* db_get_board_id: get board id by name
  * returns board id (positive) on success, otherwise return -1
@@ -120,7 +186,7 @@ function db_get_board($link, $board_name) {
 	if(! mysqli_stmt_execute($st)) {
 		kotoba_error(mysqli_stmt_error($st));
 	}
-	mysqli_stmt_bind_result($st, $id, $board_description, $board_title, 
+	mysqli_stmt_bind_result($st, $id, $board_description, $board_title,
 		$bump_limit, $rubber_board, $visible_threads, $same_upload);
 	if(! mysqli_stmt_fetch($st)) {
 		mysqli_stmt_close($st);
@@ -130,8 +196,8 @@ function db_get_board($link, $board_name) {
 	mysqli_stmt_close($st);
 	cleanup_link($link);
 	return array('id' => $id, 'board_description' => $board_description,
-		'board_title' => $board_title, 'bump_limit' => $bump_limit, 
-		'rubber_board' => $rubber_board, 'visible_threads' => $visible_threads, 
+		'board_title' => $board_title, 'bump_limit' => $bump_limit,
+		'rubber_board' => $rubber_board, 'visible_threads' => $visible_threads,
 		'same_upload' => $same_upload);
 }
 
@@ -270,7 +336,7 @@ function db_get_thread($link, $board_id, $thread_num) {
 	}
 	mysqli_stmt_close($st);
 	cleanup_link($link);
-	return array('original_post_num' => $original_post_num, 'messages' => $messages, 
+	return array('original_post_num' => $original_post_num, 'messages' => $messages,
 		'bump_limit' => $bump_limit, 'sage' => $sage);
 }
 
@@ -300,27 +366,5 @@ function db_get_board_types($link, $boardid) {
 	mysqli_stmt_close($st);
 	cleanup_link($link);
 	return $types;
-}
-
-
-function db_thread_flags($link, $boardid, $open_post_num) {
-	$result = array();
-	$st = mysqli_prepare($link, "call sp_threads_flags(?, ?)");
-	if(! $st) {
-		kotoba_error(mysqli_error($link));
-	}
-	if(! mysqli_stmt_bind_param($st, "ii", $boardid, $open_post_num)) {
-		kotoba_error(mysqli_stmt_error($st));
-	}
-	if(! mysqli_stmt_execute($st)) {
-		kotoba_error(mysqli_stmt_error($st));
-	}
-	mysqli_stmt_bind_result($st, $deleted, $archived);
-	while(mysqli_stmt_fetch($st)) {
-		$result['deleted'] = $deleted; $result['archived'] = $archived;
-	}
-	mysqli_stmt_close($st);
-	cleanup_link($link);
-	return $result;
 }
 ?>

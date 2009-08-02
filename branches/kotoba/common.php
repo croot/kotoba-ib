@@ -9,37 +9,8 @@
  * See license.txt for more info.*
  *********************************/
 
-error_reporting(E_ALL);
-ini_set("register_globals", false);
-
-/*
- * Разбирает строку настроек $settings.
- * Вовзращает ассоциированный массив с 
- * настройками КЛЮЧ => ЗНАЧЕНИЕ.
- * 
- * Строка настроек состоит из пар КЛЮЧ:ЗНАЧЕНИЕ,
- * разделённых символом \n:
- * 
- * КЛЮЧ1:ЗНАЧЕНИЕ1\n
- * КЛЮЧ2:ЗНАЧЕНИЕ2\n
- * ...
- */
-function get_settings($type, $settings)
-{
-    $h = array();
-	$settings_array = explode("\n", $settings);
-
-	for($i = 0; $i < count($settings_array); $i++)
-	{
-		$key = substr($settings_array[$i], 0, strpos($settings_array[$i], ':'));
-		$value = substr($settings_array[$i], strpos($settings_array[$i], ':') + 1, strlen($settings_array[$i]));
-
-		if($value != '')
-			$h[$key] = $value;
-	}
-
-	return $h;
-}
+require_once 'config.php';
+require_once 'exception_processing.php';
 
 /*
  * Проверяет корректность значения $value
@@ -47,12 +18,13 @@ function get_settings($type, $settings)
  * 
  * Например: значение типа "board" должно быть
  * строкой длины от 1 до 16 байт включительно,
- * которая состоит из символов a-zA-Z0-9_-.
+ * которая состоит из символов латинских букв в верхнем
+ * и нижем регистре, цифр, знача подчеркивания и тире.
  * 
  */
-function CheckFormat($type, $value)
+function check_format($type, $value)
 {
-	switch($type)
+    switch($type)
     {
         case 'board':
 			$length = strlen($value);
@@ -125,14 +97,9 @@ function CheckFormat($type, $value)
 }
 
 /*
- * Алиас для CheckFormat($type, $value);
+ * en: smarty setup
+ * ru: Настройка Smarty.
  */
-function check_format($type, $value)
-{
-    return CheckFormat($type, $value);
-}
-
-// smarty setup
 require_once($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/smarty/Smarty.class.php');
 
 class SmartyKotobaSetup extends Smarty
@@ -151,22 +118,23 @@ class SmartyKotobaSetup extends Smarty
     }
 }
 
-/* kotoba_setup - initialize global variables, start session and so on
+/*
+ * kotoba_setup - initialize global variables and so on
  * nothing returns and dont expect arguments
  * locale setings hardcoded!
+ * ru: Настройка сессий, кукис, кодировки для mbstrings, локали.
  */
-function kotoba_setup() {
+function kotoba_setup()
+{
 	ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH  . '/sessions/');
-	ini_set('session.gc_maxlifetime', 60 * 60 * 24);    // 1 день.
-	ini_set('session.cookie_lifetime', 60 * 60 * 24);
-	session_start();
-	// todo: configure locales!
-	mb_language('ru');
+	ini_set('session.gc_maxlifetime', KOTOBA_SESSION_LIFETIME);
+	ini_set('session.cookie_lifetime', KOTOBA_SESSION_LIFETIME);
+
+    mb_language('ru');
 	mb_internal_encoding("UTF-8");
-	$res = setlocale(LC_ALL, 'ru_RU.UTF-8', 'ru', 'rus', 'russian');
-	if(!$res) {
+
+	if(!setlocale(LC_ALL, 'ru_RU.UTF-8', 'ru', 'rus', 'russian'))
 		kotoba_error("locale failed");
-	}
 }
 
 // vim: set encoding=utf-8:
