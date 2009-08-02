@@ -1,0 +1,183 @@
+<?php
+/*************************************
+ * Этот файл является частью Kotoba. *
+ * Файл license.txt содержит условия *
+ * распространения Kotoba.           *
+ *************************************/
+/*********************************
+ * This file is part of Kotoba.  *
+ * See license.txt for more info.*
+ *********************************/
+
+/*******************
+ * Общие настройки *
+ *******************/
+
+/*
+ * Путь от корня документов к директории, где хранится index.php.
+ * Например: /test/kotoba_drive
+ */
+define('KOTOBA_DIR_PATH', '/kotoba');
+
+/*
+ * Разрешить постить одинакоые картинки. Значения: true или false.
+ */
+define('KOTOBA_ALLOW_SAEMIMG', false);
+
+/*
+ * Включить сбор статистики. Значения: true или false.
+ */
+define('KOTOBA_ENABLE_STAT', true);
+
+/*
+ * en: Kotoba uses frames
+ * ru: Использовать фреймовый интерфейс.
+ */
+define('KOTOBA_FRAMED_INTERFACE', 1);
+
+/*
+ * en: date and time format
+ * ru: Формат выводимой даты и времени сообщений.
+ */
+// TODO Добавить ссылку на манул по формату даты.
+define('KOTOBA_DATETIME_FORMAT', '%d-%m-%Y (%a) %H:%M:%S');
+
+/*************************
+ * Настройки базы данных *
+ *************************/
+
+/*
+ * en: database host
+ * ru: Доменное имя или адрес узла сети, где расположен серевер базы данных.
+ */
+define('KOTOBA_DB_HOST', 'localhost');
+
+/*
+ * en: database username
+ * ru: Имя пользователя для доступа к базе данных.
+ */
+define('KOTOBA_DB_USER', 'root');
+
+/*
+ * en: database password
+ * ru: Пароль для доступа к базе данных.
+ */
+define('KOTOBA_DB_PASS', '');
+
+/*
+ * en: database name
+ * ru: Имя используемой базы данных Котобы.
+ */
+define('KOTOBA_DB_BASENAME', 'mydb');
+
+/**************************
+ * Работа с изображениями *
+ **************************/
+
+/*
+ * en: try load libgd support for image processing
+ * ru: Использовать libgd для обработки изображений.
+ */
+define('KOTOBA_TRY_IMAGE_GD', 1);
+
+/*
+ * en: try load imagemagick support for image processing
+ * ru: Использовать imagemagick для обработки изображений.
+ */
+define('KOTOBA_TRY_IMAGE_IM', 0);
+
+/*
+ * Мнимальная ширина загружаемого изображения.
+ */
+define('KOTOBA_MIN_IMGWIDTH', 32);
+
+/*
+ * Минимальная высота загружаемого изображения.
+ */
+define('KOTOBA_MIN_IMGHEIGTH', 32);
+
+/*
+ * Минимальный размер загружаемого файла.
+ */
+// TODO В каких единицах измерения?
+define('KOTOBA_MIN_IMGSIZE', 1000);
+
+/*
+ * en: small image over that limit wouldn't
+ * ru: Минимальный размер изображения в байтах.
+ */
+define('KOTOBA_SMALLIMAGE_LIMIT_FILE_SIZE', 1048576);
+
+/***************
+ * Ограничения *
+ ***************/
+
+/*
+ * Глобальный бамплимит.
+ */
+define('KOTOBA_BUMPLIMIT', 30);
+
+/*
+ * Число строк поста, отображаемое в предпросмотре доски.
+ */
+define('KOTOBA_LONGPOST_LINES', 11);
+
+/*
+ * en: Last posts quantity in threads in board preview
+ * ru: Количество сообщений, выводимых в предпросмотре нити.
+ */
+define('KOTOBA_POSTS_PREVIEW', 11);
+
+/*
+ * en: Threads quantity on page in board preview
+ * ru: Количество выводимых для предспросмотра нитей на странице.
+ */
+define('KOTOBA_THREADS_ONPAGE', 11);
+
+/*
+ * en: No more than pages in board preview
+ * ru: Максимальное количество страниц в просмотре доски.
+ */
+define('KOTOBA_PAGES_ONBOARD', 11);
+
+/*
+ * Число постов доски, по достижению которого начинают тонуть треды.
+ */
+define('KOTOBA_POST_LIMIT', 600);
+
+/*
+ * Максимальная длина текста сообщения в байтах.
+ */
+define('KOTOBA_MAX_MESSAGE_LENGTH', 30000);
+
+/*
+ * Максимальная длина темы в байтах.
+ */
+define('KOTOBA_MAX_THEME_LENGTH', 120);
+
+/*
+ * Максимальная длина имени в байтах.
+ */
+define('KOTOBA_MAX_NAME_LENGTH', 64);
+
+/*
+ * Время жизни сессии и кукис в секундах. Используется для параметров
+ * session.gc_maxlifetime и session.cookie_lifetime.
+ * 86400 = 60 * 60 * 24 = один день.
+ */
+define('KOTOBA_SESSION_LIFETIME', 86400);
+
+/*********************
+ * Для разработчиков *
+ *********************/
+
+/*
+ * TODO Переместить эти константы из настроек.
+ * Алсо, НЕ ИЗМЕНЯЙТЕ ЭТИ КОНСТАНТЫ!
+ */
+define('KOTOBA_THUMB_SUCCESS', 0);      // thumbnail succesfully created
+define('KOTOBA_THUMB_UNSUPPORTED', 1);  // unsupported format
+define('KOTOBA_THUMB_NOLIBRARY', 2);    // no suitable library
+define('KOTOBA_THUMB_TOOBIG', 4);       // file too big
+define('KOTOBA_THUMB_UNKNOWN', 255);    // unknown error
+?>
