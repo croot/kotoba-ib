@@ -15,17 +15,55 @@ require_once 'exception_processing.php';
 /*
  * Проверяет корректность значения $value
  * в зависимости от типа $type.
- * 
+ *
  * Например: значение типа "board" должно быть
  * строкой длины от 1 до 16 байт включительно,
  * которая состоит из символов латинских букв в верхнем
  * и нижем регистре, цифр, знача подчеркивания и тире.
- * 
+ *
  */
 function check_format($type, $value)
 {
     switch($type)
     {
+        case 'stylesheet':
+        case 'language':
+            return RawUrlEncode($value);
+
+        case 'keyword':
+			$length = strlen($value);
+
+			if($length <= 32 && $length >= 16)
+			{
+				$value = RawUrlEncode($value);
+				$length = strlen($value);
+
+				if($length > 32 || (strpos($value, '%') !== false) || $length < 16)
+					return false;
+			}
+			else
+				return false;
+
+			return $value;
+
+        case 'posts_per_thread':
+        case 'lines_per_post':
+		case 'threads_per_page':
+			$length = strlen($value);
+
+			if($length <= 2 && $length >= 1)
+			{
+				$value = RawUrlEncode($value);
+				$length = strlen($value);
+
+				if($length > 2 || (ctype_digit($value) === false) || $length < 1)
+					return false;
+			}
+			else
+				return false;
+
+			return $value;
+
         case 'board':
 			$length = strlen($value);
 
@@ -58,7 +96,7 @@ function check_format($type, $value)
 				return false;
 
             return $value;
-            
+
         case 'page':
             $length = strlen($value);
 
@@ -72,7 +110,7 @@ function check_format($type, $value)
 			}
 			else
 				return false;
-                
+
             return $value;
 
         case 'pass':
@@ -88,7 +126,7 @@ function check_format($type, $value)
 			}
 			else
 				return false;
-                
+
             return $value;
 
         default:
@@ -115,6 +153,7 @@ class SmartyKotobaSetup extends Smarty
         $this->caching = 0;
 
 		$this->assign('KOTOBA_DIR_PATH', KOTOBA_DIR_PATH);
+        $this->assign('stylesheet', KOTOBA_STYLESHEET);
     }
 }
 
@@ -135,6 +174,21 @@ function kotoba_setup()
 
 	if(!setlocale(LC_ALL, 'ru_RU.UTF-8', 'ru', 'rus', 'russian'))
 		kotoba_error("locale failed");
+}
+
+/*
+ *
+ */
+function login() {
+    if(!isset($_SESSION['user'])) { // По умолчанию пользователь является Гостем.
+        $_SESSION['user'] = KOTOBA_GUEST_ID;
+        $_SESSION['groups'] = array('Guests');
+        $_SESSION['threads_per_page'] = KOTOBA_THREADS_PER_PAGE;
+        $_SESSION['posts_per_thread'] = KOTOBA_POSTS_PER_THREAD;
+        $_SESSION['lines_per_post'] = KOTOBA_LINES_PER_POST;
+        $_SESSION['stylesheet'] = KOTOBA_STYLESHEET;
+        $_SESSION['language'] = KOTOBA_LANGUAGE;
+    }
 }
 
 // vim: set encoding=utf-8:

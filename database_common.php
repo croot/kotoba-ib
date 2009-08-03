@@ -27,7 +27,7 @@ function db_check_banned($link, $ip)
 //    exit;
     if(($result = mysqli_query($link, "call sp_check_ban($ip)")) == false)
         kotoba_error(mysqli_error($link));
-    
+
     if(($count = mysqli_affected_rows($link)) > 0)
     {
         $row = mysqli_fetch_assoc($result);
@@ -60,49 +60,153 @@ function cleanup_link($link)
 }
 
 /*
+ *
+ */
+function cleanup_link_store($link)
+{
+    do
+    {
+        if(($result = mysqli_store_result($link)) != false)
+            mysqli_free_result($result);
+	}
+    while(mysqli_next_result($link));
+}
+
+/*
  * Возвращает доски, видимые пользователю $user.
  */
 function db_get_boards_list($link, $user)
 {
-	$boards = array();
-
-    if(($result = mysqli_query($link, "call sp_get_boards_list($user)")) == false)
+	if(($result = mysqli_query($link, "call sp_get_boards_list($user)")) == false)
         kotoba_error(mysqli_error($link));
+
+    $boards = array();
 
     if(mysqli_affected_rows($link) > 0)
         while(($row = mysqli_fetch_assoc($result)) != null)
             array_push($boards, $row);
+    else
+    {
+        mysqli_free_result($result);
+        return null;
+    }
 
     mysqli_free_result($result);
-	cleanup_link($link);
 	return $boards;
 }
 
-/* db_get_boards: get all allowed to use boards
- * returns array with fields:
- * 'id', 'board_name', 'board_description'
- * arguments:
- * $link - database link (mysqli)
+/*
+ * Возвращает настройки пользователя с кулючевым словом $keyword
+ * или null.
  */
-/*function db_get_boards($link) {
-	$boards = array();
-	$st = mysqli_prepare($link, "call sp_get_boards()");
-	if(! $st) {
-		kotoba_error(mysqli_error($link));
-	}
-	if(! mysqli_stmt_execute($st)) {
-		kotoba_error(mysqli_stmt_error($st));
-	}
-	mysqli_stmt_bind_result($st, $cid, $id, $board_name, $board_description);
-	while(mysqli_stmt_fetch($st)) {
-		array_push($boards, array('cid' => $cid, 'id' => $id,
-			'board_name' => $board_name, 'board_description' => $board_description
-			));
-	}
-	mysqli_stmt_close($st);
-	cleanup_link($link);
-	return $boards;
-}*/
+function db_get_user_settings($link, $keyword)
+{
+    if(mysqli_multi_query($link, "call sp_get_user_settings('$keyword')") == false)
+        kotoba_error(mysqli_error($link));
+
+    if(($result = mysqli_store_result($link)) == false)
+        kotoba_error(mysqli_error($link));
+
+    if(($row = mysqli_fetch_assoc($result)) != null)
+        $user_settings = $row;
+    else    // Пользователь с ключевым словом $keyword не найден.
+    {
+        mysqli_free_result($result);
+        cleanup_link_store($link);
+        return null;
+    }
+
+    @mysql_free_result($result);
+
+    if(!mysqli_next_result($link))
+        kotoba_error(mysqli_error($link));
+
+    if(($result = mysqli_store_result($link)) == false)
+        kotoba_error(mysqli_error($link));
+
+    $user_settings['groups'] = array();
+
+    while(($row = mysqli_fetch_assoc($result)) != null)
+        array_push($user_settings['groups'], $row);
+
+    if(count($user_settings['groups']) <= 0)    // Пользователь не закреплен ни за одной группой.
+    {
+        mysqli_free_result($result);
+        cleanup_link_store($link);
+        return null;
+    }
+
+    @mysql_free_result($result);
+    cleanup_link_store($link);
+    return $user_settings;
+}
+
+/*
+ *
+ */
+function db_get_stylesheets($link)
+{
+    if(($result = mysqli_query($link, 'call sp_get_stylesheets()')) == false)
+        kotoba_error(mysqli_error($link));
+
+    $stylesheets = array();
+
+    if(mysqli_affected_rows($link) > 0)
+        while(($row = mysqli_fetch_assoc($result)) != null)
+            array_push($stylesheets, $row['name']);
+    else
+    {
+        mysqli_free_result($result);
+        cleanup_link_store($link);
+        return null;
+    }
+
+    mysqli_free_result($result);
+    cleanup_link_store($link);
+    return $stylesheets;
+}
+
+/*
+ *
+ */
+function db_get_languages($link)
+{
+    if(($result = mysqli_query($link, 'call sp_get_languages()')) == false)
+        kotoba_error(mysqli_error($link));
+
+    $stylesheets = array();
+
+    if(mysqli_affected_rows($link) > 0)
+        while(($row = mysqli_fetch_assoc($result)) != null)
+            array_push($stylesheets, $row['name']);
+    else
+    {
+        mysqli_free_result($result);
+        cleanup_link_store($link);
+        return null;
+    }
+
+    mysqli_free_result($result);
+    cleanup_link_store($link);
+    return $stylesheets;
+}
+
+/*
+ *
+ */
+function db_save_user_settings($link, $keyword, $threads_per_page, $posts_per_thread, $lines_per_post, $stylesheet, $language)
+{
+    if(($result = mysqli_query($link, "call sp_save_user_settings('$keyword', $threads_per_page, $posts_per_thread, $lines_per_post, '$stylesheet', '$language')")) == false)
+        kotoba_error(mysqli_error($link));
+
+    if(mysqli_affected_rows($link) < 0)
+    {
+        cleanup_link_store($link);
+        return false;
+    }
+
+    return true;
+}
 
 /* db_get_board_id: get board id by name
  * returns board id (positive) on success, otherwise return -1

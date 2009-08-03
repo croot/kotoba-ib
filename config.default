@@ -42,6 +42,41 @@ define('KOTOBA_FRAMED_INTERFACE', 1);
 // TODO Добавить ссылку на манул по формату даты.
 define('KOTOBA_DATETIME_FORMAT', '%d-%m-%Y (%a) %H:%M:%S');
 
+/*********************************************************
+ * Настройки пользователя Гость (настройки по умолчанию) *
+ *********************************************************/
+
+/*
+ * Идентифиатор пользователя Гость.
+ */
+define('KOTOBA_GUEST_ID', 1);
+
+/*
+ * Число нитей на странице предпросмотра доски.
+ */
+define('KOTOBA_THREADS_PER_PAGE', 10);
+
+/*
+ * Число сообщений в треде на странице предпросмотра доски.
+ */
+define('KOTOBA_POSTS_PER_THREAD', 5);
+
+/*
+ * Сообщения, в которых число строк превышает это число будут урезаны
+ * в предпросмотре доски.
+ */
+define('KOTOBA_LINES_PER_POST', 15);
+
+/*
+ * Идентифиатор пользователя Гость.
+ */
+define('KOTOBA_STYLESHEET', 'kotoba.css');
+
+/*
+ * Идентифиатор пользователя Гость.
+ */
+define('KOTOBA_LANGUAGE', 'Russian');
+
 /*************************
  * Настройки базы данных *
  *************************/
@@ -118,21 +153,24 @@ define('KOTOBA_SMALLIMAGE_LIMIT_FILE_SIZE', 1048576);
 define('KOTOBA_BUMPLIMIT', 30);
 
 /*
- * Число строк поста, отображаемое в предпросмотре доски.
+ * Минимальное и максимальное число строк сообщения,
+ * отображаемое на странице предпросмотра доски.
  */
-define('KOTOBA_LONGPOST_LINES', 11);
+define('KOTOBA_MIN_LINESPERPOST', 1);
+define('KOTOBA_MAX_LINESPERPOST', 50);
 
 /*
- * en: Last posts quantity in threads in board preview
- * ru: Количество сообщений, выводимых в предпросмотре нити.
+ * Минимальное и максимальное количество сообщений
+ * в нити на страние предпросмотра доски.
  */
-define('KOTOBA_POSTS_PREVIEW', 11);
+define('KOTOBA_MIN_POSTSPERTHREAD', 1);
+define('KOTOBA_MAX_POSTSPERTHREAD', 20);
 
 /*
- * en: Threads quantity on page in board preview
- * ru: Количество выводимых для предспросмотра нитей на странице.
+ * Минимальное и максимальное количество нитей на страние предпросмотра доски.
  */
-define('KOTOBA_THREADS_ONPAGE', 11);
+define('KOTOBA_MIN_THREADSPERPAGE', 3);
+define('KOTOBA_MAX_THREADSPERPAGE', 30);
 
 /*
  * en: No more than pages in board preview

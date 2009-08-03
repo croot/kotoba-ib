@@ -12,12 +12,13 @@
 Описание переменных:
     $KOTOBA_DIR_PATH - должна быть объявлена в вызывающем шаблоне.
     $page_title - заголовок страницы. Передаётся из вызывающего шаблона явно.
+    $stylesheet - стиль оформления. Передаётся из вызывающего шаблона явно.
 *}
 <html>
 <head>
 	<title>{$page_title}</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<link rel="stylesheet" type="text/css" href="{$KOTOBA_DIR_PATH}/kotoba.css">
+	<link rel="stylesheet" type="text/css" href="{$KOTOBA_DIR_PATH}/{$stylesheet}">
 </head>
 <body>
 
