@@ -35,7 +35,7 @@ function kotoba_error($error_message) {
  */
 function kotoba_stat($errmsg, $stat_file)
 {
-    fwrite($stat_file, "$errmsg (" . date("Y-m-d H:i:s") . ")\n");
+    fwrite($stat_file, "$errmsg (" . @date("Y-m-d H:i:s") . ")\n");
     fclose($stat_file);
 }
 ?>

@@ -24,7 +24,6 @@ if(!session_start())
 
 require_once 'database_connect.php';
 require_once 'database_common.php';
-require_once 'events.php';
 
 $link = dbconnect();
 $smarty = new SmartyKotobaSetup();
@@ -37,39 +36,18 @@ if(($ban = db_check_banned($link, ip2long($_SERVER['REMOTE_ADDR']))) !== false)
     die($smarty->fetch('banned.tpl'));
 }
 
-/*
- * По умолчанию пользователь является Гостем. Гость всегда имеет идетификатор
- * равный 1 и входит в группу Guests.
- */
-if(!isset($_SESSION['user']))
-{
-    $_SESSION['user'] = 1;
-    $_SESSION['groups'] = array('Guests');
-    $_SESSION['stylesheet'] = 'kotoba.css';
-}
+login();
 
 $boardNames = db_get_boards_list($link, $_SESSION['user']);
 mysqli_close($link);
 
-if(in_array('Guests', $_SESSION['groups']))
-{
-    $smarty->assign('load_settings_panel', true);
-}
-elseif (in_array('Users', $_SESSION['groups']))
-{
-    
-}
-elseif (in_array('Moderators', $_SESSION['groups']))
+if (in_array('Moderators', $_SESSION['groups']))
 {
     $smarty->assign('mod_panel', true);
 }
 elseif (in_array('Administrators', $_SESSION['groups']))
 {
     $smarty->assign('adm_panel', true);
-}
-else
-{
-    exit;
 }
 
 $smarty->assign('stylesheet', $_SESSION['stylesheet']);

@@ -96,14 +96,14 @@ insert into boards (name, bump_limit, same_upload, popdown_handler, category) va
 create table users
 (
 	id int not null auto_increment,
-	`key` varchar(32) default null,
+	keyword varchar(32) default null,
 	posts_per_thread int default null,
 	threads_per_page int default null,
 	lines_per_post int default null,
 	language int not null,
 	stylesheet int not null,
 	primary key (id),
-	unique key (`key`),
+	unique key (keyword),
 	constraint foreign key (language) references languages (id) on delete restrict on update restrict,
 	constraint foreign key (stylesheet) references stylesheets (id) on delete restrict on update restrict
 )
