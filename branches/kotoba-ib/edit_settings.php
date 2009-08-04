@@ -17,9 +17,9 @@ if(KOTOBA_ENABLE_STAT)
     if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/stat/edit_settings.stat', 'a')) == false)
         kotoba_error("Ошибка. Не удалось открыть или создать файл статистики");
 
-kotoba_setup();
+locale_setup();
 
-if(!session_start())
+if(!kotoba_session_start())
     exit;
 
 login();
@@ -29,6 +29,15 @@ require_once 'database_common.php';
 require_once 'events.php';
 
 $link = dbconnect();
+$smarty = new SmartyKotobaSetup($_SESSION['language']);
+
+if(($ban = db_check_banned($link, ip2long($_SERVER['REMOTE_ADDR']))) !== false)
+{
+    $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
+    $smarty->assign('reason', $ban['reason']);
+    session_destroy();
+    die($smarty->fetch('banned.tpl'));
+}
 
 if(isset($_POST['keyword_load']))
 {
@@ -116,7 +125,7 @@ if(!isset($languages) && (($languages = db_get_languages($link)) == null))
 }
 
 mysqli_close($link);
-$smarty = new SmartyKotobaSetup();
+$smarty = new SmartyKotobaSetup($_SESSION['language']); // Потому что после загрузки настроек язык может измениться.
 $smarty->assign('threads_per_page', $_SESSION['threads_per_page']);
 $smarty->assign('posts_per_thread', $_SESSION['posts_per_thread']);
 $smarty->assign('lines_per_post', $_SESSION['lines_per_post']);

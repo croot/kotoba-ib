@@ -1,19 +1,21 @@
-drop table if exists posts_uploads;
-drop table if exists uploads;
-drop table if exists acl;
-drop table if exists posts;
-drop table if exists board_upload_types;
-drop table if exists upload_types;
-drop table if exists upload_handlers;
-drop table if exists user_groups;
-drop table if exists users;
-drop table if exists groups;
-drop table if exists threads;
-drop table if exists boards;
-drop table if exists categories;
-drop table if exists popdown_handlers;
-drop table if exists stylesheets;
-drop table if exists languages;
+delimiter |
+use kotoba2|
+drop table if exists posts_uploads|
+drop table if exists uploads|
+drop table if exists acl|
+drop table if exists posts|
+drop table if exists board_upload_types|
+drop table if exists upload_types|
+drop table if exists upload_handlers|
+drop table if exists user_groups|
+drop table if exists users|
+drop table if exists groups|
+drop table if exists threads|
+drop table if exists boards|
+drop table if exists categories|
+drop table if exists popdown_handlers|
+drop table if exists stylesheets|
+drop table if exists languages|
 
 create table languages
 (
@@ -21,9 +23,9 @@ create table languages
 	name varchar(50) not null,
 	primary key (id)
 )
-engine=InnoDB;
-insert into languages (name) values ('Russian');
-insert into languages (name) values ('English');
+engine=InnoDB|
+insert into languages (name) values ('Russian')|
+insert into languages (name) values ('English')|
 
 create table categories
 (
@@ -31,7 +33,9 @@ create table categories
 	name varchar(50) not null,
 	primary key (id)
 ) 
-engine=InnoDB;
+engine=InnoDB|
+insert into categories (name) values ('default')|
+-- insert into categories (name) values ('rule 34')|
 
 create table popdown_handlers
 (
@@ -39,8 +43,8 @@ create table popdown_handlers
 	name varchar(50) not null,
 	primary key (`id`)
 )
-engine=InnoDB;
-insert into popdown_handlers (name) values ('default_handler');
+engine=InnoDB|
+insert into popdown_handlers (name) values ('default_handler')|
 
 create table stylesheets
 (
@@ -48,8 +52,8 @@ create table stylesheets
 	name varchar(50) not null,
 	primary key (id)
 )
-engine=InnoDB;
-insert into stylesheets (name) values ('kotoba.css');
+engine=InnoDB|
+insert into stylesheets (name) values ('kotoba.css')|
 
 create table groups
 (
@@ -57,11 +61,11 @@ create table groups
 	name varchar(50) not null,
 	primary key (id)
 )
-engine=InnoDB;
-insert into groups (name) values ('Guests');
-insert into groups (name) values ('Users');
-insert into groups (name) values ('Moderators');
-insert into groups (name) values ('Administrators');
+engine=InnoDB|
+insert into groups (name) values ('Guests')|
+insert into groups (name) values ('Users')|
+insert into groups (name) values ('Moderators')|
+insert into groups (name) values ('Administrators')|
 
 create table upload_handlers
 (
@@ -69,8 +73,8 @@ create table upload_handlers
 	name varchar(50) not null,
 	primary key (id)
 )
-engine = InnoDB;
-insert into  upload_handlers (name) values ('default_handler');
+engine = InnoDB|
+insert into  upload_handlers (name) values ('default_handler')|
 
 create table boards
 (
@@ -86,7 +90,10 @@ create table boards
 	constraint foreign key (category) references categories (id) on delete restrict on update restrict,
 	constraint foreign key (popdown_handler) references popdown_handlers (id) on delete restrict on update restrict
 )
-engine=InnoDB;
+engine=InnoDB|
+-- insert into boards (name, bump_limit, same_upload, popdown_handler, category) values ('b', 30, 'no', 1, 1)|
+-- insert into boards (name, bump_limit, same_upload, popdown_handler, category) values ('azu',  30, 'once', 1, 1)|
+-- insert into boards (name, bump_limit, same_upload, popdown_handler, category) values ('azu34',  30, 'yes', 1, 2)|
 
 create table users
 (
@@ -102,8 +109,8 @@ create table users
 	constraint foreign key (language) references languages (id) on delete restrict on update restrict,
 	constraint foreign key (stylesheet) references stylesheets (id) on delete restrict on update restrict
 )
-engine=InnoDB;
-insert into users (language, stylesheet) values (1, 1); -- Guest
+engine=InnoDB|
+insert into users (language, stylesheet) values (1, 1)|
 
 create table user_groups
 (
@@ -112,8 +119,8 @@ create table user_groups
 	constraint foreign key (`group`) references groups (id),
 	constraint foreign key (user) references users (id)
 ) 
-engine=InnoDB;
-insert into user_groups (user, `group`) values (1, 1); -- Guest in group Guests
+engine=InnoDB|
+insert into user_groups (user, `group`) values (1, 1)|
 
 create table upload_types
 (
@@ -125,8 +132,7 @@ create table upload_types
 	primary key (id),
 	constraint foreign key (upload_handler) references upload_handlers (id) on delete restrict on update restrict
 )
-engine=InnoDB;
--- TODO: defaut types.
+engine=InnoDB|
 
 create table board_upload_types
 (
@@ -135,7 +141,7 @@ create table board_upload_types
 	constraint foreign key (board) references boards (id) on delete restrict on update restrict,
 	constraint foreign key (upload_type) references upload_types (id) on delete restrict on update restrict
 )
-engine=InnoDB;
+engine=InnoDB|
 
 create table threads
 (
@@ -149,7 +155,7 @@ create table threads
 	primary key (id),
 	constraint foreign key (board) references boards (id) on delete restrict on update restrict
 )
-engine=InnoDB;
+engine=InnoDB|
 
 create table uploads
 (
@@ -166,7 +172,7 @@ create table uploads
 	primary key (id),
 	constraint foreign key (board) references boards (id) on delete restrict on update restrict
 )
-engine=InnoDB;
+engine=InnoDB|
 
 create table posts
 (
@@ -186,7 +192,7 @@ create table posts
 	constraint foreign key (board) references boards (id) on delete restrict on update restrict,
 	constraint foreign key (user) references users (id) on delete restrict on update restrict
 )
-engine=InnoDB;
+engine=InnoDB|
 
 create table acl
 (
@@ -203,11 +209,11 @@ create table acl
 	constraint foreign key (thread) references threads (id) on delete restrict on update restrict,
 	constraint foreign key (post) references posts (id) on delete restrict on update restrict
 )
-engine=InnoDB;
-insert into acl (`group`, view, `change`, moderate) values (1, 1, 0, 0);
-insert into acl (`group`, view, `change`, moderate) values (2, 1, 1, 0);
-insert into acl (`group`, view, `change`, moderate) values (3, 1, 1, 1);
-insert into acl (`group`, view, `change`, moderate) values (4, 1, 1, 1);
+engine=InnoDB|
+insert into acl (`group`, view, `change`, moderate) values (1, 1, 0, 0)|
+insert into acl (`group`, view, `change`, moderate) values (2, 1, 1, 0)|
+insert into acl (`group`, view, `change`, moderate) values (3, 1, 1, 1)|
+insert into acl (`group`, view, `change`, moderate) values (4, 1, 1, 1)|
 
 create table posts_uploads
 (
@@ -218,4 +224,4 @@ create table posts_uploads
 	constraint foreign key (post) references posts (id) on delete restrict on update restrict,
 	constraint foreign key (upload) references uploads (id) on delete restrict on update restrict
 )
-engine=InnoDB;
+engine=InnoDB|
