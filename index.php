@@ -17,16 +17,18 @@ if(KOTOBA_ENABLE_STAT)
     if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/stat/index.stat', 'a')) == false)
         kotoba_error("Ошибка. Не удалось открыть или создать файл статистики");
 
-kotoba_setup();
+locale_setup();
 
-if(!session_start())
+if(!kotoba_session_start())
     exit;
+
+login();
 
 require_once 'database_connect.php';
 require_once 'database_common.php';
 
 $link = dbconnect();
-$smarty = new SmartyKotobaSetup();
+$smarty = new SmartyKotobaSetup($_SESSION['language']);
 
 if(($ban = db_check_banned($link, ip2long($_SERVER['REMOTE_ADDR']))) !== false)
 {
@@ -35,8 +37,6 @@ if(($ban = db_check_banned($link, ip2long($_SERVER['REMOTE_ADDR']))) !== false)
     session_destroy();
     die($smarty->fetch('banned.tpl'));
 }
-
-login();
 
 $boardNames = db_get_boards_list($link, $_SESSION['user']);
 mysqli_close($link);

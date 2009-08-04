@@ -142,14 +142,14 @@ require_once($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/smarty/Smarty.class
 
 class SmartyKotobaSetup extends Smarty
 {
-	function SmartyKotobaSetup()
+	function SmartyKotobaSetup($language = KOTOBA_LANGUAGE)
 	{
 		$this->Smarty();
 
-        $this->template_dir = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/smarty/kotoba/templates/';
-		$this->compile_dir = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/smarty/kotoba/templates_c/';
-		$this->config_dir = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/smarty/kotoba/config/';
-		$this->cache_dir = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/smarty/kotoba/cache/';
+        $this->template_dir = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/smarty/kotoba/templates/$language/";
+		$this->compile_dir = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/smarty/kotoba/templates_c/$language/";
+		$this->config_dir = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/smarty/kotoba/config/$language/";
+		$this->cache_dir = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/smarty/kotoba/cache/$language/";
         $this->caching = 0;
 
 		$this->assign('KOTOBA_DIR_PATH', KOTOBA_DIR_PATH);
@@ -158,18 +158,23 @@ class SmartyKotobaSetup extends Smarty
 }
 
 /*
- * kotoba_setup - initialize global variables and so on
- * nothing returns and dont expect arguments
- * locale setings hardcoded!
- * ru: Настройка сессий, кукис, кодировки для mbstrings, локали.
+ *
  */
-function kotoba_setup()
+function kotoba_session_start()
 {
-	ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH  . '/sessions/');
+    ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH  . '/sessions/');
 	ini_set('session.gc_maxlifetime', KOTOBA_SESSION_LIFETIME);
 	ini_set('session.cookie_lifetime', KOTOBA_SESSION_LIFETIME);
 
-    mb_language('ru');
+    return session_start();
+}
+
+/*
+ * Настройка кодировки для mbstrings, локали.
+ */
+function locale_setup()
+{
+	mb_language('ru');
 	mb_internal_encoding("UTF-8");
 
 	if(!setlocale(LC_ALL, 'ru_RU.UTF-8', 'ru', 'rus', 'russian'))
@@ -190,6 +195,5 @@ function login() {
         $_SESSION['language'] = KOTOBA_LANGUAGE;
     }
 }
-
 // vim: set encoding=utf-8:
 ?>

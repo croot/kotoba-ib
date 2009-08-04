@@ -1,16 +1,18 @@
-drop procedure if exists sp_save_user_settings;
-drop procedure if exists sp_get_languages;
-drop procedure if exists sp_get_stylesheets;
-drop procedure if exists sp_get_user_settings;
-drop procedure if exists sp_get_boards_list;
-drop procedure if exists sp_ban;
-drop procedure if exists sp_check_ban;
-drop procedure if exists sp_refresh_banlist;
+delimiter |
+use kotoba2|
+drop procedure if exists sp_save_user_settings|
+drop procedure if exists sp_get_languages|
+drop procedure if exists sp_get_stylesheets|
+drop procedure if exists sp_get_user_settings|
+drop procedure if exists sp_get_boards_list|
+drop procedure if exists sp_ban|
+drop procedure if exists sp_check_ban|
+drop procedure if exists sp_refresh_banlist|
 
 create procedure sp_refresh_banlist ()
 begin
 delete from bans where untill <= now();
-end;
+end|
 
 create procedure sp_ban
 (
@@ -28,7 +30,7 @@ then
 else
 	insert into bans (range_beg, range_end, reason, untill) values (_range_beg, _range_end, _reason, _untill);
 end if;
-end;
+end|
 
 create procedure sp_check_ban
 (
@@ -37,7 +39,7 @@ create procedure sp_check_ban
 begin
 call sp_refresh_banlist();
 select range_beg, range_end, untill, reason from bans where range_beg >= ip and range_end <= ip order by range_end desc limit 1;
-end;
+end|
 
 create procedure sp_get_boards_list
 (
@@ -54,7 +56,7 @@ begin
 	group by b.id
 	having max(coalesce(a3.view, a2.view, a1.view)) = 1
 	order by c.name, b.name;
-end;
+end|
 
 create procedure sp_get_user_settings
 (
@@ -72,17 +74,17 @@ begin
 	select g.name from user_groups ug
 	join users u on ug.`user` = u.id and u.id = user_id
 	join groups g on ug.`group` = g.id;
-end;
+end|
 
 create procedure sp_get_stylesheets ()
 begin
 	select name from stylesheets;
-end;
+end|
 
 create procedure sp_get_languages ()
 begin
 	select name from languages;
-end;
+end|
 
 create procedure sp_save_user_settings
 (
@@ -115,4 +117,4 @@ begin
 		-- Редактируем настройки существующего
 		update users set threads_per_page = _threads_per_page, posts_per_thread = _posts_per_thread, lines_per_post = _lines_per_post, stylesheet = stylesheet_id, language = language_id where id = user_id;
 	end if;
-end;
+end|
