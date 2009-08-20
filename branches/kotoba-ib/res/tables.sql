@@ -1,21 +1,4 @@
 delimiter |
-use kotoba2|
-drop table if exists posts_uploads|
-drop table if exists uploads|
-drop table if exists acl|
-drop table if exists posts|
-drop table if exists board_upload_types|
-drop table if exists upload_types|
-drop table if exists upload_handlers|
-drop table if exists user_groups|
-drop table if exists users|
-drop table if exists groups|
-drop table if exists threads|
-drop table if exists boards|
-drop table if exists categories|
-drop table if exists popdown_handlers|
-drop table if exists stylesheets|
-drop table if exists languages|
 
 create table languages
 (
@@ -24,8 +7,6 @@ create table languages
 	primary key (id)
 )
 engine=InnoDB|
-insert into languages (name) values ('Russian')|
-insert into languages (name) values ('English')|
 
 create table categories
 (
@@ -34,8 +15,6 @@ create table categories
 	primary key (id)
 ) 
 engine=InnoDB|
-insert into categories (name) values ('default')|
--- insert into categories (name) values ('rule 34')|
 
 create table popdown_handlers
 (
@@ -44,7 +23,6 @@ create table popdown_handlers
 	primary key (`id`)
 )
 engine=InnoDB|
-insert into popdown_handlers (name) values ('default_handler')|
 
 create table stylesheets
 (
@@ -53,7 +31,6 @@ create table stylesheets
 	primary key (id)
 )
 engine=InnoDB|
-insert into stylesheets (name) values ('kotoba.css')|
 
 create table groups
 (
@@ -62,10 +39,6 @@ create table groups
 	primary key (id)
 )
 engine=InnoDB|
-insert into groups (name) values ('Guests')|
-insert into groups (name) values ('Users')|
-insert into groups (name) values ('Moderators')|
-insert into groups (name) values ('Administrators')|
 
 create table upload_handlers
 (
@@ -74,7 +47,6 @@ create table upload_handlers
 	primary key (id)
 )
 engine = InnoDB|
-insert into  upload_handlers (name) values ('default_handler')|
 
 create table boards
 (
@@ -91,9 +63,6 @@ create table boards
 	constraint foreign key (popdown_handler) references popdown_handlers (id) on delete restrict on update restrict
 )
 engine=InnoDB|
--- insert into boards (name, bump_limit, same_upload, popdown_handler, category) values ('b', 30, 'no', 1, 1)|
--- insert into boards (name, bump_limit, same_upload, popdown_handler, category) values ('azu',  30, 'once', 1, 1)|
--- insert into boards (name, bump_limit, same_upload, popdown_handler, category) values ('azu34',  30, 'yes', 1, 2)|
 
 create table users
 (
@@ -110,7 +79,6 @@ create table users
 	constraint foreign key (stylesheet) references stylesheets (id) on delete restrict on update restrict
 )
 engine=InnoDB|
-insert into users (language, stylesheet) values (1, 1)|
 
 create table user_groups
 (
@@ -120,7 +88,6 @@ create table user_groups
 	constraint foreign key (user) references users (id)
 ) 
 engine=InnoDB|
-insert into user_groups (user, `group`) values (1, 1)|
 
 create table upload_types
 (
@@ -210,10 +177,6 @@ create table acl
 	constraint foreign key (post) references posts (id) on delete restrict on update restrict
 )
 engine=InnoDB|
-insert into acl (`group`, view, `change`, moderate) values (1, 1, 0, 0)|
-insert into acl (`group`, view, `change`, moderate) values (2, 1, 1, 0)|
-insert into acl (`group`, view, `change`, moderate) values (3, 1, 1, 1)|
-insert into acl (`group`, view, `change`, moderate) values (4, 1, 1, 1)|
 
 create table posts_uploads
 (

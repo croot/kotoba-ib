@@ -15,19 +15,20 @@
 
 /*
  * Путь от корня документов к директории, где хранится index.php.
- * Например: /test/kotoba_drive
+ * Например: /kotoba
  */
 define('KOTOBA_DIR_PATH', '/kotoba');
+
+/*
+ * Абсолютный путь к директории, в которую установлена Котоба.
+ * Например: c:/Apache/htdocs/kotoba
+ */
+define('KOTOBA_ABS_PATH', 'c:/Apache/htdocs/kotoba');
 
 /*
  * Разрешить постить одинакоые картинки. Значения: true или false.
  */
 define('KOTOBA_ALLOW_SAEMIMG', false);
-
-/*
- * Включить сбор статистики. Значения: true или false.
- */
-define('KOTOBA_ENABLE_STAT', true);
 
 /*
  * en: Kotoba uses frames
@@ -41,6 +42,12 @@ define('KOTOBA_FRAMED_INTERFACE', 1);
  */
 // TODO Добавить ссылку на манул по формату даты.
 define('KOTOBA_DATETIME_FORMAT', '%d-%m-%Y (%a) %H:%M:%S');
+
+/*
+ * Операционная система, на которой установлена Котоба. Допустимные значения:
+ * Windows, Unix.
+ */
+define('KOTOBA_OS', 'Windows');
 
 /*********************************************************
  * Настройки пользователя Гость (настройки по умолчанию) *
@@ -68,12 +75,12 @@ define('KOTOBA_POSTS_PER_THREAD', 5);
 define('KOTOBA_LINES_PER_POST', 15);
 
 /*
- * Идентифиатор пользователя Гость.
+ * Стиль оформления страниц.
  */
 define('KOTOBA_STYLESHEET', 'kotoba.css');
 
 /*
- * Идентифиатор пользователя Гость.
+ * Язык.
  */
 define('KOTOBA_LANGUAGE', 'Russian');
 
