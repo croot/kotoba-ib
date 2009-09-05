@@ -82,10 +82,11 @@ engine=InnoDB|
 
 create table user_groups
 (
-	user int not null,
+	`user` int not null,
 	`group` int not null,
 	constraint foreign key (`group`) references groups (id),
-	constraint foreign key (user) references users (id)
+	constraint foreign key (`user`) references users (id),
+	unique key (`user`, `group`)
 ) 
 engine=InnoDB|
 
@@ -167,7 +168,7 @@ create table acl
 	board int default null,
 	thread int default null,
 	post int default null,
-	view bit not null,
+	`view` bit not null,
 	`change` bit not null,
 	moderate bit not null,
 	unique key (`group`, board, thread, post),

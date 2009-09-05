@@ -19,6 +19,12 @@ insert into upload_handlers (`name`) values ('default_handler')|
 insert into users (`id`, `language`, `stylesheet`) values (1, 1, 1)|
 
 insert into user_groups (`user`, `group`) values (1, 1)|
+/*
+ * При добавлении новых групп используются права как для гостя. Если вы вносите
+ * изменения в права для гостя по умолчанию, то возможно вы захотите изменить и
+ * права по умолчанию для вновь создаваемых групп. Для этого отредактируйте код
+ * хранимой процедуры sp_group_add.
+ */
 insert into acl (`group`, `view`, `change`, `moderate`) values (1, 1, 0, 0)|
 insert into acl (`group`, `view`, `change`, `moderate`) values (2, 1, 1, 0)|
 insert into acl (`group`, `view`, `change`, `moderate`) values (3, 1, 1, 1)|
