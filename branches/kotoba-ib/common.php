@@ -30,6 +30,20 @@ function check_format($type, $value)
 {
     switch($type)
     {
+		case 'id':
+			$length = strlen($value);
+			$max_int_length = strlen('' . PHP_INT_MAX);
+			if($length <= $max_int_length && $length >= 1)
+			{
+				$value = RawUrlEncode($value);
+				$length = strlen($value);
+				if($length > $max_int_length || (ctype_digit($value) === false) || $length < 1)
+					return false;
+			}
+			else
+				return false;
+			return $value;
+
         case 'stylesheet':
         case 'language':
             return RawUrlEncode($value);
@@ -478,14 +492,14 @@ function db_save_user_settings($keyword, $threads_per_page, $posts_per_thread, $
  * $link - связь с базой данных
  * $smarty - экземпляр класса шаблонизатора
  */
-function db_get_group_list($link, $smarty)
+function db_group_get($link, $smarty)
 {
 	if(($result = mysqli_query($link, 'call sp_group_get()')) == false)
         kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
     $groups = array();
     if(mysqli_affected_rows($link) > 0)
         while(($row = mysqli_fetch_assoc($result)) != null)
-            array_push($groups, $row['name']);
+            array_push($groups, array('id' => $row['id'], 'name' => $row['name']));
     else
     {
         mysqli_free_result($result);
@@ -507,9 +521,9 @@ function db_get_group_list($link, $smarty)
  */
 function db_group_delete($delete_list, $link, $smarty)
 {
-	foreach($delete_list as $group_name)
+	foreach($delete_list as $group_id)
 	{
-		if(($result = mysqli_query($link, "call sp_group_delete('$group_name')")) == false)
+		if(($result = mysqli_query($link, "call sp_group_delete('$group_id')")) == false)
 			kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
 		cleanup_link($link, $smarty);
 	}
@@ -525,6 +539,78 @@ function db_group_delete($delete_list, $link, $smarty)
 function db_group_add($new_group_name, $link, $smarty)
 {
 	if(($result = mysqli_query($link, "call sp_group_add('$new_group_name')")) == false)
+        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Возвращает массив закреплений пользователей за группами или пустой массив,
+ * если закреплений нет.
+ * Аргументы:
+ * $link - связь с базой данных
+ * $smarty - экземпляр класса шаблонизатора
+ */
+function db_user_groups_get($link, $smarty)
+{
+	if(($result = mysqli_query($link, 'call sp_user_groups_get()')) == false)
+        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+    $user_groups = array();
+    if(mysqli_affected_rows($link) > 0)
+        while(($row = mysqli_fetch_assoc($result)) != null)
+            array_push($user_groups, array('user' => $row['user'], 'group' => $row['group']));
+    else
+    {
+        mysqli_free_result($result);
+        cleanup_link($link, $smarty);
+        return null;
+    }
+    mysqli_free_result($result);
+    cleanup_link($link, $smarty);
+    return $user_groups;
+}
+/*
+ * Добавляет пользователя $new_bind_user в группу $new_bind_group.
+ * Аргументы:
+ * $new_bind_user - идентификатор пользователя
+ * $new_bind_group - идентификатор группы
+ * $link - связь с базой данных
+ * $smarty - экземпляр класса шаблонизатора
+ */
+function db_user_groups_add($new_bind_user, $new_bind_group, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_user_groups_add($new_bind_user, $new_bind_group)")) == false)
+        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Переносит пользователя $user_id из группы $old_group_id в группу
+ * $new_group_id.
+ * Аргументы:
+ * $user_id - идентификатор пользователя
+ * $old_group_id - идентификатор старой группы
+ * $new_group_id - идентификатор новой группы
+ * $link - связь с базой данных
+ * $smarty - экземпляр класса шаблонизатора
+ */
+function db_user_groups_edit($user_id, $old_group_id, $new_group_id, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_user_groups_edit($user_id, $old_group_id, $new_group_id)")) == false)
+        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Удаляет пользователя $user_id из группы $group_id.
+ * Аргументы:
+ * $user_id - идентификатор пользователя
+ * $group_id - идентификатор группы
+ * $link - связь с базой данных
+ * $smarty - экземпляр класса шаблонизатора
+ */
+function db_user_groups_delete($user_id, $group_id, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_user_groups_delete($user_id, $group_id)")) == false)
         kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
 	cleanup_link($link, $smarty);
 	return true;

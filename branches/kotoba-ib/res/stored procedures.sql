@@ -121,7 +121,7 @@ end|
 
 create procedure sp_group_get ()
 begin
-	select name from groups;
+	select id, `name` from groups order by id;
 end|
 
 create procedure sp_group_add
@@ -129,20 +129,57 @@ create procedure sp_group_add
 	_name varchar(50)
 )
 begin
-	insert into groups (name) values (_name);
+	declare group_id int;
+	start transaction;
+	insert into groups (`name`) values (_name);
+	select id into group_id from groups where name = _name;
+	/* Стандартные права как для Гостя */
+	insert into acl (`group`, `view`, `change`, moderate) values (group_id, 1, 0, 0);
+	commit;
 end|
 
 create procedure sp_group_delete
 (
-	_name varchar(50)
+	_id int
 )
 begin
-	declare group_id int;
-	select id into group_id from groups where name = _name;
 	start transaction;
 	/* TODO: Сделать просто каскадное удаление */
-	delete from acl where `group` = group_id;
-	delete from user_groups where `group` = group_id;
-	delete from groups where name = _name;
+	delete from acl where `group` = _id;
+	delete from user_groups where `group` = _id;
+	delete from groups where id = _id;
 	commit;
+end|
+
+create procedure sp_user_groups_get()
+begin
+	select `user`, `group` from user_groups order by `user`, `group`;
+end|
+
+create procedure sp_user_groups_add
+(
+	user_id int,
+	group_id int
+)
+begin
+	insert into user_groups (`user`, `group`) values (user_id, group_id);
+end|
+
+create procedure sp_user_groups_edit
+(
+	user_id int,
+	old_group_id int,
+	new_group_id int
+)
+begin
+	update user_groups set `group` = new_group_id where `user` = user_id and `group` = old_group_id;
+end|
+
+create procedure sp_user_groups_delete
+(
+	user_id int,
+	group_id int
+)
+begin
+	delete from user_groups where `user` = user_id and `group` = group_id;
 end|
