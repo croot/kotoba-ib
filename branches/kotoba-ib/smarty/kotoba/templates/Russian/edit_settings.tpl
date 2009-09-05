@@ -10,17 +10,17 @@
  *********************************}
 {*
 Описание переменных:
-    $KOTOBA_DIR_PATH - см. объявление одноимённой константы в config.default.
-    $stylesheet - стиль оформления.
+    $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
+    $STYLESHEET - стиль оформления.
 *}
-{include file='header.tpl' page_title='Мои настройки' stylesheet=$stylesheet}
-<form action="{$KOTOBA_DIR_PATH}/edit_settings.php" method="post">
+{include file='header.tpl' page_title='Мои настройки' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
+<form action="{$DIR_PATH}/edit_settings.php" method="post">
 <i>Введите ключевое слово, чтобы загрузить ваши настройки.</i><br>
     <input type="text" name="keyword_load" size="32">
     <input type="submit" value="Загрузить">
 </form>
 <br>
-<form action="{$KOTOBA_DIR_PATH}/edit_settings.php" method="post">
+<form action="{$DIR_PATH}/edit_settings.php" method="post">
 <b>Опции предпросмотра доски:</b>
     <table border="0">
         <tr valign="top"><td>Количество нитей на странице: </td><td><input type="text" name="threads_per_page" size="10" value="{$threads_per_page}"></td></tr>
@@ -37,4 +37,5 @@
     <input type="text" name="keyword_save" size="32">
     <input type="submit" value="Сохранить">
 </form>
+<a href="{$DIR_PATH}/">На главную</a>
 {include file='footer.tpl'}

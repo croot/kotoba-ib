@@ -8,6 +8,7 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
+require_once '../config.php';
 $debug = false;
 
 /*
