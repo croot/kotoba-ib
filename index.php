@@ -8,24 +8,21 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
-require_once 'config.php';
-require_once 'common.php';
+
+require 'kwrapper.php';
 
 kotoba_setup($link, $smarty);
-$boardNames = db_get_boards_list($link, $_SESSION['user']);
+$board_names = db_get_boards_list($link, $smarty);
 mysqli_close($link);
-
-if(count($boardNames) > 0)
+if(count($board_names) > 0)
 {
-	$smarty->assign('BOARDS_EXIST', true);
-	$smarty->assign('boardNames', $boardNames);
+	$smarty->assign('boards_exist', true);
+	$smarty->assign('board_names', $board_names);
 }
-
-if(in_array('Moderators', $_SESSION['groups']))
+if(in_array(Config::MOD_GROUP_NAME, $_SESSION['groups']))
     $smarty->assign('mod_panel', true);
-elseif(in_array('Administrators', $_SESSION['groups']))
+elseif(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
     $smarty->assign('adm_panel', true);
-
 $smarty->assign('stylesheet', $_SESSION['stylesheet']);
 $smarty->assign('version', '$Revision$');
 $smarty->assign('date', '$Date$');

@@ -118,3 +118,31 @@ begin
 		update users set threads_per_page = _threads_per_page, posts_per_thread = _posts_per_thread, lines_per_post = _lines_per_post, stylesheet = stylesheet_id, language = language_id where id = user_id;
 	end if;
 end|
+
+create procedure sp_group_get ()
+begin
+	select name from groups;
+end|
+
+create procedure sp_group_add
+(
+	_name varchar(50)
+)
+begin
+	insert into groups (name) values (_name);
+end|
+
+create procedure sp_group_delete
+(
+	_name varchar(50)
+)
+begin
+	declare group_id int;
+	select id into group_id from groups where name = _name;
+	start transaction;
+	/* TODO: Сделать просто каскадное удаление */
+	delete from acl where `group` = group_id;
+	delete from user_groups where `group` = group_id;
+	delete from groups where name = _name;
+	commit;
+end|

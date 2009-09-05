@@ -9,7 +9,8 @@
  * See license.txt for more info.*
  *********************************/
 
-require_once 'config.php';
+if(!class_exists('Config'))
+	exit;
 
 /**********
  * Разное *
@@ -132,9 +133,41 @@ function check_format($type, $value)
 
             return $value;
 
+		case 'group':
+			$length = strlen($value);
+			if($length <= 50 && $length >= 1)
+			{
+				$value = RawUrlEncode($value);
+				$length = strlen($value);
+				if($length > 50 || (strpos($value, '%') !== false) || $length < 1)
+					return false;
+			}
+			else
+				return false;
+			return $value;
+
         default:
             return false;
     }
+}
+
+/*
+ * Загружает настройки пользователя с ключевым словом $keyword_hash.
+ */
+function load_user_settings($keyword_hash, $link, $smarty)
+{
+    if(($user_settings = db_get_user_settings($keyword_hash, $link, $smarty)) != null)
+    {
+        $_SESSION['user'] = $user_settings['id'];
+        $_SESSION['groups'] = $user_settings['groups'];
+        $_SESSION['threads_per_page'] = $user_settings['threads_per_page'];
+        $_SESSION['posts_per_thread'] = $user_settings['posts_per_thread'];
+        $_SESSION['lines_per_post'] = $user_settings['lines_per_post'];
+        $_SESSION['stylesheet'] = $user_settings['stylesheet'];
+        $_SESSION['language'] = $user_settings['language'];
+    }
+    else
+        kotoba_error(Errmsgs::$messages['USER_NOT_EXIST'], $smarty, basename(__FILE__) . ' ' . __LINE__);
 }
 
 /***********************
@@ -145,67 +178,66 @@ function check_format($type, $value)
  * en: smarty setup
  * ru: Настройка Smarty.
  */
-require_once(KOTOBA_ABS_PATH . '/smarty/Smarty.class.php');
+require_once(Config::ABS_PATH . '/smarty/Smarty.class.php');
 
 class SmartyKotobaSetup extends Smarty
 {
-	function SmartyKotobaSetup($language = KOTOBA_LANGUAGE)
+	var $language;
+
+	function SmartyKotobaSetup($language = Config::LANGUAGE)
 	{
 		$this->Smarty();
+		$this->language = $language;
 
-        $this->template_dir = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/smarty/kotoba/templates/$language/";
-		$this->compile_dir = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/smarty/kotoba/templates_c/$language/";
-		$this->config_dir = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/smarty/kotoba/config/$language/";
-		$this->cache_dir = $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . "/smarty/kotoba/cache/$language/";
+        $this->template_dir = Config::ABS_PATH . "/smarty/kotoba/templates/$language/";
+		$this->compile_dir = Config::ABS_PATH . "/smarty/kotoba/templates_c/$language/";
+		$this->config_dir = Config::ABS_PATH . "/smarty/kotoba/config/$language/";
+		$this->cache_dir = Config::ABS_PATH . "/smarty/kotoba/cache/$language/";
         $this->caching = 0;
 
-		$this->assign('KOTOBA_DIR_PATH', KOTOBA_DIR_PATH);
-        $this->assign('stylesheet', KOTOBA_STYLESHEET);
+		$this->assign('DIR_PATH', Config::DIR_PATH);
+        $this->assign('STYLESHEET', Config::STYLESHEET);
     }
 }
 
 /*
- * Обёртка для session_start(). Устанавливает время жизни сессии и куки, начинает сессию.
- */
-function kotoba_session_start()
-{
-    ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH  . '/sessions/');
-	ini_set('session.gc_maxlifetime', KOTOBA_SESSION_LIFETIME);
-	ini_set('session.cookie_lifetime', KOTOBA_SESSION_LIFETIME);
-
-    return session_start();
-}
-
-/*
- * Настройка кодировки для mbstrings, локали.
- */
-function locale_setup()
-{
-	mb_language('ru');
-	mb_internal_encoding("UTF-8");
-
-	if(!setlocale(LC_ALL, 'ru_RU.UTF-8', 'ru', 'rus', 'russian'))
-		kotoba_error(ERR_SETLOCALE);
-}
-
-/*
- * 
+ * Установка кодировок и локали, установка настроек
+ * пользователя по умолчнию, если требуется, проверка бана и снятие истекших банов.
+ * В качестве параметров процедура принимает ссылку на соединение с базой данных $link
+ * и ссылку на экземпляр шаблонизатора $smarty, которые будут инициализированы в ходе
+ * работы процедуры.
  */
 function kotoba_setup(&$link, &$smarty)
 {
-	if(! kotoba_session_start())
-		die(ERR_SESSION_START);
-
-	locale_setup();
-	login();
+	ini_set('session.save_path', Config::ABS_PATH . '/sessions/');
+	ini_set('session.gc_maxlifetime', Config::SESSION_LIFETIME);
+	ini_set('session.cookie_lifetime', Config::SESSION_LIFETIME);
+	if(! session_start())
+		die(Errmsgs::$messages['SESSION_START']);
+	/* По умолчанию пользователь является Гостем. */
+    if(!isset($_SESSION['user']))
+	{
+        $_SESSION['user'] = Config::GUEST_ID;
+        $_SESSION['groups'] = array(Config::GST_GROUP_NAME);
+        $_SESSION['threads_per_page'] = Config::THREADS_PER_PAGE;
+        $_SESSION['posts_per_thread'] = Config::POSTS_PER_THREAD;
+        $_SESSION['lines_per_post'] = Config::LINES_PER_POST;
+        $_SESSION['stylesheet'] = Config::STYLESHEET;
+		$_SESSION['language'] = Config::LANGUAGE;
+    }
+	require_once "lang/$_SESSION[language]/errors.php";
+	mb_language(Config::MB_LANGUAGE);
+	mb_internal_encoding(Config::MB_ENCODING);
+	if(!setlocale(LC_ALL, Config::$LOCALE_NAMES))
+		kotoba_error(Errmsgs::$messages['SETLOCALE']);
 	$link = db_connect();
 	$smarty = new SmartyKotobaSetup($_SESSION['language']);
-
-	if(($ban = db_check_banned($link, ip2long($_SERVER['REMOTE_ADDR']))) !== false)
+	if(($ban = db_check_banned(ip2long($_SERVER['REMOTE_ADDR']), $link, $smarty)) !== false)
 	{
 		$smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
 		$smarty->assign('reason', $ban['reason']);
 		session_destroy();
+		mysqli_close($link);
 		die($smarty->fetch('banned.tpl'));
 	}
 }
@@ -215,22 +247,16 @@ function kotoba_setup(&$link, &$smarty)
  **************************************/
 
 /*
- * kotoba_error: show error message and exit
- * returns nothing
- * arguments:
- * $msg is custom error message
- *
- * ru: Выводит сообщение об ошибке $error_message и завершает работу скрипта.
+ * Выводит сообщение об ошибке $msg и завершает работу скрипта.
+ * Аргументы:
+ * $msg - сообщение об ошибки
+ * $smarty - экземпляр класса шаблонизатора
+ * $error_source - имя файла и номер строки, в которой была вызвана эта
+ * процедура.
  */
-function kotoba_error($msg)
+function kotoba_error($msg, $smarty, $error_source = '')
 {
-	$smarty = new SmartyKotobaSetup();
-
-	if(isset($msg) && mb_strlen($msg) > 0)  //error message not empty
-		$smarty->assign('msg', $msg);
-	else
-		$smarty->assign('msg', ERR_UNKNOWN);
-
+	$smarty->assign('msg', (isset($msg) && mb_strlen($msg) > 0 ? $msg : Errmsgs::$messages['UNKNOWN']) . " at $error_source");
 	die($smarty->fetch('error.tpl'));
 }
 
@@ -239,25 +265,6 @@ function kotoba_error($msg)
  */
 function kotoba_log($msg, $log_file) {
     fwrite($log_file, "$msg (" . @date("Y-m-d H:i:s") . ")\n");
-}
-
-/*******************************************
- * Регистрация, Авторизация, Идентификация *
- *******************************************/
-
-/*
- * Устанавливает настройки пользователя по умолчанию, если они отсутствуют.
- */
-function login() {
-    if(!isset($_SESSION['user'])) { // По умолчанию пользователь является Гостем.
-        $_SESSION['user'] = KOTOBA_GUEST_ID;
-        $_SESSION['groups'] = array('Guests');
-        $_SESSION['threads_per_page'] = KOTOBA_THREADS_PER_PAGE;
-        $_SESSION['posts_per_thread'] = KOTOBA_POSTS_PER_THREAD;
-        $_SESSION['lines_per_post'] = KOTOBA_LINES_PER_POST;
-        $_SESSION['stylesheet'] = KOTOBA_STYLESHEET;
-        $_SESSION['language'] = KOTOBA_LANGUAGE;
-    }
 }
 
 /*************************
@@ -270,41 +277,38 @@ function login() {
  * no arguments
  * ru: Устанавливает соединение с сервером баз данных и возвращает соединение (объект, представляющий соединение с бд).
  */
-function db_connect() {
-	$link = mysqli_connect(KOTOBA_DB_HOST, KOTOBA_DB_USER, KOTOBA_DB_PASS, KOTOBA_DB_BASENAME);
-    if(!$link)
+function db_connect()
+{
+	if(($link = mysqli_connect(Config::DB_HOST, Config::DB_USER, Config::DB_PASS, Config::DB_BASENAME)) == false)
 		kotoba_error(mysqli_connect_error());
-	// TODO: charset should be configurable
-	if(!mysqli_set_charset($link, 'utf8'))
+
+	if(!mysqli_set_charset($link, Config::SQL_ENCODING))
 		kotoba_error(mysqli_error($link));
+
 	return $link;
 }
 
 /*
- * Проверяет, забанен ли узел с адресом $ip.
+ * Проверяет, забанен ли узел с адресом $ip. Если нет, то возвращает false,
+ * если да, то возвращает массив, содержащий причину, время истечения бана
+ * и т.д.
  */
-function db_check_banned($link, $ip)
+function db_check_banned($ip, $link, $smarty)
 {
-	//mysqli_query($link, "call sp_ban($ip, $ip, 'Sorc banned', '2009-07-29 16:51:00')");
-	//mysqli_query($link, "call sp_ban(" . ip2long('127.0.0.0') . ", " . ip2long('127.255.255.255') . ", 'local ban', '2009-07-07 16:58:00')");
-	//echo "\n" . mysqli_error($link);
-	//exit;
-    if(($result = mysqli_query($link, "call sp_check_ban($ip)")) == false)
-        kotoba_error(mysqli_error($link));
-
-    if(($count = mysqli_affected_rows($link)) > 0)
+	if(($result = mysqli_query($link, "call sp_check_ban($ip)")) == false)
+        kotoba_error(mysqli_error($link), $smarty);
+	$row = false;
+    if(mysqli_affected_rows($link) > 0)
     {
         $row = mysqli_fetch_assoc($result);
-        mysqli_free_result($result);
-        cleanup_link($link);
-        return array('range_beg' => $row['range_beg'],'range_end' => $row['range_end'],'untill' => $row['untill'],'reason' => $row['reason']);
+        $row = array('range_beg' => $row['range_beg'],
+			'range_end' => $row['range_end'],
+			'untill' => $row['untill'],
+			'reason' => $row['reason']);
     }
-    else
-    {
-        mysqli_free_result($result);
-        cleanup_link($link);
-        return false;
-    }
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $row;
 }
 
 /*
@@ -313,167 +317,224 @@ function db_check_banned($link, $ip)
  * argumnets:
  * $link - database link
  */
-function cleanup_link($link)
+function cleanup_link($link, $smarty)
 {
+	/*
+	 * Заметка: если использовать mysqli_use_result вместо store, то
+	 * не будет выведена ошибка, если таковая произошла в следующем запросе
+	 * в mysqli_multi_query.
+	 */
 	do
     {
-		if(($result = mysqli_use_result($link)) != false)
+		if(($result = mysqli_store_result($link)) != false)
 			mysqli_free_result($result);
 	}
     while(mysqli_next_result($link));
+	if(mysqli_errno($link))
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
 }
 
 /*
- *
+ * Возвращает имена досок с именами категорий.
+ * Аргументы:
+ * $link - связь с базой данных
+ * $smarty - экземпляр класса шаблонизатора
  */
-function cleanup_link_store($link)
+function db_get_boards_list($link, $smarty)
 {
-    do
-    {
-        if(($result = mysqli_store_result($link)) != false)
-            mysqli_free_result($result);
-	}
-    while(mysqli_next_result($link));
-}
-
-/*
- * Возвращает доски, видимые пользователю $user.
- */
-function db_get_boards_list($link, $user)
-{
-	if(($result = mysqli_query($link, "call sp_get_boards_list($user)")) == false)
-        kotoba_error(mysqli_error($link));
-
+	if(($result = mysqli_query($link, "call sp_get_boards_list({$_SESSION['user']})")) == false)
+        kotoba_error(mysqli_error($link), $smarty);
     $boards = array();
-
     if(mysqli_affected_rows($link) > 0)
         while(($row = mysqli_fetch_assoc($result)) != null)
             array_push($boards, $row);
-
     mysqli_free_result($result);
 	return $boards;
 }
 
 /*
- * Возвращает настройки пользователя с кулючевым словом $keyword
+ * Возвращает настройки пользователя с ключевым словом $keyword
  * или null.
+ * Аргументы:
+ * $keyword - хеш ключевого слова
+ * $link - связь с базой данных
+ * $smarty - экземпляр класса шаблонизатора
  */
-function db_get_user_settings($link, $keyword)
+function db_get_user_settings($keyword, $link, $smarty)
 {
-    if(mysqli_multi_query($link, "call sp_get_user_settings('$keyword')") == false)
-        kotoba_error(mysqli_error($link));
-
-    if(($result = mysqli_store_result($link)) == false)
-        kotoba_error(mysqli_error($link));
-
+	if(mysqli_multi_query($link, "call sp_get_user_settings('$keyword')") == false)
+        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	if(($result = mysqli_store_result($link)) == false)
+        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
     if(($row = mysqli_fetch_assoc($result)) != null)
         $user_settings = $row;
-    else    // Пользователь с ключевым словом $keyword не найден.
+    else
     {
+		/* Пользователь с ключевым словом $keyword не найден. */
         mysqli_free_result($result);
-        cleanup_link_store($link);
+        cleanup_link($link, $smarty);
         return null;
     }
-
     @mysql_free_result($result);
-
-    if(!mysqli_next_result($link))
-        kotoba_error(mysqli_error($link));
-
-    if(($result = mysqli_store_result($link)) == false)
-        kotoba_error(mysqli_error($link));
-
+	/*
+	 * Если данные о группе пользователя не были получены,
+	 * значит что-то пошло не так.
+	 */
+    if(! mysqli_next_result($link))
+	{
+        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	}
+	if(($result = mysqli_store_result($link)) == false)
+        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
     $user_settings['groups'] = array();
-
     while(($row = mysqli_fetch_assoc($result)) != null)
-        array_push($user_settings['groups'], $row);
-
-    if(count($user_settings['groups']) <= 0)    // Пользователь не закреплен ни за одной группой.
+        array_push($user_settings['groups'], $row['name']);
+    if(count($user_settings['groups']) <= 0)
     {
+		/* Пользователь не закреплен ни за одной группой. */
         mysqli_free_result($result);
-        cleanup_link_store($link);
+        cleanup_link($link, $smarty);
         return null;
     }
-
     @mysql_free_result($result);
-    cleanup_link_store($link);
+    cleanup_link($link, $smarty);
     return $user_settings;
 }
-
 /*
- *
+ * Возвращает список стилей оформления или null, если ни одного стиля не задано.
+ * Аргументы:
+ * $link - связь с базой данных
+ * $smarty - экземпляр класса шаблонизатора
  */
-function db_get_stylesheets($link)
+function db_get_stylesheets($link, $smarty)
 {
     if(($result = mysqli_query($link, 'call sp_get_stylesheets()')) == false)
-        kotoba_error(mysqli_error($link));
-
+        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
     $stylesheets = array();
-
     if(mysqli_affected_rows($link) > 0)
         while(($row = mysqli_fetch_assoc($result)) != null)
             array_push($stylesheets, $row['name']);
     else
     {
         mysqli_free_result($result);
-        cleanup_link_store($link);
+        cleanup_link($link, $smarty);
         return null;
     }
-
     mysqli_free_result($result);
-    cleanup_link_store($link);
+    cleanup_link($link, $smarty);
     return $stylesheets;
 }
-
 /*
- *
+ * Возвращает список языков или null, если ни одного языка не задано.
+ * Аргументы:
+ * $link - связь с базой данных
+ * $smarty - экземпляр класса шаблонизатора
  */
-function db_get_languages($link)
+function db_get_languages($link, $smarty)
 {
     if(($result = mysqli_query($link, 'call sp_get_languages()')) == false)
-        kotoba_error(mysqli_error($link));
-
+        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
     $stylesheets = array();
-
     if(mysqli_affected_rows($link) > 0)
         while(($row = mysqli_fetch_assoc($result)) != null)
             array_push($stylesheets, $row['name']);
     else
     {
         mysqli_free_result($result);
-        cleanup_link_store($link);
+        cleanup_link($link, $smarty);
         return null;
     }
-
     mysqli_free_result($result);
-    cleanup_link_store($link);
+    cleanup_link($link, $smarty);
     return $stylesheets;
 }
-
 /*
- *
+ * Сохраняет настройки пользователя в базе данных.
+ * Аргументы:
+ * $keyword - хеш ключевого слова
+ * $threads_per_page - количество нитей на странице предпросмотра доски
+ * $posts_per_thread - количество сообщений в предпросмотре треда
+ * $lines_per_post - максимальное количество строк в предпросмотре сообщения
+ * $stylesheet - стиль оформления
+ * $language - язык
+ * $link - связь с базой данных
+ * $smarty - экземпляр класса шаблонизатора
  */
-function db_save_user_settings($link, $keyword, $threads_per_page, $posts_per_thread, $lines_per_post, $stylesheet, $language)
+function db_save_user_settings($keyword, $threads_per_page, $posts_per_thread, $lines_per_post, $stylesheet, $language, $link, $smarty)
 {
     if(($result = mysqli_query($link, "call sp_save_user_settings('$keyword', $threads_per_page, $posts_per_thread, $lines_per_post, '$stylesheet', '$language')")) == false)
-        kotoba_error(mysqli_error($link));
-
+        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
     if(mysqli_affected_rows($link) < 0)
     {
-        cleanup_link_store($link);
+        cleanup_link($link, $smarty);
         return false;
     }
-
+	cleanup_link($link, $smarty);
     return true;
 }
-
+/*
+ * Возвращает список групп или пустой массив, если групп нет.
+ * Аргументы:
+ * $link - связь с базой данных
+ * $smarty - экземпляр класса шаблонизатора
+ */
+function db_get_group_list($link, $smarty)
+{
+	if(($result = mysqli_query($link, 'call sp_group_get()')) == false)
+        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+    $groups = array();
+    if(mysqli_affected_rows($link) > 0)
+        while(($row = mysqli_fetch_assoc($result)) != null)
+            array_push($groups, $row['name']);
+    else
+    {
+        mysqli_free_result($result);
+        cleanup_link($link, $smarty);
+        return null;
+    }
+    mysqli_free_result($result);
+    cleanup_link($link, $smarty);
+    return $groups;
+}
+/*
+ * Удаляет группы, имена которых перечислены в массиве $delete_list, а так же
+ * всех пользователей, которые входят в эти группы и все права, которые заданы
+ * для этих групп.
+ * Аргументы:
+ * $delete_list - список имён групп
+ * $link - связь с базой данных
+ * $smarty - экземпляр класса шаблонизатора
+ */
+function db_group_delete($delete_list, $link, $smarty)
+{
+	foreach($delete_list as $group_name)
+	{
+		if(($result = mysqli_query($link, "call sp_group_delete('$group_name')")) == false)
+			kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+		cleanup_link($link, $smarty);
+	}
+	return true;
+}
+/*
+ * Добавляет группу с именем $new_group_name.
+ * Аргументы:
+ * $new_group_name - список имён групп
+ * $link - связь с базой данных
+ * $smarty - экземпляр класса шаблонизатора
+ */
+function db_group_add($new_group_name, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_group_add('$new_group_name')")) == false)
+        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
 /* db_get_board_id: get board id by name
  * returns board id (positive) on success, otherwise return -1
  * arguments:
  * $link - database link
  * $board_name - board name
  */
-
 function db_get_board_id($link, $board_name) {
 	$st = mysqli_prepare($link, "call sp_get_board_id(?)");
 	if(! $st) {
@@ -489,14 +550,13 @@ function db_get_board_id($link, $board_name) {
 	mysqli_stmt_bind_result($st, $id);
 	if(! mysqli_stmt_fetch($st)) {
 		mysqli_stmt_close($st);
-		cleanup_link($link);
+		cleanup_link_use($link);
 		return -1;
 	}
 	mysqli_stmt_close($st);
-	cleanup_link($link);
+	cleanup_link_use($link);
 	return $id;
 }
-
 /* db_get_pages: get pages quantity
  * remark: on board preview threads splitted on pages
  * return number of pages (0 or more), -1 on error
@@ -521,11 +581,11 @@ function db_get_pages($link, $userid, $boardid, $threads) {
 	mysqli_stmt_bind_result($st, $pages);
 	if(! mysqli_stmt_fetch($st)) {
 		mysqli_stmt_close($st);
-		cleanup_link($link);
+		cleanup_link_use($link);
 		return -1;
 	}
 	mysqli_stmt_close($st);
-	cleanup_link($link);
+	cleanup_link_use($link);
 	return $pages;
 }
 
@@ -553,11 +613,11 @@ function db_get_board($link, $board_name) {
 		$bump_limit, $rubber_board, $visible_threads, $same_upload);
 	if(! mysqli_stmt_fetch($st)) {
 		mysqli_stmt_close($st);
-		cleanup_link($link);
+		cleanup_link_use($link);
 		return array();
 	}
 	mysqli_stmt_close($st);
-	cleanup_link($link);
+	cleanup_link_use($link);
 	return array('id' => $id, 'board_description' => $board_description,
 		'board_title' => $board_title, 'bump_limit' => $bump_limit,
 		'rubber_board' => $rubber_board, 'visible_threads' => $visible_threads,
@@ -587,11 +647,11 @@ function db_get_post_count($link, $board_id) {
 	mysqli_stmt_bind_result($st, $count);
 	if(! mysqli_stmt_fetch($st)) {
 		mysqli_stmt_close($st);
-		cleanup_link($link);
+		cleanup_link_use($link);
 		return -1;
 	}
 	mysqli_stmt_close($st);
-	cleanup_link($link);
+	cleanup_link_use($link);
 	return $count;
 }
 
@@ -617,11 +677,11 @@ function db_board_bumplimit($link, $board_id) {
 	mysqli_stmt_bind_result($st, $bumplimit);
 	if(! mysqli_stmt_fetch($st)) {
 		mysqli_stmt_close($st);
-		cleanup_link($link);
+		cleanup_link_use($link);
 		return -1;
 	}
 	mysqli_stmt_close($st);
-	cleanup_link($link);
+	cleanup_link_use($link);
 	return $bumplimit;
 }
 
@@ -667,7 +727,7 @@ function db_get_post($link, $board_id, $post_number) {
 	else {
 		kotoba_error(mysqli_error($link));
 	}
-	cleanup_link($link);
+	cleanup_link_use($link);
 	return array($post, $uploads);
 }
 
@@ -694,11 +754,11 @@ function db_get_thread($link, $board_id, $thread_num) {
 	mysqli_stmt_bind_result($st, $original_post_num, $messages, $bump_limit, $sage);
 	if(! mysqli_stmt_fetch($st)) {
 		mysqli_stmt_close($st);
-		cleanup_link($link);
+		cleanup_link_use($link);
 		return array();
 	}
 	mysqli_stmt_close($st);
-	cleanup_link($link);
+	cleanup_link_use($link);
 	return array('original_post_num' => $original_post_num, 'messages' => $messages,
 		'bump_limit' => $bump_limit, 'sage' => $sage);
 }
@@ -727,7 +787,7 @@ function db_get_board_types($link, $boardid) {
 		$types[$extension] = 1;
 	}
 	mysqli_stmt_close($st);
-	cleanup_link($link);
+	cleanup_link_use($link);
 	return $types;
 }
 ?>

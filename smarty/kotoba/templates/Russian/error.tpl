@@ -10,9 +10,10 @@
  *********************************}
 {*
 Описание переменных:
-    $KOTOBA_DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
+    $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
     $msg - текст сообщения об ошибке.
+	$STYLESHEET - стиль оформления.
 *}
-{include file='header.tpl' kotoba_dir=$KOTOBA_DIR_PATH page_title='Ошибка'}
+{include file='header.tpl' page_title='Ошибка' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
 <span class="error">{$msg}</span>
 {include file='footer.tpl'}

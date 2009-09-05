@@ -10,15 +10,15 @@
  *********************************}
 {*
 Описание переменных:
-    $KOTOBA_DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
+    $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
     $page_title - заголовок страницы.
-    $stylesheet - стиль оформления.
+    $STYLESHEET - стиль оформления.
 *}
 <html>
 <head>
 	<title>{$page_title}</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<link rel="stylesheet" type="text/css" href="{$KOTOBA_DIR_PATH}/{$stylesheet}">
+	<link rel="stylesheet" type="text/css" href="{$DIR_PATH}/{$STYLESHEET}">
 </head>
 <body>
 
