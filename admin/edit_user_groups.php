@@ -10,6 +10,7 @@
  *********************************/
 
 require '../kwrapper.php';
+require_once Config::ABS_PATH . '/lang/' . Config::LANGUAGE . '/logging.php';
 
 kotoba_setup($link, $smarty);
 if(! in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
@@ -17,6 +18,7 @@ if(! in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
 	mysqli_close($link);
 	kotoba_error(Errmsgs::$messages['NOT_ADMIN'], $smarty, basename(__FILE__) . ' ' . __LINE__);
 }
+kotoba_log(sprintf(Logmsgs::$messages['ADMIN_FUNCTIONS'], 'Редактировать принадлежность пользователей группам', $_SESSION['user'], $_SERVER['REMOTE_ADDR']), Logmsgs::open_logfile(Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log'));
 $groups = db_group_get($link, $smarty);
 /*
  * Добавим в список групп пользователей фиктивную группу Remove,

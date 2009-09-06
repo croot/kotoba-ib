@@ -1,4 +1,4 @@
-delimiter |
+delimiter|
 insert into languages (`id`, `name`) values (1, 'Russian')|
 insert into languages (`name`) values ('English')|
 insert into categories (`name`) values ('default')|

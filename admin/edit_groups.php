@@ -10,6 +10,7 @@
  *********************************/
 
 require '../kwrapper.php';
+require_once Config::ABS_PATH . '/lang/' . Config::LANGUAGE . '/logging.php';
 
 kotoba_setup($link, $smarty);
 if(! in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
@@ -17,6 +18,7 @@ if(! in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
 	mysqli_close($link);
 	kotoba_error(Errmsgs::$messages['NOT_ADMIN'], $smarty, basename(__FILE__) . ' ' . __LINE__);
 }
+kotoba_log(sprintf(Logmsgs::$messages['ADMIN_FUNCTIONS'], 'Редактировать группы пользователей', $_SESSION['user'], $_SERVER['REMOTE_ADDR']), Logmsgs::open_logfile(Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log'));
 $groups = db_group_get($link, $smarty);
 $delete_list = array();		// Массив имён групп для удаления.
 $reload_groups = false;	// Были ли произведены изменения.
@@ -25,7 +27,7 @@ $reload_groups = false;	// Были ли произведены изменени
  */
 if(isset($_POST['new_group']) && $_POST['new_group'] !== '')
 {
-	if(($new_group_name = check_format('group', $_POST['new_group'])) == false);
+	if(($new_group_name = check_format('group', $_POST['new_group'])) == false)
 	{
 		mysqli_close($link);
 		kotoba_error(Errmsgs::$messages['GROUP_NAME'], $smarty, basename(__FILE__) . ' ' . __LINE__);

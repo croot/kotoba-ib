@@ -131,7 +131,7 @@ class Config
 	 * en: database name
 	 * ru: Имя используемой базы данных Котобы.
 	 */
-	const DB_BASENAME = 'mybd';
+	const DB_BASENAME = 'mydb';
 
 	/**************************
 	 * Работа с изображениями *
