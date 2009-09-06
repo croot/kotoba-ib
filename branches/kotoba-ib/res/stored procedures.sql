@@ -1,13 +1,23 @@
 delimiter |
-use kotoba2|
-drop procedure if exists sp_save_user_settings|
-drop procedure if exists sp_get_languages|
-drop procedure if exists sp_get_stylesheets|
-drop procedure if exists sp_get_user_settings|
-drop procedure if exists sp_get_boards_list|
+drop procedure if exists sp_refresh_banlist|
 drop procedure if exists sp_ban|
 drop procedure if exists sp_check_ban|
-drop procedure if exists sp_refresh_banlist|
+drop procedure if exists sp_board_get|
+drop procedure if exists sp_get_user_settings|
+drop procedure if exists sp_get_stylesheets|
+drop procedure if exists sp_get_languages|
+drop procedure if exists sp_save_user_settings|
+drop procedure if exists sp_group_get|
+drop procedure if exists sp_group_add|
+drop procedure if exists sp_group_delete|
+drop procedure if exists sp_user_groups_get|
+drop procedure if exists sp_user_groups_add|
+drop procedure if exists sp_user_groups_edit|
+drop procedure if exists sp_user_groups_delete|
+drop procedure if exists sp_acl_get|
+drop procedure if exists sp_acl_add|
+drop procedure if exists sp_acl_edit|
+drop procedure if exists sp_acl_delete|
 
 create procedure sp_refresh_banlist ()
 begin
@@ -41,18 +51,18 @@ call sp_refresh_banlist();
 select range_beg, range_end, untill, reason from bans where range_beg >= ip and range_end <= ip order by range_end desc limit 1;
 end|
 
-create procedure sp_get_boards_list
+create procedure sp_board_get
 (
 	user int
 )
 begin
-	select b.name, c.name as category
+	select b.id, b.`name`, c.`name` as category
 	from boards b
 	join user_groups ug on ug.user = user
 	left join categories c on b.category = c.id
-	left join acl a1 on ug.`group` = a1.`group` and a1.board is null -- global premissions for specifed groups
-	left join acl a2 on b.id = a2.board and a2.`group` is null and a2.thread is null and a2.post is null -- group independent premissions for specifed board
-	left join acl a3 on ug.`group` = a3.`group` and b.id = a3.board and a2.thread is null and a2.post is null -- premissions for specifed groups and boards
+	left join acl a1 on ug.`group` = a1.`group` and a1.board is null -- права для заданной группы
+	left join acl a2 on b.id = a2.board and a2.`group` is null and a2.thread is null and a2.post is null -- независимые от группы, права для определённой доски
+	left join acl a3 on ug.`group` = a3.`group` and b.id = a3.board and a2.thread is null and a2.post is null -- права для определённой группы и доски
 	group by b.id
 	having max(coalesce(a3.view, a2.view, a1.view)) = 1
 	order by c.name, b.name;
@@ -151,7 +161,7 @@ begin
 	commit;
 end|
 
-create procedure sp_user_groups_get()
+create procedure sp_user_groups_get ()
 begin
 	select `user`, `group` from user_groups order by `user`, `group`;
 end|
@@ -182,4 +192,96 @@ create procedure sp_user_groups_delete
 )
 begin
 	delete from user_groups where `user` = user_id and `group` = group_id;
+end|
+
+create procedure sp_acl_get ()
+begin
+	select `group`, `board`, `thread`, `post`, `view`, `change`, `moderate` from acl order by `group`, `board`, `thread`, `post`;
+end|
+
+create procedure sp_acl_add
+(
+	group_id int,
+	board_id int,
+	thread_num int,
+	post_num int,
+	`view` bit,
+	`change` bit,
+	moderate bit
+)
+begin
+	if group_id = -1
+	then
+		set group_id = null;
+	end if;
+	if board_id = -1
+	then
+		set board_id = null;
+	end if;
+	if thread_num = -1
+	then
+		set thread_num = null;
+	end if;
+	if post_num = -1
+	then
+		set post_num = null;
+	end if;
+	insert into acl (`group`, `board`, `thread`, `post`, `view`, `change`, `moderate`) values (group_id, board_id, thread_num, post_num, `view`, `change`, moderate);
+end|
+
+create procedure sp_acl_edit
+(
+	group_id int,
+	board_id int,
+	thread_num int,
+	post_num int,
+	_view bit,
+	_change bit,
+	_moderate bit
+)
+begin
+	if group_id = -1
+	then
+		set group_id = null;
+	end if;
+	if board_id = -1
+	then
+		set board_id = null;
+	end if;
+	if thread_num = -1
+	then
+		set thread_num = null;
+	end if;
+	if post_num = -1
+	then
+		set post_num = null;
+	end if;
+	update acl set `view` = _view, `change` = _change, `moderate` = _moderate where ((`group` = group_id) or (coalesce(`group`, group_id) is null)) and ((`board` = board_id) or (coalesce(`board`, board_id) is null)) and ((`thread` = thread_num) or (coalesce(`thread`, thread_num) is null)) and ((`post` = post_num) or (coalesce(`post`, post_num) is null));
+end|
+
+create procedure sp_acl_delete
+(
+	group_id int,
+	board_id int,
+	thread_num int,
+	post_num int
+)
+begin
+	if group_id = -1
+	then
+		set group_id = null;
+	end if;
+	if board_id = -1
+	then
+		set board_id = null;
+	end if;
+	if thread_num = -1
+	then
+		set thread_num = null;
+	end if;
+	if post_num = -1
+	then
+		set post_num = null;
+	end if;
+	delete from acl where ((`group` = group_id) or (coalesce(`group`, group_id) is null)) and ((`board` = board_id) or (coalesce(`board`, board_id) is null)) and ((`thread` = thread_num) or (coalesce(`thread`, thread_num) is null)) and ((`post` = post_num) or (coalesce(`post`, post_num) is null));
 end|

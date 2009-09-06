@@ -12,7 +12,7 @@
 require 'kwrapper.php';
 
 kotoba_setup($link, $smarty);
-$board_names = db_get_boards_list($link, $smarty);
+$board_names = db_board_get($link, $smarty);
 mysqli_close($link);
 if(count($board_names) > 0)
 {

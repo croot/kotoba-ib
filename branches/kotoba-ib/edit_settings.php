@@ -29,13 +29,13 @@ elseif (isset($_POST['keyword_save']))	// Сохранение настроек.
         kotoba_error(Errmsgs::$messages['KEYWORD'], $smarty, basename(__FILE__) . ' ' . __LINE__);
 
     if(($threads_per_page = check_format('threads_per_page', $_POST['threads_per_page'])) == false)
-        kotoba_error(Errmsgs::$messages['THREADSPERPAGE'], $smarty, basename(__FILE__) . ' ' . __LINE__);
+        kotoba_error(sprintf(Errmsgs::$messages['THREADSPERPAGE'], Config::MIN_THREADSPERPAGE, Config::MAX_THREADSPERPAGE), $smarty, basename(__FILE__) . ' ' . __LINE__);
 
     if(($posts_per_thread = check_format('posts_per_thread', $_POST['posts_per_thread'])) == false)
-        kotoba_error(Errmsgs::$messages['POSTSPERTHREAD'], $smarty, basename(__FILE__) . ' ' . __LINE__);
+        kotoba_error(sprintf(Errmsgs::$messages['POSTSPERTHREAD'], Config::MIN_POSTSPERTHREAD, Config::MAX_POSTSPERTHREAD), $smarty, basename(__FILE__) . ' ' . __LINE__);
 
     if(($lines_per_post = check_format('lines_per_post', $_POST['lines_per_post'])) == false)
-        kotoba_error(Errmsgs::$messages['LINESPERPOST'], $smarty, basename(__FILE__) . ' ' . __LINE__);
+        kotoba_error(sprintf(Errmsgs::$messages['LINESPERPOST'], Config::MIN_LINESPERPOST, Config::MAX_LINESPERPOST), $smarty, basename(__FILE__) . ' ' . __LINE__);
 
     if(($stylesheets = db_get_stylesheets($link, $smarty)) == null)
         kotoba_error(Errmsgs::$messages['STYLESHEETS_NOT_EXIST'], $smarty, basename(__FILE__) . ' ' . __LINE__);

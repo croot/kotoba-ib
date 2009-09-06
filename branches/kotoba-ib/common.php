@@ -182,6 +182,7 @@ function load_user_settings($keyword_hash, $link, $smarty)
     }
     else
         kotoba_error(Errmsgs::$messages['USER_NOT_EXIST'], $smarty, basename(__FILE__) . ' ' . __LINE__);
+	require_once "lang/$_SESSION[language]/errors.php";
 }
 
 /***********************
@@ -354,15 +355,16 @@ function cleanup_link($link, $smarty)
  * $link - связь с базой данных
  * $smarty - экземпляр класса шаблонизатора
  */
-function db_get_boards_list($link, $smarty)
+function db_board_get($link, $smarty)
 {
-	if(($result = mysqli_query($link, "call sp_get_boards_list({$_SESSION['user']})")) == false)
+	if(($result = mysqli_query($link, "call sp_board_get({$_SESSION['user']})")) == false)
         kotoba_error(mysqli_error($link), $smarty);
     $boards = array();
     if(mysqli_affected_rows($link) > 0)
         while(($row = mysqli_fetch_assoc($result)) != null)
-            array_push($boards, $row);
+            array_push($boards, array('id' => $row['id'], 'name' => $row['name'], 'category' => $row['category']));
     mysqli_free_result($result);
+	cleanup_link($link, $smarty);
 	return $boards;
 }
 
@@ -500,12 +502,6 @@ function db_group_get($link, $smarty)
     if(mysqli_affected_rows($link) > 0)
         while(($row = mysqli_fetch_assoc($result)) != null)
             array_push($groups, array('id' => $row['id'], 'name' => $row['name']));
-    else
-    {
-        mysqli_free_result($result);
-        cleanup_link($link, $smarty);
-        return null;
-    }
     mysqli_free_result($result);
     cleanup_link($link, $smarty);
     return $groups;
@@ -558,12 +554,6 @@ function db_user_groups_get($link, $smarty)
     if(mysqli_affected_rows($link) > 0)
         while(($row = mysqli_fetch_assoc($result)) != null)
             array_push($user_groups, array('user' => $row['user'], 'group' => $row['group']));
-    else
-    {
-        mysqli_free_result($result);
-        cleanup_link($link, $smarty);
-        return null;
-    }
     mysqli_free_result($result);
     cleanup_link($link, $smarty);
     return $user_groups;
@@ -615,6 +605,104 @@ function db_user_groups_delete($user_id, $group_id, $link, $smarty)
 	cleanup_link($link, $smarty);
 	return true;
 }
+/*
+ * Возвращает список контроля доступа.
+ * Аргументы:
+ * $link - связь с базой данных
+ * $smarty - экземпляр класса шаблонизатора
+ */
+function db_acl_get($link, $smarty)
+{
+	if(($result = mysqli_query($link, 'call sp_acl_get()')) == false)
+        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+    $acl = array();
+    if(mysqli_affected_rows($link) > 0)
+        while(($row = mysqli_fetch_assoc($result)) != null)
+            array_push($acl, array(	'group' => $row['group'],
+									'board' => $row['board'],
+									'thread' => $row['thread'],
+									'post' => $row['post'],
+									'view' => $row['view'],
+									'change' => $row['change'],
+									'moderate' => $row['moderate']));
+    mysqli_free_result($result);
+    cleanup_link($link, $smarty);
+    return $acl;
+}
+/*
+ * Добавляет новую запись в список контроля доступа.
+ * Аргументы:
+ * $group_id - идентификатор группы или -1 для всех групп
+ * $board_id - идентификатор доски или -1 для всех досок
+ * $thread_num - номер нити или -1 для всех нитей
+ * $post_num - номер сообщения или -1 для всех сообщений
+ * $view - право на чтение 0 или 1
+ * $change - право на изменение 0 или 1
+ * $moderate - право на модерирование 0 или 1
+ * $link - связь с базой данных
+ * $smarty - экземпляр класса шаблонизатора
+ */
+function db_acl_add($group_id, $board_id, $thread_num, $post_num, $view, $change, $moderate, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_acl_add($group_id, $board_id, $thread_num, $post_num, $view, $change, $moderate)")) == false)
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Редактирует запись в списке контроля доступа.
+ * Аргументы:
+ * $group_id - идентификатор группы или -1 для всех групп
+ * $board_id - идентификатор доски или -1 для всех досок
+ * $thread_num - номер нити или -1 для всех нитей
+ * $post_num - номер сообщения или -1 для всех сообщений
+ * $view - право на чтение 0 или 1
+ * $change - право на изменение 0 или 1
+ * $moderate - право на модерирование 0 или 1
+ * $link - связь с базой данных
+ * $smarty - экземпляр класса шаблонизатора
+ */
+function db_acl_edit($group_id, $board_id, $thread_num, $post_num, $view, $change, $moderate, $link, $smarty)
+{
+	if($group_id == null)
+		$group_id = -1;
+	if($board_id == null)
+		$board_id = -1;
+	if($thread_num == null)
+		$thread_num = -1;
+	if($post_num == null)
+		$post_num = -1;
+	if(($result = mysqli_query($link, "call sp_acl_edit($group_id, $board_id, $thread_num, $post_num, $view, $change, $moderate)")) == false)
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Удаляет запись из списка контроля доступа.
+ * Аргументы:
+ * $group_id - идентификатор группы или -1 для всех групп
+ * $board_id - идентификатор доски или -1 для всех досок
+ * $thread_num - номер нити или -1 для всех нитей
+ * $post_num - номер сообщения или -1 для всех сообщений
+ * $link - связь с базой данных
+ * $smarty - экземпляр класса шаблонизатора
+ */
+function db_acl_delete($group_id, $board_id, $thread_num, $post_num, $link, $smarty)
+{
+	if($group_id == null)
+		$group_id = -1;
+	if($board_id == null)
+		$board_id = -1;
+	if($thread_num == null)
+		$thread_num = -1;
+	if($post_num == null)
+		$post_num = -1;
+	if(($result = mysqli_query($link, "call sp_acl_delete($group_id, $board_id, $thread_num, $post_num)")) == false)
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+
 /* db_get_board_id: get board id by name
  * returns board id (positive) on success, otherwise return -1
  * arguments:
