@@ -12,21 +12,21 @@
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
     $STYLESHEET - стиль оформления.
-	$groups - список существующих групп с их идентификаторами.
+	$languages - список языков.
 *}
-{include file='header.tpl' page_title='Редактирование групп' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
-<form action="{$DIR_PATH}/admin/edit_groups.php" method="post">
+{include file='header.tpl' page_title='Редактирование языков' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
+<form action="{$DIR_PATH}/admin/edit_languages.php" method="post">
 <table border="1">
 <tr>
-	<td colspan="2">Пометьте группы для удаления или введине имя новой группы, чтобы создать новую группу.</td>
+	<td colspan="2">Пометьте языки для удаления или введине имя нового языка, чтобы создать новый язык.</td>
 </tr>
-{section name=i loop=$groups}
+{section name=i loop=$languages}
 <tr>
-	<td>{$groups[i].name}</td><td><input type="checkbox" name="delete_{$groups[i].name}" value="{$groups[i].id}"></td>
+	<td>{$languages[i].name}</td><td><input type="checkbox" name="delete_{$languages[i].id}" value="1"></td>
 </tr>
 {/section}
 <tr>
-	<td colspan="2"><input type="text" name="new_group"></td>
+	<td colspan="2"><input type="text" name="new_language"></td>
 </tr>
 </table><br>
 <input type="reset" value="Сброс"> <input type="submit" value="Сохранить">

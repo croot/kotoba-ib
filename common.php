@@ -45,7 +45,6 @@ function check_format($type, $value)
 			return $value;
 
         case 'stylesheet':
-        case 'language':
             return RawUrlEncode($value);
 
         case 'keyword':
@@ -147,6 +146,7 @@ function check_format($type, $value)
 
             return $value;
 
+		case 'language':
 		case 'group':
 			$length = strlen($value);
 			if($length <= 50 && $length >= 1)
@@ -698,6 +698,55 @@ function db_acl_delete($group_id, $board_id, $thread_num, $post_num, $link, $sma
 	if($post_num == null)
 		$post_num = -1;
 	if(($result = mysqli_query($link, "call sp_acl_delete($group_id, $board_id, $thread_num, $post_num)")) == false)
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Возвращает список языков.
+ * Аргументы:
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_languages_get($link, $smarty)
+{
+	if(($result = mysqli_query($link, 'call sp_languages_get()')) == false)
+        kotoba_error(mysqli_error($link),
+			$smarty,
+			basename(__FILE__) . ' ' . __LINE__);
+    $languages = array();
+    if(mysqli_affected_rows($link) > 0)
+        while(($row = mysqli_fetch_assoc($result)) != null)
+            array_push($languages, array('id' => $row['id'],
+					'name' => $row['name']));
+    mysqli_free_result($result);
+    cleanup_link($link, $smarty);
+    return $languages;
+}
+/*
+ * Добавляет новый язык с именем $new_language_name.
+ * Аргументы:
+ * $new_language_name - имя нового языка.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_languages_add($new_language_name, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_languages_add('$new_language_name')")) == false)
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Удаляет язык с идентификатором $language_id.
+ * Аргументы:
+ * $language_id - идентификатор языка для удаления.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_languages_delete($language_id, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_languages_delete($language_id)")) == false)
 		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
 	cleanup_link($link, $smarty);
 	return true;

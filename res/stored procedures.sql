@@ -18,6 +18,9 @@ drop procedure if exists sp_acl_get|
 drop procedure if exists sp_acl_add|
 drop procedure if exists sp_acl_edit|
 drop procedure if exists sp_acl_delete|
+drop procedure if exists sp_languages_get|
+drop procedure if exists sp_languages_add|
+drop procedure if exists sp_languages_delete|
 
 create procedure sp_refresh_banlist ()
 begin
@@ -284,4 +287,25 @@ begin
 		set post_num = null;
 	end if;
 	delete from acl where ((`group` = group_id) or (coalesce(`group`, group_id) is null)) and ((`board` = board_id) or (coalesce(`board`, board_id) is null)) and ((`thread` = thread_num) or (coalesce(`thread`, thread_num) is null)) and ((`post` = post_num) or (coalesce(`post`, post_num) is null));
+end|
+
+create procedure sp_languages_get ()
+begin
+	select id, `name` from languages;
+end|
+
+create procedure sp_languages_add
+(
+	new_language_name varchar(50)
+)
+begin
+	insert into languages (`name`) values (new_language_name);
+end|
+
+create procedure sp_languages_delete
+(
+	_id int
+)
+begin
+	delete from languages where id = _id;
 end|

@@ -23,8 +23,6 @@ require_once 'config.php';
 
 define('ERR_STATFILE', '(Ошибка) Не удалось открыть или создать файл статистики.');
 
-// TODO Убрать из названий констант слова типа FALTURE, FAILED. Масло маленное.
-// TODO Переписать тексты ошибок.
 
 define('ERR_BOARD_NOT_SPECIFED', '(Ошибка) Не задано имя доски.');
 
