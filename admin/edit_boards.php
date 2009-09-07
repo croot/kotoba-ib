@@ -9,175 +9,272 @@
  * See license.txt for more info.*
  *********************************/
 
-/* admin/boards.php: manage boards */
+require '../kwrapper.php';
+require_once Config::ABS_PATH . '/lang/' . Config::LANGUAGE . '/logging.php';
 
-require_once("../database_connect.php");
-require_once("../database_common.php");
-require_once("../common.php");
-
-function get_boards($link) {
-	$boards = array();
-	$st = mysqli_prepare($link, "call sp_get_boards_ex()");
-	if(! $st) {
-		kotoba_error(mysqli_error($link));
-	}
-	if(! mysqli_stmt_execute($st)) {
-		kotoba_error(mysqli_stmt_error($st));
-	}
-	mysqli_stmt_bind_result($st, $cid, $cname, 
-		$id, $board_name, $board_description, $board_title, $threads, 
-		$bump_limit, $rubber_board, $visible_threads, $same_upload, $orderby);
-
-	while(mysqli_stmt_fetch($st)) {
-		array_push($boards, array('cid' => $cid, 'cname' => $cname,
-			'id' => $id,
-			'board_name' => $board_name, 'board_description' => $board_description,
-			'board_title' => $board_title, 'threads' => $threads, 
-			'bump_limit' => $bump_limit, 'rubber_board' => $rubber_board,
-			'visible_threads' => $visible_threads, 'same_upload' => $same_upload,
-			'order' => $orderby
-			));
-	}
-	mysqli_stmt_close($st);
-	cleanup_link($link);
-	return $boards;
+kotoba_setup($link, $smarty);
+if(! in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
+{
+	mysqli_close($link);
+	kotoba_error(Errmsgs::$messages['NOT_ADMIN'],
+		$smarty, basename(__FILE__) . ' ' . __LINE__);
 }
-function get_categories($link) {
-	$categories = array();
-	$st = mysqli_prepare($link, "call sp_get_categories()");
-	if(! $st) {
-		kotoba_error(mysqli_error($link));
+kotoba_log(sprintf(Logmsgs::$messages['ADMIN_FUNCTIONS'],
+		'Редактирование досок', $_SESSION['user'], $_SERVER['REMOTE_ADDR']),
+	Logmsgs::open_logfile(Config::ABS_PATH . '/log/' .
+		basename(__FILE__) . '.log'));
+$popdown_handlers = db_popdown_handlers_get($link, $smarty);
+$categories = db_categories_get($link, $smarty);
+$boards = db_board_get($link, $smarty);
+$reload_boards = false;	// Были ли произведены изменения.
+/*
+ * Создание новой доски.
+ */
+if(isset($_POST['submited']) &&
+	isset($_POST['new_name']) &&
+	isset($_POST['new_title']) &&
+	isset($_POST['new_bump_limit']) &&
+	isset($_POST['new_same_upload']) &&
+	isset($_POST['new_popdown_handler']) &&
+	isset($_POST['new_category_id']) &&
+	$_POST['new_name'] !== '' &&
+	$_POST['new_bump_limit'] !== '' &&
+	$_POST['new_same_upload'] !== '' &&
+	$_POST['new_popdown_handler'] !== '' &&
+	$_POST['new_category_id'] !== '')
+{
+	/*
+	 * Проверка входных параметров.
+	 */
+	if(($new_name = check_format('board', $_POST['new_name'])) == false)
+	{
+		mysqli_close($link);
+		kotoba_error(Errmsgs::$messages['BOARD_NAME'],
+			$smarty, basename(__FILE__) . ' ' . __LINE__);
 	}
-	if(! mysqli_stmt_execute($st)) {
-		kotoba_error(mysqli_stmt_error($st));
+	if($_POST['new_title'] === '')
+		$new_title = '';
+	elseif((($new_title = check_format('board_title',
+						$_POST['new_title'])) == false))
+		{
+			mysqli_close($link);
+			kotoba_error(Errmsgs::$messages['BOARD_TITLE'],
+				$smarty, basename(__FILE__) . ' ' . __LINE__);
+		}
+	if(($new_bump_limit = check_format('id',
+				$_POST['new_bump_limit'])) == false)
+	{
+		mysqli_close($link);
+		kotoba_error(Errmsgs::$messages['BUMP_LIMIT'],
+			$smarty, basename(__FILE__) . ' ' . __LINE__);
 	}
-	mysqli_stmt_bind_result($st, $cid, $cname);
-
-	while(mysqli_stmt_fetch($st)) {
-		array_push($categories, array('cid' => $cid, 'cname' => $cname));
+	if(($new_same_upload = check_format('same_upload',
+				$_POST['new_same_upload'])) == false)
+	{
+		mysqli_close($link);
+		kotoba_error(Errmsgs::$messages['SAME_UPLOAD'],
+			$smarty, basename(__FILE__) . ' ' . __LINE__);
 	}
-	mysqli_stmt_close($st);
-	cleanup_link($link);
-	return $categories;
+	if(($new_popdown_handler = check_format('id',
+				$_POST['new_popdown_handler'])) == false)
+	{
+		mysqli_close($link);
+		kotoba_error(Errmsgs::$messages['POPDOWN_HANDLER_ID'],
+			$smarty, basename(__FILE__) . ' ' . __LINE__);
+	}
+	$found = false;
+	foreach($popdown_handlers as $popdown_handler)
+		if($popdown_handler['id'] == $new_popdown_handler)
+		{
+			$found = true;
+			break;
+		}
+	if(! $found)
+	{
+		mysqli_close($link);
+		kotoba_error(sprintf(Errmsgs::$messages['POPDOWN_HANDLER_NOT_FOUND'],
+				$new_popdown_handler),
+			$smarty, basename(__FILE__) . ' ' . __LINE__);
+	}
+	if(($new_category_id = check_format('id',
+				$_POST['new_category_id'])) == false)
+	{
+		mysqli_close($link);
+		kotoba_error(Errmsgs::$messages['CATEGORY_ID'],
+			$smarty, basename(__FILE__) . ' ' . __LINE__);
+	}
+	$found = false;
+	foreach($categories as $category)
+		if($category['id'] == $new_category_id)
+		{
+			$found = true;
+			break;
+		}
+	if(! $found)
+	{
+		mysqli_close($link);
+		kotoba_error(sprintf(Errmsgs::$messages['CATEGORY_NOT_FOUND'],
+				$new_category_id),
+			$smarty, basename(__FILE__) . ' ' . __LINE__);
+	}
+	/*
+	 * Проверим, нет ли уже доски с таким именем. Если есть, то изменим
+	 * параметры существующей, если нет, то добавим новую.
+	 */
+	$found = false;
+	foreach($boards as $board)
+	{
+		if($board['name'] == $new_name)
+		{
+			$found = true;
+			db_boards_edit($board['id'], $new_title, $new_bump_limit,
+				$new_same_upload, $new_popdown_handler, $new_category_id,
+				$link, $smarty);
+			$reload_boards = true;
+		}
+	}
+	if(! $found)
+	{
+		db_boards_add($new_name, $new_title, $new_bump_limit, $new_same_upload,
+			$new_popdown_handler, $new_category_id, $link, $smarty);
+		create_directories($new_name);
+		$reload_boards = true;
+	}
 }
-function create_directories($board_name) {
-	$base = sprintf("%s%s/%s", $_SERVER['DOCUMENT_ROOT'], KOTOBA_DIR_PATH, $board_name);
-	if(mkdir ($base)) { 
-		chmod ($base, 0777); 
-		$subdirs = array("arch", "img", "thumb"); 
-		foreach($subdirs as $dir) { 
-			$subdir = sprintf("$base/%s", $dir); 
-			if(mkdir($subdir)) { 
-				chmod($subdir, 0777); 
-			} 
-			else { 
-				return false;
-            }
-        }
+/*
+ * Изменение параметров существующих досок.
+ */
+if(isset($_POST['submited']))
+	foreach($boards as $board)
+	{
+		$param_name = "title_{$board['id']}";
+		$new_title = $board['title'];
+		if(isset($_POST[$param_name]) && $_POST[$param_name] != $board['title'])
+		{
+			if($_POST[$param_name] === '')
+				$new_title = '';
+			elseif((($new_title = check_format('board_title',
+								$_POST[$param_name])) == false))
+				{
+					mysqli_close($link);
+					kotoba_error(Errmsgs::$messages['BOARD_TITLE'],
+						$smarty, basename(__FILE__) . ' ' . __LINE__);
+				}
+		}
+		$param_name = "bump_limit_{$board['id']}";
+		$new_bump_limit = $board['bump_limit'];
+		if(isset($_POST[$param_name]) &&
+			$_POST[$param_name] != $board['bump_limit'])
+		{
+			if(($new_bump_limit = check_format('id',
+						$_POST[$param_name])) == false)
+			{
+				mysqli_close($link);
+				kotoba_error(Errmsgs::$messages['BUMP_LIMIT'],
+					$smarty, basename(__FILE__) . ' ' . __LINE__);
+			}
+		}
+		$param_name = "same_upload_{$board['id']}";
+		$new_same_upload = $board['same_upload'];
+		if(isset($_POST[$param_name]) &&
+			$_POST[$param_name] != $board['same_upload'])
+		{
+			if(($new_same_upload = check_format('same_upload',
+						$_POST[$param_name])) == false)
+			{
+				mysqli_close($link);
+				kotoba_error(Errmsgs::$messages['SAME_UPLOAD'],
+					$smarty, basename(__FILE__) . ' ' . __LINE__);
+			}
+		}
+		$param_name = "popdown_handler_{$board['id']}";
+		$new_popdown_handler = $board['popdown_handler'];
+		if(isset($_POST[$param_name]) &&
+			$_POST[$param_name] != $board['popdown_handler'])
+		{
+			if(($new_popdown_handler = check_format('id',
+						$_POST[$param_name])) == false)
+			{
+				mysqli_close($link);
+				kotoba_error(Errmsgs::$messages['POPDOWN_HANDLER_ID'],
+					$smarty, basename(__FILE__) . ' ' . __LINE__);
+			}
+			$found = false;
+			foreach($popdown_handlers as $popdown_handler)
+				if($popdown_handler['id'] == $new_popdown_handler)
+				{
+					$found = true;
+					break;
+				}
+			if(! $found)
+			{
+				mysqli_close($link);
+				kotoba_error(sprintf(
+						Errmsgs::$messages['POPDOWN_HANDLER_NOT_FOUND'],
+						$new_popdown_handler),
+					$smarty, basename(__FILE__) . ' ' . __LINE__);
+			}
+		}
+		$param_name = "category_id_{$board['id']}";
+		$new_category_id = $board['category_id'];
+		if(isset($_POST[$param_name]) &&
+			$_POST[$param_name] != $board['category_id'])
+		{
+			if(($new_category_id = check_format('id',
+						$_POST[$param_name])) == false)
+			{
+				mysqli_close($link);
+				kotoba_error(Errmsgs::$messages['CATEGORY_ID'],
+					$smarty, basename(__FILE__) . ' ' . __LINE__);
+			}
+			$found = false;
+			foreach($categories as $category)
+				if($category['id'] == $new_category_id)
+				{
+					$found = true;
+					break;
+				}
+			if(! $found)
+			{
+				mysqli_close($link);
+				kotoba_error(sprintf(Errmsgs::$messages['CATEGORY_NOT_FOUND'],
+						$new_category_id),
+					$smarty, basename(__FILE__) . ' ' . __LINE__);
+			}
+		}
+		/*
+		 * Если были изменения.
+		 */
+		if($new_title != $board['title'] ||
+			$new_bump_limit != $board['bump_limit'] ||
+			$new_same_upload != $board['same_upload'] ||
+			$new_popdown_handler != $board['popdown_handler'] ||
+			$new_category_id != $board['category_id'])
+		{
+			db_boards_edit($board['id'], $new_title, $new_bump_limit,
+				$new_same_upload, $new_popdown_handler, $new_category_id,
+				$link, $smarty);
+			$reload_boards = true;
+		}
 	}
-	else {
-		return false;
-	}
-	return true;
-
-}
-function add_new_board($link, &$params_array) {
-	if(!isset($params_array['board_name']) || strlen($params_array['board_name']) == 0) {
-		kotoba_error("empty data set");
-	}
-	if(isset($params_array['rubberboard'])) {
-		$rubber = strval($params_array['rubberboard']) == 'on' ? 1 : 0;
-	}
-	else {
-		$rubber = 0;
-	}
-	list($cid, $board_name, $board_description, $board_title,
-		$bump_limit, $visible_threads, $same_upload, $orderby) = 
-	array(intval($params_array['cid']), strval($params_array['board_name']), 
-		strval($params_array['board_description']),
-		strval($params_array['board_title']), intval($params_array['bump_limit']),
-		intval($params_array['visible_threads']), strval($params_array['same_upload']),
-		intval($params_array['order'])
-	);
-//	echo "$board_name, $board_description, $board_title, $bump_limit,
-	//		$rubber, $visible_threads, $same_upload";
-	$st = mysqli_prepare($link, "call sp_create_board(?, ?, ?, ?, ?, ?, ?, ?, ?)");
-	if(! $st) {
-		kotoba_error(mysqli_error($link));
-	}
-	mysqli_stmt_bind_param($st, "iisssiiii", $orderby, $cid, $board_name, $board_description,
-		$board_title, $bump_limit, $rubber, $visible_threads, $same_upload);
-	if(! mysqli_stmt_execute($st)) {
-		kotoba_error(mysqli_stmt_error($st));
-	}
-	if(!create_directories($board_name)) {
-		kotoba_error("create directories");
-	}
-	cleanup_link($link);
-}
-function save_board($link, &$params_array) {
-	if(isset($params_array['rubberboard'])) {
-		$rubber = strval($params_array['rubberboard']) == 'on' ? 1 : 0;
-	}
-	else {
-		$rubber = 0;
-	}
-	list($id, $board_name, $board_description, $board_title, $bump_limit,
-		$visible_threads, $same_upload, $cid, $order) = 
-		array(strval($params_array['id']), strval($params_array['board_name']),
-			strval($params_array['board_description']),
-			strval($params_array['board_title']), intval($params_array['bump_limit']),
-			intval($params_array['visible_threads']), strval($params_array['same_upload']),
-			intval($params_array['cid']), intval($params_array['order'])
-		);
-	$st = mysqli_prepare($link, "call sp_save_board(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-	if(! $st) {
-		kotoba_error(mysqli_error($link));
-	}
-	mysqli_stmt_bind_param($st, "iiisssiiii", $id, $order, $cid, $board_name,
-		$board_description, $board_title,
-		$bump_limit, $rubber, $visible_threads, $same_upload);
-	if(! mysqli_stmt_execute($st)) {
-		kotoba_error(mysqli_stmt_error($st));
-	}
-	cleanup_link($link);
-}
-function gather_supported_filetypes($link, &$boards) {
-	$board_types = array();
-	foreach($boards as $board) {
-		$types = db_get_board_types($link, $board['id']);
-		$board_types[$board['id']] = array_keys($types);
-		cleanup_link($link);
-	}
-	return $board_types;
-}
-$link = dbconn();
-
-if(isset($_GET['action'])) {
-	$action = strval($_GET['action']);
-}
-
-if(isset($action) && $action == 'new') {
-	add_new_board($link, $_GET);
-	header("Location: boards.php");
-}
-elseif(isset($action) && $action == 'save') {
-	save_board($link, $_GET);
-	header("Location: boards.php");
-}
-else {
-	$boards = get_boards($link);
-	$board_types = gather_supported_filetypes($link, $boards);
-	$board_categories = get_categories($link);
-
-	$smarty = new SmartyKotobaSetup();
-	$smarty->assign('boards', $boards);
-	$smarty->assign('categories', $board_categories);
-	$smarty->assign('board_types', $board_types);
-	$smarty->display('adm_boardsview.tpl');
-}
+/*
+ * Удаление выбранных досок.
+ */
+if(isset($_POST['submited']))
+	foreach($boards as $board)
+		if(isset($_POST["delete_{$board['id']}"]))
+		{
+			db_boards_delete($board['id'], $link, $smarty);
+			$reload_boards = true;
+		}
+/*
+ * Обновление списка досок, если нужно. Вывод формы редактирования.
+ */
+if($reload_boards)
+	$boards = db_boards_get($link, $smarty);
 mysqli_close($link);
-
+$smarty->assign('popdown_handlers', $popdown_handlers);
+$smarty->assign('categories', $categories);
+$smarty->assign('boards', $boards);
+$smarty->display('edit_boards.tpl');
 ?>
-<pre>
-</pre>

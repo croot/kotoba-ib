@@ -160,7 +160,6 @@ function check_format($type, $value)
 			else
 				return false;
 			return $value;
-
 		case 'extension':
 		case 'store_extension':
 			$length = strlen($value);
@@ -174,7 +173,6 @@ function check_format($type, $value)
 			else
 				return false;
 			return $value;
-
 		case 'thumbnail_image':
 			$length = strlen($value);
 			if($length <= 256 && $length >= 1)
@@ -187,7 +185,30 @@ function check_format($type, $value)
 			else
 				return false;
 			return $value;
-
+		case 'board_title':
+			$length = strlen($value);
+			if($length <= 50 && $length >= 1)
+			{
+				$value = htmlentities($value, ENT_QUOTES, 'UTF-8');
+				$length = strlen($value);
+				if($length > 50 || $length < 1)
+					return false;
+			}
+			else
+				return false;
+			return $value;
+		case 'same_upload':
+			$length = strlen($value);
+			if($length <= 32 && $length >= 1)
+			{
+				$value = RawUrlEncode($value);
+				$length = strlen($value);
+				if($length > 32 || (strpos($value, '%') !== false) || $length < 1)
+					return false;
+			}
+			else
+				return false;
+			return $value;
         default:
             return false;
     }
@@ -211,6 +232,29 @@ function load_user_settings($keyword_hash, $link, $smarty)
     else
         kotoba_error(Errmsgs::$messages['USER_NOT_EXIST'], $smarty, basename(__FILE__) . ' ' . __LINE__);
 	require_once "lang/$_SESSION[language]/errors.php";
+}
+/*
+ * Создаёт необходимые директории для доски. Используется при
+ * создании новой доски.
+ * Аргументы:
+ * $board_name - имя новой доски.
+ */
+function create_directories($board_name) {
+	$base = Config::ABS_PATH . "/$board_name";
+	if(mkdir ($base)) {
+		chmod ($base, 0777);
+		$subdirs = array("arch", "img", "thumb");
+		foreach($subdirs as $dir) {
+			$subdir = "$base/$dir";
+			if(mkdir($subdir))
+				chmod($subdir, 0777);
+			else
+				return false;
+        }
+	}
+	else
+		return false;
+	return true;
 }
 
 /***********************
@@ -378,11 +422,13 @@ function cleanup_link($link, $smarty)
 }
 
 /*
- * Возвращает имена досок с именами категорий.
+ * Возвращает список досок.
  * Аргументы:
  * $link - связь с базой данных
  * $smarty - экземпляр класса шаблонизатора
  */
+// TODO Удалить фукнцию db_board_get, внеся необходимые изменения в скрипты.
+function db_boards_get($link, $smarty) { return db_board_get($link, $smarty); }
 function db_board_get($link, $smarty)
 {
 	if(($result = mysqli_query($link, "call sp_board_get({$_SESSION['user']})")) == false)
@@ -390,10 +436,69 @@ function db_board_get($link, $smarty)
     $boards = array();
     if(mysqli_affected_rows($link) > 0)
         while(($row = mysqli_fetch_assoc($result)) != null)
-            array_push($boards, array('id' => $row['id'], 'name' => $row['name'], 'category' => $row['category']));
+            array_push($boards, array('id' => $row['id'],
+					'name' => $row['name'],
+					'title' => $row['title'],
+					'bump_limit' => $row['bump_limit'],
+					'same_upload' => $row['same_upload'],
+					'popdown_handler' => $row['popdown_handler'],
+					'category' => $row['category'],	// Для совместимости.
+					'category_id' => $row['category_id']));
     mysqli_free_result($result);
 	cleanup_link($link, $smarty);
 	return $boards;
+}
+/*
+ * Добавляет доску.
+ * Аргументы:
+ * $name - имя доски.
+ * $title - заголовок доски.
+ * $bump_limit - бамплимит.
+ * $same_upload - поведение при добавлении одинаковых файлов.
+ * $popdown_handler - обработчик удаления нитей.
+ * $category - категория доски.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_boards_add($name, $title, $bump_limit, $same_upload, $popdown_handler, $category, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_boards_add('$name', '$title', $bump_limit, '$same_upload', $popdown_handler, $category)")) == false)
+        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Редактирует параметры доски.
+ * Аргументы:
+ * $id - идентификатор доски.
+ * $title - заголовок доски.
+ * $bump_limit - бамплимит.
+ * $same_upload - поведение при добавлении одинаковых файлов.
+ * $popdown_handler - обработчик удаления нитей.
+ * $category - категория доски.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_boards_edit($id, $title, $bump_limit, $same_upload, $popdown_handler, $category, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_boards_edit($id, '$title', $bump_limit, '$same_upload', $popdown_handler, $category)")) == false)
+        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Удаление доски.
+ * Аргументы:
+ * $id - идентификатор доски.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_boards_delete($id, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_boards_delete($id)")) == false)
+        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
 }
 
 /*
