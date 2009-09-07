@@ -3,6 +3,9 @@ drop procedure if exists sp_refresh_banlist|
 drop procedure if exists sp_ban|
 drop procedure if exists sp_check_ban|
 drop procedure if exists sp_board_get|
+drop procedure if exists sp_boards_add|
+drop procedure if exists sp_boards_edit|
+drop procedure if exists sp_boards_delete|
 drop procedure if exists sp_get_user_settings|
 drop procedure if exists sp_save_user_settings|
 drop procedure if exists sp_group_get|
@@ -76,7 +79,7 @@ create procedure sp_board_get
 	user int
 )
 begin
-	select b.id, b.`name`, c.`name` as category
+	select b.id, b.`name`, b.title, b.bump_limit, b.same_upload, b.popdown_handler, c.`name` as category, c.id as category_id
 	from boards b
 	join user_groups ug on ug.user = user
 	left join categories c on b.category = c.id
@@ -465,4 +468,50 @@ create procedure sp_board_upload_types_delete
 )
 begin
 	delete from board_upload_types where board = _board and upload_type = _upload_type;
+end|
+
+create procedure sp_boards_add
+(
+	_name varchar(16),
+	_title varchar(50),
+	_bump_limit int,
+	_same_upload varchar(32),
+	_popdown_handler int,
+	_category int
+)
+begin
+	if _title = ''
+	then
+		set _title = null;
+	end if;
+	insert into boards (`name`, title, bump_limit, same_upload,
+		popdown_handler, category) values (_name, _title, _bump_limit,
+			_same_upload, _popdown_handler, _category);
+end|
+
+create procedure sp_boards_edit
+(
+	_id int,
+	_title varchar(50),
+	_bump_limit int,
+	_same_upload varchar(32),
+	_popdown_handler int,
+	_category int
+)
+begin
+	if _title = ''
+	then
+		set _title = null;
+	end if;
+	update boards set title = _title, bump_limit = _bump_limit,
+		same_upload = _same_upload, popdown_handler = _popdown_handler,
+		category = _category where id = _id;
+end|
+
+create procedure sp_boards_delete
+(
+	_id int
+)
+begin
+	delete from boards where id = _id;
 end|
