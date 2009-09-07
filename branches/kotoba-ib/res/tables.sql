@@ -98,7 +98,8 @@ create table upload_types
 	upload_handler int not null,
 	thumbnail_image varchar(256) default null,
 	primary key (id),
-	constraint foreign key (upload_handler) references upload_handlers (id) on delete restrict on update restrict
+	constraint foreign key (upload_handler) references upload_handlers (id) on delete restrict on update restrict,
+	unique key (extension)
 )
 engine=InnoDB|
 
@@ -107,7 +108,8 @@ create table board_upload_types
 	board int not null,
 	upload_type int not null,
 	constraint foreign key (board) references boards (id) on delete restrict on update restrict,
-	constraint foreign key (upload_type) references upload_types (id) on delete restrict on update restrict
+	constraint foreign key (upload_type) references upload_types (id) on delete restrict on update restrict,
+	unique (board, upload_type)
 )
 engine=InnoDB|
 

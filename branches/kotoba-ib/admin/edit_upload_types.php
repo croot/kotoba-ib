@@ -9,129 +9,222 @@
  * See license.txt for more info.*
  *********************************/
 
-/* admin/filetypes.php: manage supported filetypes */
+require_once '../kwrapper.php';
+require_once Config::ABS_PATH . '/lang/' . Config::LANGUAGE . '/logging.php';
 
-require_once("../database_connect.php");
-require_once("../common.php");
-require_once("../events.php");
-require_once("../post_processing.php");
-
-function get_filetypes($link) {
-	$types = array();
-	$st = mysqli_prepare($link, "call sp_get_filetypes_ex()");
-	if(! $st) {
-		kotoba_error(mysqli_error($link));
-	}
-	if(! mysqli_stmt_execute($st)) {
-		kotoba_error(mysqli_stmt_error($st));
-	}
-	mysqli_stmt_bind_result($st, $id, $image, $extension, $store_extension, $handler, $thumbnail_image);
-	while(mysqli_stmt_fetch($st)) {
-		array_push($types, array('id'=>$id, 'image' => $image, 'extension' => $extension, 
-			'store_extension' => $store_extension, 
-			'handler' => $handler, 'thumbnail_image' => $thumbnail_image));
-	}
-	mysqli_stmt_close($st);
-	cleanup_link($link);
-	return $types;
+kotoba_setup($link, $smarty);
+if(! in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
+{
+	mysqli_close($link);
+	kotoba_error(Errmsgs::$messages['NOT_ADMIN'],
+		$smarty,
+		basename(__FILE__) . ' ' . __LINE__);
 }
-function save_filetype($link, &$params_array, &$files) {
-	$virtual_path = sprintf("%s/img/unknown.png", KOTOBA_DIR_PATH);
-	list($id, $image, $extension, $store_extension, $handler) = 
-		array(intval($params_array['id']), intval($params_array['image']),
-			strval($params_array['extension']),
-			strval($params_array['store_extension']), intval($params_array['handler']));
-	if($handler == 1) {
-		$error_message = "";
-		if(!post_check_image_upload_error($files['thumbnail_image']['error'], false, "echo",
-        $error_message))
-		{ // upload of image failed
-			kotoba_error($error_message);
-		}
-
-		$uploaded_file = $files['thumbnail_image']['tmp_name'];
-		$uploaded_name = $files['thumbnail_image']['name'];
-		$uploaded_parts = pathinfo($uploaded_name);
-		$store_file = sprintf("%s-preview.%s", $extension, $uploaded_parts['extension']);
-		$base_path = sprintf("img/%s", $store_file);
-		$store_path = sprintf("%s/%s/%s", $_SERVER['DOCUMENT_ROOT'], KOTOBA_DIR_PATH,
-			$base_path);
-		$virtual_path = sprintf("%s/%s", KOTOBA_DIR_PATH, $base_path);
-		if(!move_uploaded_file($uploaded_file, $store_path)) {
-			kotoba_error(ERR_FILE_NOT_SAVED);
-		}
-		echo "$uploaded_file, $uploaded_name, $store_file";
+// TODO локализация действий, записывающихся в лог.
+kotoba_log(sprintf(Logmsgs::$messages['ADMIN_FUNCTIONS'],
+		'Редактирование типов загружаемых файлов',
+		$_SESSION['user'],
+		$_SERVER['REMOTE_ADDR']),
+	Logmsgs::open_logfile(Config::ABS_PATH . '/log/' .
+		basename(__FILE__) . '.log'));
+$upload_handlers = db_upload_handlers_get($link, $smarty);
+$upload_types = db_upload_types_get($link, $smarty);
+$reload_upload_types = false;	// Были ли произведены изменения.
+/*
+ * Добавим новый тип загружаемых файлов.
+ */
+if(isset($_POST['submited']) &&
+	isset($_POST['new_extension']) &&
+	isset($_POST['new_store_extension']) &&
+	isset($_POST['new_upload_handler']) &&
+	isset($_POST['new_thumbnail_image']) &&
+	$_POST['new_extension'] !== '' &&
+	$_POST['new_store_extension'] !== '' &&
+	$_POST['new_upload_handler'] !== '')
+{
+	/*
+	 * Проверим правильность всех входных параметров.
+	 */
+	if(($new_extension = check_format('extension',
+				$_POST['new_extension'])) == false)
+	{
+		mysqli_close($link);
+		kotoba_error(Errmsgs::$messages['EXTENSION_NAME'],
+			$smarty,
+			basename(__FILE__) . ' ' . __LINE__);
 	}
-//	echo "$board_name, $board_description, $board_title, $bump_limit,
-	//		$rubber, $visible_threads, $same_upload";
-	$st = mysqli_prepare($link, "call sp_change_filetype(?, ?, ?, ?, ?, ?)");
-	if(! $st) {
-		kotoba_error(mysqli_error($link));
+	if(($new_store_extension = check_format('store_extension',
+				$_POST['new_store_extension'])) == false)
+	{
+		mysqli_close($link);
+		kotoba_error(Errmsgs::$messages['EXTENSION_NAME'],
+			$smarty,
+			basename(__FILE__) . ' ' . __LINE__);
 	}
-	mysqli_stmt_bind_param($st, "iissis", $id, $image, $extension, $store_extension,
-		$handler, $virtual_path);
-	if(! mysqli_stmt_execute($st)) {
-		kotoba_error(mysqli_stmt_error($st));
+	if(($new_upload_handler_id = check_format('id',
+				$_POST['new_upload_handler'])) == false)
+	{
+		mysqli_close($link);
+		kotoba_error(Errmsgs::$messages['UPLOAD_HANDLER_ID'],
+			$smarty,
+			basename(__FILE__) . ' ' . __LINE__);
+	}
+	$found = false;
+	foreach($upload_handlers as $handler)
+		if($handler['id'] == $new_upload_handler_id)
+		{
+			$found = true;
+			break;
+		}
+	if(! $found)
+	{
+		mysqli_close($link);
+		kotoba_error(sprintf(Errmsgs::$messages['UPLOAD_HANDLER_NOT_FOUND'],
+				$new_upload_handler_id),
+			$smarty,
+			basename(__FILE__) . ' ' . __LINE__);
+	}
+	if($_POST['new_thumbnail_image'] === '')
+		$new_thumbnail_image_name = '';
+	else
+	{
+		if(($new_thumbnail_image_name = check_format('thumbnail_image',
+					$_POST['new_thumbnail_image'])) == false)
+		{
+			mysqli_close($link);
+			kotoba_error(Errmsgs::$messages['THUMBNAIL_IMAGE_NAME'],
+				$smarty,
+				basename(__FILE__) . ' ' . __LINE__);
+		}
+	}
+	/*
+	 * Проверим, нет ли уже такого типа загружаемых файлов, если есть, то
+	 * изменим существующий, если нет, то добавим новый.
+	 */
+	$found = false;
+	foreach($upload_types as $upload_type)
+	{
+		if($upload_type['extension'] == $new_extension)
+		{
+			$found = true;
+			db_upload_types_edit($upload_type['id'],
+				$new_store_extension,
+				$new_upload_handler_id,
+				$new_thumbnail_image_name,
+				$link,
+				$smarty);
+			$reload_upload_types = true;
+			break;
+		}
+	}
+	if(! $found)
+	{
+		db_upload_types_add($new_extension, $new_store_extension,
+				$new_upload_handler_id,
+				$new_thumbnail_image_name,
+				$link,
+				$smarty);
+			$reload_upload_types = true;
 	}
 }
 /*
- * TODO: file upload error handling
+ * Изменим обработчик загружаемых файлов.
  */
-function add_new_filetype($link, &$params_array, &$files) {
-	$virtual_path = sprintf("%s/img/unknown.png", KOTOBA_DIR_PATH);
-	list($image, $extension, $store_extension, $handler) = 
-		array(intval($params_array['image']), strval($params_array['extension']),
-			strval($params_array['store_extension']), intval($params_array['handler']));
-	if($handler == 1) {
-		$error_message = "";
-		if(!post_check_image_upload_error($files['thumbnail_image']['error'], false, "echo",
-        $error_message))
-		{ // upload of image failed
-			kotoba_error($error_message);
+if(isset($_POST['submited']))
+	foreach($upload_types as $upload_type)
+	{
+		/* Сохраняемый тип файла был изменен. */
+		$param_name = 'store_extension_' . $upload_type['id'];
+		$new_store_extension = $upload_type['store_extension'];
+		if(isset($_POST[$param_name]) && ($_POST[$param_name] !=
+				$upload_type['store_extension']))
+		{
+			if(($new_store_extension = check_format('store_extension',
+						$_POST[$param_name])) == false)
+			{
+				mysqli_close($link);
+				kotoba_error(Errmsgs::$messages['EXTENSION_NAME'],
+					$smarty,
+					basename(__FILE__) . ' ' . __LINE__);
+			}
 		}
-
-		$uploaded_file = $files['thumbnail_image']['tmp_name'];
-		$uploaded_name = $files['thumbnail_image']['name'];
-		$uploaded_parts = pathinfo($uploaded_name);
-		$store_file = sprintf("%s-preview.%s", $extension, $uploaded_parts['extension']);
-		$base_path = sprintf("img/%s", $store_file);
-		$store_path = sprintf("%s/%s/%s", $_SERVER['DOCUMENT_ROOT'], KOTOBA_DIR_PATH,
-			$base_path);
-		$virtual_path = sprintf("%s/%s", KOTOBA_DIR_PATH, $base_path);
-		if(!move_uploaded_file($uploaded_file, $store_path)) {
-			kotoba_error(ERR_FILE_NOT_SAVED);
+		/* Обработчик загружаемых файлов был изменён. */
+		$param_name = 'upload_handler_' . $upload_type['id'];
+		$new_upload_handler_id = $upload_type['upload_handler'];
+		if(isset($_POST[$param_name]) && ($_POST[$param_name] !=
+				$upload_type['upload_handler']))
+		{
+			if(($new_upload_handler_id = check_format('id',
+						$_POST[$param_name])) == false)
+			{
+				mysqli_close($link);
+				kotoba_error(Errmsgs::$messages['UPLOAD_HANDLER_ID'],
+					$smarty,
+					basename(__FILE__) . ' ' . __LINE__);
+			}
+			$found = false;
+			foreach($upload_handlers as $handler)
+				if($handler['id'] == $new_upload_handler_id)
+				{
+					$found = true;
+					break;
+				}
+			if(! $found)
+			{
+				mysqli_close($link);
+				kotoba_error(sprintf(Errmsgs::$messages['UPLOAD_HANDLER_NOT_FOUND'],
+						$new_upload_handler_id),
+					$smarty,
+					basename(__FILE__) . ' ' . __LINE__);
+			}
 		}
-		echo "$uploaded_file, $uploaded_name, $store_file";
+		/* Уменьшенная копия была изменена. */
+		$param_name = 'thumbnail_image_' . $upload_type['id'];
+		$new_thumbnail_image_name = $upload_type['thumbnail_image'];
+		if(isset($_POST[$param_name]) && ($_POST[$param_name] !=
+				$upload_type['thumbnail_image']))
+		{
+			if(($new_thumbnail_image_name = check_format('thumbnail_image',
+						$_POST[$param_name])) == false)
+			{
+				mysqli_close($link);
+				kotoba_error(Errmsgs::$messages['THUMBNAIL_IMAGE_NAME'],
+					$smarty,
+					basename(__FILE__) . ' ' . __LINE__);
+			}
+		}
+		/* Было произведено хотя бы одно изменение. */
+		if($new_store_extension != $upload_type['store_extension'] ||
+			$new_upload_handler_id != $upload_type['upload_handler'] ||
+			$new_thumbnail_image_name != $upload_type['thumbnail_image'])
+		{
+			db_upload_types_edit($upload_type['id'],
+				$new_store_extension,
+				$new_upload_handler_id,
+				$new_thumbnail_image_name,
+				$link,
+				$smarty);
+			$reload_upload_types = true;
+		}
 	}
-//	echo "$board_name, $board_description, $board_title, $bump_limit,
-	//		$rubber, $visible_threads, $same_upload";
-	$st = mysqli_prepare($link, "call sp_add_filetype(?, ?, ?, ?, ?)");
-	if(! $st) {
-		kotoba_error(mysqli_error($link));
-	}
-	mysqli_stmt_bind_param($st, "issis", $image, $extension, $store_extension, $handler, $virtual_path);
-	if(! mysqli_stmt_execute($st)) {
-		kotoba_error(mysqli_stmt_error($st));
-	}
-}
-$link = dbconn();
-
-$action = strval($_POST['action']);
-
-if($action == 'new') {
-	add_new_filetype($link, $_POST, $_FILES);
-	header("Location: filetypes.php");
-}
-elseif($action == 'save') {
-	save_filetype($link, $_POST, $_FILES);
-	header("Location: filetypes.php");
-}
-else {
-	$types = get_filetypes($link);
-
-	// for new board string with empty fields
-	$smarty = new SmartyKotobaSetup();
-	$smarty->assign('types', $types);
-	$smarty->display('adm_filetypes.tpl');
-}
+/*
+ * Удалим тип загружаемых файлов.
+ */
+if(isset($_POST['submited']))
+	foreach($upload_types as $upload_type)
+		if(isset($_POST['delete_' . $upload_type['id']]))
+		{
+			db_upload_types_delete($upload_type['id'], $link, $smarty);
+			$reload_upload_types = true;
+		}
+/*
+ * Если нужно, получение обновлённого списка типов загружаемых файлов,
+ * вывод формы редактирования.
+ */
+if($reload_upload_types)
+	$upload_types = db_upload_types_get($link, $smarty);
 mysqli_close($link);
+$smarty->assign('upload_handlers', $upload_handlers);
+$smarty->assign('upload_types', $upload_types);
+$smarty->display('edit_upload_types.tpl');
+?>

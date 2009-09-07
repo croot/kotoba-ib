@@ -161,6 +161,33 @@ function check_format($type, $value)
 				return false;
 			return $value;
 
+		case 'extension':
+		case 'store_extension':
+			$length = strlen($value);
+			if($length <= 10 && $length >= 1)
+			{
+				$value = RawUrlEncode($value);
+				$length = strlen($value);
+				if($length > 10 || (strpos($value, '%') !== false) || $length < 1)
+					return false;
+			}
+			else
+				return false;
+			return $value;
+
+		case 'thumbnail_image':
+			$length = strlen($value);
+			if($length <= 256 && $length >= 1)
+			{
+				$value = RawUrlEncode($value);
+				$length = strlen($value);
+				if($length > 256 || (strpos($value, '%') !== false) || $length < 1)
+					return false;
+			}
+			else
+				return false;
+			return $value;
+
         default:
             return false;
     }
@@ -946,6 +973,130 @@ function db_popdown_handlers_add($new_popdown_handler_name, $link, $smarty)
 function db_popdown_handlers_delete($popdown_handler_id, $link, $smarty)
 {
 	if(($result = mysqli_query($link, "call sp_popdown_handlers_delete($popdown_handler_id)")) == false)
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Возвращает список загружаемых типов файлов.
+ * Аргументы:
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_upload_types_get($link, $smarty)
+{
+	if(($result = mysqli_query($link, 'call sp_upload_types_get()')) == false)
+        kotoba_error(mysqli_error($link),
+			$smarty,
+			basename(__FILE__) . ' ' . __LINE__);
+    $upload_types = array();
+    if(mysqli_affected_rows($link) > 0)
+        while(($row = mysqli_fetch_assoc($result)) != null)
+            array_push($upload_types, array('id' => $row['id'],
+					'extension' => $row['extension'],
+					'store_extension' => $row['store_extension'],
+					'upload_handler' => $row['upload_handler'],
+					'thumbnail_image' => $row['thumbnail_image']));
+    mysqli_free_result($result);
+    cleanup_link($link, $smarty);
+    return $upload_types;
+}
+/*
+ * Добавляет новый тип загружаемых файлов.
+ * Аргументы:
+ * $extension - новый тип файлов.
+ * $store_extension - сохраняемый тип файлов.
+ * $upload_handler_id - идентификатор обработчика загружаемых файлов.
+ * $thumbnail_image_name - имя уменьшенной копии изображения для нового
+ * типа файлов.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_upload_types_add($extension, $store_extension, $upload_handler_id, $thumbnail_image_name, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_upload_types_add('$extension', '$store_extension', $upload_handler_id, '$thumbnail_image_name')")) == false)
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Редактирует тип загружаемых файлов.
+ * Аргументы:
+ * $id - идентификатор типа файлов.
+ * $store_extension - сохраняемый тип файлов.
+ * $upload_handler_id - идентификатор обработчика загружаемых файлов.
+ * $thumbnail_image_name - имя уменьшенной копии изображения.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_upload_types_edit($id, $store_extension, $upload_handler_id, $thumbnail_image_name, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_upload_types_edit($id, '$store_extension', $upload_handler_id, '$thumbnail_image_name')")) == false)
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Удаляет тип загружаемых файлов.
+ * Аргументы:
+ * $id - идентифаикатор типа загружаемых файлов.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_upload_types_delete($id, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_upload_types_delete($id)")) == false)
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Возвращает список типов файлов на досках.
+ * Аргументы:
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_board_upload_types_get($link, $smarty)
+{
+	if(($result = mysqli_query($link, 'call sp_board_upload_types_get()')) == false)
+        kotoba_error(mysqli_error($link),
+			$smarty,
+			basename(__FILE__) . ' ' . __LINE__);
+    $board_upload_types = array();
+    if(mysqli_affected_rows($link) > 0)
+        while(($row = mysqli_fetch_assoc($result)) != null)
+            array_push($board_upload_types, array('board' => $row['board'],
+					'upload_type' => $row['upload_type']));
+    mysqli_free_result($result);
+    cleanup_link($link, $smarty);
+    return $board_upload_types;
+}
+/*
+ * Добавляет тип загружаемого файла к доске.
+ * Аргументы:
+ * $board_id - идентификато доски.
+ * $upload_type_id - идтенификатор типа загружаемого файла.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_board_upload_types_add($board_id, $upload_type_id, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_board_upload_types_add($board_id, $upload_type_id)")) == false)
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Удаляет тип загружаемого файла для доски.
+ * Аргументы:
+ * $board_id - идентификато доски.
+ * $upload_type_id - идтенификатор типа загружаемого файла.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_board_upload_types_delete($board_id, $upload_type_id, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_board_upload_types_delete($board_id, $upload_type_id)")) == false)
 		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
 	cleanup_link($link, $smarty);
 	return true;
