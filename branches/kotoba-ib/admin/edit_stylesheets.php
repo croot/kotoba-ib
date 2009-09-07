@@ -24,44 +24,44 @@ if(! in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
 		basename(__FILE__) . ' ' . __LINE__);
 }
 kotoba_log(sprintf(Logmsgs::$messages['ADMIN_FUNCTIONS'],
-		'Редактирование категорий досок',
+		'Редактирование стилей оформления',
 		$_SESSION['user'],
 		$_SERVER['REMOTE_ADDR']),
 	Logmsgs::open_logfile(Config::ABS_PATH . '/log/' .
 		basename(__FILE__) . '.log'));
-$categories = db_categories_get($link, $smarty);
-$reload_categories = false;	// Были ли произведены изменения.
+$stylesheets = db_stylesheets_get($link, $smarty);
+$reload_stylesheets = false;	// Были ли произведены изменения.
 /*
- * Добавим категорию досок.
+ * Добавим стиль оформления.
  */
-if(isset($_POST['new_category']) && $_POST['new_category'] !== '')
+if(isset($_POST['new_stylesheet']) && $_POST['new_stylesheet'] !== '')
 {
-	if(($new_category_name = check_format('category', $_POST['new_category'])) == false)
+	if(($new_stylesheet_name = check_format('stylesheet', $_POST['new_stylesheet'])) == false)
 	{
 		mysqli_close($link);
-		kotoba_error(Errmsgs::$messages['CATEGORY_NAME'],
+		kotoba_error(Errmsgs::$messages['STYLESHEET_NAME'],
 			$smarty,
 			basename(__FILE__) . ' ' . __LINE__);
 	}
-	db_categories_add($new_category_name, $link, $smarty);
-	$reload_categories = true;
+	db_stylesheets_add($new_stylesheet_name, $link, $smarty);
+	$reload_stylesheets = true;
 }
 /*
- * Удалим категории.
+ * Удалим стили.
  */
-foreach($categories as $category)
-	if(isset($_POST['delete_' . $category['id']]))
+foreach($stylesheets as $stylesheet)
+	if(isset($_POST['delete_' . $stylesheet['id']]))
 	{
-		db_categories_delete($category['id'], $link, $smarty);
-		$reload_categories = true;
+		db_stylesheets_delete($stylesheet['id'], $link, $smarty);
+		$reload_stylesheets = true;
 	}
 /*
- * Если нужно, получение обновлённого списка категорий досок, вывод формы
+ * Если нужно, получение обновлённого списка стилей оформления, вывод формы
  * редактирования.
  */
-if($reload_categories)
-	 $categories = db_categories_get($link, $smarty);
+if($reload_stylesheets)
+	$stylesheets = db_stylesheets_get($link, $smarty);
 mysqli_close($link);
-$smarty->assign('categories', $categories);
-$smarty->display('edit_categories.tpl');
+$smarty->assign('stylesheets', $stylesheets);
+$smarty->display('edit_stylesheets.tpl');
 ?>
