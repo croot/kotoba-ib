@@ -31,6 +31,13 @@ drop procedure if exists sp_upload_handlers_delete|
 drop procedure if exists sp_popdown_handlers_get|
 drop procedure if exists sp_popdown_handlers_add|
 drop procedure if exists sp_popdown_handlers_delete|
+drop procedure if exists sp_upload_types_get|
+drop procedure if exists sp_upload_types_add|
+drop procedure if exists sp_upload_types_edit|
+drop procedure if exists sp_upload_types_delete|
+drop procedure if exists sp_board_upload_types_get|
+drop procedure if exists sp_board_upload_types_add|
+drop procedure if exists sp_board_upload_types_delete|
 
 create procedure sp_refresh_banlist ()
 begin
@@ -392,4 +399,70 @@ create procedure sp_popdown_handlers_delete
 )
 begin
 	delete from popdown_handlers where id = _id;
+end|
+
+create procedure sp_upload_types_get ()
+begin
+	select id, extension, store_extension, upload_handler, thumbnail_image from upload_types;
+end|
+
+create procedure sp_upload_types_add
+(
+	_extension varchar(10),
+	_store_extension varchar(10),
+	_upload_handler_id int,
+	_thumbnail_image_name varchar(256)
+)
+begin
+	if _thumbnail_image_name = ''
+	then
+		set _thumbnail_image_name = null;
+	end if;
+	insert into upload_types (extension, store_extension, upload_handler, thumbnail_image) values (_extension, _store_extension, _upload_handler_id, _thumbnail_image_name);
+end|
+
+create procedure sp_upload_types_edit
+(
+	_id int,
+	_store_extension varchar(10),
+	_upload_handler_id int,
+	_thumbnail_image_name varchar(256)
+)
+begin
+	if _thumbnail_image_name = ''
+	then
+		set _thumbnail_image_name = null;
+	end if;
+	update upload_types set store_extension = _store_extension, upload_handler = _upload_handler_id, thumbnail_image = _thumbnail_image_name where id = _id;
+end|
+
+create procedure sp_upload_types_delete
+(
+	_id int
+)
+begin
+	delete from upload_types where id = _id;
+end|
+
+create procedure sp_board_upload_types_get ()
+begin
+	select board, upload_type from board_upload_types;
+end|
+
+create procedure sp_board_upload_types_add
+(
+	_board int,
+	_upload_type int
+)
+begin
+	insert into board_upload_types (board, upload_type) values (_board, _upload_type);
+end|
+
+create procedure sp_board_upload_types_delete
+(
+	_board int,
+	_upload_type int
+)
+begin
+	delete from board_upload_types where board = _board and upload_type = _upload_type;
 end|

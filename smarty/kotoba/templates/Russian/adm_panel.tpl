@@ -19,4 +19,6 @@
 <a href="{$DIR_PATH}/admin/edit_stylesheets.php">Редактирование стилей оформления</a><br>
 <a href="{$DIR_PATH}/admin/edit_categories.php">Редактирование категорий досок</a><br>
 <a href="{$DIR_PATH}/admin/edit_upload_handlers.php">Редактирование обработчиков загружаемых файлов</a><br>
-<a href="{$DIR_PATH}/admin/edit_popdown_handlers.php">Редактирование обработчиков удаления нитей</a>
+<a href="{$DIR_PATH}/admin/edit_popdown_handlers.php">Редактирование обработчиков удаления нитей</a><br>
+<a href="{$DIR_PATH}/admin/edit_upload_types.php">Редактирование типов загружаемых файлов</a><br>
+<a href="{$DIR_PATH}/admin/edit_board_upload_types.php">Редактировать типы загружаемых файлов для досок</a>
