@@ -44,9 +44,6 @@ function check_format($type, $value)
 				return false;
 			return $value;
 
-        case 'stylesheet':
-            return RawUrlEncode($value);
-
         case 'keyword':
 			$length = strlen($value);
 
@@ -146,6 +143,8 @@ function check_format($type, $value)
 
             return $value;
 
+		case 'category':
+		case 'stylesheet':
 		case 'language':
 		case 'group':
 			$length = strlen($value);
@@ -751,6 +750,105 @@ function db_languages_delete($language_id, $link, $smarty)
 	cleanup_link($link, $smarty);
 	return true;
 }
+/*
+ * Возвращает список стилей оформления.
+ * Аргументы:
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_stylesheets_get($link, $smarty)
+{
+	if(($result = mysqli_query($link, 'call sp_stylesheets_get()')) == false)
+        kotoba_error(mysqli_error($link),
+			$smarty,
+			basename(__FILE__) . ' ' . __LINE__);
+    $stylesheets = array();
+    if(mysqli_affected_rows($link) > 0)
+        while(($row = mysqli_fetch_assoc($result)) != null)
+            array_push($stylesheets, array('id' => $row['id'],
+					'name' => $row['name']));
+    mysqli_free_result($result);
+    cleanup_link($link, $smarty);
+    return $stylesheets;
+}
+/*
+ * Добавляет новый стиль оформления с именем $new_stylesheet_name.
+ * Аргументы:
+ * $new_stylesheet_name - имя нового стиля.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_stylesheets_add($new_stylesheet_name, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_stylesheets_add('$new_stylesheet_name')")) == false)
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Удаляет стиль оформления с идентификатором $stylesheet_id.
+ * Аргументы:
+ * $stylesheet_id - идентификатор стиля для удаления.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_stylesheets_delete($stylesheet_id, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_stylesheets_delete($stylesheet_id)")) == false)
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Возвращает список категорий досок.
+ * Аргументы:
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_categories_get($link, $smarty)
+{
+	if(($result = mysqli_query($link, 'call sp_categories_get()')) == false)
+        kotoba_error(mysqli_error($link),
+			$smarty,
+			basename(__FILE__) . ' ' . __LINE__);
+    $categories = array();
+    if(mysqli_affected_rows($link) > 0)
+        while(($row = mysqli_fetch_assoc($result)) != null)
+            array_push($categories, array('id' => $row['id'],
+					'name' => $row['name']));
+    mysqli_free_result($result);
+    cleanup_link($link, $smarty);
+    return $categories;
+}
+/*
+ * Добавляет новую категорию досок с именем $new_category_name.
+ * Аргументы:
+ * $new_category_name - имя новой категории.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_categories_add($new_category_name, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_categories_add('$new_category_name')")) == false)
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Удаляет категорию досок с идентификатором $category_id.
+ * Аргументы:
+ * $category_id - идентификатор категории для удаления.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_categories_delete($category_id, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_categories_delete($category_id)")) == false)
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+
 
 /* db_get_board_id: get board id by name
  * returns board id (positive) on success, otherwise return -1

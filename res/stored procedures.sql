@@ -4,8 +4,6 @@ drop procedure if exists sp_ban|
 drop procedure if exists sp_check_ban|
 drop procedure if exists sp_board_get|
 drop procedure if exists sp_get_user_settings|
-drop procedure if exists sp_get_stylesheets|
-drop procedure if exists sp_get_languages|
 drop procedure if exists sp_save_user_settings|
 drop procedure if exists sp_group_get|
 drop procedure if exists sp_group_add|
@@ -21,6 +19,12 @@ drop procedure if exists sp_acl_delete|
 drop procedure if exists sp_languages_get|
 drop procedure if exists sp_languages_add|
 drop procedure if exists sp_languages_delete|
+drop procedure if exists sp_stylesheets_get|
+drop procedure if exists sp_stylesheets_add|
+drop procedure if exists sp_stylesheets_delete|
+drop procedure if exists sp_categories_get|
+drop procedure if exists sp_categories_add|
+drop procedure if exists sp_categories_delete|
 
 create procedure sp_refresh_banlist ()
 begin
@@ -89,16 +93,6 @@ begin
 	join groups g on ug.`group` = g.id;
 end|
 
-create procedure sp_get_stylesheets ()
-begin
-	select name from stylesheets;
-end|
-
-create procedure sp_get_languages ()
-begin
-	select name from languages;
-end|
-
 create procedure sp_save_user_settings
 (
 	_keyword varchar(32),
@@ -146,7 +140,7 @@ begin
 	start transaction;
 	insert into groups (`name`) values (_name);
 	select id into group_id from groups where name = _name;
-	/* Стандартные права как для Гостя */
+	-- Стандартные права как для Гостя
 	insert into acl (`group`, `view`, `change`, moderate) values (group_id, 1, 0, 0);
 	commit;
 end|
@@ -157,7 +151,7 @@ create procedure sp_group_delete
 )
 begin
 	start transaction;
-	/* TODO: Сделать просто каскадное удаление */
+	-- TODO: Сделать просто каскадное удалени
 	delete from acl where `group` = _id;
 	delete from user_groups where `group` = _id;
 	delete from groups where id = _id;
@@ -308,4 +302,46 @@ create procedure sp_languages_delete
 )
 begin
 	delete from languages where id = _id;
+end|
+
+create procedure sp_stylesheets_get ()
+begin
+	select id, `name` from stylesheets;
+end|
+
+create procedure sp_stylesheets_add
+(
+	new_stylesheet_name varchar(50)
+)
+begin
+	insert into stylesheets (`name`) values (new_stylesheet_name);
+end|
+
+create procedure sp_stylesheets_delete
+(
+	_id int
+)
+begin
+	delete from stylesheets where id = _id;
+end|
+
+create procedure sp_categories_get ()
+begin
+	select id, `name` from categories;
+end|
+
+create procedure sp_categories_add
+(
+	new_category_name varchar(50)
+)
+begin
+	insert into categories (`name`) values (new_category_name);
+end|
+
+create procedure sp_categories_delete
+(
+	_id int
+)
+begin
+	delete from categories where id = _id;
 end|

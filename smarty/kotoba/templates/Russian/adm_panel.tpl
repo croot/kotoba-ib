@@ -15,4 +15,6 @@
 <a href="{$DIR_PATH}/admin/edit_groups.php">Редактировать группы пользователей</a><br>
 <a href="{$DIR_PATH}/admin/edit_user_groups.php">Редактировать принадлежность пользователей группам</a><br>
 <a href="{$DIR_PATH}/admin/edit_acl.php">Редактирование списка контроля доступа</a><br>
-<a href="{$DIR_PATH}/admin/edit_languages.php">Редактирование языков</a>
+<a href="{$DIR_PATH}/admin/edit_languages.php">Редактирование языков</a><br>
+<a href="{$DIR_PATH}/admin/edit_stylesheets.php">Редактирование стилей оформления</a><br>
+<a href="{$DIR_PATH}/admin/edit_categories.php">Редактирование категорий досок</a>
