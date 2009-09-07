@@ -143,6 +143,8 @@ function check_format($type, $value)
 
             return $value;
 
+		case 'popdown_handler':
+		case 'upload_handler':
 		case 'category':
 		case 'stylesheet':
 		case 'language':
@@ -844,6 +846,106 @@ function db_categories_add($new_category_name, $link, $smarty)
 function db_categories_delete($category_id, $link, $smarty)
 {
 	if(($result = mysqli_query($link, "call sp_categories_delete($category_id)")) == false)
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Возвращает список обработчиков загружаемых файлов.
+ * Аргументы:
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_upload_handlers_get($link, $smarty)
+{
+	if(($result = mysqli_query($link, 'call sp_upload_handlers_get()')) == false)
+        kotoba_error(mysqli_error($link),
+			$smarty,
+			basename(__FILE__) . ' ' . __LINE__);
+    $upload_handlers = array();
+    if(mysqli_affected_rows($link) > 0)
+        while(($row = mysqli_fetch_assoc($result)) != null)
+            array_push($upload_handlers, array('id' => $row['id'],
+					'name' => $row['name']));
+    mysqli_free_result($result);
+    cleanup_link($link, $smarty);
+    return $upload_handlers;
+}
+/*
+ * Добавляет новый обработчик загружаемых файлов с именем
+ * $new_upload_handler_name.
+ * Аргументы:
+ * $new_upload_handler_name - имя нового обработчика.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_upload_handlers_add($new_upload_handler_name, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_upload_handlers_add('$new_upload_handler_name')")) == false)
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Удаляет обработчик загружаемых файлов с идентификатором $upload_handler_id.
+ * Аргументы:
+ * $upload_handler_id - идентификатор обработчика для удаления.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_upload_handlers_delete($upload_handler_id, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_upload_handlers_delete($upload_handler_id)")) == false)
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Возвращает список обработчиков удаления нитей.
+ * Аргументы:
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_popdown_handlers_get($link, $smarty)
+{
+	if(($result = mysqli_query($link, 'call sp_popdown_handlers_get()')) == false)
+        kotoba_error(mysqli_error($link),
+			$smarty,
+			basename(__FILE__) . ' ' . __LINE__);
+    $popdown_handlers = array();
+    if(mysqli_affected_rows($link) > 0)
+        while(($row = mysqli_fetch_assoc($result)) != null)
+            array_push($popdown_handlers, array('id' => $row['id'],
+					'name' => $row['name']));
+    mysqli_free_result($result);
+    cleanup_link($link, $smarty);
+    return $popdown_handlers;
+}
+/*
+ * Добавляет новый обработчик удаления нитей с именем
+ * $new_popdown_handler_name.
+ * Аргументы:
+ * $new_popdown_handler_name - имя нового обработчика.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_popdown_handlers_add($new_popdown_handler_name, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_popdown_handlers_add('$new_popdown_handler_name')")) == false)
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Удаляет обработчик удаления нитей с идентификатором $popdown_handler_id.
+ * Аргументы:
+ * $popdown_handler_id - идентификатор обработчика для удаления.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_popdown_handlers_delete($popdown_handler_id, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_popdown_handlers_delete($popdown_handler_id)")) == false)
 		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
 	cleanup_link($link, $smarty);
 	return true;

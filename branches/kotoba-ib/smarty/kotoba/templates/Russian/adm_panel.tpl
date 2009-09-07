@@ -17,4 +17,6 @@
 <a href="{$DIR_PATH}/admin/edit_acl.php">Редактирование списка контроля доступа</a><br>
 <a href="{$DIR_PATH}/admin/edit_languages.php">Редактирование языков</a><br>
 <a href="{$DIR_PATH}/admin/edit_stylesheets.php">Редактирование стилей оформления</a><br>
-<a href="{$DIR_PATH}/admin/edit_categories.php">Редактирование категорий досок</a>
+<a href="{$DIR_PATH}/admin/edit_categories.php">Редактирование категорий досок</a><br>
+<a href="{$DIR_PATH}/admin/edit_upload_handlers.php">Редактирование обработчиков загружаемых файлов</a><br>
+<a href="{$DIR_PATH}/admin/edit_popdown_handlers.php">Редактирование обработчиков удаления нитей</a>

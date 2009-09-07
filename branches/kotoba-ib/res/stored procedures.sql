@@ -25,6 +25,12 @@ drop procedure if exists sp_stylesheets_delete|
 drop procedure if exists sp_categories_get|
 drop procedure if exists sp_categories_add|
 drop procedure if exists sp_categories_delete|
+drop procedure if exists sp_upload_handlers_get|
+drop procedure if exists sp_upload_handlers_add|
+drop procedure if exists sp_upload_handlers_delete|
+drop procedure if exists sp_popdown_handlers_get|
+drop procedure if exists sp_popdown_handlers_add|
+drop procedure if exists sp_popdown_handlers_delete|
 
 create procedure sp_refresh_banlist ()
 begin
@@ -344,4 +350,46 @@ create procedure sp_categories_delete
 )
 begin
 	delete from categories where id = _id;
+end|
+
+create procedure sp_upload_handlers_get ()
+begin
+	select id, `name` from upload_handlers;
+end|
+
+create procedure sp_upload_handlers_add
+(
+	new_upload_handler_name varchar(50)
+)
+begin
+	insert into upload_handlers (`name`) values (new_upload_handler_name);
+end|
+
+create procedure sp_upload_handlers_delete
+(
+	_id int
+)
+begin
+	delete from upload_handlers where id = _id;
+end|
+
+create procedure sp_popdown_handlers_get ()
+begin
+	select id, `name` from popdown_handlers;
+end|
+
+create procedure sp_popdown_handlers_add
+(
+	new_popdown_handler_name varchar(50)
+)
+begin
+	insert into popdown_handlers (`name`) values (new_popdown_handler_name);
+end|
+
+create procedure sp_popdown_handlers_delete
+(
+	_id int
+)
+begin
+	delete from popdown_handlers where id = _id;
 end|
