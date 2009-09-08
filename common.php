@@ -197,6 +197,18 @@ function check_format($type, $value)
 			else
 				return false;
 			return $value;
+		case 'reason':
+			$length = strlen($value);
+			if($length <= 10000 && $length >= 1)
+			{
+				$value = htmlentities($value, ENT_QUOTES, 'UTF-8');
+				$length = strlen($value);
+				if($length > 10000 || $length < 1)
+					return false;
+			}
+			else
+				return false;
+			return $value;
 		case 'same_upload':
 			$length = strlen($value);
 			if($length <= 32 && $length >= 1)
@@ -396,6 +408,73 @@ function db_check_banned($ip, $link, $smarty)
 	mysqli_free_result($result);
 	cleanup_link($link, $smarty);
 	return $row;
+}
+/*
+ * Возвращает список банов.
+ * Аргументы:
+ * $link - связь с базой данных
+ * $smarty - экземпляр класса шаблонизатора
+ */
+function db_bans_get($link, $smarty)
+{
+	if(($result = mysqli_query($link, 'call sp_bans_get()')) == false)
+        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+    $bans = array();
+    if(mysqli_affected_rows($link) > 0)
+        while(($row = mysqli_fetch_assoc($result)) != null)
+            array_push($bans, array('id' => $row['id'],
+									'range_beg' => $row['range_beg'],
+									'range_end' => $row['range_end'],
+									'reason' => $row['reason'],
+									'untill' => $row['untill']));
+    mysqli_free_result($result);
+    cleanup_link($link, $smarty);
+    return $bans;
+}
+/*
+ * Банит диапазон (1 и более) адресов.
+ * Аргументы:
+ * $range_beg - начало диапазона адресов.
+ * $range_end - конец диапазона адресов.
+ * $reason - причина.
+ * $untill - время истечения бана.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_bans_add($range_beg, $range_end, $reason, $untill, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_ban($range_beg, $range_end, '$reason', '$untill')")) == false)
+        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Удаляет бан с заданным идентификатором.
+ * Аргументы:
+ * $id - идентификатор бана.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_bans_delete($id, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_bans_delete($id)")) == false)
+        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Разблокирует заданный ip адрес.
+ * Аргументы:
+ * $ip - ip адрес.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_bans_unban($ip, $link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_bans_unban($ip)")) == false)
+        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	cleanup_link($link, $smarty);
+	return true;
 }
 
 /*
