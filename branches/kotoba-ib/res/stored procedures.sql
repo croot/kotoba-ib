@@ -2,6 +2,9 @@ delimiter |
 drop procedure if exists sp_refresh_banlist|
 drop procedure if exists sp_ban|
 drop procedure if exists sp_check_ban|
+drop procedure if exists sp_bans_get|
+drop procedure if exists sp_bans_delete|
+drop procedure if exists sp_bans_unban|
 drop procedure if exists sp_board_get|
 drop procedure if exists sp_boards_add|
 drop procedure if exists sp_boards_edit|
@@ -71,7 +74,7 @@ create procedure sp_check_ban
 )
 begin
 call sp_refresh_banlist();
-select range_beg, range_end, untill, reason from bans where range_beg >= ip and range_end <= ip order by range_end desc limit 1;
+select range_beg, range_end, untill, reason from bans where range_beg <= ip and range_end >= ip order by range_end desc limit 1;
 end|
 
 create procedure sp_board_get
@@ -514,4 +517,25 @@ create procedure sp_boards_delete
 )
 begin
 	delete from boards where id = _id;
+end|
+
+create procedure sp_bans_get ()
+begin
+	select id, range_beg, range_end, reason, untill from bans;
+end|
+
+create procedure sp_bans_delete
+(
+	_id int
+)
+begin
+	delete from bans where id = _id;
+end|
+
+create procedure sp_bans_unban
+(
+	ip int
+)
+begin
+	delete from bans where range_beg <= ip and range_end >= ip;
 end|

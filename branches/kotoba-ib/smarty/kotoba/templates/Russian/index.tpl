@@ -27,4 +27,8 @@
 <p>Панель администратора:<br>
 {include file='adm_panel.tpl' DIR_PATH=$DIR_PATH}</p>
 {/if}
+{if isset($mod_panel)}
+<p>Панель модератора:<br>
+{include file='mod_panel.tpl' DIR_PATH=$DIR_PATH}</p>
+{/if}
 {include file='footer.tpl'}

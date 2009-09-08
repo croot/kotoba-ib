@@ -22,4 +22,5 @@
 <a href="{$DIR_PATH}/admin/edit_popdown_handlers.php">Редактирование обработчиков удаления нитей</a><br>
 <a href="{$DIR_PATH}/admin/edit_upload_types.php">Редактирование типов загружаемых файлов</a><br>
 <a href="{$DIR_PATH}/admin/edit_board_upload_types.php">Редактирование типов загружаемых файлов для досок</a><br>
-<a href="{$DIR_PATH}/admin/edit_boards.php">Редактирование досок</a>
+<a href="{$DIR_PATH}/admin/edit_boards.php">Редактирование досок</a><br>
+<a href="{$DIR_PATH}/admin/edit_bans.php">Редактирование банов</a>
