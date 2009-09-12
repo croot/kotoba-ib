@@ -25,7 +25,7 @@ kotoba_log(sprintf(Logmsgs::$messages['ADMIN_FUNCTIONS'],
 		basename(__FILE__) . '.log'));
 $popdown_handlers = db_popdown_handlers_get($link, $smarty);
 $categories = db_categories_get($link, $smarty);
-$boards = db_board_get($link, $smarty);
+$boards = db_boards_get_all($link, $smarty);
 $reload_boards = false;	// Были ли произведены изменения.
 /*
  * Создание новой доски.
@@ -36,12 +36,12 @@ if(isset($_POST['submited']) &&
 	isset($_POST['new_bump_limit']) &&
 	isset($_POST['new_same_upload']) &&
 	isset($_POST['new_popdown_handler']) &&
-	isset($_POST['new_category_id']) &&
+	isset($_POST['new_category']) &&
 	$_POST['new_name'] !== '' &&
 	$_POST['new_bump_limit'] !== '' &&
 	$_POST['new_same_upload'] !== '' &&
 	$_POST['new_popdown_handler'] !== '' &&
-	$_POST['new_category_id'] !== '')
+	$_POST['new_category'] !== '')
 {
 	/*
 	 * Проверка входных параметров.
@@ -55,12 +55,12 @@ if(isset($_POST['submited']) &&
 	if($_POST['new_title'] === '')
 		$new_title = '';
 	elseif((($new_title = check_format('board_title',
-						$_POST['new_title'])) == false))
-		{
-			mysqli_close($link);
-			kotoba_error(Errmsgs::$messages['BOARD_TITLE'],
-				$smarty, basename(__FILE__) . ' ' . __LINE__);
-		}
+					$_POST['new_title'])) == false))
+	{
+		mysqli_close($link);
+		kotoba_error(Errmsgs::$messages['BOARD_TITLE'],
+			$smarty, basename(__FILE__) . ' ' . __LINE__);
+	}
 	if(($new_bump_limit = check_format('id',
 				$_POST['new_bump_limit'])) == false)
 	{
@@ -96,8 +96,8 @@ if(isset($_POST['submited']) &&
 				$new_popdown_handler),
 			$smarty, basename(__FILE__) . ' ' . __LINE__);
 	}
-	if(($new_category_id = check_format('id',
-				$_POST['new_category_id'])) == false)
+	if(($new_category = check_format('id',
+				$_POST['new_category'])) == false)
 	{
 		mysqli_close($link);
 		kotoba_error(Errmsgs::$messages['CATEGORY_ID'],
@@ -105,7 +105,7 @@ if(isset($_POST['submited']) &&
 	}
 	$found = false;
 	foreach($categories as $category)
-		if($category['id'] == $new_category_id)
+		if($category['id'] == $new_category)
 		{
 			$found = true;
 			break;
@@ -114,7 +114,7 @@ if(isset($_POST['submited']) &&
 	{
 		mysqli_close($link);
 		kotoba_error(sprintf(Errmsgs::$messages['CATEGORY_NOT_FOUND'],
-				$new_category_id),
+				$new_category),
 			$smarty, basename(__FILE__) . ' ' . __LINE__);
 	}
 	/*
@@ -128,7 +128,7 @@ if(isset($_POST['submited']) &&
 		{
 			$found = true;
 			db_boards_edit($board['id'], $new_title, $new_bump_limit,
-				$new_same_upload, $new_popdown_handler, $new_category_id,
+				$new_same_upload, $new_popdown_handler, $new_category,
 				$link, $smarty);
 			$reload_boards = true;
 		}
@@ -136,7 +136,7 @@ if(isset($_POST['submited']) &&
 	if(! $found)
 	{
 		db_boards_add($new_name, $new_title, $new_bump_limit, $new_same_upload,
-			$new_popdown_handler, $new_category_id, $link, $smarty);
+			$new_popdown_handler, $new_category, $link, $smarty);
 		create_directories($new_name);
 		$reload_boards = true;
 	}
@@ -215,12 +215,12 @@ if(isset($_POST['submited']))
 					$smarty, basename(__FILE__) . ' ' . __LINE__);
 			}
 		}
-		$param_name = "category_id_{$board['id']}";
-		$new_category_id = $board['category_id'];
+		$param_name = "category_{$board['id']}";
+		$new_category = $board['category'];
 		if(isset($_POST[$param_name]) &&
-			$_POST[$param_name] != $board['category_id'])
+			$_POST[$param_name] != $board['category'])
 		{
-			if(($new_category_id = check_format('id',
+			if(($new_category = check_format('id',
 						$_POST[$param_name])) == false)
 			{
 				mysqli_close($link);
@@ -229,7 +229,7 @@ if(isset($_POST['submited']))
 			}
 			$found = false;
 			foreach($categories as $category)
-				if($category['id'] == $new_category_id)
+				if($category['id'] == $new_category)
 				{
 					$found = true;
 					break;
@@ -238,7 +238,7 @@ if(isset($_POST['submited']))
 			{
 				mysqli_close($link);
 				kotoba_error(sprintf(Errmsgs::$messages['CATEGORY_NOT_FOUND'],
-						$new_category_id),
+						$new_category),
 					$smarty, basename(__FILE__) . ' ' . __LINE__);
 			}
 		}
@@ -249,10 +249,10 @@ if(isset($_POST['submited']))
 			$new_bump_limit != $board['bump_limit'] ||
 			$new_same_upload != $board['same_upload'] ||
 			$new_popdown_handler != $board['popdown_handler'] ||
-			$new_category_id != $board['category_id'])
+			$new_category != $board['category'])
 		{
 			db_boards_edit($board['id'], $new_title, $new_bump_limit,
-				$new_same_upload, $new_popdown_handler, $new_category_id,
+				$new_same_upload, $new_popdown_handler, $new_category,
 				$link, $smarty);
 			$reload_boards = true;
 		}
@@ -271,7 +271,7 @@ if(isset($_POST['submited']))
  * Обновление списка досок, если нужно. Вывод формы редактирования.
  */
 if($reload_boards)
-	$boards = db_boards_get($link, $smarty);
+	$boards = db_boards_get_all($link, $smarty);
 mysqli_close($link);
 $smarty->assign('popdown_handlers', $popdown_handlers);
 $smarty->assign('categories', $categories);

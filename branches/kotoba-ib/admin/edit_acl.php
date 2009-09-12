@@ -8,6 +8,9 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
+// TODO При установке прав для определённого треда задание доски не имеет смысла
+// так как id треда уникален для всех досок. В этом случае board должно быть
+// null. Аналогично для постов.
 
 require_once '../kwrapper.php';
 require_once Config::ABS_PATH . '/lang/' . Config::LANGUAGE . '/logging.php';
@@ -21,7 +24,7 @@ if(! in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
 // TODO локализация действий, записывающихся в лог.
 kotoba_log(sprintf(Logmsgs::$messages['ADMIN_FUNCTIONS'], 'Редактирование списка контроля доступа', $_SESSION['user'], $_SERVER['REMOTE_ADDR']), Logmsgs::open_logfile(Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log'));
 $groups = db_group_get($link, $smarty);
-$boards = db_board_get($link, $smarty);
+$boards = db_boards_get_all($link, $smarty);
 $acl = db_acl_get($link, $smarty);
 $reload_acl = false;	// Были ли произведены изменения.
 /*

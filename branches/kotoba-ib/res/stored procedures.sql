@@ -5,11 +5,14 @@ drop procedure if exists sp_check_ban|
 drop procedure if exists sp_bans_get|
 drop procedure if exists sp_bans_delete|
 drop procedure if exists sp_bans_unban|
-drop procedure if exists sp_board_get|
+drop procedure if exists sp_boards_get_allowed|
+drop procedure if exists sp_boards_get_preview|
+drop procedure if exists sp_boards_get_all|
+drop procedure if exists sp_boards_get_specifed|
 drop procedure if exists sp_boards_add|
 drop procedure if exists sp_boards_edit|
 drop procedure if exists sp_boards_delete|
-drop procedure if exists sp_get_user_settings|
+drop procedure if exists sp_user_settings_get|
 drop procedure if exists sp_save_user_settings|
 drop procedure if exists sp_group_get|
 drop procedure if exists sp_group_add|
@@ -44,6 +47,12 @@ drop procedure if exists sp_upload_types_delete|
 drop procedure if exists sp_board_upload_types_get|
 drop procedure if exists sp_board_upload_types_add|
 drop procedure if exists sp_board_upload_types_delete|
+drop procedure if exists sp_threads_get_preview|
+drop procedure if exists sp_posts_get_preview|
+drop procedure if exists sp_posts_uploads_get_all|
+drop procedure if exists sp_uploads_get_all|
+drop procedure if exists sp_hidden_threads_get_all|
+drop procedure if exists sp_upload_types_get_preview|
 
 create procedure sp_refresh_banlist ()
 begin
@@ -77,24 +86,107 @@ call sp_refresh_banlist();
 select range_beg, range_end, untill, reason from bans where range_beg <= ip and range_end >= ip order by range_end desc limit 1;
 end|
 
-create procedure sp_board_get
+create procedure sp_boards_get_allowed
 (
 	user int
 )
 begin
-	select b.id, b.`name`, b.title, b.bump_limit, b.same_upload, b.popdown_handler, c.`name` as category, c.id as category_id
+	select b.id, b.`name`, b.title, b.bump_limit, b.same_upload, b.popdown_handler, b.category
 	from boards b
 	join user_groups ug on ug.user = user
-	left join categories c on b.category = c.id
-	left join acl a1 on ug.`group` = a1.`group` and a1.board is null -- права для заданной группы
-	left join acl a2 on b.id = a2.board and a2.`group` is null and a2.thread is null and a2.post is null -- независимые от группы, права для определённой доски
-	left join acl a3 on ug.`group` = a3.`group` and b.id = a3.board and a2.thread is null and a2.post is null -- права для определённой группы и доски
+	left join acl a1 on ug.`group` = a1.`group` and a1.board is null and a1.thread is null and a1.post is null -- права для определённой группы, для любой доски для любой нити для любого сообщения (x, null, null, null)
+	left join acl a2 on a2.`group` is null and b.id = a2.board and a2.thread is null and a2.post is null -- права для любой группы для определённой доски для любой нити для любого сообщения (null, x, null, null)
+	left join acl a3 on ug.`group` = a3.`group` and b.id = a3.board and a2.thread is null and a2.post is null -- права для определённой группы для определённой доски для любой нити для любого сообщения (x, x, null, null)
 	group by b.id
 	having max(coalesce(a3.view, a2.view, a1.view)) = 1
-	order by c.name, b.name;
+	order by b.category, b.`name`;
 end|
 
-create procedure sp_get_user_settings
+create procedure sp_boards_get_preview
+(
+	_user int
+)
+begin
+	select b.id, b.`name`, b.title, b.bump_limit, b.same_upload, b.popdown_handler, b.category, count(t.id) as threads_count
+	from boards b
+	join user_groups ug on ug.user = _user
+	left join threads t on t.board = b.id
+	left join hidden_threads ht on ht.user = _user and ht.thread = t.id
+	left join acl a1 on ug.`group` = a1.`group` and a1.board is null and a1.thread is null and a1.post is null
+	left join acl a2 on a2.`group` is null and b.id = a2.board
+	left join acl a3 on ug.`group` = a3.`group` and b.id = a3.board
+	left join acl a4 on a4.`group` is null and t.id = a4.thread
+	left join acl a5 on ug.`group` = a5.`group` and t.id = a5.thread
+	where ht.thread is null
+	group by b.id
+	having max(coalesce(a3.view, a2.view, a1.view)) = 1 and (max(coalesce(a4.view, a5.view)) = 1 or max(coalesce(a4.view, a5.view)) is null)
+	order by b.category, b.`name`;
+end|
+
+create procedure sp_boards_get_specifed
+(
+	board_name varchar(16),
+	actions int,
+	user_id int
+)
+begin
+	declare board_id int;
+	select id into board_id from boards where `name` = board_name;
+	if board_id is null
+	then
+		select 'NOT_FOUND' as error;
+	else
+		if actions = 1
+		then
+			select b.id, b.`name`, b.title, b.bump_limit, b.same_upload, b.popdown_handler, b.category
+			from boards b
+			join user_groups ug on ug.`user` = user_id
+			left join acl a1 on ug.`group` = a1.`group` and a1.board is null and a1.thread is null and a1.post is null -- права для определённой группы, для любой доски для любой нити для любого сообщения (x, null, null, null)
+			left join acl a2 on a2.`group` is null and b.id = a2.board and a2.thread is null and a2.post is null -- права для любой группы для определённой доски для любой нити для любого сообщения (null, x, null, null)
+			left join acl a3 on ug.`group` = a3.`group` and b.id = a3.board and a2.thread is null and a2.post is null -- права для определённой группы для определённой доски для любой нити для любого сообщения (x, x, null, null)
+			where b.id = board_id
+			group by b.id
+			having max(coalesce(a3.view, a2.view, a1.view)) = 1
+			order by b.category, b.`name`;
+		else
+			if actions = 2
+			then
+				select b.id, b.`name`, b.title, b.bump_limit, b.same_upload, b.popdown_handler, b.category
+				from boards b
+				join user_groups ug on ug.`user` = user_id
+				left join acl a1 on ug.`group` = a1.`group` and a1.board is null and a1.thread is null and a1.post is null -- права для определённой группы, для любой доски для любой нити для любого сообщения (x, null, null, null)
+				left join acl a2 on a2.`group` is null and b.id = a2.board and a2.thread is null and a2.post is null -- права для любой группы для определённой доски для любой нити для любого сообщения (null, x, null, null)
+				left join acl a3 on ug.`group` = a3.`group` and b.id = a3.board and a2.thread is null and a2.post is null -- права для определённой группы для определённой доски для любой нити для любого сообщения (x, x, null, null)
+				where b.id = board_id
+				group by b.id
+				having max(coalesce(a3.change, a2.change, a1.change)) = 1
+				order by b.category, b.`name`;
+
+			else
+				if actions = 3
+				then
+					select b.id, b.`name`, b.title, b.bump_limit, b.same_upload, b.popdown_handler, b.category
+					from boards b
+					join user_groups ug on ug.`user` = user_id
+					left join acl a1 on ug.`group` = a1.`group` and a1.board is null and a1.thread is null and a1.post is null -- права для определённой группы, для любой доски для любой нити для любого сообщения (x, null, null, null)
+					left join acl a2 on a2.`group` is null and b.id = a2.board and a2.thread is null and a2.post is null -- права для любой группы для определённой доски для любой нити для любого сообщения (null, x, null, null)
+					left join acl a3 on ug.`group` = a3.`group` and b.id = a3.board and a2.thread is null and a2.post is null -- права для определённой группы для определённой доски для любой нити для любого сообщения (x, x, null, null)
+					where b.id = board_id
+					group by b.id
+					having max(coalesce(a3.moderate, a2.moderate, a1.moderate)) = 1
+					order by b.category, b.`name`;
+				end if;
+			end if;
+		end if;
+	end if;
+end|
+
+create procedure sp_boards_get_all ()
+begin
+	select id, `name`, title, bump_limit, same_upload, popdown_handler, category from boards;
+end|
+
+create procedure sp_user_settings_get
 (
 	_keyword varchar(32)
 )
@@ -102,12 +194,14 @@ begin
 	declare user_id int;
 	select id into user_id from users where keyword = _keyword;
 
-	select u.id, u.posts_per_thread, u.threads_per_page, u.lines_per_post, l.name as language, s.name as stylesheet from users u
+	select u.id, u.posts_per_thread, u.threads_per_page, u.lines_per_post,
+		l.`name` as `language`, s.`name` as `stylesheet`, u.rempass
+	from users u
 	join stylesheets s on u.stylesheet = s.id
-	join languages l on u.language = l.id
+	join languages l on u.`language` = l.id
 	where u.keyword = _keyword;
 
-	select g.name from user_groups ug
+	select g.`name` from user_groups ug
 	join users u on ug.`user` = u.id and u.id = user_id
 	join groups g on ug.`group` = g.id;
 end|
@@ -119,7 +213,8 @@ create procedure sp_save_user_settings
 	_posts_per_thread int,
 	_lines_per_post int,
 	_stylesheet varchar(50),
-	_language varchar(50)
+	_language varchar(50),
+	_rempass varchar(12)
 )
 begin
 	declare user_id int;
@@ -129,19 +224,22 @@ begin
 	select id into user_id from users where keyword = _keyword;
 	select id into stylesheet_id from stylesheets where name = _stylesheet;
 	select id into language_id from languages where name = _language;
-
+	if(_rempass = '')
+	then
+		set _rempass = null;
+	end if;
 	if(user_id is null)
 	then
 		-- Создаём ногового пользователя
 		start transaction;
-		insert into users (keyword, threads_per_page, posts_per_thread, lines_per_post, stylesheet, language)
-		values (_keyword, _threads_per_page, _posts_per_thread, _lines_per_post, stylesheet_id, language_id);
+		insert into users (keyword, threads_per_page, posts_per_thread, lines_per_post, stylesheet, `language`, rempass)
+		values (_keyword, _threads_per_page, _posts_per_thread, _lines_per_post, stylesheet_id, language_id, _rempass);
 		select last_insert_id() into user_id;
 		insert into user_groups (`user`, `group`) select user_id, id from groups where name = 'Users';
 		commit;
 	else
 		-- Редактируем настройки существующего
-		update users set threads_per_page = _threads_per_page, posts_per_thread = _posts_per_thread, lines_per_post = _lines_per_post, stylesheet = stylesheet_id, language = language_id where id = user_id;
+		update users set threads_per_page = _threads_per_page, posts_per_thread = _posts_per_thread, lines_per_post = _lines_per_post, stylesheet = stylesheet_id, `language` = language_id, rempass = _rempass where id = user_id;
 	end if;
 end|
 
@@ -538,4 +636,115 @@ create procedure sp_bans_unban
 )
 begin
 	delete from bans where range_beg <= ip and range_end >= ip;
+end|
+
+create procedure sp_threads_get_preview
+(
+	board_id int,
+	page int,
+	user_id int,
+	threads_per_page int
+)
+begin
+	/* Потому что в limit нельзя использовать переменные */
+	prepare stmnt from
+		'select t.id, t.original_post, t.bump_limit, t.sage, t.with_images, count(p.id) as posts_count
+		from threads t
+		join boards b on b.id = t.board and b.id = ?
+		join posts p on p.board = ? and p.thread = t.id
+		join user_groups ug on ug.`user` = ?
+		left join hidden_threads ht on t.id = ht.thread and ug.`user` = ht.`user`
+		left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+		left join acl a2 on a2.`group` is null and a2.thread = t.id
+		left join acl a3 on a3.`group` = ug.`group` and a3.post = p.id
+		left join acl a4 on a4.`group` is null and a4.post = p.id
+		where (t.deleted = 0 or t.deleted is null) and (t.archived = 0 or t.archived is null) and ht.thread is null and (p.sage is null or p.sage = 0)
+		group by t.id
+		having (max(coalesce(a1.view, a2.view)) = 1 or max(coalesce(a1.view, a2.view)) is null) and (max(coalesce(a3.view, a3.view)) = 1 or max(coalesce(a3.view, a4.view)) is null)
+		order by max(p.`number`) desc
+		limit ? offset ?';
+	/* Потому что в prepare можно использовать только переменные */
+	set @board_id = board_id;
+	set @user_id = user_id;
+	if(page = 1) then
+		set @offset = 0;
+		set @limit = threads_per_page;
+	else
+		set @offset = threads_per_page * (page - 1);
+		set @limit = threads_per_page + (page - 1);
+	end if;
+	execute stmnt using @board_id, @board_id, @user_id, @limit, @offset;
+	deallocate prepare stmnt;
+end|
+
+create procedure sp_posts_get_preview
+(
+	thread_id int,
+	user_id int,
+	posts_per_thread int
+)
+begin
+	prepare stmnt from
+		'select p.id, p.thread, p.number, p.password, p.name, p.ip, p.subject, p.date_time, p.text, p.sage
+		from posts p
+		join threads t on p.board = t.board and p.thread = t.id
+		join user_groups ug on ug.user = ?
+		left join acl a1 on a1.group = ug.group and a1.post = p.id
+		left join acl a2 on a2.group is null and a2.post = p.id
+		where p.thread = ? and p.number != t.original_post
+		group by p.id
+		having max(coalesce(a1.view, a2.view)) = 1 or max(coalesce(a1.view, a2.view)) is null
+		limit ?
+		union all
+		select p.id, p.thread, p.number, p.password, p.name, p.ip, p.subject, p.date_time, p.text, p.sage
+		from posts p
+		join threads t on p.board = t.board and p.thread = t.id
+		where p.number = t.original_post and p.thread = ?
+		order by number desc';
+	set @user_id = user_id;
+	set @thread_id = thread_id;
+	set @limit = posts_per_thread;
+	execute stmnt using @user_id, @thread_id, @limit, @thread_id;
+	deallocate prepare stmnt;
+end|
+
+create procedure sp_posts_uploads_get_all
+(
+	post_id int
+)
+begin
+	select post, upload from posts_uploads where post = post_id;
+end|
+
+create procedure sp_uploads_get_all
+(
+	post_id int
+)
+begin
+	select id, `hash`, is_image, file_name, file_w, file_h, `size`,
+		thumbnail_name, thumbnail_w, thumbnail_h
+	from uploads u
+	join posts_uploads pu on pu.upload = u.id and pu.post = post_id;
+end|
+
+create procedure sp_hidden_threads_get_all
+(
+	board_id int,
+	user_id int
+)
+begin
+	select t.id, t.original_post
+	from hidden_threads ht
+	join threads t on ht.thread = t.id and t.board = board_id
+	where ht.user = user_id;
+end|
+
+create procedure sp_upload_types_get_preview
+(
+	board_id int
+)
+begin
+	select ut.extension
+	from upload_types ut
+	join board_upload_types but on ut.id = but.upload_type and but.board = board_id;
 end|

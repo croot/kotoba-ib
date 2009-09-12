@@ -10,14 +10,18 @@
  *********************************/
 
 require 'kwrapper.php';
-
 kotoba_setup($link, $smarty);
-
-if(isset($_POST['keyword_load']))	// Загрузка настроек.
+/*
+ * Загрузка настроек.
+ */
+if(isset($_POST['keyword_load']))
 {
     if(($keyword_code = check_format('keyword', $_POST['keyword_load'])) == false)
-        kotoba_error(Errmsgs::$messages['KEYWORD'], $smarty, basename(__FILE__) . ' ' . __LINE__);
-
+	{
+        mysqli_close($link);
+        kotoba_error(Errmsgs::$messages['KEYWORD'], $smarty,
+			basename(__FILE__) . ' ' . __LINE__);
+	}
     load_user_settings(md5($keyword_code), $link, $smarty);
 }
 elseif (isset($_POST['keyword_save']))	// Сохранение настроек.
@@ -88,7 +92,7 @@ elseif (isset($_POST['keyword_save']))	// Сохранение настроек.
 
     $keyword_hash = md5($keyword_code);
 
-    if(db_save_user_settings($keyword_hash, $threads_per_page, $posts_per_thread, $lines_per_post, $new_stylesheet, $new_language, $link, $smarty) == false)
+    if(db_save_user_settings($keyword_hash, $threads_per_page, $posts_per_thread, $lines_per_post, $new_stylesheet, $new_language, (!isset($_SESSION['rempass']) || $_SESSION['rempass'] == null ? '': $_SESSION['rempass']), $link, $smarty) == false)
         kotoba_error(Errmsgs::$messages['SAVE_USER_SETTINGS'], $smarty, basename(__FILE__) . ' ' . __LINE__);
 
     load_user_settings($keyword_hash, $link, $smarty); // Потому что нужно получить id пользователя.
