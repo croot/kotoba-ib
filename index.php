@@ -12,13 +12,18 @@
 require 'kwrapper.php';
 
 kotoba_setup($link, $smarty);
-$board_names = db_board_get($link, $smarty);
-mysqli_close($link);
-if(count($board_names) > 0)
+$boards = db_boards_get_allowed($_SESSION['user'], $link, $smarty);
+if(count($boards) > 0)
 {
+	$categories = db_categories_get($link, $smarty);
+	foreach($categories as $category)
+		foreach($boards as &$board)
+			if($board['category'] == $category['id'])
+				$board['category'] = $category['name'];
 	$smarty->assign('boards_exist', true);
-	$smarty->assign('board_names', $board_names);
+	$smarty->assign('boards', $boards);
 }
+mysqli_close($link);
 if(in_array(Config::MOD_GROUP_NAME, $_SESSION['groups']))
     $smarty->assign('mod_panel', true);
 elseif(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))

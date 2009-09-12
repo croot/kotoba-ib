@@ -2,7 +2,7 @@
 /*************************************
  * Этот файл является частью Kotoba. *
  * Файл license.txt содержит условия *
- * распространения Kotoba.           *
+ * распространения Kotoba.		   *
  *************************************/
 /*********************************
  * This file is part of Kotoba.  *
@@ -28,8 +28,8 @@ if(!class_exists('Config'))
  */
 function check_format($type, $value)
 {
-    switch($type)
-    {
+	switch($type)
+	{
 		case 'id':
 			$length = strlen($value);
 			$max_int_length = strlen('' . PHP_INT_MAX);
@@ -44,7 +44,7 @@ function check_format($type, $value)
 				return false;
 			return $value;
 
-        case 'keyword':
+		case 'keyword':
 			$length = strlen($value);
 
 			if($length <= 32 && $length >= 16)
@@ -60,8 +60,8 @@ function check_format($type, $value)
 
 			return $value;
 
-        case 'posts_per_thread':
-        case 'lines_per_post':
+		case 'posts_per_thread':
+		case 'lines_per_post':
 		case 'threads_per_page':
 			$length = strlen($value);
 
@@ -78,25 +78,22 @@ function check_format($type, $value)
 
 			return $value;
 
-        case 'board':
+		case 'board':
 			$length = strlen($value);
-
 			if($length <= 16 && $length >= 1)
 			{
 				$value = RawUrlEncode($value);
 				$length = strlen($value);
-
 				if($length > 16 || (strpos($value, '%') !== false) || $length < 1)
 					return false;
 			}
 			else
 				return false;
-
 			return $value;
 
-        case 'thread':
-        case 'post':
-            $length = strlen($value);
+		case 'thread':
+		case 'post':
+			$length = strlen($value);
 
 			if($length <= 9 && $length >= 1)
 			{
@@ -109,26 +106,22 @@ function check_format($type, $value)
 			else
 				return false;
 
-            return $value;
+			return $value;
 
-        case 'page':
-            $length = strlen($value);
-
+		case 'page':
+			$length = strlen($value);
 			if($length <= 2 && $length >= 1)
 			{
 				$value = RawUrlEncode($value);
 				$length = strlen($value);
-
 				if($length > 2 || (ctype_digit($value) == false) || $length < 1)
 					return false;
 			}
 			else
 				return false;
-
-            return $value;
-
-        case 'pass':
-            $length = strlen($value);
+			return $value;
+		case 'pass':
+			$length = strlen($value);
 
 			if($length <= 12 && $length >= 1)
 			{
@@ -141,7 +134,7 @@ function check_format($type, $value)
 			else
 				return false;
 
-            return $value;
+			return $value;
 
 		case 'popdown_handler':
 		case 'upload_handler':
@@ -221,9 +214,9 @@ function check_format($type, $value)
 			else
 				return false;
 			return $value;
-        default:
-            return false;
-    }
+		default:
+			return false;
+	}
 }
 
 /*
@@ -231,18 +224,19 @@ function check_format($type, $value)
  */
 function load_user_settings($keyword_hash, $link, $smarty)
 {
-    if(($user_settings = db_get_user_settings($keyword_hash, $link, $smarty)) != null)
-    {
-        $_SESSION['user'] = $user_settings['id'];
-        $_SESSION['groups'] = $user_settings['groups'];
-        $_SESSION['threads_per_page'] = $user_settings['threads_per_page'];
-        $_SESSION['posts_per_thread'] = $user_settings['posts_per_thread'];
-        $_SESSION['lines_per_post'] = $user_settings['lines_per_post'];
-        $_SESSION['stylesheet'] = $user_settings['stylesheet'];
-        $_SESSION['language'] = $user_settings['language'];
-    }
-    else
-        kotoba_error(Errmsgs::$messages['USER_NOT_EXIST'], $smarty, basename(__FILE__) . ' ' . __LINE__);
+	if(($user_settings = db_get_user_settings($keyword_hash, $link, $smarty)) != null)
+	{
+		$_SESSION['user'] = $user_settings['id'];
+		$_SESSION['groups'] = $user_settings['groups'];
+		$_SESSION['threads_per_page'] = $user_settings['threads_per_page'];
+		$_SESSION['posts_per_thread'] = $user_settings['posts_per_thread'];
+		$_SESSION['lines_per_post'] = $user_settings['lines_per_post'];
+		$_SESSION['stylesheet'] = $user_settings['stylesheet'];
+		$_SESSION['language'] = $user_settings['language'];
+		$_SESSION['rempass'] = $user_settings['rempass'];
+	}
+	else
+		kotoba_error(Errmsgs::$messages['USER_NOT_EXIST'], $smarty, basename(__FILE__) . ' ' . __LINE__);
 	require_once "lang/$_SESSION[language]/errors.php";
 }
 /*
@@ -262,11 +256,31 @@ function create_directories($board_name) {
 				chmod($subdir, 0777);
 			else
 				return false;
-        }
+		}
 	}
 	else
 		return false;
 	return true;
+}
+
+/* preview_message - crop long message
+ * TODO: limit only lines
+ * return cropped (if need) message
+ * arguments:
+ * $message - message text
+ * $preview_lines - how many lines to preview
+ * $is_cutted - (pointer) notifies caller if message was cutted
+ */
+function preview_message(&$message, $preview_lines, &$is_cutted) {
+	$lines = explode("<br>", $message);
+	if(count($lines) > $preview_lines) {
+		$is_cutted = 1;
+		return implode("<br>", array_slice($lines, 0, $preview_lines));
+	}
+	else {
+		$is_cutted = 0;
+		return $message;
+	}
 }
 
 /***********************
@@ -288,15 +302,15 @@ class SmartyKotobaSetup extends Smarty
 		$this->Smarty();
 		$this->language = $language;
 
-        $this->template_dir = Config::ABS_PATH . "/smarty/kotoba/templates/$language/";
+		$this->template_dir = Config::ABS_PATH . "/smarty/kotoba/templates/$language/";
 		$this->compile_dir = Config::ABS_PATH . "/smarty/kotoba/templates_c/$language/";
 		$this->config_dir = Config::ABS_PATH . "/smarty/kotoba/config/$language/";
 		$this->cache_dir = Config::ABS_PATH . "/smarty/kotoba/cache/$language/";
-        $this->caching = 0;
+		$this->caching = 0;
 
 		$this->assign('DIR_PATH', Config::DIR_PATH);
-        $this->assign('STYLESHEET', Config::STYLESHEET);
-    }
+		$this->assign('STYLESHEET', Config::STYLESHEET);
+	}
 }
 
 /*
@@ -314,16 +328,17 @@ function kotoba_setup(&$link, &$smarty)
 	if(! session_start())
 		die(Errmsgs::$messages['SESSION_START']);
 	/* По умолчанию пользователь является Гостем. */
-    if(!isset($_SESSION['user']))
+	if(!isset($_SESSION['user']))
 	{
-        $_SESSION['user'] = Config::GUEST_ID;
-        $_SESSION['groups'] = array(Config::GST_GROUP_NAME);
-        $_SESSION['threads_per_page'] = Config::THREADS_PER_PAGE;
-        $_SESSION['posts_per_thread'] = Config::POSTS_PER_THREAD;
-        $_SESSION['lines_per_post'] = Config::LINES_PER_POST;
-        $_SESSION['stylesheet'] = Config::STYLESHEET;
+		$_SESSION['user'] = Config::GUEST_ID;
+		$_SESSION['groups'] = array(Config::GST_GROUP_NAME);
+		$_SESSION['threads_per_page'] = Config::THREADS_PER_PAGE;
+		$_SESSION['posts_per_thread'] = Config::POSTS_PER_THREAD;
+		$_SESSION['lines_per_post'] = Config::LINES_PER_POST;
+		$_SESSION['stylesheet'] = Config::STYLESHEET;
 		$_SESSION['language'] = Config::LANGUAGE;
-    }
+		$_SESSION['rempass'] = null;
+	}
 	require_once "lang/$_SESSION[language]/errors.php";
 	mb_language(Config::MB_LANGUAGE);
 	mb_internal_encoding(Config::MB_ENCODING);
@@ -352,18 +367,25 @@ function kotoba_setup(&$link, &$smarty)
  * $smarty - экземпляр класса шаблонизатора
  * $error_source - имя файла и номер строки, в которой была вызвана эта
  * процедура.
+ * $link - связь с БД, которую может быть нужно закрыть.
  */
-function kotoba_error($msg, $smarty, $error_source = '')
+function kotoba_error($msg, $smarty, $error_source = '', $link = null)
 {
-	$smarty->assign('msg', (isset($msg) && mb_strlen($msg) > 0 ? $msg : Errmsgs::$messages['UNKNOWN']) . " at $error_source");
+	$smarty->assign('msg', (isset($msg) && mb_strlen($msg) > 0 ? $msg
+			: Errmsgs::$messages['UNKNOWN']) . " at $error_source");
+	if(isset($link) && $link instanceof MySQLi)
+		mysqli_close($link);
 	die($smarty->fetch('error.tpl'));
 }
 
 /*
- * Выводит сообщение $msg в лог файл $log_file.
+ * Выводит сообщение $msg в лог файл с десриптором $log_file.
+ * Аргументы:
+ * $msg - сообщение.
+ * $log_file - фескриптор лог файла.
  */
 function kotoba_log($msg, $log_file) {
-    fwrite($log_file, "$msg (" . @date("Y-m-d H:i:s") . ")\n");
+	fwrite($log_file, "$msg (" . @date("Y-m-d H:i:s") . ")\n");
 }
 
 /*************************
@@ -395,16 +417,16 @@ function db_connect()
 function db_check_banned($ip, $link, $smarty)
 {
 	if(($result = mysqli_query($link, "call sp_check_ban($ip)")) == false)
-        kotoba_error(mysqli_error($link), $smarty);
+		kotoba_error(mysqli_error($link), $smarty);
 	$row = false;
-    if(mysqli_affected_rows($link) > 0)
-    {
-        $row = mysqli_fetch_assoc($result);
-        $row = array('range_beg' => $row['range_beg'],
+	if(mysqli_affected_rows($link) > 0)
+	{
+		$row = mysqli_fetch_assoc($result);
+		$row = array('range_beg' => $row['range_beg'],
 			'range_end' => $row['range_end'],
 			'untill' => $row['untill'],
 			'reason' => $row['reason']);
-    }
+	}
 	mysqli_free_result($result);
 	cleanup_link($link, $smarty);
 	return $row;
@@ -418,18 +440,18 @@ function db_check_banned($ip, $link, $smarty)
 function db_bans_get($link, $smarty)
 {
 	if(($result = mysqli_query($link, 'call sp_bans_get()')) == false)
-        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
-    $bans = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) != null)
-            array_push($bans, array('id' => $row['id'],
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	$bans = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($bans, array('id' => $row['id'],
 									'range_beg' => $row['range_beg'],
 									'range_end' => $row['range_end'],
 									'reason' => $row['reason'],
 									'untill' => $row['untill']));
-    mysqli_free_result($result);
-    cleanup_link($link, $smarty);
-    return $bans;
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $bans;
 }
 /*
  * Банит диапазон (1 и более) адресов.
@@ -444,7 +466,7 @@ function db_bans_get($link, $smarty)
 function db_bans_add($range_beg, $range_end, $reason, $untill, $link, $smarty)
 {
 	if(($result = mysqli_query($link, "call sp_ban($range_beg, $range_end, '$reason', '$untill')")) == false)
-        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
 	cleanup_link($link, $smarty);
 	return true;
 }
@@ -458,7 +480,7 @@ function db_bans_add($range_beg, $range_end, $reason, $untill, $link, $smarty)
 function db_bans_delete($id, $link, $smarty)
 {
 	if(($result = mysqli_query($link, "call sp_bans_delete($id)")) == false)
-        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
 	cleanup_link($link, $smarty);
 	return true;
 }
@@ -472,7 +494,7 @@ function db_bans_delete($id, $link, $smarty)
 function db_bans_unban($ip, $link, $smarty)
 {
 	if(($result = mysqli_query($link, "call sp_bans_unban($ip)")) == false)
-        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
 	cleanup_link($link, $smarty);
 	return true;
 }
@@ -491,39 +513,157 @@ function cleanup_link($link, $smarty)
 	 * в mysqli_multi_query.
 	 */
 	do
-    {
+	{
 		if(($result = mysqli_store_result($link)) != false)
 			mysqli_free_result($result);
 	}
-    while(mysqli_next_result($link));
+	while(mysqli_next_result($link));
 	if(mysqli_errno($link))
-		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+		kotoba_error(mysqli_error($link), $smarty,
+			basename(__FILE__) . ' ' . __LINE__, $link);
 }
 
 /*
- * Возвращает список досок.
+ * Возвращает список досок, доступных для чтения пользователю с
+ * идентификатором $id.
  * Аргументы:
- * $link - связь с базой данных
- * $smarty - экземпляр класса шаблонизатора
+ * $id - идентификатор пользователя.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
  */
-// TODO Удалить фукнцию db_board_get, внеся необходимые изменения в скрипты.
-function db_boards_get($link, $smarty) { return db_board_get($link, $smarty); }
-function db_board_get($link, $smarty)
+function db_boards_get_allowed($id, $link, $smarty)
 {
-	if(($result = mysqli_query($link, "call sp_board_get({$_SESSION['user']})")) == false)
-        kotoba_error(mysqli_error($link), $smarty);
-    $boards = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) != null)
-            array_push($boards, array('id' => $row['id'],
+	$result = mysqli_query($link, "call sp_boards_get_allowed({$id})");
+	if($result == false)
+		kotoba_error(mysqli_error($link),
+					$smarty,
+					basename(__FILE__) . ' ' . __LINE__);
+	$boards = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($boards, array('id' => $row['id'],
 					'name' => $row['name'],
 					'title' => $row['title'],
 					'bump_limit' => $row['bump_limit'],
 					'same_upload' => $row['same_upload'],
 					'popdown_handler' => $row['popdown_handler'],
-					'category' => $row['category'],	// Для совместимости.
-					'category_id' => $row['category_id']));
-    mysqli_free_result($result);
+					'category' => $row['category']));
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $boards;
+}
+/*
+ * Возвращает список досок, доступных для чтения пользователю с
+ * идентификатором $id и количество доступных для просмотра нитей, необходимое
+ * для постраничной разбивки.
+ * Аргументы:
+ * $id - идентификатор пользователя.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_boards_get_preview($id, $link, $smarty)
+{
+	$result = mysqli_query($link, "call sp_boards_get_preview({$id})");
+	if($result == false)
+		kotoba_error(mysqli_error($link),
+					$smarty,
+					basename(__FILE__) . ' ' . __LINE__);
+	$boards = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($boards, array('id' => $row['id'],
+					'name' => $row['name'],
+					'title' => $row['title'],
+					'bump_limit' => $row['bump_limit'],
+					'same_upload' => $row['same_upload'],
+					'popdown_handler' => $row['popdown_handler'],
+					'category' => $row['category'],
+					'threads_count' => $row['threads_count']));
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $boards;
+}
+/*
+ * Возвращает доску с именем $board_name, доступную для набора действя $action
+ * пользователю с идентификатором $id.
+ * Аргументы:
+ * $board_name - имя доски.
+ * $action - действие: 1 - просмотр, 2 - изменение, 3 - модерирование. Помните,
+ * что более широкие права автоматически включают в себя более узкие.
+ * $id - идентификатор пользователя.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_boards_get_specifed($board_name, $action, $id, $link, $smarty)
+{
+	$result = mysqli_query($link,
+		"call sp_boards_get_specifed('$board_name', $action, $id)");
+	if($result == false)
+	{
+		mysqli_close($link);
+		kotoba_error(mysqli_error($link),
+					$smarty,
+					basename(__FILE__) . ' ' . __LINE__);
+	}
+	if(mysqli_affected_rows($link) > 0)
+	{
+		$row = mysqli_fetch_assoc($result);
+		if(isset($row['error']) && $row['error'] == 'NOT_FOUND')
+		{
+			/*
+			 * Доска с заданным именем может не существовать.
+			 */
+			mysqli_close($link);
+			kotoba_error(sprintf(Errmsgs::$messages['BOARD_NOT_FOUND'],
+								$board_name),
+						$smarty,
+						basename(__FILE__) . ' ' . __LINE__);
+		}
+		$boards = array('id' => $row['id'],
+						'name' => $row['name'],
+						'title' => $row['title'],
+						'bump_limit' => $row['bump_limit'],
+						'same_upload' => $row['same_upload'],
+						'popdown_handler' => $row['popdown_handler'],
+						'category' => $row['category']);
+	}
+	else
+	{
+		/*
+		 * Если доска существует, но результата выборки нет, значит доска
+		 * недоступна для запрашиваемого дейсвтия.
+		 */
+		mysqli_close($link);
+		kotoba_error(Errmsgs::$messages['BOARD_NOT_ALLOWED'],
+					$smarty,
+					basename(__FILE__) . ' ' . __LINE__);
+	}
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $boards;
+}
+/*
+ * Возвращает список всех существующих досок без проверки прав доступа.
+ * Аргументы:
+ * $link - связь с базой данных
+ * $smarty - экземпляр класса шаблонизатора
+ */
+function db_boards_get_all($link, $smarty)
+{
+	if(($result = mysqli_query($link, "call sp_boards_get_all()")) == false)
+		kotoba_error(mysqli_error($link), $smarty,
+			basename(__FILE__) . ' ' . __LINE__);
+	$boards = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($boards,
+				array('id' => $row['id'], 'name' => $row['name'],
+						'title' => $row['title'],
+						'bump_limit' => $row['bump_limit'],
+						'same_upload' => $row['same_upload'],
+						'popdown_handler' => $row['popdown_handler'],
+						'category' => $row['category']));
+	mysqli_free_result($result);
 	cleanup_link($link, $smarty);
 	return $boards;
 }
@@ -542,7 +682,7 @@ function db_board_get($link, $smarty)
 function db_boards_add($name, $title, $bump_limit, $same_upload, $popdown_handler, $category, $link, $smarty)
 {
 	if(($result = mysqli_query($link, "call sp_boards_add('$name', '$title', $bump_limit, '$same_upload', $popdown_handler, $category)")) == false)
-        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
 	cleanup_link($link, $smarty);
 	return true;
 }
@@ -561,7 +701,7 @@ function db_boards_add($name, $title, $bump_limit, $same_upload, $popdown_handle
 function db_boards_edit($id, $title, $bump_limit, $same_upload, $popdown_handler, $category, $link, $smarty)
 {
 	if(($result = mysqli_query($link, "call sp_boards_edit($id, '$title', $bump_limit, '$same_upload', $popdown_handler, $category)")) == false)
-        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
 	cleanup_link($link, $smarty);
 	return true;
 }
@@ -575,58 +715,250 @@ function db_boards_edit($id, $title, $bump_limit, $same_upload, $popdown_handler
 function db_boards_delete($id, $link, $smarty)
 {
 	if(($result = mysqli_query($link, "call sp_boards_delete($id)")) == false)
-        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	{
+		mysqli_close($link);
+		kotoba_error(mysqli_error($link), $smarty,
+			basename(__FILE__) . ' ' . __LINE__);
+	}
+	mysqli_free_result($result);
 	cleanup_link($link, $smarty);
 	return true;
 }
-
 /*
- * Возвращает настройки пользователя с ключевым словом $keyword
- * или null.
+ * Возвращает $threads_per_page нитей со страницы $page доски с идентификатором
+ * $board_id, доступные для чтения пользователю с идентификатором
+ * $user_id. А так же количество сообщений в этих нитях.
  * Аргументы:
- * $keyword - хеш ключевого слова
- * $link - связь с базой данных
- * $smarty - экземпляр класса шаблонизатора
+ * $board_id - идентификатор доски.
+ * $page - номер страницы.
+ * $user_id - идентификатор пользователя.
+ * $threads_per_page - количество нитей ни странице.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_threads_get_preview($board_id, $page, $user_id, $threads_per_page,
+						$link, $smarty)
+{
+	$result = mysqli_query($link,
+		"call sp_threads_get_preview($board_id, $page, $user_id,
+			$threads_per_page)");
+	if($result == false)
+		kotoba_error(mysqli_error($link), $smarty,
+			basename(__FILE__) . ' ' . __LINE__, $link);
+	$threads = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($threads,
+				array('id' => $row['id'],
+						'original_post' => $row['original_post'],
+						'bump_limit' => $row['bump_limit'],
+						'sage' => $row['sage'],
+						'with_images' => $row['with_images'],
+						'posts_count' => $row['posts_count']));
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $threads;
+}
+/*
+ * Возвращает $posts_per_thread сообщений + оригинальное сообщение для каждой
+ * нити из $threads, доступных для чтения пользователю с идентификатором $user_id.
+ * Аргументы:
+ * $threads - нити.
+ * $user_id - идентификатор пользователя.
+ * $posts_per_thread - количество сообщений в предпросмотре нити.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_posts_get_preview($threads, $user_id, $posts_per_thread, $link,
+								$smarty)
+{
+	$posts = array();
+	foreach($threads as $t)
+	{
+		$result = mysqli_query($link, "call sp_posts_get_preview({$t['id']},
+			$user_id, $posts_per_thread)");
+		if($result == false)
+			kotoba_error(mysqli_error($link), $smarty,
+				basename(__FILE__) . ' ' . __LINE__, $link);
+		if(mysqli_affected_rows($link) > 0)
+			while(($row = mysqli_fetch_assoc($result)) != null)
+				array_push($posts,
+					array('id' => $row['id'],
+							'thread' => $row['thread'],
+							'number' => $row['number'],
+							'password' => $row['password'],
+							'name' => $row['name'],
+							'ip' => $row['ip'],
+							'subject' => $row['subject'],
+							'date_time' => $row['date_time'],
+							'text' => $row['text'],
+							'sage' => $row['sage']));
+		mysqli_free_result($result);
+		cleanup_link($link, $smarty);
+	}
+	return $posts;
+}
+/*
+ * Возвращает для каждого сообщения из $posts его связь с загруженными файлами.
+ * Аргументы:
+ * $posts - сообщения.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_posts_uploads_get_all($posts, $link, $smarty)
+{
+	$posts_uploads = array();
+	foreach($posts as $p)
+	{
+		$result = mysqli_query($link,
+			"call sp_posts_uploads_get_all({$p['id']})");
+		if($result == false)
+			kotoba_error(mysqli_error($link), $smarty,
+				basename(__FILE__) . ' ' . __LINE__, $link);
+		if(mysqli_affected_rows($link) > 0)
+			while(($row = mysqli_fetch_assoc($result)) != null)
+				array_push($posts_uploads,
+					array('post' => $row['post'],
+							'upload' => $row['upload']));
+		mysqli_free_result($result);
+		cleanup_link($link, $smarty);
+	}
+	return $posts_uploads;
+}
+/*
+ * Возвращает для каждого сообщения из $posts информацию о загруженных файлах.
+ * Аргументы:
+ * $posts - сообщения.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_uploads_get_all($posts, $link, $smarty)
+{
+	$uploads = array();
+	foreach($posts as $p)
+	{
+		$result = mysqli_query($link,
+			"call sp_uploads_get_all({$p['id']})");
+		if($result == false)
+			kotoba_error(mysqli_error($link), $smarty,
+				basename(__FILE__) . ' ' . __LINE__, $link);
+		if(mysqli_affected_rows($link) > 0)
+			while(($row = mysqli_fetch_assoc($result)) != null)
+				array_push($uploads,
+					array('id' => $row['id'],
+							'hash' => $row['hash'],
+							'is_image' => $row['is_image'],
+							'file_name' => $row['file_name'],
+							'file_w' => $row['file_w'],
+							'file_h' => $row['file_h'],
+							'size' => $row['size'],
+							'thumbnail_name' => $row['thumbnail_name'],
+							'thumbnail_w' => $row['thumbnail_w'],
+							'thumbnail_h' => $row['thumbnail_h']));
+		mysqli_free_result($result);
+		cleanup_link($link, $smarty);
+	}
+	return $uploads;
+}
+/*
+ * Возвращает номера нитей, скрытых пользователем с идентификатором $user_id на
+ * доске с идентификатором $board_id.
+ * Аргументы:
+ * $board_id - идентификатор доски.
+ * $user_id - идентификатор пользователя.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_hidden_threads_get_all($board_id, $user_id,	$link, $smarty)
+{
+	$result = mysqli_query($link,
+		"call sp_hidden_threads_get_all($board_id, $user_id)");
+	if($result == false)
+		kotoba_error(mysqli_error($link), $smarty,
+			basename(__FILE__) . ' ' . __LINE__, $link);
+	$hidden_threads = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($hidden_threads, array('number' => $row['original_post'],
+												'id' => $row['id']));
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $hidden_threads;
+}
+/*
+ * Возвращает типы файлов доступных для загрузки на доске с идентификатором $board_id.
+ * Аргументы:
+ * $board_id - идентификатор доски.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_upload_types_get_preview($board_id, $link, $smarty)
+{
+	$result = mysqli_query($link, "call sp_upload_types_get_preview($board_id)");
+	if($result == false)
+		kotoba_error(mysqli_error($link), $smarty,
+			basename(__FILE__) . ' ' . __LINE__, $link);
+	$upload_types = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($upload_types, array('extension' => $row['extension']));
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $upload_types;
+}
+/*
+ * Возвращает настройки пользователя.
+ * Аргументы:
+ * $keyword - хеш ключевого слова.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
  */
 function db_get_user_settings($keyword, $link, $smarty)
 {
-	if(mysqli_multi_query($link, "call sp_get_user_settings('$keyword')") == false)
-        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	if(mysqli_multi_query($link,
+			"call sp_user_settings_get('$keyword')") == false)
+		kotoba_error(mysqli_error($link), $smarty,
+			basename(__FILE__) . ' ' . __LINE__, $link);
+	/* Настройки пользователя */
 	if(($result = mysqli_store_result($link)) == false)
-        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
-    if(($row = mysqli_fetch_assoc($result)) != null)
-        $user_settings = $row;
-    else
-    {
+		kotoba_error(mysqli_error($link), $smarty,
+			basename(__FILE__) . ' ' . __LINE__, $link);
+	if(($row = mysqli_fetch_assoc($result)) != null)
+		$user_settings = $row;	// TODO Сделать явное взятие результатов.
+	else
+	{
 		/* Пользователь с ключевым словом $keyword не найден. */
-        mysqli_free_result($result);
-        cleanup_link($link, $smarty);
-        return null;
-    }
-    @mysql_free_result($result);
+		mysqli_free_result($result);
+		mysqli_close($link);
+		kotoba_error(Errmsgs::$messages['USER_NOT_EXIST'],
+			basename(__FILE__) . ' ' . __LINE__);
+	}
+	@mysql_free_result($result);
 	/*
 	 * Если данные о группе пользователя не были получены,
 	 * значит что-то пошло не так.
 	 */
-    if(! mysqli_next_result($link))
-	{
-        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
-	}
+	if(! mysqli_next_result($link))
+		kotoba_error(mysqli_error($link),
+			$smarty, basename(__FILE__) . ' ' . __LINE__, $link);
+	/* Группы пользователя */
 	if(($result = mysqli_store_result($link)) == false)
-        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
-    $user_settings['groups'] = array();
-    while(($row = mysqli_fetch_assoc($result)) != null)
-        array_push($user_settings['groups'], $row['name']);
-    if(count($user_settings['groups']) <= 0)
-    {
+		kotoba_error(mysqli_error($link), $smarty,
+			basename(__FILE__) . ' ' . __LINE__, $link);
+	$user_settings['groups'] = array();
+	while(($row = mysqli_fetch_assoc($result)) != null)
+		array_push($user_settings['groups'], $row['name']);
+	if(count($user_settings['groups']) <= 0)
+	{
 		/* Пользователь не закреплен ни за одной группой. */
-        mysqli_free_result($result);
-        cleanup_link($link, $smarty);
-        return null;
-    }
-    @mysql_free_result($result);
-    cleanup_link($link, $smarty);
-    return $user_settings;
+		mysqli_free_result($result);
+		mysqli_close($link);
+		kotoba_error(Errmsgs::$messages['USER_WITHOUT_GROUP'],
+			basename(__FILE__) . ' ' . __LINE__);
+	}
+	@mysql_free_result($result);
+	cleanup_link($link, $smarty);
+	return $user_settings;
 }
 /*
  * Возвращает список стилей оформления или null, если ни одного стиля не задано.
@@ -636,21 +968,21 @@ function db_get_user_settings($keyword, $link, $smarty)
  */
 function db_get_stylesheets($link, $smarty)
 {
-    if(($result = mysqli_query($link, 'call sp_get_stylesheets()')) == false)
-        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
-    $stylesheets = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) != null)
-            array_push($stylesheets, $row['name']);
-    else
-    {
-        mysqli_free_result($result);
-        cleanup_link($link, $smarty);
-        return null;
-    }
-    mysqli_free_result($result);
-    cleanup_link($link, $smarty);
-    return $stylesheets;
+	if(($result = mysqli_query($link, 'call sp_get_stylesheets()')) == false)
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	$stylesheets = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($stylesheets, $row['name']);
+	else
+	{
+		mysqli_free_result($result);
+		cleanup_link($link, $smarty);
+		return null;
+	}
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $stylesheets;
 }
 /*
  * Возвращает список языков или null, если ни одного языка не задано.
@@ -660,21 +992,21 @@ function db_get_stylesheets($link, $smarty)
  */
 function db_get_languages($link, $smarty)
 {
-    if(($result = mysqli_query($link, 'call sp_get_languages()')) == false)
-        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
-    $stylesheets = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) != null)
-            array_push($stylesheets, $row['name']);
-    else
-    {
-        mysqli_free_result($result);
-        cleanup_link($link, $smarty);
-        return null;
-    }
-    mysqli_free_result($result);
-    cleanup_link($link, $smarty);
-    return $stylesheets;
+	if(($result = mysqli_query($link, 'call sp_get_languages()')) == false)
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	$stylesheets = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($stylesheets, $row['name']);
+	else
+	{
+		mysqli_free_result($result);
+		cleanup_link($link, $smarty);
+		return null;
+	}
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $stylesheets;
 }
 /*
  * Сохраняет настройки пользователя в базе данных.
@@ -685,20 +1017,21 @@ function db_get_languages($link, $smarty)
  * $lines_per_post - максимальное количество строк в предпросмотре сообщения
  * $stylesheet - стиль оформления
  * $language - язык
+ * $rempass - пароль для удаления сообщений
  * $link - связь с базой данных
  * $smarty - экземпляр класса шаблонизатора
  */
-function db_save_user_settings($keyword, $threads_per_page, $posts_per_thread, $lines_per_post, $stylesheet, $language, $link, $smarty)
+function db_save_user_settings($keyword, $threads_per_page, $posts_per_thread, $lines_per_post, $stylesheet, $language, $rempass, $link, $smarty)
 {
-    if(($result = mysqli_query($link, "call sp_save_user_settings('$keyword', $threads_per_page, $posts_per_thread, $lines_per_post, '$stylesheet', '$language')")) == false)
-        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
-    if(mysqli_affected_rows($link) < 0)
-    {
-        cleanup_link($link, $smarty);
-        return false;
-    }
+	if(($result = mysqli_query($link, "call sp_save_user_settings('$keyword', $threads_per_page, $posts_per_thread, $lines_per_post, '$stylesheet', '$language', '$rempass')")) == false)
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	if(mysqli_affected_rows($link) < 0)
+	{
+		cleanup_link($link, $smarty);
+		return false;
+	}
 	cleanup_link($link, $smarty);
-    return true;
+	return true;
 }
 /*
  * Возвращает список групп или пустой массив, если групп нет.
@@ -709,14 +1042,14 @@ function db_save_user_settings($keyword, $threads_per_page, $posts_per_thread, $
 function db_group_get($link, $smarty)
 {
 	if(($result = mysqli_query($link, 'call sp_group_get()')) == false)
-        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
-    $groups = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) != null)
-            array_push($groups, array('id' => $row['id'], 'name' => $row['name']));
-    mysqli_free_result($result);
-    cleanup_link($link, $smarty);
-    return $groups;
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	$groups = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($groups, array('id' => $row['id'], 'name' => $row['name']));
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $groups;
 }
 /*
  * Удаляет группы, имена которых перечислены в массиве $delete_list, а так же
@@ -747,7 +1080,7 @@ function db_group_delete($delete_list, $link, $smarty)
 function db_group_add($new_group_name, $link, $smarty)
 {
 	if(($result = mysqli_query($link, "call sp_group_add('$new_group_name')")) == false)
-        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
 	cleanup_link($link, $smarty);
 	return true;
 }
@@ -761,14 +1094,14 @@ function db_group_add($new_group_name, $link, $smarty)
 function db_user_groups_get($link, $smarty)
 {
 	if(($result = mysqli_query($link, 'call sp_user_groups_get()')) == false)
-        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
-    $user_groups = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) != null)
-            array_push($user_groups, array('user' => $row['user'], 'group' => $row['group']));
-    mysqli_free_result($result);
-    cleanup_link($link, $smarty);
-    return $user_groups;
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	$user_groups = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($user_groups, array('user' => $row['user'], 'group' => $row['group']));
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $user_groups;
 }
 /*
  * Добавляет пользователя $new_bind_user в группу $new_bind_group.
@@ -781,7 +1114,7 @@ function db_user_groups_get($link, $smarty)
 function db_user_groups_add($new_bind_user, $new_bind_group, $link, $smarty)
 {
 	if(($result = mysqli_query($link, "call sp_user_groups_add($new_bind_user, $new_bind_group)")) == false)
-        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
 	cleanup_link($link, $smarty);
 	return true;
 }
@@ -798,7 +1131,7 @@ function db_user_groups_add($new_bind_user, $new_bind_group, $link, $smarty)
 function db_user_groups_edit($user_id, $old_group_id, $new_group_id, $link, $smarty)
 {
 	if(($result = mysqli_query($link, "call sp_user_groups_edit($user_id, $old_group_id, $new_group_id)")) == false)
-        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
 	cleanup_link($link, $smarty);
 	return true;
 }
@@ -813,7 +1146,7 @@ function db_user_groups_edit($user_id, $old_group_id, $new_group_id, $link, $sma
 function db_user_groups_delete($user_id, $group_id, $link, $smarty)
 {
 	if(($result = mysqli_query($link, "call sp_user_groups_delete($user_id, $group_id)")) == false)
-        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
 	cleanup_link($link, $smarty);
 	return true;
 }
@@ -826,20 +1159,20 @@ function db_user_groups_delete($user_id, $group_id, $link, $smarty)
 function db_acl_get($link, $smarty)
 {
 	if(($result = mysqli_query($link, 'call sp_acl_get()')) == false)
-        kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
-    $acl = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) != null)
-            array_push($acl, array(	'group' => $row['group'],
+		kotoba_error(mysqli_error($link), $smarty, basename(__FILE__) . ' ' . __LINE__);
+	$acl = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($acl, array(	'group' => $row['group'],
 									'board' => $row['board'],
 									'thread' => $row['thread'],
 									'post' => $row['post'],
 									'view' => $row['view'],
 									'change' => $row['change'],
 									'moderate' => $row['moderate']));
-    mysqli_free_result($result);
-    cleanup_link($link, $smarty);
-    return $acl;
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $acl;
 }
 /*
  * Добавляет новую запись в список контроля доступа.
@@ -923,17 +1256,17 @@ function db_acl_delete($group_id, $board_id, $thread_num, $post_num, $link, $sma
 function db_languages_get($link, $smarty)
 {
 	if(($result = mysqli_query($link, 'call sp_languages_get()')) == false)
-        kotoba_error(mysqli_error($link),
+		kotoba_error(mysqli_error($link),
 			$smarty,
 			basename(__FILE__) . ' ' . __LINE__);
-    $languages = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) != null)
-            array_push($languages, array('id' => $row['id'],
+	$languages = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($languages, array('id' => $row['id'],
 					'name' => $row['name']));
-    mysqli_free_result($result);
-    cleanup_link($link, $smarty);
-    return $languages;
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $languages;
 }
 /*
  * Добавляет новый язык с именем $new_language_name.
@@ -972,17 +1305,17 @@ function db_languages_delete($language_id, $link, $smarty)
 function db_stylesheets_get($link, $smarty)
 {
 	if(($result = mysqli_query($link, 'call sp_stylesheets_get()')) == false)
-        kotoba_error(mysqli_error($link),
+		kotoba_error(mysqli_error($link),
 			$smarty,
 			basename(__FILE__) . ' ' . __LINE__);
-    $stylesheets = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) != null)
-            array_push($stylesheets, array('id' => $row['id'],
+	$stylesheets = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($stylesheets, array('id' => $row['id'],
 					'name' => $row['name']));
-    mysqli_free_result($result);
-    cleanup_link($link, $smarty);
-    return $stylesheets;
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $stylesheets;
 }
 /*
  * Добавляет новый стиль оформления с именем $new_stylesheet_name.
@@ -1021,17 +1354,17 @@ function db_stylesheets_delete($stylesheet_id, $link, $smarty)
 function db_categories_get($link, $smarty)
 {
 	if(($result = mysqli_query($link, 'call sp_categories_get()')) == false)
-        kotoba_error(mysqli_error($link),
+		kotoba_error(mysqli_error($link),
 			$smarty,
 			basename(__FILE__) . ' ' . __LINE__);
-    $categories = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) != null)
-            array_push($categories, array('id' => $row['id'],
+	$categories = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($categories, array('id' => $row['id'],
 					'name' => $row['name']));
-    mysqli_free_result($result);
-    cleanup_link($link, $smarty);
-    return $categories;
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $categories;
 }
 /*
  * Добавляет новую категорию досок с именем $new_category_name.
@@ -1070,17 +1403,17 @@ function db_categories_delete($category_id, $link, $smarty)
 function db_upload_handlers_get($link, $smarty)
 {
 	if(($result = mysqli_query($link, 'call sp_upload_handlers_get()')) == false)
-        kotoba_error(mysqli_error($link),
+		kotoba_error(mysqli_error($link),
 			$smarty,
 			basename(__FILE__) . ' ' . __LINE__);
-    $upload_handlers = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) != null)
-            array_push($upload_handlers, array('id' => $row['id'],
+	$upload_handlers = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($upload_handlers, array('id' => $row['id'],
 					'name' => $row['name']));
-    mysqli_free_result($result);
-    cleanup_link($link, $smarty);
-    return $upload_handlers;
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $upload_handlers;
 }
 /*
  * Добавляет новый обработчик загружаемых файлов с именем
@@ -1120,17 +1453,17 @@ function db_upload_handlers_delete($upload_handler_id, $link, $smarty)
 function db_popdown_handlers_get($link, $smarty)
 {
 	if(($result = mysqli_query($link, 'call sp_popdown_handlers_get()')) == false)
-        kotoba_error(mysqli_error($link),
+		kotoba_error(mysqli_error($link),
 			$smarty,
 			basename(__FILE__) . ' ' . __LINE__);
-    $popdown_handlers = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) != null)
-            array_push($popdown_handlers, array('id' => $row['id'],
+	$popdown_handlers = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($popdown_handlers, array('id' => $row['id'],
 					'name' => $row['name']));
-    mysqli_free_result($result);
-    cleanup_link($link, $smarty);
-    return $popdown_handlers;
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $popdown_handlers;
 }
 /*
  * Добавляет новый обработчик удаления нитей с именем
@@ -1170,20 +1503,20 @@ function db_popdown_handlers_delete($popdown_handler_id, $link, $smarty)
 function db_upload_types_get($link, $smarty)
 {
 	if(($result = mysqli_query($link, 'call sp_upload_types_get()')) == false)
-        kotoba_error(mysqli_error($link),
+		kotoba_error(mysqli_error($link),
 			$smarty,
 			basename(__FILE__) . ' ' . __LINE__);
-    $upload_types = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) != null)
-            array_push($upload_types, array('id' => $row['id'],
+	$upload_types = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($upload_types, array('id' => $row['id'],
 					'extension' => $row['extension'],
 					'store_extension' => $row['store_extension'],
 					'upload_handler' => $row['upload_handler'],
 					'thumbnail_image' => $row['thumbnail_image']));
-    mysqli_free_result($result);
-    cleanup_link($link, $smarty);
-    return $upload_types;
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $upload_types;
 }
 /*
  * Добавляет новый тип загружаемых файлов.
@@ -1243,17 +1576,17 @@ function db_upload_types_delete($id, $link, $smarty)
 function db_board_upload_types_get($link, $smarty)
 {
 	if(($result = mysqli_query($link, 'call sp_board_upload_types_get()')) == false)
-        kotoba_error(mysqli_error($link),
+		kotoba_error(mysqli_error($link),
 			$smarty,
 			basename(__FILE__) . ' ' . __LINE__);
-    $board_upload_types = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) != null)
-            array_push($board_upload_types, array('board' => $row['board'],
+	$board_upload_types = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($board_upload_types, array('board' => $row['board'],
 					'upload_type' => $row['upload_type']));
-    mysqli_free_result($result);
-    cleanup_link($link, $smarty);
-    return $board_upload_types;
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $board_upload_types;
 }
 /*
  * Добавляет тип загружаемого файла к доске.
@@ -1312,7 +1645,7 @@ function db_get_board_id($link, $board_name) {
 		return -1;
 	}
 	mysqli_stmt_close($st);
-	cleanup_link_use($link);
+	cleanup_link($link);
 	return $id;
 }
 /* db_get_pages: get pages quantity

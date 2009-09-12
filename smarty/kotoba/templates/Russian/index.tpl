@@ -11,13 +11,13 @@
 {*
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $board_names - массив с именами досок и их категориями.
-    $STYLESHEET - стиль оформления.
+	$STYLESHEET - стиль оформления.
+    $boards - список досок.
 *}
 {include file='header.tpl' page_title='Главная страница' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
 <p>Версия {$version}. Время модификации {$date}</p>
 {if isset($boards_exist)}
-Список досок: {include file='board_list.tpl' board_list=$board_names DIR_PATH=$DIR_PATH}
+Список досок: {include file='board_list.tpl' board_list=$boards DIR_PATH=$DIR_PATH}
 {else}
 <span class="error">Ошибка. Не создано ни одной доски.</span>
 {/if}

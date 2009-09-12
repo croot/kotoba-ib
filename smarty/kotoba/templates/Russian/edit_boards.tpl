@@ -48,9 +48,9 @@
 		</select>
 	</td>
 	<td>
-		<select name="category_id_{$boards[i].id}">
+		<select name="category_{$boards[i].id}">
 		{section name=k loop=$categories}
-			<option value="{$categories[k].id}"{if $categories[k].id == $boards[i].category_id} selected{/if}>{$categories[k].name}</option>
+			<option value="{$categories[k].id}"{if $categories[k].id == $boards[i].category} selected{/if}>{$categories[k].name}</option>
 
 		{/section}
 		</select>
@@ -83,7 +83,7 @@
 		</select>
 	</td>
 	<td colaspan="2">
-		<select name="new_category_id">
+		<select name="new_category">
 			<option value="" selected></option>
 		{section name=n loop=$categories}
 			<option value="{$categories[n].id}">{$categories[n].name}</option>

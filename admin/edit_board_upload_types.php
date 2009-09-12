@@ -27,7 +27,7 @@ kotoba_log(sprintf(Logmsgs::$messages['ADMIN_FUNCTIONS'],
 	Logmsgs::open_logfile(Config::ABS_PATH . '/log/' .
 		basename(__FILE__) . '.log'));
 $upload_types = db_upload_types_get($link, $smarty);
-$boards = db_board_get($link, $smarty);
+$boards = db_boards_get_all($link, $smarty);
 $board_upload_types = db_board_upload_types_get($link, $smarty);
 $reload_board_upload_types = false;	// Были ли произведены изменения.
 /*

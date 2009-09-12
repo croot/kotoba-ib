@@ -1,5 +1,17 @@
 delimiter |
 
+create table bans
+(
+	id int not null auto_increment,
+	range_beg bigint not null,
+	range_end bigint not null,
+	reason text default null,
+	untill datetime not null,
+	primary key (id),
+	unique key (range_beg, range_end)
+)
+engine=InnoDB|
+
 create table languages
 (
 	id int not null auto_increment,
@@ -71,11 +83,12 @@ create table users
 	posts_per_thread int default null,
 	threads_per_page int default null,
 	lines_per_post int default null,
-	language int not null,
+	`language` int not null,
 	stylesheet int not null,
+	rempass varchar(12) default null,
 	primary key (id),
 	unique key (keyword),
-	constraint foreign key (language) references languages (id) on delete restrict on update restrict,
+	constraint foreign key (`language`) references languages (id) on delete restrict on update restrict,
 	constraint foreign key (stylesheet) references stylesheets (id) on delete restrict on update restrict
 )
 engine=InnoDB|
@@ -117,7 +130,8 @@ create table threads
 (
 	id int not null auto_increment,
 	board int not null,
-	ump_limit int,
+	original_post int not null,
+	bump_limit int,
 	deleted bit,
 	archived bit,
 	sage bit,
@@ -127,15 +141,26 @@ create table threads
 )
 engine=InnoDB|
 
+create table hidden_threads
+(
+	`user` int,
+	thread int,
+	unique key (`user`, thread),
+	constraint foreign key (`user`) references users (id) on delete restrict on update restrict,
+	constraint foreign key (thread) references threads (id) on delete restrict on update restrict
+)
+engine=InnoDB|
+
 create table uploads
 (
 	id int not null auto_increment,
 	board int not null,
-	hash varchar(32) not null,
+	`hash` varchar(32) default null,
 	is_image bit not null,
 	file_name varchar(256) not null,
 	file_w int default null,
 	file_h int default null,
+	`size` int not null,
 	thumbnail_name varchar(256) default null,
 	thumbnail_w int default null,
 	thumbnail_h int default null,
@@ -148,19 +173,21 @@ create table posts
 (
 	id int not null auto_increment,
 	board int not null,
-	number int not null,
-	user int not null,
+	thread int not null,
+	`number` int not null,
+	`user` int not null,
 	password varchar(128) default null,
-	name varchar(128) default null,
-	ip int default null,
+	`name` varchar(128) default null,
+	ip bigint default null,
 	subject varchar(128) default null,
-	date_time datetime not null,
+	date_time datetime default null,
 	text text default null,
 	sage bit default null,
 	deleted bit default null,
 	primary key (id),
 	constraint foreign key (board) references boards (id) on delete restrict on update restrict,
-	constraint foreign key (user) references users (id) on delete restrict on update restrict
+	constraint foreign key (thread) references threads (id) on delete restrict on update restrict,
+	constraint foreign key (`user`) references users (id) on delete restrict on update restrict
 )
 engine=InnoDB|
 
@@ -183,10 +210,9 @@ engine=InnoDB|
 
 create table posts_uploads
 (
-	thread int not null,
 	post int not null,
 	upload int not null,
-	constraint foreign key (thread) references threads (id) on delete restrict on update restrict,
+	unique key (post, upload),
 	constraint foreign key (post) references posts (id) on delete restrict on update restrict,
 	constraint foreign key (upload) references uploads (id) on delete restrict on update restrict
 )
