@@ -48,11 +48,16 @@ drop procedure if exists sp_board_upload_types_get|
 drop procedure if exists sp_board_upload_types_add|
 drop procedure if exists sp_board_upload_types_delete|
 drop procedure if exists sp_threads_get_preview|
+drop procedure if exists sp_threads_get_specifed|
 drop procedure if exists sp_posts_get_preview|
 drop procedure if exists sp_posts_uploads_get_all|
 drop procedure if exists sp_uploads_get_all|
 drop procedure if exists sp_hidden_threads_get_all|
 drop procedure if exists sp_upload_types_get_preview|
+drop procedure if exists sp_threads_get_all|
+drop procedure if exists sp_threads_edit|
+drop procedure if exists sp_threads_get_mod|
+drop procedure if exists sp_threads_get_mod_specifed|
 
 create procedure sp_refresh_banlist ()
 begin
@@ -107,7 +112,7 @@ create procedure sp_boards_get_preview
 	_user int
 )
 begin
-	select b.id, b.`name`, b.title, b.bump_limit, b.same_upload, b.popdown_handler, b.category, count(t.id) as threads_count
+	select b.id, b.`name`, b.title, b.bump_limit, b.same_upload, b.popdown_handler, b.category, count(distinct t.id) as threads_count
 	from boards b
 	join user_groups ug on ug.user = _user
 	left join threads t on t.board = b.id
@@ -648,7 +653,7 @@ create procedure sp_threads_get_preview
 begin
 	/* Потому что в limit нельзя использовать переменные */
 	prepare stmnt from
-		'select t.id, t.original_post, t.bump_limit, t.sage, t.with_images, count(p.id) as posts_count
+		'select t.id, t.original_post, t.bump_limit, t.sage, t.with_images, count(distinct p.id) as posts_count
 		from threads t
 		join boards b on b.id = t.board and b.id = ?
 		join posts p on p.board = ? and p.thread = t.id
@@ -747,4 +752,90 @@ begin
 	select ut.extension
 	from upload_types ut
 	join board_upload_types but on ut.id = but.upload_type and but.board = board_id;
+end|
+
+create procedure sp_threads_get_specifed
+(
+	thread_id int,
+	user_id int
+)
+begin
+	select t.id, t.original_post, t.bump_limit, t.archived, t.sage, t.with_images, count(p.id) as posts_count
+	from threads t
+	join posts p on p.thread = t.id
+	join user_groups ug on ug.`user` = user_id
+	left join hidden_threads ht on t.id = ht.thread and ug.`user` = ht.`user`
+	left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+	left join acl a2 on a2.`group` is null and a2.thread = t.id
+	left join acl a3 on a3.`group` = ug.`group` and a3.post = p.id
+	left join acl a4 on a4.`group` is null and a4.post = p.id
+	where (t.deleted = 0 or t.deleted is null) and ht.thread is null and t.id = thread_id
+	group by t.id
+	having (max(coalesce(a1.view, a2.view)) = 1 or max(coalesce(a1.view, a2.view)) is null) and (max(coalesce(a3.view, a3.view)) = 1 or max(coalesce(a3.view, a4.view)) is null)
+	order by max(p.`number`) desc;
+end|
+
+create procedure sp_threads_get_all ()
+begin
+	select id, board, original_post, bump_limit, sage, with_images
+	from threads
+	where deleted != 1 and archived != 1
+	order by id desc;
+end|
+
+create procedure sp_threads_edit
+(
+	_id int,
+	_bump_limit int,
+	_sage bit,
+	_with_images bit
+)
+begin
+	if(_bump_limit = -1) then
+		set _bump_limit = null;
+	end if;
+	update threads set bump_limit = _bump_limit, sage = _sage, with_images = _with_images where id = _id;
+end|
+
+create procedure sp_threads_get_mod
+(
+	user_id int
+)
+begin
+	select t.id, t.board, t.original_post, t.bump_limit, t.sage, t.with_images
+	from threads t
+	join boards b on t.board = b.id
+	join user_groups ug on ug.`user` = user_id
+	left join hidden_threads ht on t.id = ht.thread and ug.`user` = ht.`user`
+	left join acl a1 on a1.`group` = ug.`group` and a1.board is null and a1.thread is null and a1.post is null
+	left join acl a2 on a2.`group` is null and a2.board = b.id
+	left join acl a3 on a3.`group` = ug.`group` and a3.board = b.id
+	left join acl a4 on a4.`group` is null and a4.thread = t.id
+	left join acl a5 on a5.`group` = ug.`group` and a5.thread = t.id
+	where (t.deleted = 0 or t.deleted is null) and (t.archived = 0 or t.archived is null) and ht.thread is null
+	group by t.id
+	having max(coalesce(a5.moderate, a4.moderate, a3.moderate, a2.moderate, a1.moderate)) = 1
+	order by t.id desc;
+end|
+
+create procedure sp_threads_get_mod_specifed
+(
+	user_id int,
+	thread_id int
+)
+begin
+	select t.id, t.board, t.original_post, t.bump_limit, t.sage, t.with_images
+	from threads t
+	join boards b on t.board = b.id
+	join user_groups ug on ug.`user` = user_id
+	left join hidden_threads ht on t.id = ht.thread and ug.`user` = ht.`user`
+	left join acl a1 on a1.`group` = ug.`group` and a1.board is null and a1.thread is null and a1.post is null
+	left join acl a2 on a2.`group` is null and a2.board = b.id
+	left join acl a3 on a3.`group` = ug.`group` and a3.board = b.id
+	left join acl a4 on a4.`group` is null and a4.thread = t.id
+	left join acl a5 on a5.`group` = ug.`group` and a5.thread = t.id
+	where (t.deleted = 0 or t.deleted is null) and (t.archived = 0 or t.archived is null) and ht.thread is null and t.id = thread_id
+	group by t.id
+	having max(coalesce(a5.moderate, a4.moderate, a3.moderate, a2.moderate, a1.moderate)) = 1
+	order by t.id desc;
 end|

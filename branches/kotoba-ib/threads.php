@@ -9,226 +9,159 @@
  * See license.txt for more info.*
  *********************************/
 
-/* show thread */
-
-require 'config.php';
-require 'common.php';
-require 'events.php';
-require 'database_connect.php';
-require 'database_common.php';
-
-kotoba_setup();
-// firefox caching fix
+require 'kwrapper.php';
+kotoba_setup($link, $smarty);
 header("Cache-Control: private");
-
-/* get_thread - get thread posts
- * return array of post numbers
- * arguments:
- * $link - database link
- * $boardid - board id
- * $open_post_num - thread open post number
+/*
+ * Проверка входных параметров.
  */
-function get_thread($link, $boardid, $open_post_num) {
-	$posts = array();
-	$st = mysqli_prepare($link, "call sp_get_thread(?, ?)");
-	if(! $st) {
-		kotoba_error(mysqli_error($link));
-	}
-	if(! mysqli_stmt_bind_param($st, "ii", $boardid, $open_post_num)) {
-		kotoba_error(mysqli_stmt_error($st));
-	}
-	if(! mysqli_stmt_execute($st)) {
-		kotoba_error(mysqli_stmt_error($st));
-	}
-	mysqli_stmt_bind_result($st, $num);
-	while(mysqli_stmt_fetch($st)) {
-		array_push($posts, $num);
-	}
-	mysqli_stmt_close($st);
-	cleanup_link($link);
-	return $posts;
-}
-
-if(KOTOBA_ENABLE_STAT)
-	if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/preview.stat', 'a')) == false)
-		kotoba_error(ERR_STATFILE);
-
-// get boardname
 if(isset($_GET['b']))
 {
-    if(($BOARD_NAME = CheckFormat('board', strval($_GET['b']))) == false)
+    if(($board_name = check_format('board', $_GET['b'])) == false)
 	{
-		if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(ERR_BOARD_BAD_FORMAT);
-		kotoba_error(ERR_BOARD_BAD_FORMAT);
+		mysqli_close($link);
+		kotoba_error(Errmsgs::$messages['BOARD_NAME'], $smarty,
+			basename(__FILE__) . ' ' . __LINE__);
 	}
 }
 else
 {
-	if(KOTOBA_ENABLE_STAT)
-        kotoba_stat(ERR_BOARD_NOT_SPECIFED);
-	kotoba_error(ERR_BOARD_NOT_SPECIFED);
+	mysqli_close($link);
+	kotoba_error(Errmsgs::$messages['BOARD_NOT_SPECIFED'], $smarty,
+			basename(__FILE__) . ' ' . __LINE__);
 }
-
-// get thread open post number
 if(isset($_GET['t']))
 {
-    if(($THREAD_NUM = CheckFormat('thread', intval($_GET['t']))) === false)
+    if(($thread_id = check_format('id', intval($_GET['t']))) === false)
 	{
-		if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(ERR_THREAD_BAD_FORMAT);
-
-		kotoba_stat(ERR_THREAD_BAD_FORMAT);
+		mysqli_close($link);
+		kotoba_error(Errmsgs::$messages['THREAD_ID'], $smarty,
+			basename(__FILE__) . ' ' . __LINE__);
 	}
 }
 else
 {
-	if(KOTOBA_ENABLE_STAT)
-		kotoba_stat(ERR_THREAD_NOT_SPECIFED);
-	kotoba_stat(ERR_THREAD_NOT_SPECIFED);
+	mysqli_close($link);
+	kotoba_error(Errmsgs::$messages['THREAD_NOT_SPECIFED'], $smarty,
+			basename(__FILE__) . ' ' . __LINE__);
 }
-
-// Rus: Проверка пароля удаления сообщений.
-if(isset($_COOKIE['rempass']))
-{
-	if(($REPLY_PASS = CheckFormat('pass', strval($_COOKIE['rempass']))) === false)
+$rempass = !isset($_SESSION['rempass']) || $_SESSION['rempass'] == null ? ''
+				: $_SESSION['rempass'];
+$boards = db_boards_get_preview($_SESSION['user'], $link, $smarty);
+$categories = db_categories_get($link, $smarty);
+foreach($categories as $category)	// TODO А что будет если нет категорий?
+	foreach($boards as &$b)
+		if($b['category'] == $category['id'])
+			/* Заменим id категории на её имя. */
+			$b['category'] = $category['name'];
+unset($b);	// Иначе затрём при следующем цикле последнюю доску с массиве.
+/* Проверим, существует ли запрашиваемая для предпросмотра доска. */
+$found = false;
+foreach($boards as $b)
+	if($b['name'] == $board_name)
 	{
-        if(KOTOBA_ENABLE_STAT)
-			kotoba_stat(ERR_PASS_BAD_FORMAT);
-
-		kotoba_error(ERR_PASS_BAD_FORMAT);
+		$found = true;
+		$board = $b;
+		break;
 	}
-}
-else
+if(! $found)
+	kotoba_error(sprintf(Errmsgs::$messages['BOARD_NOT_FOUND'], $board_name),
+		$smarty,
+		basename(__FILE__) . ' ' . __LINE__, $link);
+$threads = db_threads_get_specifed($thread_id, $_SESSION['user'], $link, $smarty);
+$thread = $threads[0];
+if($thread['archived'] != null)
 {
-    $REPLY_PASS = '';
+	/* Нить была сброшена в архив. */
+	mysqli_close($link);
+	header('Location: ' . Config::DIR_PATH . "/{$board['name']}/arch/{$thread['id']}/{$thread['id']}.html");
+	exit;
 }
-
-$link = dbconn();
+$thread_mod = db_threads_get_mod_specifed($_SESSION['user'], $thread['id'],
+	$link, $smarty);
+$posts = db_posts_get_preview($threads, $_SESSION['user'],
+	$thread['posts_count'], $link, $smarty); // Все сообщения нити.
+$posts_uploads = db_posts_uploads_get_all($posts, $link, $smarty);
+$uploads = db_uploads_get_all($posts, $link, $smarty);
+$hidden_threads = db_hidden_threads_get_all($board['id'], $_SESSION['user'],
+	$link, $smarty);
+$upload_types = db_upload_types_get_preview($board['id'], $link, $smarty);
 /*
- * user settings will implemented later
- *
-if(isset($_SESSION['isLoggedIn']))	// Зарегистрированный пользователь.
-{
-	if(($result = mysql_query('select `id`, `User Settings` from `users` where SID = \'' . session_id() . '\'')) !== false)
+ * Формирование вывода.
+ */
+$smarty->assign('boards', $boards);
+$smarty->assign('rempass', $rempass);
+$smarty->assign('board_name', $board['name']);
+$smarty->assign('original_post', $thread['original_post']);
+$smarty->assign('thread_id', $thread['id']);
+$smarty->assign('bump_limit', $thread['bump_limit']);
+$smarty->assign('posts_count', $thread['posts_count']);
+$smarty->assign('is_guest', $_SESSION['user'] == 1 ? true : false);
+$smarty->assign('upload_types', $upload_types);
+$smarty->assign('thread_mod', $thread_mod);
+$view_html = $smarty->fetch('view_header.tpl');
+$view_thread_html = '';
+$view_posts_html = '';
+foreach($posts as $p)
+	/* Оригинальное сообщение. */
+	if($thread['original_post'] == $p['number'])
 	{
-		if(mysql_num_rows($result) > 0)
-		{
-			$user = mysql_fetch_array($result, MYSQL_ASSOC);
-			$User_id = $user['id'];
-			$User_Settings = get_settings('user', $user['User Settings']);
-			mysql_free_result($result);
-		}
+		$smarty->assign('with_image', false);
+		$smarty->assign('original_theme', $p['subject']);
+		$smarty->assign('original_name', $p['name']);
+		$smarty->assign('original_time', $p['date_time']);
+		$smarty->assign('original_id', $p['id']);
+		$smarty->assign('original_text', $p['text']);
+		/* В данной версии 1 сообщение = 1 файл */
+		foreach($posts_uploads as $pu)
+			if($p['id'] == $pu['post'])
+			{
+				/* В данной версии 1 сообщение = 1 файл */
+				foreach($uploads as $u)
+					if($pu['upload'] == $u['id'])
+					{
+						$smarty->assign('with_image', true);
+						$smarty->assign('original_file_link', Config::DIR_PATH . "/{$board['name']}/img/{$u['file_name']}");
+						$smarty->assign('original_file_name', $u['file_name']);
+						$smarty->assign('original_file_size', $u['size']);
+						$smarty->assign('original_file_width', $u['file_w']);
+						$smarty->assign('original_file_heigth', $u['file_h']);
+						$smarty->assign('original_file_thumbnail_link', Config::DIR_PATH . "/{$board['name']}/thumb/{$u['thumbnail_name']}");
+						$smarty->assign('original_file_thumbnail_width', $u['thumbnail_w']);
+						$smarty->assign('original_file_thumbnail_heigth', $u['thumbnail_h']);
+					}
+			}
+		$view_thread_html = $smarty->fetch('view_thread_header.tpl');
 	}
 	else
 	{
-		if(KOTOBA_ENABLE_STAT)
-				kotoba_stat(sprintf(ERR_USER_DATA, mysql_error()));
-
-		die($HEAD . '<span class="error">Ошибка. Невозможно получить данные пользователя. Причина: ' . mysql_error() . '.</span>' . $FOOTER);
+		$smarty->assign('with_image', false);
+		$smarty->assign('simple_theme', $p['subject']);
+		$smarty->assign('simple_name', $p['name']);
+		$smarty->assign('simple_time', $p['date_time']);
+		$smarty->assign('simple_num', $p['number']);
+		$smarty->assign('simple_text', $p['text']);
+		foreach($posts_uploads as $pu)
+			if($p['id'] == $pu['post'])
+			{
+				foreach($uploads as $u)
+					if($pu['upload'] == $u['id'])
+					{
+						$smarty->assign('with_image', true);
+						$smarty->assign('simple_file_link', Config::DIR_PATH . "/{$board['name']}/img/{$u['file_name']}");
+						$smarty->assign('simple_file_name', $u['file_name']);
+						$smarty->assign('simple_file_size', $u['size']);
+						$smarty->assign('simple_file_width', $u['file_w']);
+						$smarty->assign('simple_file_heigth', $u['file_h']);
+						$smarty->assign('simple_file_thumbnail_link', Config::DIR_PATH . "/{$board['name']}/thumb/{$u['thumbnail_name']}");
+						$smarty->assign('simple_file_thumbnail_width', $u['thumbnail_w']);
+						$smarty->assign('simple_file_thumbnail_heigth', $u['thumbnail_h']);
+					}
+			}
+		$view_posts_html .= $smarty->fetch('simple_post.tpl');
 	}
-}
- */
-// Получение списка досок и проверка существут ли доска с заданным именем.
-
-$BOARD = db_get_board($link, $BOARD_NAME);
-
-$BOARD_NUM = $BOARD['id'];
-
-if($BOARD_NUM == -1)
-{ // board not found
-	if(KOTOBA_ENABLE_STAT)
-		kotoba_stat(sprintf(ERR_BOARD_NOT_FOUND, $BOARD_NAME));
-	kotoba_error(sprintf(ERR_BOARD_NOT_FOUND, $BOARD_NAME));
-}
-
-/* check thread state */
-$flags = db_thread_flags($link, $BOARD_NUM, $THREAD_NUM);
-if(count($flags) > 0 && ($flags['deleted'] > 0 || $flags['archived'] > 0)) {
-	if(KOTOBA_ENABLE_STAT)
-		kotoba_stat(sprintf(ERR_THREAD_NOT_FOUND, $THREAD_NUM, $BOARD_NAME));
-	kotoba_error(sprintf(ERR_THREAD_NOT_FOUND, $THREAD_NUM, $BOARD_NAME));
-}
-
-$types = db_get_board_types($link, $BOARD_NUM);
-$THREAD = db_get_thread($link, $BOARD_NUM, $THREAD_NUM);
-if(count($THREAD) == 0) { // thread not found
-	if(KOTOBA_ENABLE_STAT)
-		kotoba_stat(sprintf(ERR_THREAD_NOT_FOUND, $THREAD_NUM, $BOARD_NAME));
-	kotoba_error(sprintf(ERR_THREAD_NOT_FOUND, $THREAD_NUM, $BOARD_NAME));
-}
-// var_dump($THREAD);
-
-$POST_COUNT = db_get_post_count($link, $BOARD_NUM);
-
-$smarty = new SmartyKotobaSetup();
-$smarty->assign('BOARD_NAME', $BOARD_NAME);
-$smarty->assign('BOARD_TYPES', array_keys($types));
-$smarty->assign('page_title', "Kotoba - $BOARD_NAME/$THREAD_NUM");
-$smarty->assign('THREAD_NUM', $THREAD_NUM);
-$boardNames = db_get_boards($link);
-$smarty->assign('board_list', $boardNames);
-$smarty->assign('POST_COUNT', $THREAD['messages']);
-$smarty->assign('THREAD_BUMPLIMIT', $THREAD['bump_limit']);
-$smarty->assign('KOTOBA_POST_LIMIT', KOTOBA_POST_LIMIT);
-$smarty->display('threads.tpl');
-
-$posts = get_thread($link, $BOARD_NUM, $THREAD_NUM);
-// var_dump($posts);
-$count = 0;
-foreach($posts as $post) {
-	$smarty_thread = new SmartyKotobaSetup();
-	$smarty_thread->assign('BOARD_NAME', $BOARD_NAME);
-	$smarty_thread->assign('reply', 0);
-	$whole_post = db_get_post($link, $BOARD_NUM, $post);
-	$txt_post = $whole_post[0];
-	// post may contain more than one uploads!
-	if(count($whole_post[1]) > 0) {
-		$upload = $whole_post[1][0];
-		$smarty_thread->assign('with_image', 1);
-		$smarty_thread->assign('original_file_name', $upload['file']);
-		$smarty_thread->assign('original_file_link', $upload['file_name']);
-		$smarty_thread->assign('original_file_size', $upload['size']);
-		$smarty_thread->assign('original_file_heigth', $upload['file_h']);
-		$smarty_thread->assign('original_file_width', $upload['file_w']);
-		$smarty_thread->assign('original_file_thumbnail_link', $upload['thumbnail']);
-		$smarty_thread->assign('original_file_thumbnail_heigth', $upload['thumbnail_h']);
-		$smarty_thread->assign('original_file_thumbnail_width', $upload['thumbnail_w']);
-
-	}
-	$smarty_thread->assign('original_theme', $txt_post['subject']);
-	$smarty_thread->assign('original_name', $txt_post['name']);
-	if(strlen($txt_post['tripcode']) > 0) {
-		$smarty_thread->assign('original_hascode', 1);
-		$smarty_thread->assign('original_tripcode', $txt_post['tripcode']);
-	}
-	$smarty_thread->assign('original_time', $txt_post['date_time']);
-	$smarty_thread->assign('original_id', $txt_post['post_number']);
-	$smarty_thread->assign('original_text', $txt_post['text']);
-	if($count > 0) {
-		$smarty_thread->assign('original_thread', $THREAD_NUM);
-		$smarty_thread->display('post_thread.tpl');
-	}
-	else {
-		$smarty_thread->display('post_original.tpl');
-		$smarty_thread->display('post_footer.tpl');
-	}
-	$count ++;
-}
-
-$smarty->display('thread_footer.tpl');
-
-?>
-<?php
-/*
- * Выводит сообщение $errmsg в файл статистики $stat_file.
- */
-function kotoba_stat($errmsg)
-{
-    global $stat_file;
-    fwrite($stat_file, "$errmsg (" . date("Y-m-d H:i:s") . ")\n");
-	fclose($stat_file);
-}
-
-// vim: set encoding=utf-8:
+$view_html .= $view_thread_html . $view_posts_html;
+$smarty->assign('hidden_threads', $hidden_threads);
+$view_html .= $smarty->fetch('view_footer.tpl');
+die($view_html);
 ?>
