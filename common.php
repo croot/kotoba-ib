@@ -12,10 +12,83 @@
 if(!class_exists('Config'))
 	exit;
 
-/**********
- * Разное *
- **********/
+/*****************************************
+ * Проверка различных входных параметров *
+ *****************************************/
 
+/*
+ * Проверяет корректность значения бамплимита. В случае успеха возвращает
+ * безопасное значение бамплимита.
+ * Аргументы:
+ * $value - небезопасное значение бамплимита.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function check_bump_limit($value, $link, $smarty)
+{
+	$length = strlen($value);
+	$max_int_length = strlen('' . PHP_INT_MAX);
+	if($length <= $max_int_length && $length >= 1)
+	{
+		$value = RawUrlEncode($value);
+		$length = strlen($value);
+		if($length > $max_int_length || (ctype_digit($value) === false) || $length < 1)
+		{
+			mysqli_close($link);
+			kotoba_error(Errmsgs::$messages['BUMP_LIMIT'], $smarty,
+				basename(__FILE__) . ' ' . __LINE__);
+		}
+	}
+	else
+	{
+		mysqli_close($link);
+		kotoba_error(Errmsgs::$messages['BUMP_LIMIT'], $smarty,
+			basename(__FILE__) . ' ' . __LINE__);
+	}
+	return $value;
+}
+/*
+ * Проверяет корректность значения сажи. В случае успеха возвращает
+ * безопасное значение сажи.
+ * Аргументы:
+ * $value - небезопасное значение сажи.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function check_sage($value, $link, $smarty)
+{
+	if($value === '1')
+		return '1';
+	elseif($value === '0')
+		return '0';
+	else
+	{
+		mysqli_close($link);
+		kotoba_error(Errmsgs::$messages['SAGE'], $smarty,
+			basename(__FILE__) . ' ' . __LINE__);
+	}
+}
+/*
+ * Проверяет корректность значения включения\выключения картинок. В случае
+ * успеха возвращает безопасное значение.
+ * Аргументы:
+ * $value - небезопасное значение включения\выключения картинок.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function check_with_images($value, $link, $smarty)
+{
+	if($value === '1')
+		return '1';
+	elseif($value === '0')
+		return '0';
+	else
+	{
+		mysqli_close($link);
+		kotoba_error(Errmsgs::$messages['WITH_IMAGES'], $smarty,
+			basename(__FILE__) . ' ' . __LINE__);
+	}
+}
 /*
  * Проверяет корректность значения $value
  * в зависимости от типа $type.
@@ -218,6 +291,10 @@ function check_format($type, $value)
 			return false;
 	}
 }
+
+/**********
+ * Разное *
+ **********/
 
 /*
  * Загружает настройки пользователя с ключевым словом $keyword_hash.
@@ -755,6 +832,144 @@ function db_threads_get_preview($board_id, $page, $user_id, $threads_per_page,
 						'sage' => $row['sage'],
 						'with_images' => $row['with_images'],
 						'posts_count' => $row['posts_count']));
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $threads;
+}
+/*
+ * Возвращает нить с идентификатором $thread_id, доступную пользователю с
+ * идентификатором $user_id для просмотра. А так же число сообщений в этой нити
+ * доступных для просмотра тому же пользователю.
+ * Аргументы:
+ * $thread_id - идентификатор нити.
+ * $user_id - идентификатор пользователя.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_threads_get_specifed($thread_id, $user_id, $link, $smarty)
+{
+	$result = mysqli_query($link,
+		"call sp_threads_get_specifed($thread_id, $user_id)");
+	if($result == false)
+		kotoba_error(mysqli_error($link), $smarty,
+			basename(__FILE__) . ' ' . __LINE__, $link);
+	$thread = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($thread,
+				array('id' => $row['id'],
+						'original_post' => $row['original_post'],
+						'bump_limit' => $row['bump_limit'],
+						'sage' => $row['sage'],
+						'with_images' => $row['with_images'],
+						'archived' => $row['archived'],
+						'posts_count' => $row['posts_count']));
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $thread;
+}
+/*
+ * Возвращает все нити всех досок.
+ * Аргументы:
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_threads_get_all($link, $smarty)
+{
+	$result = mysqli_query($link, "call sp_threads_get_all()");
+	if($result == false)
+		kotoba_error(mysqli_error($link), $smarty,
+			basename(__FILE__) . ' ' . __LINE__, $link);
+	$threads = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($threads,
+				array('id' => $row['id'],
+						'board' => $row['board'],
+						'original_post' => $row['original_post'],
+						'bump_limit' => $row['bump_limit'],
+						'sage' => $row['sage'],
+						'with_images' => $row['with_images']));
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $threads;
+}
+/*
+ * Редактирует настройки нити с идентификатором $thread_id.
+ * Аргументы:
+ * $thread_id - идентификатор нити.
+ * $bump_limit - бамплимит.
+ * $sage - включение-выключение авто сажи.
+ * $with_images - включение-выключение постинга картинок в нить.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_threads_edit($thread_id, $bump_limit, $sage, $with_images, $link,
+	$smarty)
+{
+	if(($result = mysqli_query($link, "call sp_threads_edit($thread_id,
+				$bump_limit, $sage, $with_images)")) == false)
+	{
+		kotoba_error(mysqli_error($link), $smarty,
+			basename(__FILE__) . ' ' . __LINE__, $link);
+	}
+	cleanup_link($link, $smarty);
+	return true;
+}
+/*
+ * Возвращает нити, доступные для модерирования пользователю с идентификатором
+ * $user_id.
+ * Аргументы:
+ * $user_id - идентификатор пользователя.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_threads_get_mod($user_id, $link, $smarty)
+{
+	$result = mysqli_query($link, "call sp_threads_get_mod($user_id)");
+	if($result == false)
+		kotoba_error(mysqli_error($link), $smarty,
+			basename(__FILE__) . ' ' . __LINE__, $link);
+	$threads = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($threads,
+				array('id' => $row['id'],
+						'board' => $row['board'],
+						'original_post' => $row['original_post'],
+						'bump_limit' => $row['bump_limit'],
+						'sage' => $row['sage'],
+						'with_images' => $row['with_images']));
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $threads;
+}
+/*
+ * Возвращает нить с идентификатором $thread_id, если она доступна для
+ * модерирования пользователю с идентификатором $user_id.
+ * Аргументы:
+ * $thread_id - идентификатор нити.
+ * $user_id - идентификатор пользователя.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_threads_get_mod_specifed($user_id, $thread_id, $link, $smarty)
+{
+	$result = mysqli_query($link, "call sp_threads_get_mod_specifed($user_id,
+		$thread_id)");
+	if($result == false)
+		kotoba_error(mysqli_error($link), $smarty,
+			basename(__FILE__) . ' ' . __LINE__, $link);
+	$threads = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($threads,
+				array('id' => $row['id'],
+						'board' => $row['board'],
+						'original_post' => $row['original_post'],
+						'bump_limit' => $row['bump_limit'],
+						'sage' => $row['sage'],
+						'with_images' => $row['with_images']));
 	mysqli_free_result($result);
 	cleanup_link($link, $smarty);
 	return $threads;

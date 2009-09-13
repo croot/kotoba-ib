@@ -161,10 +161,11 @@ foreach($threads as $t)
 								$smarty->assign('simple_file_thumbnail_heigth', $u['thumbnail_h']);
 							}
 					}
-				$preview_posts_html .= $smarty->fetch('preview_posts.tpl');
+				$preview_posts_html .= $smarty->fetch('simple_post.tpl');
 			}
 		}
-		$smarty->assign('skipped', $t['posts_count'] - $recived_posts_count - 1);
+		$smarty->assign('skipped', $t['posts_count'] - $recived_posts_count);
+		/* TODO Потенциальная проблема с with_image */
 		$preview_thread_html .= $smarty->fetch('preview_thread_header.tpl');
 		$preview_thread_html .= $preview_posts_html;
 		$preview_thread_html .= $smarty->fetch('preview_thread_footer.tpl');
