@@ -18,68 +18,30 @@
 // выводимый текст в лог статистики, используйте константы в events.php.
 
 error_reporting(E_ALL);
-require 'config.php';
-require 'common.php';
-kotoba_setup();
-require_once 'post_processing.php';
-require 'error_processing.php';
-require 'events.php';
-require 'database_connect.php';
-require 'database_common.php';
-require 'session_processing.php';
+require 'kwrapper.php';
+kotoba_setup($link, $smarty);
 
-if(KOTOBA_ENABLE_STAT)
-{ // open stat file for appending
-	if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/createthread.stat',
-		'a')) === false)
-	{ // opening failed
-		kotoba_error("Ошибка. Не удалось открыть или создать файл статистики.");
+if(isset($_POST['b']))
+{
+    if(($board_name = check_format('board', $_GET['b'])) == false)
+	{
+		mysqli_close($link);
+		kotoba_error(Errmsgs::$messages['BOARD_NAME'], $smarty,
+			basename(__FILE__) . ' ' . __LINE__);
 	}
 }
-
-// Этап 1. Проверка имени доски, на которой создаётся тред.
-
-if(!isset($_POST['b']))
+else
 {
-	if(KOTOBA_ENABLE_STAT)
-		kotoba_stat(ERR_BOARD_NOT_SPECIFED);
-		
-	kotoba_error(ERR_BOARD_NOT_SPECIFED);
+	mysqli_close($link);
+	kotoba_error(Errmsgs::$messages['BOARD_NOT_SPECIFED'], $smarty,
+			basename(__FILE__) . ' ' . __LINE__);
 }
 
-if(($BOARD_NAME = CheckFormat('board', $_POST['b'])) === false)
-{
-	if(KOTOBA_ENABLE_STAT)
-		kotoba_stat(ERR_BOARD_BAD_FORMAT);
-		
-	kotoba_error(ERR_BOARD_BAD_FORMAT);
-}
+// TODO: old code. Now we're operating by board name, not id
+// $BOARD = db_get_board($link, $board_name);
 
-if(isset($_SESSION['isLoggedIn']) && $_SESSION['isLoggedIn'] > 0) {
-	$userid = sess_get_user_id();
-}
-else {
-	$userid = 0;
-}
-
-
-$link = dbconn();
-
-$error_message = "default error";
-$BOARD = db_get_board($link, $BOARD_NAME);
-
-if(count($BOARD) == 0) {
-	kotoba_error(ERR_BOARD_NOT_SPECIFED);
-}
-
-$BOARD_NUM = $BOARD['id'];
-
-if($BOARD_NUM < 0) {
-	kotoba_error(ERR_BOARD_NOT_SPECIFED);
-}
-
-$types = db_get_board_types($link, $BOARD_NUM);
-// Этап 2. Обработка данных ОП поста.
+// TODO: old code. Now file type checking does a filetype module
+// $types = db_get_board_types($link, $BOARD_NUM);
 
 
 if(!post_check_image_upload_error($_FILES['Message_img']['error'], false, "kotoba_stat",
@@ -93,13 +55,15 @@ $uploaded_file_size = $_FILES['Message_img']['size'];
 $uploaded_file = $_FILES['Message_img']['tmp_name'];
 $uploaded_name = $_FILES['Message_img']['name'];
 $recived_ext = post_get_uploaded_extension($uploaded_name);
+/*
+ * TODO: see previous TODO
 if(!post_check_supported_type($recived_ext, $types)) {
 	if(KOTOBA_ENABLE_STAT)
 		kotoba_stat(ERR_WRONG_FILETYPE);
 
 	kotoba_error(ERR_WRONG_FILETYPE);
 }
-
+ */
 if(!post_check_sizes($uploaded_file_size, true, $_POST['Message_text'],
 	$_POST['Message_theme'], $_POST['Message_name'], "kotoba_stat", $error_message)) {
 	kotoba_error($error_message);
@@ -117,12 +81,16 @@ if(!post_check_sizes($uploaded_file_size, true, $Message_text,
 }
 
 // mark fuction here
+/*
+ * TODO: mark routine should be configured
 if(!post_mark($link, $Message_text, 
 	$Message_theme, $Message_name, "kotoba_stat", $error_message)) {
 	kotoba_error($error_message);
 }
+*/
 
 // trip code
+// TODO: double tripcode
 $namecode = post_tripcode($Message_name);
 if(is_array($namecode)) {
 	$Message_name = $namecode[0];
@@ -174,6 +142,7 @@ if(!post_move_uploded_file($uploaded_file, $saved_image_path, "kotoba_stat", $er
 
 
 // calculate upload hash
+// TODO: should be in module
 if(($img_hash = hash_file('md5', $saved_image_path)) === false)
 {
 	if(KOTOBA_ENABLE_STAT)
@@ -181,6 +150,7 @@ if(($img_hash = hash_file('md5', $saved_image_path)) === false)
 
 	kotoba_error(sprintf(ERR_FILE_HASH, $saved_image_path));
 }
+// TODO: saeming should be in module
 $already_posted = false;
 $same_uplodads = post_find_same_uploads($link, $BOARD_NUM, $img_hash);
 $same_uplodads_qty = count($same_uplodads);

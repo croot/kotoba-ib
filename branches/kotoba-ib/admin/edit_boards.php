@@ -13,6 +13,7 @@ require '../kwrapper.php';
 require_once Config::ABS_PATH . '/lang/' . Config::LANGUAGE . '/logging.php';
 
 kotoba_setup($link, $smarty);
+var_dump($_SESSION['groups']);
 if(! in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
 {
 	mysqli_close($link);

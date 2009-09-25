@@ -405,7 +405,7 @@ function kotoba_setup(&$link, &$smarty)
 	if(! session_start())
 		die(Errmsgs::$messages['SESSION_START']);
 	/* По умолчанию пользователь является Гостем. */
-	if(!isset($_SESSION['user']))
+	if(!isset($_SESSION['user']) || $_SESSION['user'] == Config::GUEST_ID)
 	{
 		$_SESSION['user'] = Config::GUEST_ID;
 		$_SESSION['groups'] = array(Config::GST_GROUP_NAME);
@@ -494,7 +494,7 @@ function db_connect()
 function db_check_banned($ip, $link, $smarty)
 {
 	if(($result = mysqli_query($link, "call sp_check_ban($ip)")) == false)
-		kotoba_error(mysqli_error($link), $smarty);
+		kotoba_error(mysqli_error($link), $smarty, 'db_check_banned');
 	$row = false;
 	if(mysqli_affected_rows($link) > 0)
 	{
@@ -1868,6 +1868,7 @@ function db_get_board_id($link, $board_name) {
  * return number of pages (0 or more), -1 on error
  * arguments:
  * $link - database link
+ * $userid - user identity
  * $boardid - board id
  * $threads - number of threads on page
  */
@@ -2015,7 +2016,7 @@ function db_get_post($link, $board_id, $post_number) {
 			if($result = mysqli_store_result($link)) {
 				if($count == 0) {
 					$row = mysqli_fetch_assoc($result);
-					$row['date_time'] = strftime(KOTOBA_DATETIME_FORMAT,
+					$row['date_time'] = strftime(Config::DATETIME_FORMAT,
 						$row['date_time']);
 					$post = $row;
 				}
