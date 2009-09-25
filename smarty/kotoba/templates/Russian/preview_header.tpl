@@ -27,7 +27,7 @@
 Список досок: {include file='board_list.tpl' board_list=$boards DIR_PATH=$DIR_PATH}<br>
 <a href="{$DIR_PATH}/edit_settings.php"{if $is_guest} title="Отредактируйте ваши настройки."{/if}>Мои настройки</a><br>
 
-<h4 align=center>azuchan</h4>
+<h4 align=center>kotoba</h4>
 <center><b>/{$board_name}/ {$board_title}</b></center><br><br>
 Глобальный бамплимит: {$bump_limit}<br>
 {include file='pages_list.tpl' board_name=$board_name pages=$pages page=$page}
@@ -42,7 +42,7 @@
 <tr valign="top"><td>Файл: </td><td><input type="file" name="message_img" size="54"></td></tr>
 <tr valign="top"><td>Пароль: </td><td><input type="password" name="message_pass" size="30" value="{$rempass}"></td></tr>
 <tr valign="top"><td>Перейти: </td><td>(нить: <input type="radio" name="goto" value="t">) (доска: <input type="radio" name="goto" value="b" checked>)</td></tr>
-<tr valign="top"><td colspan = "2">Типы файлов, доступных для загрзки:{section name=i loop=$upload_types} {$upload_types[i].extension}{/section}</td></tr>
+<tr valign="top"><td colspan = "2">Типы файлов, доступных для загрузки:{section name=i loop=$upload_types} {$upload_types[i].extension}{/section}</td></tr>
 </table>
 <input type="hidden" name="b" value="$board_name">
 </form>

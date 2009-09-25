@@ -41,7 +41,7 @@ if(isset($_GET['p']))
 }
 else
 	$page = 1;
-$rempass = !isset($_SESSION['rempass']) || $_SESSION['rempass'] == null ? ''
+$removepass = !isset($_SESSION['rempass']) || $_SESSION['rempass'] == null ? ''
 				: $_SESSION['rempass'];
 $boards = db_boards_get_preview($_SESSION['user'], $link, $smarty);
 $categories = db_categories_get($link, $smarty);
@@ -83,7 +83,7 @@ $upload_types = db_upload_types_get_preview($board['id'], $link, $smarty);
  * Формирование вывода.
  */
 $smarty->assign('boards', $boards);
-$smarty->assign('rempass', $rempass);
+$smarty->assign('rempass', $removepass);
 $smarty->assign('board_name', $board['name']);
 $smarty->assign('board_title', $board['title']);
 $smarty->assign('upload_types', $upload_types);

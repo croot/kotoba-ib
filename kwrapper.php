@@ -10,7 +10,9 @@
  *********************************/
 
 require_once 'config.php';
-$_SESSION['language'] = Config::LANGUAGE;
+if(!isset($_SESSION['language'])) {
+	$_SESSION['language'] = Config::LANGUAGE;
+}
 require_once "lang/$_SESSION[language]/errors.php";
 require_once 'common.php';
 ?>
