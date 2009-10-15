@@ -41,6 +41,7 @@ drop procedure if exists sp_popdown_handlers_get|
 drop procedure if exists sp_popdown_handlers_add|
 drop procedure if exists sp_popdown_handlers_delete|
 drop procedure if exists sp_upload_types_get|
+drop procedure if exists sp_upload_type_get|
 drop procedure if exists sp_upload_types_add|
 drop procedure if exists sp_upload_types_edit|
 drop procedure if exists sp_upload_types_delete|
@@ -58,6 +59,23 @@ drop procedure if exists sp_threads_get_all|
 drop procedure if exists sp_threads_edit|
 drop procedure if exists sp_threads_get_mod|
 drop procedure if exists sp_threads_get_mod_specifed|
+drop procedure if exists sp_uploads_get_same|
+drop procedure if exists sp_board_get_settings|
+drop procedure if exists sp_upload|
+drop procedure if exists sp_create_thread|
+drop procedure if exists sp_post_upload|
+drop procedure if exists sp_post|
+drop function if exists get_board_id|
+drop function if exists get_posts_count|
+
+create function get_board_id(_board_name varchar(16))
+returns int
+deterministic
+begin
+	declare boardid int default 0;
+	select id into boardid from boards where name = _board_name;
+	return boardid;
+end|
 
 create procedure sp_refresh_banlist ()
 begin
@@ -515,6 +533,16 @@ begin
 	select id, extension, store_extension, upload_handler, thumbnail_image from upload_types;
 end|
 
+create procedure sp_upload_type_get
+(
+	_extension varchar(10)
+)
+begin
+	select u.extension, u.store_extension, h.name, u.thumbnail_image from upload_types u
+	join upload_handlers h on (u.upload_handler = h.id)
+	where u.extension = _extension;
+end|
+
 create procedure sp_upload_types_add
 (
 	_extension varchar(10),
@@ -838,4 +866,196 @@ begin
 	group by t.id
 	having max(coalesce(a5.moderate, a4.moderate, a3.moderate, a2.moderate, a1.moderate)) = 1
 	order by t.id desc;
+end|
+
+create procedure sp_uploads_get_same
+(
+	_board_name varchar(16),
+	_hash varchar(32)
+)
+begin
+	select u.id from boards b
+	join uploads u on(b.name = _board_name and b.id = u.board and u.hash = _hash);
+end|
+
+create procedure sp_board_get_settings
+(
+	_board_name varchar(16)
+)
+begin
+	select id, same_upload
+	from boards
+	where name = _board_name;
+end|
+
+create procedure sp_upload
+(
+	_board_name varchar(16),
+	_file_size int, 
+	_hash varchar(32),
+	_image bit,
+	_file varchar(256),
+	_x int,
+	_y int,
+	_thumbnail varchar(256),
+	_thumbx int,
+	_thumby int
+)
+begin
+	insert into uploads (board, hash, is_image, file_name, file_w, file_h, size, thumbnail_name, thumbnail_w, thumbnail_h)
+	values
+	(get_board_id(_board_name), _hash, _image, _file, _x, _y, _file_size, _thumbnail, _thumbx, _thumby);
+	select last_insert_id();
+end|
+
+create procedure sp_create_thread (
+	_board_name varchar(16),
+	_post_number int
+)
+begin
+	declare bumplimit int;
+	declare boardid int;
+	select id, bump_limit into boardid, bumplimit from boards where name = _board_name;
+
+	insert into threads (board, original_post, bump_limit, sage)
+	values (boardid, _post_number, bumplimit, 0);
+
+end|
+create procedure sp_post_upload(
+	_board_name varchar(16),
+	_post int,
+	_upload int
+)
+begin
+	insert into posts_uploads (post, upload)
+	values ((select id from posts where board = get_board_id(_board_name) and number = _post),
+		_upload);
+end|
+
+create procedure sp_post (
+	-- board id
+	_board_name varchar(16),
+	-- open post number
+	_open_post int,
+	-- name field
+	_post_name varchar(128),
+	-- classic trip code
+	_post_trip varchar(10),
+	-- subject field
+	_post_subject varchar(128),
+	-- pasword for deleteion
+	_post_password varchar(128),
+	-- user id
+	_post_userid int,
+	-- session id of poster
+	_post_sessionid varchar(128),
+	-- ip of poster
+	_post_ip int,
+	-- message text
+	_post_text text,
+	-- date time of post
+	_datetime datetime,
+	-- post with sage
+	_sage tinyint
+)
+BEGIN
+	-- thread id (real)
+	declare threadid int;
+	-- posts in thread
+	declare count_posts int;
+	-- number on post on thread
+	declare post_number int;
+	-- number of bump posts (posts which brings thread to up)
+	declare bumplimit int;
+	-- whole thread sage
+	declare threadsage bit;
+
+	-- if date is not supplied use internal sql date time
+	if _datetime is null then
+		select now() into _datetime;
+	end if;
+
+	-- get next post number on board
+	set post_number = get_next_post_on_board(_board_name);
+	if _open_post = 0 then
+		-- create new thread
+		call sp_create_thread(_board_name, post_number);
+		set threadid = LAST_INSERT_ID();
+		-- sage never happens on new thread
+		set _sage = 0;
+	else
+		set threadid = get_thread_id(_board_name, _open_post);
+	end if;
+	-- count posts in thread
+	select get_posts_count(threadid) into count_posts;
+	-- each thread may have individual bump limit
+	select bump_limit into bumplimit from threads
+	where id = threadid;
+	
+	-- thread may forcibly sage''d or unsaged
+	select sage into threadsage from threads where id = threadid;
+	if threadsage is not null then
+		set _sage = threadsage;
+	end if;
+
+	-- thread reached bumplimit
+	if count_posts > bumplimit then
+		set _sage = 1;
+	end if;
+
+	-- thread age''d
+	if _sage = 0 then
+		update threads set last_post = _datetime
+		where id = threadid and board = get_board_id(_board_name);
+	end if;
+
+	-- insert data of post in table
+	insert into posts(board, thread, number, user,
+		name, tripcode, subject, text, password,
+		session_id, ip, date_time, sage)
+	values
+	(get_board_id(_board_name), threadid, post_number, _post_userid,
+		_post_name, _post_trip, _post_subject, _post_text, _post_password,
+		_post_sessionid, _post_ip, _datetime, _sage);
+--	select last_insert_id();
+	select post_number;
+END|
+
+delimiter |
+drop function if exists  get_next_post_on_board|
+CREATE FUNCTION get_next_post_on_board
+(
+	-- board id
+	_board_name varchar(16)
+)
+RETURNS int
+not deterministic
+BEGIN
+	DECLARE postnumber int;
+
+	SELECT max(p.number) into postnumber from posts p
+	join boards b on (b.name = _board_name and b.id = p.board);
+	if postnumber is null then
+		set postnumber = 0;
+	end if;
+	
+	set postnumber = postnumber + 1;
+
+	RETURN postnumber;
+END|
+
+create function get_posts_count
+(
+	_thread int
+)
+returns int
+not deterministic
+begin
+	declare count int default 0;
+
+	select count(p.id) into count from posts p
+	where p.thread = _thread
+	and p.deleted <> 1;
+
+	return count;
 end|

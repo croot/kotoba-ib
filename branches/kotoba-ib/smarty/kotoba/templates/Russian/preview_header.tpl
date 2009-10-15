@@ -44,6 +44,6 @@
 <tr valign="top"><td>Перейти: </td><td>(нить: <input type="radio" name="goto" value="t">) (доска: <input type="radio" name="goto" value="b" checked>)</td></tr>
 <tr valign="top"><td colspan = "2">Типы файлов, доступных для загрузки:{section name=i loop=$upload_types} {$upload_types[i].extension}{/section}</td></tr>
 </table>
-<input type="hidden" name="b" value="$board_name">
+<input type="hidden" name="b" value="{$board_name}">
 </form>
 <hr>
