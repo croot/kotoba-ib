@@ -1904,8 +1904,8 @@ function db_get_pages($link, $userid, $boardid, $threads) {
  * $board_name - board name
  */
 
-function db_get_board($link, $board_name) {
-	$st = mysqli_prepare($link, "call sp_get_board(?)");
+function db_get_board($link, $smarty, $board_name) {
+	$st = mysqli_prepare($link, "call sp_board_get_settings(?)");
 	if(! $st) {
 		kotoba_error(mysqli_error($link));
 	}
@@ -1916,19 +1916,15 @@ function db_get_board($link, $board_name) {
 	if(! mysqli_stmt_execute($st)) {
 		kotoba_error(mysqli_stmt_error($st));
 	}
-	mysqli_stmt_bind_result($st, $id, $board_description, $board_title,
-		$bump_limit, $rubber_board, $visible_threads, $same_upload);
+	mysqli_stmt_bind_result($st, $id, $same_upload);
 	if(! mysqli_stmt_fetch($st)) {
 		mysqli_stmt_close($st);
 		cleanup_link_use($link);
 		return array();
 	}
 	mysqli_stmt_close($st);
-	cleanup_link_use($link);
-	return array('id' => $id, 'board_description' => $board_description,
-		'board_title' => $board_title, 'bump_limit' => $bump_limit,
-		'rubber_board' => $rubber_board, 'visible_threads' => $visible_threads,
-		'same_upload' => $same_upload);
+	cleanup_link($link, $smarty);
+	return array('id' => $id, 'same_upload' => $same_upload);
 }
 
 /* db_get_post_count: get post count on board

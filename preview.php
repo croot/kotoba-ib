@@ -124,12 +124,12 @@ foreach($threads as $t)
 							if($pu['upload'] == $u['id'])
 							{
 								$smarty->assign('with_image', true);
-								$smarty->assign('original_file_link', Config::DIR_PATH . "/{$board['name']}/img/{$u['file_name']}");
+								$smarty->assign('original_file_link', $u['file_name']);
 								$smarty->assign('original_file_name', $u['file_name']);
 								$smarty->assign('original_file_size', $u['size']);
 								$smarty->assign('original_file_width', $u['file_w']);
 								$smarty->assign('original_file_heigth', $u['file_h']);
-								$smarty->assign('original_file_thumbnail_link', Config::DIR_PATH . "/{$board['name']}/thumb/{$u['thumbnail_name']}");
+								$smarty->assign('original_file_thumbnail_link', $u['thumbnail_name']);
 								$smarty->assign('original_file_thumbnail_width', $u['thumbnail_w']);
 								$smarty->assign('original_file_thumbnail_heigth', $u['thumbnail_h']);
 							}

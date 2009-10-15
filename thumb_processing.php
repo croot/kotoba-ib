@@ -36,29 +36,32 @@ function check_module($module_name) {
  * $link is database link
  * $extension is file extension
  */
-function db_image_settings($link, $extension) {
-	$st = mysqli_prepare($link, "call sp_get_filetype(?)");
+function db_upload_settings($link, $smarty, $extension) {
+	$st = mysqli_prepare($link, "call sp_upload_type_get(?)");
 	if(! $st) {
-		kotoba_error(mysqli_error($link));
+		kotoba_error(mysqli_error($link), $smarty, __FILE__);
 	}
 	if(! mysqli_stmt_bind_param($st, "s", $extension)) {
-		kotoba_error(mysqli_stmt_error($st));
+		kotoba_error(mysqli_stmt_error($st), $smarty, __FILE__);
 	}
 
 	if(! mysqli_stmt_execute($st)) {
-		kotoba_error(mysqli_stmt_error($st));
+		kotoba_error(mysqli_stmt_error($st), $smarty, __FILE__);
 	}
-	mysqli_stmt_bind_result($st, $image, $extension, $store_extension, $handler, $thumbnail_image);
+	if(!mysqli_stmt_bind_result($st, $extension, $store_extension, $handler, $thumbnail_image)) {
+		kotoba_error(mysqli_stmt_error($st), $smarty, __FILE__);
+	}
 	if(! mysqli_stmt_fetch($st)) {
 		mysqli_stmt_close($st);
-		cleanup_link($link);
+		cleanup_link($link, $smarty);
 		return -1;
 	}
-	$settings = array('image' => $image,'extension' => $extension,
+	// TODO: image => 1
+	$settings = array('image' => 1,'extension' => $extension,
 		'store_extension' => $store_extension, 'handler' => $handler,
 		'thumbnail_image' => $thumbnail_image);
 	mysqli_stmt_close($st);
-	cleanup_link($link);
+	cleanup_link($link, $smarty);
 	return $settings;
 }
 
@@ -78,11 +81,12 @@ function db_image_settings($link, $extension) {
  * 'force_thumbnail' create thumbnail even if dimensions too small
  */
 
-function thumb_check_image_type($link, $ext, $file, &$result) {
+function thumb_check_upload_type($link, $smarty, $ext, $file, &$result) {
 //	echo sprintf("file %s with extension %s", $file, $ext);
-	$has_gd = (check_module('gd') | check_module('gd2')) & KOTOBA_TRY_IMAGE_GD;
-	$has_im = check_module('imagick') & KOTOBA_TRY_IMAGE_IM;
-	$image_settings = db_image_settings($link, $ext);
+	$has_gd = (check_module('gd') | check_module('gd2')) & Config::TRY_IMAGE_GD;
+	$has_im = check_module('imagick') & Config::TRY_IMAGE_IM;
+	$image_settings = db_upload_settings($link, $smarty, $ext);
+	//var_dump($image_settings);
 	$result['force_thumbnail'] = false;
 	// if nothing found
 	if(count($image_settings) == 0) {
@@ -108,7 +112,7 @@ function thumb_check_image_type($link, $ext, $file, &$result) {
 	}
 	if($has_gd) { //gd library formats
 		// fill result fields
-		if($image_settings['handler'] == 'internal' || $image_settings['handler'] == 'internal_png') {
+		if($image_settings['handler'] == 'default_handler' || $image_settings['handler'] == 'internal_png') {
 			if($image_settings['image'] == 1) {
 				// get image size using libgd
 				$dimensions = getimagesize($file);
@@ -119,12 +123,12 @@ function thumb_check_image_type($link, $ext, $file, &$result) {
 		return true;
 	}
 	elseif($has_im) { //image magick library
-		if($image_settings['handler'] == 'internal' || $image_settings['handler'] == 'internal_png') {
+		if($image_settings['handler'] == 'default_handler' || $image_settings['handler'] == 'internal_png') {
 			if($image_settings['image'] == 1) {
 				// get image size using imagick
 				$image = new Imagick($file);
 				if(!$image->setImageFormat($result['orig_extension'])) {
-					kotoba_error("imagemagick: format failed");
+					kotoba_error("imagemagick: format failed", $smarty);
 				}
 				$result['x'] = $image->getImageWidth();
 				$result['y'] = $image->getImageHeight();
@@ -154,7 +158,7 @@ function thumb_check_image_type($link, $ext, $file, &$result) {
  * &$result is reference to array with thumbnail dimensions:
  * 'x' is width, 'y' is height
 */
-function create_thumbnail($link, $source, $destination, $type, $x, $y, 
+function create_thumbnail($link, $smarty, $source, $destination, $type, $x, $y, 
 	$resize_x, $resize_y, $force = false, &$result) {
 	//echo sprintf("%s, %s, %s, %d, %d, %d, %d", $source, $destination, $type, $x, $y, $resize_x, $resize_y);
 	if(!$force && $x < $resize_x && $y < $resize_y)
@@ -167,15 +171,15 @@ function create_thumbnail($link, $source, $destination, $type, $x, $y,
 		$result['y'] = $y;
 		return link_file($source, $destination);
 	}
-	$has_gd = (check_module('gd') | check_module('gd2')) & KOTOBA_TRY_IMAGE_GD;
-	$has_im = check_module('imagick') & KOTOBA_TRY_IMAGE_IM;
+	$has_gd = (check_module('gd') | check_module('gd2')) & Config::TRY_IMAGE_GD;
+	$has_im = check_module('imagick') & Config::TRY_IMAGE_IM;
 	// TODO: one query twice. needs attraction
-	$image_settings = db_image_settings($link, $type);
+	$image_settings = db_upload_settings($link, $smarty, $type);
 	if(count($image_settings) == 0) {
 		return KOTOBA_THUMB_UNSUPPORTED;
 	}
 	if($image_settings['image'] == 1 && 
-		$image_settings['handler'] == 'internal') 
+		$image_settings['handler'] == 'default_handler') 
 	{ // known image format
 		if($has_gd) {
 			return gd_create_thumbnail($source, $destination, $type, $x, $y, $resize_x, $resize_y, $result);
@@ -210,7 +214,7 @@ function create_thumbnail($link, $source, $destination, $type, $x, $y,
 function link_file($source, $destination) {
 	if(function_exists("link")) {
 		if(link($source, $destination)) {
-			return KOTOBA_THUMB_SUCCESS;
+			return Config::THUMB_SUCCESS;
 		}
 		else {
 			die($php_errormsg);
@@ -218,13 +222,13 @@ function link_file($source, $destination) {
 	}
 	else {
 		if(copy($source, $destination)) {
-			return KOTOBA_THUMB_SUCCESS;
+			return Config::THUMB_SUCCESS;
 		}
 		else {
 			die($php_errormsg);
 		}
 	}
-	return KOTOBA_THUMB_UNKNOWN;
+	return Config::THUMB_UNKNOWN;
 }
 /*
  * im_create_png_thumbnail procedure: creating thumnail using ImageMagick from 
@@ -259,7 +263,7 @@ function im_create_png_thumbnail($source, $destination, $x, $y, $resize_x, $resi
 	$thumbnail->setResolution($resize_x * $resolution_ratio_x, $resize_y * $resolution_ratio_y);
 	$thumbnail->readImage($source);
 	if(!$thumbnail->setImageFormat('png')) {
-		kotoba_error("conversion failed");
+		kotoba_error("conversion failed", $smarty);
 	}
 	// fill destination image with source image background color
 	// (for transparency in svg for example)
@@ -269,7 +273,7 @@ function im_create_png_thumbnail($source, $destination, $x, $y, $resize_x, $resi
 	$thumbnail->writeImage($destination);
 	$thumbnail->clear();
 	$thumbnail->destroy();
-	return KOTOBA_THUMB_SUCCESS;
+	return Config::THUMB_SUCCESS;
 }
 /*
  * im_create_thumbnail procedure: creating thumnail using ImageMagick
@@ -312,7 +316,7 @@ function im_create_thumbnail($source, $destination, $x, $y, $resize_x, $resize_y
 		$thumbnail->destroy();
 	}
 	if($res) {
-		return KOTOBA_THUMB_SUCCESS;
+		return Config::THUMB_SUCCESS;
 	}
 }
 
@@ -341,7 +345,7 @@ function gd_create_thumbnail($source, $destination, $type, $x, $y, $resize_x, $r
 		return png_gd_create($source, $destination, $x, $y, $resize_x, $resize_y, $result);
 		break;
 	default:
-		return KOTOBA_THUMB_UNKNOWN;
+		return Config::THUMB_UNKNOWN;
 		break;
 	}
 }
@@ -405,18 +409,18 @@ function gif_gd_create($source, $destination, $x, $y, $resize_x, $resize_y, &$re
 	$gif = imagecreatefromgif($source);
 	$thumbnail = gd_resize($gif, $x, $y, $resize_x, $resize_y, $source, $destination, true, false, $result);
 	imagegif($thumbnail, $destination);
-	return KOTOBA_THUMB_SUCCESS;
+	return Config::THUMB_SUCCESS;
 }
 function jpg_gd_create($source, $destination, $x, $y, $resize_x, $resize_y, &$result) {
 	$jpeg = imagecreatefromjpeg($source);
 	$thumbnail = gd_resize($jpeg, $x, $y, $resize_x, $resize_y, $source, $destination, false,false,$result);
 	imagejpeg($thumbnail, $destination);
-	return KOTOBA_THUMB_SUCCESS;
+	return Config::THUMB_SUCCESS;
 }
 function png_gd_create($source, $destination, $x, $y, $resize_x, $resize_y, &$result) {
 	$png = imagecreatefrompng($source);
 	$thumbnail = gd_resize($png, $x, $y, $resize_x, $resize_y, $source, $destination, true ,true, $result);
 	imagepng($thumbnail, $destination);
-	return KOTOBA_THUMB_SUCCESS;
+	return Config::THUMB_SUCCESS;
 }
 ?>

@@ -253,4 +253,5 @@ class Config
 	const THUMB_TOOBIG = 4;			// file too big
 	const THUMB_UNKNOWN = 255;		// unknown error
 }
+// vim: set ft=php encoding=utf-8:
 ?>
