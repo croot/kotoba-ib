@@ -29,7 +29,7 @@
 Список досок: {include file='board_list.tpl' board_list=$boards DIR_PATH=$DIR_PATH}<br>
 <a href="{$DIR_PATH}/edit_settings.php"{if $is_guest} title="Отредактируйте ваши настройки."{/if}>Мои настройки</a><br>
 
-<h4 align=center>azuchan</h4>
+<h4 align=center>✿Kotoba</h4>
 <br><center><b>Kotoba - {$board_name}/{$original_post}</b></center>
 {if $bump_limit > 0}Индивидуальный бамплимит: {$bump_limit}<br>{/if}
 Число сообщений: {$posts_count}

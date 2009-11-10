@@ -8,67 +8,262 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
-
-// Заметки:
-//
-// Для каждого скрипта, при включенном сборе статистики, создаётся файл имя_скрипта.stat в котором будет хранится статистика.
-// Такой файл называется Лог статистики.
-//
-// Как, куда и когда выводить статистику решает скрипт. Что выводить - решает events.php. Если вы ходите изменить
-// выводимый текст в лог статистики, используйте константы в events.php.
-
-error_reporting(E_ALL);
-require 'config.php';
-require 'common.php';
+/*
+ * Скрипт ответа в нить.
+ */
+// TODO переименовать все входные параметры с учётом того, что загружаться
+// могут не только картинки.
+require_once 'kwrapper.php';
 require_once 'post_processing.php';
-require 'error_processing.php';
-require 'events.php';
-require 'database_connect.php';
-require 'database_common.php';
-require 'session_processing.php';
+require_once 'thumb_processing.php';
 
-kotoba_setup();
+kotoba_setup($link, $smarty);
+try
+{
+	/*
+	 * Проверка входных параметров, существования доски, нити и уровня
+	 * доступа.
+	 */
+	$thread_id = threads_check_id($_POST['t']);
+	$thread = db_threads_get_specifed_change($thread_id, $_SESSION['user'], $link);
+	$board = db_boards_get_specifed_view($thread['board_name'], $_SESSION['user'], $link);
+	if($thread['archived'])
+	{
+		throw new Exception(Errmsgs::$messages['THREAD_ARCHIVED']);
+	}
+	/*
+	 * Проверка входных данных и подготовка к сохранению.
+	 */
+	$rempass = !isset($_SESSION['rempass']) || $_SESSION['rempass'] == null
+		? '' : $_SESSION['rempass'];	// TODO Ограничения не длину пароля.
+	$is_sage = 0;
+	if(isset($_POST['sage']) && $_POST['sage'] == 'sage')
+		$is_sage = 1;
+	$types = db_upload_types_get($board['id'], $link);
+	if($_FILES['message_img']['error'] == UPLOAD_ERR_NO_FILE
+		&& (!isset($_POST['message_text']) || $_POST['message_text'] == ''))
+	{
+		throw new Exception(Errmsgs::$messages['EMPTY_MESSAGE']);
+	}
+	elseif($_FILES['message_img']['error'] == UPLOAD_ERR_NO_FILE)
+	{
+		$with_file = false;	// Сообщение без файла.
+	}
+	else
+	{
+		$with_file = true;	// Сообщение с файлом.
+		$uploaded_file = $_FILES['message_img']['tmp_name'];
+		$uploaded_name = $_FILES['message_img']['name'];
+		$recived_ext = get_file_extension($uploaded_name);
+		upload_types_valid_ext($recived_ext, $types);
+	}
+	if($with_file)
+	{
+		uploads_check_error($_FILES['message_img']['error']);
+		if($_FILES['message_img']['size'] < Config::MIN_IMGSIZE)
+		{
+			throw new Exception(Errmsgs::$messages['UPLOAD_MIN_SIZE']);
+		}
+	}
+	posts_check_data($_POST['message_name'], $_POST['message_theme'],
+		$_POST['message_text']);
+	$message_name = htmlspecialchars($_POST['message_name'], ENT_QUOTES);
+	$message_theme = htmlspecialchars($_POST['message_theme'], ENT_QUOTES);
+	$message_text = htmlspecialchars($_POST['message_text'], ENT_QUOTES);
+	$message_name = stripslashes($message_name);
+	$message_theme = stripslashes($message_theme);
+	$message_text = stripslashes($message_text);
+	posts_check_data($message_name, $message_theme, $message_text);
+	posts_prepare_data($message_name, $message_theme, $message_text);
+	$namecode = posts_tripcode($message_name);
+	if(is_array($namecode))
+	{
+		$message_name = $namecode[0] . "!{$namecode[1]}";
+	}
+	else
+	{
+		$message_name = $namecode;
+	}
+	if($with_file)
+	{
+		$img_settings = thumb_get_img_settings($recived_ext, $uploaded_file,
+			$types);
+		// Расширение файла, с которым он был загружен.
+		$original_ext = $img_settings['original_extension'];
+		// Расширение файла, с которым он будет сохранён.
+		$recived_ext = $img_settings['store_extension'];
+		$filenames = posts_create_filenames($recived_ext, $original_ext);
+		$saved_filename = $filenames[0];
+		$saved_thumbname = $filenames[1];
+		$raw_filename = $filenames[2];
+		// Абсолютные и относительные пути к директориям, где хранятся файлы и
+		// их уменьшенные копии.
+		$IMG_SRC_DIR = sprintf("%s/%s/img", Config::ABS_PATH, $board['name']);
+		$IMG_THU_DIR = sprintf("%s/%s/thumb", Config::ABS_PATH, $board['name']);
+		$image_virtual_base = sprintf("%s/%s/img", Config::DIR_PATH, $board['name']);
+		$thumbnail_virtual_base = sprintf("%s/%s/thumb", Config::DIR_PATH, $board['name']);
+		// Полный абсолютный и относительный путь к загруженному файлу и
+		// уменьшенной копии.
+		$saved_image_path = sprintf("%s/%s", $IMG_SRC_DIR, $saved_filename);
+		$image_virtual_path = sprintf("%s/%s", $image_virtual_base, $saved_filename);
+		if($img_settings['is_image'])
+		{
+			$saved_thumbnail_path = sprintf("%s/%s", $IMG_THU_DIR, $saved_thumbname);
+			$thumbnail_virtual_path = sprintf("%s/%s", $thumbnail_virtual_base, $saved_thumbname);
+		}
+		else
+		{
+			$thumbnail_virtual_path = $img_settings['thumbnail'];
+		}
+		posts_move_uploded_file($uploaded_file, $saved_image_path);
+		if(($img_hash = hash_file('md5', $saved_image_path)) === false)
+		{
+			throw new Exception(Errmsgs::$messages['UPLOAD_HASH']);
+		}
+		$already_posted = false;
+		switch($board['same_upload'])
+		{
+			case 'no':
+				$same_uplodads = db_uploads_get_same($board['name'], $img_hash,
+					$link);
+				if($same_uplodads != null)
+				{
+					unlink($saved_image_path);
+					display_same_uploads($same_uplodads, $board['name'], $smarty);
+					exit;
+				}
+				break;
+			case 'once':
+				$same_uplodads = db_uploads_get_same($board['name'], $img_hash,
+					$link);
+				if($same_uplodads != null)
+				{
+					unlink($saved_image_path);
+					$already_posted = true;
+				}
+				break;
+			case 'yes':
+			default:
+				break;
+		}
+		if(!$already_posted)
+		{
+			if($img_settings['is_image'])
+			{
+				if($img_settings['x'] < Config::MIN_IMGWIDTH
+					|| $img_settings['y'] < Config::MIN_IMGHEIGTH)
+				{
+					throw new Exception(Errmsgs::$messages['MIN_IMG_DIMENTIONS']);
+				}
+				$thumb_settings = create_thumbnail_new("$IMG_SRC_DIR/$saved_filename",
+					"$IMG_THU_DIR/$saved_thumbname", $img_settings, $types, 200, 200,
+					$img_settings['force_thumbnail']);
+			}
+			else	// Не картинка.
+			{
+				// TODO Не должно быть путей от корня документов.
+				$saved_thumbname = $img_settings['thumbnail'];
+			}
+	/*
+	 * Сохранение.
+	 */
+			// TODO Сохранение данных в базу должно быть атомарным.
+			$upload_id = db_uploads_add($link, $board['id'], $img_hash,
+				$img_settings['is_image'], "{$board['name']}/img/$saved_filename",
+				$img_settings['x'], $img_settings['y'], $_FILES['message_img']['size'],
+				"{$board['name']}/thumb/$saved_thumbname", $thumb_settings['x'],
+				$thumb_settings['y']);
+			if($upload_id < 0)
+			{
+				throw new Exception('dev: 1');
+			}
+		}
+	}// with_file
+	$post_id = db_posts_add_reply($link, $board['id'], $thread['id'],
+		$_SESSION['user'], $rempass, $message_name,	ip2long($_SERVER['REMOTE_ADDR']),
+		$message_theme, date("Y-m-d H:i:s"), $message_text, $is_sage);
+	if($post_id < 0)
+	{
+		throw new Exception('dev: 2');
+	}
+	if($with_file)
+	{
+		if(!$already_posted)
+		{
+			db_posts_uploads_add($link, $post_id, $upload_id);
+		}
+		else
+		{
+			db_posts_uploads_add($link, $post_id, $same_uplodads[0]['id']);
+		}
+	}
+	/*
+	 * Перенаправление к доске или нити.
+	 */
+	if(isset($_POST['goto']) && $_POST['goto'] == 't')
+	{
+		header('Location: ' . Config::DIR_PATH . "/{$board['name']}/{$thread['original_post']}/");
+		exit;
+	}
+	header('Location: ' . Config::DIR_PATH . "/{$board['name']}/");
+	exit;
+	var_dump($board);
+	var_dump($thread);
+	var_dump($types);
+	var_dump($message_name);
+	var_dump($message_theme);
+	var_dump($message_text);
+	var_dump($saved_image_path);
+	var_dump($image_virtual_path);
+	var_dump($saved_thumbnail_path);
+	var_dump($thumbnail_virtual_path);
+	var_dump($same_uplodads);
+	var_dump($thumb_settings);
+	var_dump($upload_id);
+	var_dump($post_id);
+	exit;
+}
+catch(Exception $e)
+{
+	$smarty->assign('msg', $e->__toString());
+	if(isset($link) && $link instanceof MySQLi)
+		mysqli_close($link);
+	if(isset($saved_image_path))	// Удаление загруженного файла.
+		@unlink($saved_image_path);
+	if(isset($saved_thumbnail_path))	// Удаление уменьшенной копии.
+		@unlink($saved_thumbnail_path);
+	die($smarty->fetch('error.tpl'));
+}
 
-if(KOTOBA_ENABLE_STAT)
-{ // open stat file for appending
-	if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/createthread.stat',
-		'a')) === false)
-	{ // opening failed
-		kotoba_error("Ошибка. Не удалось открыть или создать файл статистики.");
+/*if(isset($_POST['b']))
+{
+    if(($board_name = check_format('board', $_POST['b'])) == false)
+	{
+		mysqli_close($link);
+		kotoba_error(Errmsgs::$messages['BOARD_NAME'], $smarty,
+			basename(__FILE__) . ' ' . __LINE__);
 	}
 }
-
-// Этап 1. Проверка имени доски, на которой создаётся тред.
-
-if(!isset($_POST['b']))
+else
 {
-	if(KOTOBA_ENABLE_STAT)
-		kotoba_stat(ERR_BOARD_NOT_SPECIFED);
-		
-	kotoba_error(ERR_BOARD_NOT_SPECIFED);
+	mysqli_close($link);
+	kotoba_error(Errmsgs::$messages['BOARD_NOT_SPECIFED'], $smarty,
+			basename(__FILE__) . ' ' . __LINE__);
 }
-
-if(($BOARD_NAME = CheckFormat('board', $_POST['b'])) === false)
+if(isset($_POST['t']))
 {
-	if(KOTOBA_ENABLE_STAT)
-		kotoba_stat(ERR_BOARD_BAD_FORMAT);
-		
-	kotoba_error(ERR_BOARD_BAD_FORMAT);
+    if(($thread_id = check_format('id', intval($_POST['t']))) === false)
+	{
+		mysqli_close($link);
+		kotoba_error(Errmsgs::$messages['THREAD_ID'], $smarty,
+			basename(__FILE__) . ' ' . __LINE__);
+	}
 }
-if(!isset($_POST['t']))
+else
 {
-	if(KOTOBA_ENABLE_STAT)
-		kotoba_stat(ERR_THREAD_NOT_SPECIFED);
-
-	kotoba_error(ERR_THREAD_NOT_SPECIFED);
-}
-
-if(($THREAD_NUM = CheckFormat('thread', $_POST['t'])) === false)
-{
-	if(KOTOBA_ENABLE_STAT)
-		kotoba_stat(ERR_THREAD_BAD_FORMAT);
-		
-	kotoba_error(ERR_THREAD_BAD_FORMAT);
+	mysqli_close($link);
+	kotoba_error(Errmsgs::$messages['THREAD_NOT_SPECIFED'], $smarty,
+			basename(__FILE__) . ' ' . __LINE__);
 }
 
 if(isset($_SESSION['isLoggedIn']) && $_SESSION['isLoggedIn'] > 0) {
@@ -213,7 +408,7 @@ require 'thumb_processing.php';
 }
 
 // calculate upload hash
-if($with_image) {
+if($with_file) {
 	if(($img_hash = hash_file('md5', $saved_image_path)) === false)
 	{
 		if(KOTOBA_ENABLE_STAT)
@@ -224,7 +419,7 @@ if($with_image) {
 }
 
 $already_posted = false;
-if($with_image) {
+if($with_file) {
 	$same_uplodads = post_find_same_uploads($link, $BOARD_NUM, $img_hash);
 	$same_uplodads_qty = count($same_uplodads);
 	switch($BOARD['same_upload']) {
@@ -246,27 +441,27 @@ if($with_image) {
 	}
 }
 
-/*
-if(! KOTOBA_ALLOW_SAEMIMG)
-{
-	$error_message_array = array();
-	if(!post_get_same_image($BOARD_NUM, $BOARD_NAME, $img_hash, "kotoba_stat",
-			$error_message_array))
-	{
-		unlink($saved_image_path);
-		if($error_message_array['sameimage']) {
-			$link = sprintf("<a href=\"%s/%s/%d#%d\">тут</a>", 
-				KOTOBA_DIR_PATH, $BOARD_NAME,
-				$error_message_array['thread'], $error_message_array['post']);
-			kotoba_error(sprintf("Ошибка. Картинка уже была запощена %s", $link));
-		}
-		else {
-			kotoba_error($error_message_array['error_message']);
-		}
-	}
-}
- */
-if(!$already_posted && $with_image && $imageresult['image'] == 1 && 
+
+//if(! KOTOBA_ALLOW_SAEMIMG)
+//{
+//	$error_message_array = array();
+//	if(!post_get_same_image($BOARD_NUM, $BOARD_NAME, $img_hash, "kotoba_stat",
+//			$error_message_array))
+//	{
+//		unlink($saved_image_path);
+//		if($error_message_array['sameimage']) {
+//			$link = sprintf("<a href=\"%s/%s/%d#%d\">тут</a>",
+//				KOTOBA_DIR_PATH, $BOARD_NAME,
+//				$error_message_array['thread'], $error_message_array['post']);
+//			kotoba_error(sprintf("Ошибка. Картинка уже была запощена %s", $link));
+//		}
+//		else {
+//			kotoba_error($error_message_array['error_message']);
+//		}
+//	}
+//}
+
+if(!$already_posted && $with_file && $imageresult['image'] == 1 &&
 	$imageresult['x'] < KOTOBA_MIN_IMGWIDTH && $imageresult['y'] < KOTOBA_MIN_IMGHEIGTH)
 {
 	if(KOTOBA_ENABLE_STAT)
@@ -275,7 +470,7 @@ if(!$already_posted && $with_image && $imageresult['image'] == 1 &&
 	unlink($saved_image_path);
 	kotoba_error(ERR_FILE_LOW_RESOLUTION);
 }
-if(!$already_posted && $with_image && $imageresult['image'] == 1) {
+if(!$already_posted && $with_file && $imageresult['image'] == 1) {
 	$thumbnailresult = array();
 	$thumb_res = create_thumbnail($link, "$IMG_SRC_DIR/$saved_filename", "$IMG_THU_DIR/$saved_thumbname",
 		$original_ext, $imageresult['x'], $imageresult['y'], 200, 200,
@@ -312,11 +507,11 @@ if(!$already_posted && $with_image && $imageresult['image'] == 1) {
 			$message));
 	}
 }
-elseif(!$already_posted && $with_image) {
+elseif(!$already_posted && $with_file) {
 	$saved_thumbname = $imageresult['thumbnail'];
 }
 
-if(!$already_posted && $with_image) {
+if(!$already_posted && $with_file) {
 	$image = upload($link, $BOARD_NUM, $saved_filename, $uploaded_file_size, $img_hash, 
 		$imageresult['image'], $image_virtual_path, $imageresult['x'], $imageresult['y'],
 		$thumbnail_virtual_path, $thumbnailresult['x'], $thumbnailresult['y']);
@@ -357,7 +552,7 @@ $postid = post($link, $BOARD_NUM, $THREAD_NUM, $Message_name, $tripcode, '', $Me
 if($postid < 0) {
 	kotoba_error("Cannot store information about post");
 }
-if(!$already_posted && $with_image) {
+if(!$already_posted && $with_file) {
 	if(link_post_upload($link, $BOARD_NUM, $image, $postid)) {
 		kotoba_error("Cannot link information about post and upload");
 	}
@@ -375,19 +570,5 @@ if(isset($_POST['goto']) && $_POST['goto'] == 't')
 }
 
 header('Location: ' . KOTOBA_DIR_PATH . "/$BOARD_NAME/");
-exit;
-?>
-<?php
-/*
- * Выводит сообщение $errmsg в файл статистики $stat_file.
- */
-function kotoba_stat($errmsg, $close_file = true)
-{
-	global $stat_file;
-	fwrite($stat_file, "$errmsg (" . date("Y-m-d H:i:s") . ")\n");
-
-	if($close_file)
-		fclose($stat_file);
-}
-// vim: set encoding=utf-8:
+exit;*/
 ?>

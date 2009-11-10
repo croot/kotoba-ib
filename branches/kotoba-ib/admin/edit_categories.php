@@ -29,7 +29,17 @@ kotoba_log(sprintf(Logmsgs::$messages['ADMIN_FUNCTIONS'],
 		$_SERVER['REMOTE_ADDR']),
 	Logmsgs::open_logfile(Config::ABS_PATH . '/log/' .
 		basename(__FILE__) . '.log'));
-$categories = db_categories_get($link, $smarty);
+try
+{
+	$categories = db_categories_get($link);
+}
+catch(Exception $e)
+{
+	$smarty->assign('msg', $e->__toString());
+	if(isset($link) && $link instanceof MySQLi)
+		mysqli_close($link);
+	die($smarty->fetch('error.tpl'));
+}
 $reload_categories = false;	// Были ли произведены изменения.
 /*
  * Добавим категорию досок.
@@ -60,7 +70,19 @@ foreach($categories as $category)
  * редактирования.
  */
 if($reload_categories)
-	 $categories = db_categories_get($link, $smarty);
+{
+	try
+	{
+		$categories = db_categories_get($link);
+	}
+	catch(Exception $e)
+	{
+		$smarty->assign('msg', $e->__toString());
+		if(isset($link) && $link instanceof MySQLi)
+			mysqli_close($link);
+		die($smarty->fetch('error.tpl'));
+	}
+}
 mysqli_close($link);
 $smarty->assign('categories', $categories);
 $smarty->display('edit_categories.tpl');
