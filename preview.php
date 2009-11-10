@@ -43,42 +43,51 @@ else
 	$page = 1;
 $removepass = !isset($_SESSION['rempass']) || $_SESSION['rempass'] == null ? ''
 				: $_SESSION['rempass'];
-$boards = db_boards_get_preview($_SESSION['user'], $link, $smarty);
-$categories = db_categories_get($link, $smarty);
-foreach($categories as $category)	// TODO А что будет если нет категорий?
+try
+{
+	$boards = db_boards_get_view($_SESSION['user'], $link);
+	$categories = db_categories_get($link);
+	foreach($categories as $category)	// TODO А что будет если нет категорий?
 	foreach($boards as &$b)
 		if($b['category'] == $category['id'])
 			/* Заменим id категории на её имя. */
 			$b['category'] = $category['name'];
-unset($b);	// Иначе затрём при следующем цикле последнюю доску с массиве.
-/* Проверим, существует ли запрашиваемая для предпросмотра доска. */
-$found = false;
-foreach($boards as $b)
-	if($b['name'] == $board_name)
-	{
-		$found = true;
-		$board = $b;
-		break;
-	}
-if(! $found)
-	kotoba_error(sprintf(Errmsgs::$messages['BOARD_NOT_FOUND'], $board_name),
-		$smarty,
-		basename(__FILE__) . ' ' . __LINE__, $link);
-$page_max = ($board['threads_count'] % $_SESSION['threads_per_page'] == 0
-	? (int)($board['threads_count'] / $_SESSION['threads_per_page'])
-	: (int)($board['threads_count'] / $_SESSION['threads_per_page']) + 1);
-/*
- * Получние нитей, сообщений и другой необходимой информации.
- */
-$threads = db_threads_get_preview($board['id'], $page, $_SESSION['user'],
-	$_SESSION['threads_per_page'], $link, $smarty);
-$posts = db_posts_get_preview($threads, $_SESSION['user'],
-	$_SESSION['posts_per_thread'], $link, $smarty);
-$posts_uploads = db_posts_uploads_get_all($posts, $link, $smarty);
-$uploads = db_uploads_get_all($posts, $link, $smarty);
-$hidden_threads = db_hidden_threads_get_all($board['id'], $_SESSION['user'],
-	$link, $smarty);
-$upload_types = db_upload_types_get_preview($board['id'], $link, $smarty);
+	unset($b);	// Иначе затрём при следующем цикле последнюю доску с массиве.
+	/* Проверим, существует ли запрашиваемая для предпросмотра доска. */
+	$found = false;
+	foreach($boards as $b)
+		if($b['name'] == $board_name)
+		{
+			$found = true;
+			$board = $b;
+			break;
+		}
+	if(! $found)
+		throw new Exception(sprintf(Errmsgs::$messages['BOARD_NOT_FOUND'],
+				$board_name));
+	$page_max = ($board['threads_count'] % $_SESSION['threads_per_page'] == 0
+		? (int)($board['threads_count'] / $_SESSION['threads_per_page'])
+		: (int)($board['threads_count'] / $_SESSION['threads_per_page']) + 1);
+	/*
+	 * Получние нитей, сообщений и другой необходимой информации.
+	 */
+	$threads = db_threads_get_view($board['id'], $page, $_SESSION['user'],
+		$_SESSION['threads_per_page'], $link);
+	$posts = db_posts_get_view($threads, $_SESSION['user'],
+		$_SESSION['posts_per_thread'], $link);
+	$posts_uploads = db_posts_uploads_get_all($posts, $link);
+	$uploads = db_uploads_get_all($posts, $link);
+	$hidden_threads = db_hidden_threads_get_all($board['id'], $_SESSION['user'],
+		$link);
+	$upload_types = db_upload_types_get($board['id'], $link);
+}
+catch(Exception $e)
+{
+	$smarty->assign('msg', $e->__toString());
+	if(isset($link) && $link instanceof MySQLi)
+		mysqli_close($link);
+	die($smarty->fetch('error.tpl'));
+}
 /*
  * Формирование вывода.
  */
@@ -105,8 +114,7 @@ foreach($threads as $t)
 		if($t['id'] == $p['thread'])
 		{
 			$recived_posts_count++;
-			/* Оригинальное сообщение. */
-			if($t['original_post'] == $p['number'])
+			if($t['original_post'] == $p['number'])	// Оригинальное сообщение.
 			{
 				$smarty->assign('with_image', false);
 				$smarty->assign('original_theme', $p['subject']);
@@ -124,16 +132,17 @@ foreach($threads as $t)
 							if($pu['upload'] == $u['id'])
 							{
 								$smarty->assign('with_image', true);
-								$smarty->assign('original_file_link', $u['file_name']);
-								$smarty->assign('original_file_name', $u['file_name']);
+								$smarty->assign('original_file_link', Config::DIR_PATH . "/{$u['file_name']}");
+								$smarty->assign('original_file_name', basename($u['file_name']));
 								$smarty->assign('original_file_size', $u['size']);
 								$smarty->assign('original_file_width', $u['file_w']);
 								$smarty->assign('original_file_heigth', $u['file_h']);
-								$smarty->assign('original_file_thumbnail_link', $u['thumbnail_name']);
+								$smarty->assign('original_file_thumbnail_link', Config::DIR_PATH . "/{$u['thumbnail_name']}");
 								$smarty->assign('original_file_thumbnail_width', $u['thumbnail_w']);
 								$smarty->assign('original_file_thumbnail_heigth', $u['thumbnail_h']);
 							}
 					}
+				$preview_thread_html .= $smarty->fetch('preview_thread_header.tpl');
 			}
 			else
 			{
@@ -151,12 +160,12 @@ foreach($threads as $t)
 							if($pu['upload'] == $u['id'])
 							{
 								$smarty->assign('with_image', true);
-								$smarty->assign('simple_file_link', Config::DIR_PATH . "/{$board['name']}/img/{$u['file_name']}");
-								$smarty->assign('simple_file_name', $u['file_name']);
+								$smarty->assign('simple_file_link', Config::DIR_PATH . "/{$u['file_name']}");
+								$smarty->assign('simple_file_name', basename($u['file_name']));
 								$smarty->assign('simple_file_size', $u['size']);
 								$smarty->assign('simple_file_width', $u['file_w']);
 								$smarty->assign('simple_file_heigth', $u['file_h']);
-								$smarty->assign('simple_file_thumbnail_link', Config::DIR_PATH . "/{$board['name']}/thumb/{$u['thumbnail_name']}");
+								$smarty->assign('simple_file_thumbnail_link', Config::DIR_PATH . "/{$u['thumbnail_name']}");
 								$smarty->assign('simple_file_thumbnail_width', $u['thumbnail_w']);
 								$smarty->assign('simple_file_thumbnail_heigth', $u['thumbnail_h']);
 							}
@@ -164,15 +173,13 @@ foreach($threads as $t)
 				$preview_posts_html .= $smarty->fetch('simple_post.tpl');
 			}
 		}
-		$smarty->assign('skipped', $t['posts_count'] - $recived_posts_count);
-		/* TODO Потенциальная проблема с with_image */
-		$preview_thread_html .= $smarty->fetch('preview_thread_header.tpl');
-		$preview_thread_html .= $preview_posts_html;
-		$preview_thread_html .= $smarty->fetch('preview_thread_footer.tpl');
-		$preview_html .= $preview_thread_html;
-		$preview_thread_html = '';
-		$preview_posts_html = '';
-		$recived_posts_count = 0;
+	$smarty->assign('skipped', $t['posts_count'] - $recived_posts_count);
+	$preview_thread_html .= $preview_posts_html;
+	$preview_thread_html .= $smarty->fetch('preview_thread_footer.tpl');
+	$preview_html .= $preview_thread_html;
+	$preview_thread_html = '';
+	$preview_posts_html = '';
+	$recived_posts_count = 0;
 }
 $smarty->assign('hidden_threads', $hidden_threads);
 $preview_html .= $smarty->fetch('preview_footer.tpl');

@@ -28,7 +28,7 @@ kotoba_log(sprintf(Logmsgs::$messages['ADMIN_FUNCTIONS'],
 	Logmsgs::open_logfile(Config::ABS_PATH . '/log/' .
 		basename(__FILE__) . '.log'));
 $upload_handlers = db_upload_handlers_get($link, $smarty);
-$upload_types = db_upload_types_get($link, $smarty);
+$upload_types = db_upload_types_get_all($link, $smarty);
 $reload_upload_types = false;	// Были ли произведены изменения.
 /*
  * Добавим новый тип загружаемых файлов.
@@ -222,7 +222,7 @@ if(isset($_POST['submited']))
  * вывод формы редактирования.
  */
 if($reload_upload_types)
-	$upload_types = db_upload_types_get($link, $smarty);
+	$upload_types = db_upload_types_get_all($link, $smarty);
 mysqli_close($link);
 $smarty->assign('upload_handlers', $upload_handlers);
 $smarty->assign('upload_types', $upload_types);

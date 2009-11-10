@@ -6,9 +6,10 @@ drop procedure if exists sp_bans_get|
 drop procedure if exists sp_bans_delete|
 drop procedure if exists sp_bans_unban|
 drop procedure if exists sp_boards_get_allowed|
-drop procedure if exists sp_boards_get_preview|
+drop procedure if exists sp_boards_get_view|
 drop procedure if exists sp_boards_get_all|
 drop procedure if exists sp_boards_get_specifed|
+drop procedure if exists sp_boards_get_specifed_view|
 drop procedure if exists sp_boards_add|
 drop procedure if exists sp_boards_edit|
 drop procedure if exists sp_boards_delete|
@@ -40,7 +41,7 @@ drop procedure if exists sp_upload_handlers_delete|
 drop procedure if exists sp_popdown_handlers_get|
 drop procedure if exists sp_popdown_handlers_add|
 drop procedure if exists sp_popdown_handlers_delete|
-drop procedure if exists sp_upload_types_get|
+drop procedure if exists sp_upload_types_get_all|
 drop procedure if exists sp_upload_type_get|
 drop procedure if exists sp_upload_types_add|
 drop procedure if exists sp_upload_types_edit|
@@ -48,13 +49,17 @@ drop procedure if exists sp_upload_types_delete|
 drop procedure if exists sp_board_upload_types_get|
 drop procedure if exists sp_board_upload_types_add|
 drop procedure if exists sp_board_upload_types_delete|
-drop procedure if exists sp_threads_get_preview|
-drop procedure if exists sp_threads_get_specifed|
-drop procedure if exists sp_posts_get_preview|
+drop procedure if exists sp_threads_get_view|
+drop procedure if exists sp_threads_get_specifed_view|
+drop procedure if exists sp_threads_get_specifed_change|
+drop procedure if exists sp_threads_get_specifed_moderate|
+drop procedure if exists sp_posts_get_view|
+drop procedure if exists sp_posts_uploads_add|
 drop procedure if exists sp_posts_uploads_get_all|
 drop procedure if exists sp_uploads_get_all|
+drop procedure if exists sp_uploads_add|
 drop procedure if exists sp_hidden_threads_get_all|
-drop procedure if exists sp_upload_types_get_preview|
+drop procedure if exists sp_upload_types_get|
 drop procedure if exists sp_threads_get_all|
 drop procedure if exists sp_threads_edit|
 drop procedure if exists sp_threads_get_mod|
@@ -65,6 +70,7 @@ drop procedure if exists sp_upload|
 drop procedure if exists sp_create_thread|
 drop procedure if exists sp_post_upload|
 drop procedure if exists sp_post|
+drop procedure if exists sp_posts_add_reply|
 drop function if exists get_board_id|
 drop function if exists get_posts_count|
 
@@ -125,7 +131,10 @@ begin
 	order by b.category, b.`name`;
 end|
 
-create procedure sp_boards_get_preview
+-- Возвращает список досок, доступных для чтения пользователю с идентификатором
+-- _user и количество доступных для просмотра нитей, необходимое для
+-- постраничной разбивки.
+create procedure sp_boards_get_view
 (
 	_user int
 )
@@ -201,6 +210,41 @@ begin
 				end if;
 			end if;
 		end if;
+	end if;
+end|
+
+-- Выбирает параметры доски с именем board_name, доступной для просмтра
+-- пользователю с идентификатором user_id.
+--
+-- Аргументы:
+-- board_name - имя доски.
+-- user_id - идентификатор пользователя.
+--
+-- Возвращает параметры доски или строку 'NOT_FOUND', если доски с таким
+-- именем не существует. Если доска не доступна для просмотра, то возвращает
+-- пустую выборку.
+create procedure sp_boards_get_specifed_view
+(
+	board_name varchar(16),
+	user_id int
+)
+begin
+	declare board_id int;
+	select id into board_id from boards where `name` = board_name;
+	if(board_id is null)
+	then
+		select 'NOT_FOUND' as error;
+	else
+		select b.id, b.`name`, b.title, b.bump_limit, b.same_upload,
+			b.popdown_handler, b.category
+		from boards b
+		join user_groups ug on ug.`user` = user_id
+		left join acl a1 on a1.`group` = ug.`group` and b.id = a1.board
+		left join acl a2 on a2.`group` is null and b.id = a2.board
+		left join acl a3 on a3.`group` = ug.`group` and a3.board is null and a3.thread is null and a3.post is null
+		where b.id = board_id
+			and (coalesce(a1.view, a2.view, a3.view) = 1 or coalesce(a1.view, a2.view, a3.view) is null)
+		group by b.id;
 	end if;
 end|
 
@@ -465,6 +509,7 @@ begin
 	delete from stylesheets where id = _id;
 end|
 
+-- Возвращает категории досок.
 create procedure sp_categories_get ()
 begin
 	select id, `name` from categories;
@@ -528,9 +573,13 @@ begin
 	delete from popdown_handlers where id = _id;
 end|
 
-create procedure sp_upload_types_get ()
+-- Возвращает список загружаемых типов файлов.
+create procedure sp_upload_types_get_all ()
 begin
-	select id, extension, store_extension, upload_handler, thumbnail_image from upload_types;
+	select ut.id, ut.extension, ut.store_extension, ut.upload_handler,
+		uh.`name` as upload_handler_name, ut.thumbnail_image
+	from upload_types ut
+	join upload_handlers uh on uh.id = ut.upload_handler;
 end|
 
 create procedure sp_upload_type_get
@@ -671,7 +720,10 @@ begin
 	delete from bans where range_beg <= ip and range_end >= ip;
 end|
 
-create procedure sp_threads_get_preview
+-- Возвращает threads_per_page нитей со страницы page доски с идентификатором
+-- board_id, доступные для чтения пользователю с идентификатором user_id. А так
+-- же количество сообщений в этих нитях.
+create procedure sp_threads_get_view
 (
 	board_id int,
 	page int,
@@ -710,7 +762,7 @@ begin
 	deallocate prepare stmnt;
 end|
 
-create procedure sp_posts_get_preview
+create procedure sp_posts_get_view
 (
 	thread_id int,
 	user_id int,
@@ -733,7 +785,7 @@ begin
 		from posts p
 		join threads t on p.board = t.board and p.thread = t.id
 		where p.number = t.original_post and p.thread = ?
-		order by number desc';
+		order by number asc';
 	set @user_id = user_id;
 	set @thread_id = thread_id;
 	set @limit = posts_per_thread;
@@ -741,6 +793,23 @@ begin
 	deallocate prepare stmnt;
 end|
 
+-- Связывает сообщение с идентификатором $post_id с загруженным файлом с
+-- идентификатором $upload_id.
+--
+-- Аргументы:
+-- _post_id - идентификатор сообщения.
+-- _upload_id - идентификатор сообщения.
+create procedure sp_posts_uploads_add
+(
+	_post_id int,
+	_upload_id int
+)
+begin
+	insert into posts_uploads (post, upload) values (_post_id, _upload_id);
+end|
+
+-- Возвращает для сообщения с идентификатором post_id его связь с загруженными
+-- файлами.
 create procedure sp_posts_uploads_get_all
 (
 	post_id int
@@ -749,6 +818,8 @@ begin
 	select post, upload from posts_uploads where post = post_id;
 end|
 
+-- Возвращает для сообщения с идентификатором post_id информацию о загруженных
+-- файлах.
 create procedure sp_uploads_get_all
 (
 	post_id int
@@ -760,6 +831,8 @@ begin
 	join posts_uploads pu on pu.upload = u.id and pu.post = post_id;
 end|
 
+-- Возвращает номера нитей, скрытых пользователем с идентификатором user_id на
+-- доске с идентификатором board_id.
 create procedure sp_hidden_threads_get_all
 (
 	board_id int,
@@ -772,35 +845,207 @@ begin
 	where ht.user = user_id;
 end|
 
-create procedure sp_upload_types_get_preview
+-- Возвращает типы файлов, доступных для загрузки на доске с идентификатором
+-- board_id.
+--
+-- Аргументы:
+-- board_id - идентификатор доски.
+create procedure sp_upload_types_get
 (
 	board_id int
 )
 begin
-	select ut.extension
+	select ut.id, ut.extension, ut.store_extension, ut.upload_handler,
+		uh.`name` as upload_handler_name, ut.thumbnail_image
 	from upload_types ut
-	join board_upload_types but on ut.id = but.upload_type and but.board = board_id;
+	join board_upload_types but on ut.id = but.upload_type and but.board = board_id
+	join upload_handlers uh on uh.id = ut.upload_handler;
 end|
 
-create procedure sp_threads_get_specifed
+-- Проверяет, существует ли нить с идентификатором thread_id и доступна ли она
+-- для действия _action пользователю с идентификатором user_id. Действия:
+-- 1 - просмотр, 2 - редактирование, 3 - модерирование.
+--
+-- Если нить существует и доступна для заданного действия, то возвращает
+-- параметры нити. Для действий редактирование и модерирование, вместо
+-- количества видимых сообщений нити подставляется -1.
+-- Если нить не существует, то возвращает строку 'NOT_FOUND'.
+-- В противном случае возвращает null.
+/*create procedure sp_threads_get_specifed
+(
+	thread_id int,
+	user_id int,
+	_action int
+)
+begin
+	select id into thread_id from threads where id = thread_id;
+	if thread_id is null
+	then
+		select 'NOT_FOUND' as error;
+	else
+		if _action = 1	-- View.
+		then
+			select t.id, t.original_post, t.bump_limit, t.archived, t.sage,
+				t.with_images, count(p.id) as visible_posts_count
+			from threads t
+			join posts p on p.thread = t.id
+			join user_groups ug on ug.`user` = user_id
+			left join hidden_threads ht on t.id = ht.thread
+				and ug.`user` = ht.`user`
+			left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+			left join acl a2 on a2.`group` is null and a2.thread = t.id
+			left join acl a3 on a3.`group` = ug.`group` and a3.post = p.id
+			left join acl a4 on a4.`group` is null and a4.post = p.id
+			where (t.deleted = 0 or t.deleted is null)
+				and ht.thread is null
+				and t.id = thread_id
+				-- См. примеры в acl-notes.txt
+				and (coalesce(a1.view, a2.view) = 1 or coalesce(a1.view, a2.view) is null)
+				and (coalesce(a3.view, a4.view) = 1 or coalesce(a3.view, a4.view) is null)
+			group by t.id;
+		else
+			if _action = 2	-- Change.
+			then
+				select t.id, t.original_post, t.bump_limit, t.archived, t.sage, t.with_images, -1 as visible_posts_count
+				from threads t
+				join user_groups ug on ug.`user` = user_id
+				left join hidden_threads ht on t.id = ht.thread and ug.`user` = ht.`user`
+				left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+				left join acl a2 on a2.`group` is null and a2.thread = t.id
+				left join acl a3 on a3.`group` = ug.`group` and a3.board is null and a3.thread is null and a3.post is null
+				where (t.deleted = 0 or t.deleted is null)
+					and ht.thread is null
+					and t.id = thread_id
+					-- См. примеры в acl-notes.txt
+					and coalesce(a1.change, a2.change, a3.change) = 1
+				group by t.id;
+			else
+				if _action = 3	-- Moderate.
+				then
+					select t.id, t.original_post, t.bump_limit, t.archived, t.sage, t.with_images, -1 as visible_posts_count
+					from threads t
+					join user_groups ug on ug.`user` = user_id
+					left join hidden_threads ht on t.id = ht.thread and ug.`user` = ht.`user`
+					left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+					left join acl a2 on a2.`group` is null and a2.thread = t.id
+					left join acl a3 on a3.`group` = ug.`group` and a3.board is null and a3.thread is null and a3.post is null
+					where (t.deleted = 0 or t.deleted is null)
+						and ht.thread is null
+						and t.id = thread_id
+						-- См. примеры в acl-notes.txt
+						and coalesce(a1.moderate, a2.moderate, a3.moderate) = 1
+					group by t.id;
+				end if;	-- Moderate.
+			end if;	-- Change.
+		end if;	-- View.
+	end if;	-- Not found.
+end|*/
+
+-- Проверяет, существует ли нить с идентификатором thread_id и доступна ли она
+-- для просмотра пользователю с идентификатором user_id.
+--
+-- Если нить существует и доступна для чтения, то возвращает
+-- параметры нити. Если нить не существует, то возвращает строку 'NOT_FOUND'.
+-- В противном случае возвращает null.
+create procedure sp_threads_get_specifed_view
 (
 	thread_id int,
 	user_id int
 )
 begin
-	select t.id, t.original_post, t.bump_limit, t.archived, t.sage, t.with_images, count(p.id) as posts_count
-	from threads t
-	join posts p on p.thread = t.id
-	join user_groups ug on ug.`user` = user_id
-	left join hidden_threads ht on t.id = ht.thread and ug.`user` = ht.`user`
-	left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
-	left join acl a2 on a2.`group` is null and a2.thread = t.id
-	left join acl a3 on a3.`group` = ug.`group` and a3.post = p.id
-	left join acl a4 on a4.`group` is null and a4.post = p.id
-	where (t.deleted = 0 or t.deleted is null) and ht.thread is null and t.id = thread_id
-	group by t.id
-	having (max(coalesce(a1.view, a2.view)) = 1 or max(coalesce(a1.view, a2.view)) is null) and (max(coalesce(a3.view, a3.view)) = 1 or max(coalesce(a3.view, a4.view)) is null)
-	order by max(p.`number`) desc;
+	select id into thread_id from threads where id = thread_id;
+	if thread_id is null
+	then
+		select 'NOT_FOUND' as error;
+	else
+		select t.id, b.`name` as board_name, t.original_post, t.bump_limit, t.archived, t.sage,
+			t.with_images, count(p.id) as visible_posts_count
+		from threads t
+		join posts p on p.thread = t.id
+		join user_groups ug on ug.`user` = user_id
+		join boards b on t.board = b.id
+		left join hidden_threads ht on t.id = ht.thread
+			and ug.`user` = ht.`user`
+		left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+		left join acl a2 on a2.`group` is null and a2.thread = t.id
+		left join acl a3 on a3.`group` = ug.`group` and a3.post = p.id
+		left join acl a4 on a4.`group` is null and a4.post = p.id
+		where (t.deleted = 0 or t.deleted is null)
+			and ht.thread is null
+			and t.id = thread_id
+			-- См. примеры в acl-notes.txt
+			and (coalesce(a1.view, a2.view) = 1 or coalesce(a1.view, a2.view) is null)
+			and (coalesce(a3.view, a4.view) = 1 or coalesce(a3.view, a4.view) is null)
+		group by t.id;
+	end if;
+end|
+
+-- Проверяет, существует ли нить с идентификатором thread_id и доступна ли она
+-- для редактирования пользователю с идентификатором user_id.
+--
+-- Если нить существует и доступна для редактирования, то возвращает
+-- параметры нити. Если нить не существует, то возвращает строку 'NOT_FOUND'.
+-- В противном случае возвращает null.
+create procedure sp_threads_get_specifed_change
+(
+	thread_id int,
+	user_id int
+)
+begin
+	select id into thread_id from threads where id = thread_id;
+	if thread_id is null
+	then
+		select 'NOT_FOUND' as error;
+	else
+		select t.id, b.`name` as board_name, t.original_post, t.bump_limit, t.archived, t.sage, t.with_images
+		from threads t
+		join user_groups ug on ug.`user` = user_id
+		join boards b on t.board = b.id
+		left join hidden_threads ht on t.id = ht.thread and ug.`user` = ht.`user`
+		left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+		left join acl a2 on a2.`group` is null and a2.thread = t.id
+		left join acl a3 on a3.`group` = ug.`group` and a3.board is null and a3.thread is null and a3.post is null
+		where (t.deleted = 0 or t.deleted is null)
+			and ht.thread is null
+			and t.id = thread_id
+			-- См. примеры в acl-notes.txt
+			and coalesce(a1.change, a2.change, a3.change) = 1
+		group by t.id;
+	end if;
+end|
+
+-- Проверяет, существует ли нить с идентификатором thread_id и доступна ли она
+-- для модерирования пользователю с идентификатором user_id.
+--
+-- Если нить существует и доступна для модерирования, то возвращает
+-- параметры нити. Если нить не существует, то возвращает строку 'NOT_FOUND'.
+-- В противном случае возвращает null.
+create procedure sp_threads_get_specifed_moderate
+(
+	thread_id int,
+	user_id int
+)
+begin
+	select id into thread_id from threads where id = thread_id;
+	if thread_id is null
+	then
+		select 'NOT_FOUND' as error;
+	else
+		select t.id, b.`name` as board_name, t.original_post, t.bump_limit, t.archived, t.sage, t.with_images
+		from threads t
+		join user_groups ug on ug.`user` = user_id
+		join boards b on t.board = b.id
+		left join hidden_threads ht on t.id = ht.thread and ug.`user` = ht.`user`
+		left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+		left join acl a2 on a2.`group` is null and a2.thread = t.id
+		left join acl a3 on a3.`group` = ug.`group` and a3.board is null and a3.thread is null and a3.post is null
+		where (t.deleted = 0 or t.deleted is null)
+			and ht.thread is null
+			and t.id = thread_id
+			-- См. примеры в acl-notes.txt
+			and coalesce(a1.moderate, a2.moderate, a3.moderate) = 1
+		group by t.id;
+	end if;	-- Not found.
 end|
 
 create procedure sp_threads_get_all ()
@@ -868,14 +1113,26 @@ begin
 	order by t.id desc;
 end|
 
+-- Выбирает файлоы, загруженные на доску _board_name и имеющие хеш _hash.
+--
+-- Аргеументы:
+-- _board_name - имя доски.
+-- _hash - хеш файла.
+-- Возвращает идентификаторы файлов.
 create procedure sp_uploads_get_same
 (
 	_board_name varchar(16),
 	_hash varchar(32)
 )
 begin
-	select u.id from boards b
-	join uploads u on(b.name = _board_name and b.id = u.board and u.hash = _hash);
+	select u.id, u.`hash`, u.is_image, u.file_name, u.file_w, u.file_h,
+		u.`size`, u.thumbnail_name, u.thumbnail_w, u.thumbnail_h,
+		p.`number` as `post_number`, p.thread as `thread_id`
+	from uploads u
+	join posts_uploads pu on pu.upload = u.id
+	join posts p on p.id = pu.post
+	join boards b on b.id = p.board and b.`name` = _board_name
+	where u.`hash` = _hash;
 end|
 
 create procedure sp_board_get_settings
@@ -891,7 +1148,7 @@ end|
 create procedure sp_upload
 (
 	_board_name varchar(16),
-	_file_size int, 
+	_file_size int,
 	_hash varchar(32),
 	_image bit,
 	_file varchar(256),
@@ -906,6 +1163,66 @@ begin
 	values
 	(get_board_id(_board_name), _hash, _image, _file, _x, _y, _file_size, _thumbnail, _thumbx, _thumby);
 	select last_insert_id();
+end|
+-- Сохраняет данные о загруженном файле.
+
+-- Аргументы:
+-- _board_id - идентификатор доски.
+-- _hash - хеш файла.
+-- _is_image - является файл изображением или нет.
+-- _file_name - относительный путь к файлу.
+-- _file_w - ширина изображения (для изображений).
+-- _file_h - высота изображения (для изображений).
+-- _size - размер файла в байтах.
+-- _thumbnail_name - относительный путь к уменьшенной копии.
+-- _thumbnail_w - ширина уменьшенной копии (для изображений).
+-- _thumbnail_h - высота уменьшенной копии (для изображений).
+--
+-- Возвращает идентификатор поля с сохранёнными данными.
+create procedure sp_uploads_add
+(
+	_board_id int,
+	_hash varchar(32),
+	_is_image bit,
+	_file_name varchar(256),
+	_file_w int,
+	_file_h int,
+	_size int,
+	_thumbnail_name varchar(256),
+	_thumbnail_w int,
+	_thumbnail_h int
+)
+begin
+	if(_hash = '')
+	then
+		set _hash = null;
+	end if;
+	if(_file_w = 0)
+	then
+		set _file_w = null;
+	end if;
+	if(_file_h = 0)
+	then
+		set _file_h = null;
+	end if;
+	if(_thumbnail_name = '')
+	then
+		set _thumbnail_name = null;
+	end if;
+	if(_thumbnail_w = 0)
+	then
+		set _thumbnail_w = null;
+	end if;
+	if(_thumbnail_h = 0)
+	then
+		set _thumbnail_h = null;
+	end if;
+	insert into uploads (board, `hash`, is_image, file_name, file_w, file_h,
+		`size`, thumbnail_name, thumbnail_w, thumbnail_h)
+	values
+	(_board_id, _hash, _is_image, _file_name, _file_w, _file_h,
+		_size, _thumbnail_name, _thumbnail_w, _thumbnail_h);
+	select last_insert_id() as `id`;
 end|
 
 create procedure sp_create_thread (
@@ -991,7 +1308,7 @@ BEGIN
 	-- each thread may have individual bump limit
 	select bump_limit into bumplimit from threads
 	where id = threadid;
-	
+
 	-- thread may forcibly sage''d or unsaged
 	select sage into threadsage from threads where id = threadid;
 	if threadsage is not null then
@@ -1021,6 +1338,68 @@ BEGIN
 	select post_number;
 END|
 
+-- Добавляет сообщение в сущестующую нить.
+
+-- Аргументы:
+-- _board_id - идентификатор доски.
+-- _thread_id - идентификатор нити.
+-- _user_id - идентификатор автора.
+-- _password - пароль на удаление сообщения.
+-- _name - имя автора.
+-- _ip - IP адрес автора.
+-- _subject - тема.
+-- _datetime - время получения сообщения.
+-- _text - текст.
+-- _sage - не поднимать нить этим сообщением.
+--
+-- Возвращает идентификатор сообщения.
+create procedure sp_posts_add_reply
+(
+	_board_id int,
+	_thread_id int,
+	_user_id int,
+	_password varchar(128),
+	_name varchar(128),
+	_ip bigint,
+	_subject varchar(128),
+	_datetime datetime,
+	_text text,
+	_sage bit
+)
+begin
+	declare count_posts int;	-- posts in thread
+	declare post_number int;	-- number on post on thread
+	declare bumplimit int;		-- number of bump posts (posts which brings thread to up)
+	declare threadsage bit;		-- whole thread sage
+	select max(`number`) into post_number from posts where board = _board_id;
+	if(post_number is null)
+	then
+		set post_number = 1;
+	else
+		set post_number = post_number + 1;
+	end if;
+	select bump_limit into bumplimit from threads where id = _thread_id;
+	select count(id) into count_posts from posts where thread = _thread_id;
+	select sage into threadsage from threads where id = _thread_id;
+	if(threadsage is not null)
+	then
+		set _sage = threadsage;
+	end if;
+	if(count_posts > bumplimit)
+	then
+		set _sage = 1;
+	end if;
+	if(_datetime is null)
+	then
+		set _datetime = now();
+	end if;
+	insert into posts (board, thread, `number`, `user`, password, `name`, ip,
+		subject, date_time, text, sage)
+	values (_board_id, _thread_id, post_number, _user_id, _password, _name, _ip,
+		_subject, _datetime, _text, _sage);
+	select last_insert_id() as `id`;
+end|
+
 delimiter |
 drop function if exists  get_next_post_on_board|
 CREATE FUNCTION get_next_post_on_board
@@ -1038,7 +1417,7 @@ BEGIN
 	if postnumber is null then
 		set postnumber = 0;
 	end if;
-	
+
 	set postnumber = postnumber + 1;
 
 	RETURN postnumber;

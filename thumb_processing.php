@@ -66,7 +66,7 @@ function db_upload_settings($link, $smarty, $extension) {
 }
 
 /*
- * thumb_check_image_type function checking is image format supported
+ * thumb_check_upload_type function checking is image format supported
  * also if fomat supported - calculates its dimensions
  * return true if supported
  * argumens: 
@@ -85,7 +85,7 @@ function thumb_check_upload_type($link, $smarty, $ext, $file, &$result) {
 //	echo sprintf("file %s with extension %s", $file, $ext);
 	$has_gd = (check_module('gd') | check_module('gd2')) & Config::TRY_IMAGE_GD;
 	$has_im = check_module('imagick') & Config::TRY_IMAGE_IM;
-	$image_settings = db_upload_settings($link, $smarty, $ext);
+	$image_settings = db_upload_settings($link, $smarty, $ext);	// Уже получены ранее.
 	//var_dump($image_settings);
 	$result['force_thumbnail'] = false;
 	// if nothing found
@@ -140,6 +140,99 @@ function thumb_check_upload_type($link, $smarty, $ext, $file, &$result) {
 	}
 	else {
 		return false;
+	}
+}
+/**
+ * Проверяет наличие библиотек для работы с изображениями, тип загруженного
+ * файла и формирует данные об этом файле.
+ * 
+ * Аргументы:
+ * $ext - расширение загруженного файла.
+ * $file - загруженный файл (путь к нему).
+ * $types - типы файлов, доступных для загрузки.
+ *
+ * Возвращает массив данных о загруженном:
+ * 'store_extension' - сохраняемое расширение файла.
+ * 'original_extension' - расширение оригинального файла.
+ * 'x' - ширина изображения (если файл - изображение).
+ * 'y' - высота изображения (если файл - изображение).
+ * 'force_thumbnail' - создавать уменьшенную копию изображения, даже если оно
+ * слишком мало.
+ * 'is_image' - является файл изображением или нет.
+ * 'thumbnail' - полный относительный путь к уменьшенной копии файла, если он
+ * не является изображением.
+ */
+function thumb_get_img_settings($ext, $file, &$types)
+{
+//	echo sprintf("file %s with extension %s", $file, $ext);
+	$has_gd = (check_module('gd') | check_module('gd2')) & Config::TRY_IMAGE_GD;
+	$has_im = check_module('imagick') & Config::TRY_IMAGE_IM;
+	foreach($types as $type)
+		if($ext == $type['extension'])
+			$image_settings = $type;
+//	var_dump($image_settings);
+//	exit;
+	$result = array();
+	$result['force_thumbnail'] = false;
+	$result['original_extension'] = $ext;
+	$result['store_extension'] = $image_settings['store_extension'];
+	$result['x'] = 0;
+	$result['y'] = 0;
+	$result['is_image'] = is_image($ext);
+	if(!$result['is_image'])
+	{
+		if($image_settings['thumbnail_image'] == null)
+		{
+			throw new Exception(Errmsgs::$messages['NO_THUMBNAIL']);
+		}
+		$result['thumbnail'] = $image_settings['thumbnail_image'];
+		return $result;
+	}
+	if($image_settings['upload_handler_name'] == 'internal_png'
+		&& $result['is_image'])
+	{
+		// internal_png usually is for 'special' image formats like svg
+		$result['force_thumbnail'] = true;
+	}
+	if($has_gd)
+	{
+		if($image_settings['upload_handler_name'] == 'default_handler'
+			|| $image_settings['upload_handler_name'] == 'internal_png')
+		{
+			if($result['is_image'])
+			{
+				// get image size using libgd
+				$dimensions = getimagesize($file);
+				$result['x'] = $dimensions[0];
+				$result['y'] = $dimensions[1];
+			}
+		}
+		return $result;
+	}
+	elseif($has_im)
+	{
+		if($image_settings['upload_handler_name'] == 'default_handler'
+			|| $image_settings['upload_handler_name'] == 'internal_png')
+		{
+			if($result['is_image'])
+			{
+				// get image size using imagick
+				$image = new Imagick($file);
+				if(!$image->setImageFormat($result['original_extension']))
+				{
+					throw new Exception(Errmsgs::$messages['IMGMAGIC_FORMAT']);
+				}
+				$result['x'] = $image->getImageWidth();
+				$result['y'] = $image->getImageHeight();
+				$image->clear();
+				$image->destroy();
+			}
+		}
+		return $result;
+	}
+	else
+	{
+		throw new Exception(Errmsgs::$messages['NO_IMGLIBS']);
 	}
 }
 
@@ -372,8 +465,8 @@ function gd_resize(&$img, $x, $y, $size_x, $size_y, $source, $destination, $fill
 		$size_x = $size_x * $ratio;
 	}
 
-	$result['x'] = $size_x;
-	$result['y'] = $size_y;
+	$result['x'] = round($size_x);
+	$result['y'] = round($size_y);
 	$res = imagecreatetruecolor($size_x, $size_y);
 	if($fill && $blend) { // png. slow on big images (need tests)
 		imagealphablending($res, false);

@@ -295,7 +295,200 @@ function check_format($type, $value)
 /**********
  * Разное *
  **********/
+/**
+ * Временная фукнция вместо create_thumbnail из thumb_processing.
+ *
+ * Аргументы:
+ * $source - исходное изображение.
+ * $destination - файл, куда должна быть помещена уменьшенная копия.
+ * $source_settings - параметры исходного изображения.
+ * $types - типы файлов, доступных для загрузки.
+ * $resize_x - ширина уменьшенной копии.
+ * $resize_y - высота уменьшенной копии.
+ * $force - is forcing creating thumbnail.
+ *
+ * Возвращает параметры созданной уменьшенной копии изображения.
+ */
+function create_thumbnail_new($source, $destination, $source_settings, $types,
+	$resize_x, $resize_y, $force = false)
+{
+	//echo sprintf("%s, %s, %s, %d, %d, %d, %d", $source, $destination, $type, $x, $y, $resize_x, $resize_y);
+	// small image doesn't need to be thumbnailed
+	$result = array();
+	if(!$force && $source_settings['x'] < $resize_x
+		&& $source_settings['y'] < $resize_y)
+	{
+		// big file but small image is some kind of trolling
+		if(filesize($source) > Config::SMALLIMAGE_LIMIT_FILE_SIZE)
+		{
+			throw new Exception(Errmsgs::$messages['MAX_SMALL_IMG_SIZE']);
+		}
+		$result['x'] = $source_settings['x'];
+		$result['y'] = $source_settings['y'];
+		link_file_new($source, $destination);
+		return $result;
+	}
+	$has_gd = (check_module('gd') | check_module('gd2')) & Config::TRY_IMAGE_GD;
+	$has_im = check_module('imagick') & Config::TRY_IMAGE_IM;
+	foreach($types as $type)
+		if($source_settings['original_extension'] == $type['extension'])
+			$image_settings = $type;
+	if($source_settings['is_image'])
+	{
+		// known image format
+		if($image_settings['upload_handler_name'] == 'default_handler')
+		{
+			if($has_gd)
+			{
+				gd_create_thumbnail_new($source, $destination,
+					$source_settings['original_extension'],
+					$source_settings['x'], $source_settings['y'], $resize_x,
+					$resize_y, $result);
+			}
+			elseif($has_im)
+			{
+				im_create_thumbnail_new($source, $destination,
+					$source_settings['x'], $source_settings['y'], $resize_x,
+					$resize_y, false, $result);
+			}
+			else
+			{
+				throw new Exception(Errmsgs::$messages['NO_IMGLIBS']);
+			}
+		}
+		// known image format but thumbnail in png
+		if($image_settings['upload_handler_name'] == 'internal_png')
+		{
+			if($has_im)
+			{
+				im_create_png_thumbnail_new($source, $destination,
+					$source_settings['x'], $source_settings['y'], $resize_x,
+					$resize_y, $result);
+			}
+			else
+			{
+				throw new Exception(Errmsgs::$messages['NO_IMGLIBS']);
+			}
+		}
+	}
+	return $result;
+}
+/**
+ * Временная фукнция вместо im_create_png_thumbnail_new из thumb_processing.
+ */
+function im_create_png_thumbnail_new($source, $destination, $x, $y, $resize_x, $resize_y, &$result) {
+//	echo "$source, $destination, $x, $y, $resize_x, $resize_y<br>\n";
+	$thumbnail = new Imagick($source);
+	$resolution = $thumbnail->getImageResolution();
+	$resolution_ratio_x = $resolution['x'] / $x;
+	$resolution_ratio_y = $resolution['y'] / $y;
+	// get background color of source image
+	$color = $thumbnail->getImageBackgroundColor();
+	if($x >= $y) { // calculate proportions of destination image
+		$ratio = $y / $x;
+		$resize_y = $resize_y * $ratio;
+	}
+	else {
+		$ratio = $x / $y;
+		$resize_x = $resize_x * $ratio;
+	}
+	$thumbnail->removeImage();
 
+	$thumbnail->setResolution($resize_x * $resolution_ratio_x, $resize_y * $resolution_ratio_y);
+	$thumbnail->readImage($source);
+	if(!$thumbnail->setImageFormat('png'))
+	{
+		throw new Exception(Errmsgs::$messages['CONVERT_PNG']);
+	}
+	// fill destination image with source image background color
+	// (for transparency in svg for example)
+	$thumbnail->paintTransparentImage($color, 0.0, 0);
+	$result['x'] = $thumbnail->getImageWidth();
+	$result['y'] = $thumbnail->getImageHeight();
+	$thumbnail->writeImage($destination);
+	$thumbnail->clear();
+	$thumbnail->destroy();
+}
+/**
+ * Временная фукнция вместо gd_create_thumbnail из thumb_processing.
+ */
+
+function gd_create_thumbnail_new($source, $destination, $type, $x, $y, $resize_x, $resize_y, &$result)
+{
+	switch(strtolower($type))
+	{
+		case 'gif':
+			gif_gd_create_new($source, $destination, $x, $y, $resize_x, $resize_y, $result);
+			break;
+		case 'jpeg':
+		case 'jpg':
+			jpg_gd_create_new($source, $destination, $x, $y, $resize_x, $resize_y, $result);
+			break;
+		case 'png':
+			png_gd_create_new($source, $destination, $x, $y, $resize_x, $resize_y, $result);
+			break;
+		default:
+			throw new Exception(Errmsgs::$messages['WRONG_FILETYPE']);
+			break;
+	}
+}
+/*
+ * Временные фукнции вместо соотвествующиз без _new из thumb_processing.
+ */
+function gif_gd_create_new($source, $destination, $x, $y, $resize_x, $resize_y, &$result) {
+	$gif = imagecreatefromgif($source);
+	$thumbnail = gd_resize($gif, $x, $y, $resize_x, $resize_y, $source, $destination, true, false, $result);
+	imagegif($thumbnail, $destination);
+}
+function jpg_gd_create_new($source, $destination, $x, $y, $resize_x, $resize_y, &$result) {
+	$jpeg = imagecreatefromjpeg($source);
+	$thumbnail = gd_resize($jpeg, $x, $y, $resize_x, $resize_y, $source, $destination, false,false,$result);
+	imagejpeg($thumbnail, $destination);
+}
+function png_gd_create_new($source, $destination, $x, $y, $resize_x, $resize_y, &$result) {
+	$png = imagecreatefrompng($source);
+	$thumbnail = gd_resize($png, $x, $y, $resize_x, $resize_y, $source, $destination, true ,true, $result);
+	imagepng($thumbnail, $destination);
+}
+/**
+ * Временная фукнция вместо link_file из thumb_processing.
+ *
+ * WARNING: dies
+ * Аргументы:
+ * $source is source filename
+ * $destination is destination filename
+ */
+function link_file_new($source, $destination)
+{
+	if(function_exists("link"))
+	{
+		if(!link($source, $destination))
+		{
+			throw new Exception(Errmsgs::$messages['LINK_FAILED']);
+		}
+	}
+	else
+	{
+		if(!copy($source, $destination))
+		{
+			throw new Exception(Errmsgs::$messages['COPY_FAILED']);
+		}
+	}
+}
+/**
+ * Выводит информацию о загруженых ранее файлах.
+ *
+ * Аргументы:
+ * $same_uploads - файлы.
+ * $board_name - имя доски.
+ * $smarty - шаблонизатор.
+ */
+function display_same_uploads($same_uploads, $board_name, $smarty)
+{
+	$smarty->assign('same_uploads', $same_uploads);
+	$smarty->assign('board_name', $board_name);
+	$smarty->display('same_uploads.tpl');
+}
 /*
  * Загружает настройки пользователя с ключевым словом $keyword_hash.
  */
@@ -340,6 +533,167 @@ function create_directories($board_name) {
 	return true;
 }
 
+/**
+ * Возвращает расширение файла с именем $path.
+ *
+ * Аргументы:
+ * $path - имя файла, включая (или нет) путь.
+ */
+function get_file_extension($path)
+{
+	$parts = pathinfo($path);
+	return $parts['extension'];
+}
+/**
+ * Проверяет, есть ли расширение $ext среди расширений $types.
+ *
+ * Аргументы:
+ * $ext - расширение файла для поиска.
+ * $types - массив расширений.
+*/
+function upload_types_valid_ext($ext, &$types)
+{
+	$found = false;
+	foreach($types as $type)
+		if($type['extension'] == $ext)
+		{
+			$found = true;
+			break;
+		}
+	if(!$found)
+	{
+		throw new Exception(Errmsgs::$messages['WRONG_FILETYPE']);
+	}
+}
+/**
+ * Проверяет, произошла ли ошибка при загрузке файла её тип.
+ *
+ * Аргументы:
+ * $error - ошибка.
+ *
+ * Возвращает true или false.
+ */
+function uploads_check_error($error)
+{
+	switch($error)
+	{
+		case UPLOAD_ERR_INI_SIZE:
+			throw new Exception(Errmsgs::$messages['UPLOAD_ERR_INI_SIZE']);
+		break;
+		case UPLOAD_ERR_FORM_SIZE:
+			throw new Exception(Errmsgs::$messages['UPLOAD_ERR_FORM_SIZE']);
+		break;
+		case UPLOAD_ERR_PARTIAL:
+			throw new Exception(Errmsgs::$messages['UPLOAD_ERR_PARTIAL']);
+		break;
+		case UPLOAD_ERR_NO_FILE:
+			throw new Exception(Errmsgs::$messages['UPLOAD_ERR_NO_FILE']);
+		break;
+		case UPLOAD_ERR_NO_TMP_DIR:
+			throw new Exception(Errmsgs::$messages['UPLOAD_ERR_NO_TMP_DIR']);
+		break;
+		case UPLOAD_ERR_CANT_WRITE:
+			throw new Exception(Errmsgs::$messages['UPLOAD_ERR_CANT_WRITE']);
+		break;
+		case UPLOAD_ERR_EXTENSION:
+			throw new Exception(Errmsgs::$messages['UPLOAD_ERR_EXTENSION']);
+		break;
+	}
+}
+/**
+ * Проверяет длину имени, темы и текста сообщения.
+ *
+ * Аргументы:
+ * $message_name - ссылка на имя.
+ * $message_theme - ссылка на тему.
+ * $message_text - ссылка на текст сообщения.
+ */
+function posts_check_data(&$message_name, &$message_theme, &$message_text)
+{
+	if(mb_strlen($message_text) > Config::MAX_MESSAGE_LENGTH)
+		throw new Exception(Errmsgs::$messages['MAX_MESSAGE_LENGTH']);
+	if(mb_strlen($message_theme) > Config::MAX_THEME_LENGTH)
+		throw new Exception(Errmsgs::$messages['MAX_THEME_LENGTH']);
+	if(mb_strlen($message_name) > Config::MAX_NAME_LENGTH)
+		throw new Exception(Errmsgs::$messages['MAX_NAME_LENGTH']);
+}
+/**
+ * Подготавливает имя, тему и текст сообщения к сохранению в базе данных:
+ * производит разметку, удаляет лишние пробелы и переносы, и т.д.
+ *
+ * Аргументы:
+ * $message_name - ссылка на имя.
+ * $message_theme - ссылка на тему.
+ * $message_text - ссылка на текст сообщения.
+ */
+function posts_prepare_data(&$message_name, &$message_theme, &$message_text)
+{
+	// TODO kotoba_mark
+	$message_text = preg_replace("/\n/", '<br>', $message_text);
+	posts_check_data($message_name, $message_theme, $message_text);
+	$message_text = preg_replace('/(<br>){3,}/', '<br><br>', $message_text);
+	$message_theme = str_replace("\n", '', $message_theme);
+	$message_theme = str_replace("\r", '', $message_theme);
+	$message_name = str_replace("\n", '', $message_name);
+	$message_name = str_replace("\r", '', $message_name);
+}
+/**
+ * Формирует трипкод.
+ *
+ * Аргументы:
+ * $name - имя
+ * $encoding - кодировка имени.
+ */
+function posts_tripcode($name, $encoding = Config::MB_ENCODING)
+{
+	@list($first, $code) = @preg_split("/[#!]/", $name);
+	if(!isset($code) || strlen($code) == 0)
+	{
+		return $name;
+	}
+	$enc = mb_convert_encoding($code, 'Shift_JIS', $encoding);
+	$salt = substr($enc.'H..', 1, 2);
+	$salt2 = preg_replace("/![\.-z]/", '.', $salt);
+	$salt3 = strtr($salt2, ":;<=>?@[\]^_`", "ABCDEFGabcdef");
+	$cr = crypt($code, $salt3);
+	$trip = substr($cr, -10);
+	return array($first, $trip);
+}
+/**
+ * Создаёт имя для загруженного файла и уменьшенной копии.
+ *
+ * Аргументы:
+ * $recived_ext - расширение, с которым файл будет сохранён.
+ * $original_ext - расширение, с которым файл был загружен.
+ *
+ * Возвращаем массив имён с элементами:
+ * 0 - новое имя файла, с которым он будет сохранён.
+ * 1 - имя уменьшенной копии.
+ * 2 - новое имя файла, но с расширением, с которым он был загружен.
+ */
+function posts_create_filenames($recived_ext, $original_ext)
+{
+	list($usec, $sec) = explode(' ', microtime());
+	$saved_filename = $sec . substr($usec, 2, 5);				// Три знака после запятой.
+	$saved_thumbname = $saved_filename . 't.' . $recived_ext;   // Имена всех миниатюр заканчиваются на t.
+	$raw_filename = $saved_filename;
+	$saved_filename .= ".$original_ext";
+	return array($saved_filename, $saved_thumbname, $raw_filename);
+}
+/**
+ * Сохраняет загруженный файл $source как $target.
+ *
+ * Аргументы:
+ * $source - полный абсолютный путь к загруженному файлу.
+ * $target - полный абсолютный путь к файлу, где он должен быть сохранён.
+ */
+function posts_move_uploded_file($source, $target)
+{
+	if (!@rename($source, $target))
+	{
+		throw new Exception(Errmsgs::$messages['UPLOAD_SAVE']);
+	}
+}
 /* preview_message - crop long message
  * TODO: limit only lines
  * return cropped (if need) message
@@ -357,6 +711,32 @@ function preview_message(&$message, $preview_lines, &$is_cutted) {
 	else {
 		$is_cutted = 0;
 		return $message;
+	}
+}
+/**
+ * Проверяет, является ли расширение $ext файла, расширением файла картинки.
+ *
+ * Аргументы:
+ * $ext - расширение файла.
+ *
+ * Возвращает true или false.
+ */
+function is_image($ext)
+{
+	switch(strtolower($ext))
+	{
+		case 'jpg':
+			return true;
+		case 'jpeg':
+			return true;
+		case 'gif':
+			return true;
+		case 'png':
+			return true;
+		case 'bmp':
+			return true;
+		default:
+			return false;
 	}
 }
 
@@ -582,7 +962,7 @@ function db_bans_unban($ip, $link, $smarty)
  * argumnets:
  * $link - database link
  */
-function cleanup_link($link, $smarty)
+function cleanup_link($link, $smarty = null)
 {
 	/*
 	 * Заметка: если использовать mysqli_use_result вместо store, то
@@ -629,22 +1009,20 @@ function db_boards_get_allowed($id, $link, $smarty)
 	cleanup_link($link, $smarty);
 	return $boards;
 }
-/*
+/**
  * Возвращает список досок, доступных для чтения пользователю с
- * идентификатором $id и количество доступных для просмотра нитей, необходимое
+ * идентификатором $user_id и количество доступных для просмотра нитей, необходимое
  * для постраничной разбивки.
+ *
  * Аргументы:
- * $id - идентификатор пользователя.
+ * $user_id - идентификатор пользователя.
  * $link - связь с базой данных.
- * $smarty - экземпляр класса шаблонизатора.
  */
-function db_boards_get_preview($id, $link, $smarty)
+function db_boards_get_view($user_id, $link)
 {
-	$result = mysqli_query($link, "call sp_boards_get_preview({$id})");
+	$result = mysqli_query($link, "call sp_boards_get_view({$user_id})");
 	if($result == false)
-		kotoba_error(mysqli_error($link),
-					$smarty,
-					basename(__FILE__) . ' ' . __LINE__);
+		throw new Exception(mysqli_error($link));
 	$boards = array();
 	if(mysqli_affected_rows($link) > 0)
 		while(($row = mysqli_fetch_assoc($result)) != null)
@@ -657,24 +1035,26 @@ function db_boards_get_preview($id, $link, $smarty)
 					'category' => $row['category'],
 					'threads_count' => $row['threads_count']));
 	mysqli_free_result($result);
-	cleanup_link($link, $smarty);
+	cleanup_link($link, null);	// TODO Заглушка для cleanup_link!
 	return $boards;
 }
-/*
+/**
  * Возвращает доску с именем $board_name, доступную для набора действя $action
- * пользователю с идентификатором $id.
+ * пользователю с идентификатором $id. Если доска не существует или не доступна
+ * для запрашиваемого действия, то завершает работу скрипта и выводит ошибку.
+ *
  * Аргументы:
  * $board_name - имя доски.
  * $action - действие: 1 - просмотр, 2 - изменение, 3 - модерирование. Помните,
  * что более широкие права автоматически включают в себя более узкие.
- * $id - идентификатор пользователя.
+ * $user_id - идентификатор пользователя.
  * $link - связь с базой данных.
  * $smarty - экземпляр класса шаблонизатора.
  */
-function db_boards_get_specifed($board_name, $action, $id, $link, $smarty)
+function db_boards_get_specifed($board_name, $action, $user_id, $link, $smarty)
 {
 	$result = mysqli_query($link,
-		"call sp_boards_get_specifed('$board_name', $action, $id)");
+		"call sp_boards_get_specifed('$board_name', $action, $user_id)");
 	if($result == false)
 	{
 		mysqli_close($link);
@@ -802,149 +1182,6 @@ function db_boards_delete($id, $link, $smarty)
 	return true;
 }
 /*
- * Возвращает $threads_per_page нитей со страницы $page доски с идентификатором
- * $board_id, доступные для чтения пользователю с идентификатором
- * $user_id. А так же количество сообщений в этих нитях.
- * Аргументы:
- * $board_id - идентификатор доски.
- * $page - номер страницы.
- * $user_id - идентификатор пользователя.
- * $threads_per_page - количество нитей ни странице.
- * $link - связь с базой данных.
- * $smarty - экземпляр класса шаблонизатора.
- */
-function db_threads_get_preview($board_id, $page, $user_id, $threads_per_page,
-						$link, $smarty)
-{
-	$result = mysqli_query($link,
-		"call sp_threads_get_preview($board_id, $page, $user_id,
-			$threads_per_page)");
-	if($result == false)
-		kotoba_error(mysqli_error($link), $smarty,
-			basename(__FILE__) . ' ' . __LINE__, $link);
-	$threads = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) != null)
-			array_push($threads,
-				array('id' => $row['id'],
-						'original_post' => $row['original_post'],
-						'bump_limit' => $row['bump_limit'],
-						'sage' => $row['sage'],
-						'with_images' => $row['with_images'],
-						'posts_count' => $row['posts_count']));
-	mysqli_free_result($result);
-	cleanup_link($link, $smarty);
-	return $threads;
-}
-/*
- * Возвращает нить с идентификатором $thread_id, доступную пользователю с
- * идентификатором $user_id для просмотра. А так же число сообщений в этой нити
- * доступных для просмотра тому же пользователю.
- * Аргументы:
- * $thread_id - идентификатор нити.
- * $user_id - идентификатор пользователя.
- * $link - связь с базой данных.
- * $smarty - экземпляр класса шаблонизатора.
- */
-function db_threads_get_specifed($thread_id, $user_id, $link, $smarty)
-{
-	$result = mysqli_query($link,
-		"call sp_threads_get_specifed($thread_id, $user_id)");
-	if($result == false)
-		kotoba_error(mysqli_error($link), $smarty,
-			basename(__FILE__) . ' ' . __LINE__, $link);
-	$thread = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) != null)
-			array_push($thread,
-				array('id' => $row['id'],
-						'original_post' => $row['original_post'],
-						'bump_limit' => $row['bump_limit'],
-						'sage' => $row['sage'],
-						'with_images' => $row['with_images'],
-						'archived' => $row['archived'],
-						'posts_count' => $row['posts_count']));
-	mysqli_free_result($result);
-	cleanup_link($link, $smarty);
-	return $thread;
-}
-/*
- * Возвращает все нити всех досок.
- * Аргументы:
- * $link - связь с базой данных.
- * $smarty - экземпляр класса шаблонизатора.
- */
-function db_threads_get_all($link, $smarty)
-{
-	$result = mysqli_query($link, "call sp_threads_get_all()");
-	if($result == false)
-		kotoba_error(mysqli_error($link), $smarty,
-			basename(__FILE__) . ' ' . __LINE__, $link);
-	$threads = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) != null)
-			array_push($threads,
-				array('id' => $row['id'],
-						'board' => $row['board'],
-						'original_post' => $row['original_post'],
-						'bump_limit' => $row['bump_limit'],
-						'sage' => $row['sage'],
-						'with_images' => $row['with_images']));
-	mysqli_free_result($result);
-	cleanup_link($link, $smarty);
-	return $threads;
-}
-/*
- * Редактирует настройки нити с идентификатором $thread_id.
- * Аргументы:
- * $thread_id - идентификатор нити.
- * $bump_limit - бамплимит.
- * $sage - включение-выключение авто сажи.
- * $with_images - включение-выключение постинга картинок в нить.
- * $link - связь с базой данных.
- * $smarty - экземпляр класса шаблонизатора.
- */
-function db_threads_edit($thread_id, $bump_limit, $sage, $with_images, $link,
-	$smarty)
-{
-	if(($result = mysqli_query($link, "call sp_threads_edit($thread_id,
-				$bump_limit, $sage, $with_images)")) == false)
-	{
-		kotoba_error(mysqli_error($link), $smarty,
-			basename(__FILE__) . ' ' . __LINE__, $link);
-	}
-	cleanup_link($link, $smarty);
-	return true;
-}
-/*
- * Возвращает нити, доступные для модерирования пользователю с идентификатором
- * $user_id.
- * Аргументы:
- * $user_id - идентификатор пользователя.
- * $link - связь с базой данных.
- * $smarty - экземпляр класса шаблонизатора.
- */
-function db_threads_get_mod($user_id, $link, $smarty)
-{
-	$result = mysqli_query($link, "call sp_threads_get_mod($user_id)");
-	if($result == false)
-		kotoba_error(mysqli_error($link), $smarty,
-			basename(__FILE__) . ' ' . __LINE__, $link);
-	$threads = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) != null)
-			array_push($threads,
-				array('id' => $row['id'],
-						'board' => $row['board'],
-						'original_post' => $row['original_post'],
-						'bump_limit' => $row['bump_limit'],
-						'sage' => $row['sage'],
-						'with_images' => $row['with_images']));
-	mysqli_free_result($result);
-	cleanup_link($link, $smarty);
-	return $threads;
-}
-/*
  * Возвращает нить с идентификатором $thread_id, если она доступна для
  * модерирования пользователю с идентификатором $user_id.
  * Аргументы:
@@ -953,7 +1190,7 @@ function db_threads_get_mod($user_id, $link, $smarty)
  * $link - связь с базой данных.
  * $smarty - экземпляр класса шаблонизатора.
  */
-function db_threads_get_mod_specifed($user_id, $thread_id, $link, $smarty)
+/*function db_threads_get_mod_specifed($user_id, $thread_id, $link, $smarty)
 {
 	$result = mysqli_query($link, "call sp_threads_get_mod_specifed($user_id,
 		$thread_id)");
@@ -973,28 +1210,64 @@ function db_threads_get_mod_specifed($user_id, $thread_id, $link, $smarty)
 	mysqli_free_result($result);
 	cleanup_link($link, $smarty);
 	return $threads;
+}*/
+
+/************************************
+ * Фукнции для работы с сообщениями *
+ ************************************/
+
+/**
+ * Добавляет сообщение в сущестующую нить.
+ *
+ * Аргументы:
+ * $link - связь с базой данных.
+ * $board_id - идентификатор доски.
+ * $thread_id - идентификатор нити.
+ * $user_id - идентификатор автора.
+ * $password - пароль на удаление сообщения.
+ * $name - имя автора.
+ * $ip - IP адрес автора.
+ * $subject - тема.
+ * $datetime - время получения сообщения.
+ * $text - текст.
+ * $sage - не поднимать нить этим сообщением.
+ *
+ * Возвращает идентификатор сообщения.
+ */
+function db_posts_add_reply($link, $board_id, $thread_id, $user_id, $password, $name,
+	$ip, $subject, $datetime, $text, $sage)
+{
+	$result = mysqli_query($link, "call sp_posts_add_reply($board_id, $thread_id,
+		$user_id, '$password', '$name', $ip, '$subject', '$datetime', '$text',
+		$sage)");
+	if($result == false)
+		throw new Exception(mysqli_error($link));
+	$row = mysqli_fetch_assoc($result);
+	mysqli_free_result($result);
+	cleanup_link($link);
+	return $row['id'];
 }
-/*
+/**
  * Возвращает $posts_per_thread сообщений + оригинальное сообщение для каждой
- * нити из $threads, доступных для чтения пользователю с идентификатором $user_id.
+ * нити из $threads, доступных для чтения пользователю с идентификатором
+ * $user_id.
+ *
  * Аргументы:
  * $threads - нити.
  * $user_id - идентификатор пользователя.
- * $posts_per_thread - количество сообщений в предпросмотре нити.
+ * $posts_per_thread - количество сообщений, которое необходимо вернуть.
  * $link - связь с базой данных.
  * $smarty - экземпляр класса шаблонизатора.
  */
-function db_posts_get_preview($threads, $user_id, $posts_per_thread, $link,
-								$smarty)
+function db_posts_get_view($threads, $user_id, $posts_per_thread, $link)
 {
 	$posts = array();
 	foreach($threads as $t)
 	{
-		$result = mysqli_query($link, "call sp_posts_get_preview({$t['id']},
+		$result = mysqli_query($link, "call sp_posts_get_view({$t['id']},
 			$user_id, $posts_per_thread)");
 		if($result == false)
-			kotoba_error(mysqli_error($link), $smarty,
-				basename(__FILE__) . ' ' . __LINE__, $link);
+			throw new Exception(mysqli_error($link));
 		if(mysqli_affected_rows($link) > 0)
 			while(($row = mysqli_fetch_assoc($result)) != null)
 				array_push($posts,
@@ -1009,18 +1282,40 @@ function db_posts_get_preview($threads, $user_id, $posts_per_thread, $link,
 							'text' => $row['text'],
 							'sage' => $row['sage']));
 		mysqli_free_result($result);
-		cleanup_link($link, $smarty);
+		cleanup_link($link, null);	// TODO Заглушка для cleanup_link!
 	}
 	return $posts;
 }
-/*
+
+/***********************************************************************
+ * Функции для работы с таблицей связи сообщений и загруженных файлов. *
+ ***********************************************************************/
+
+/**
+ * Связывает сообщение с идентификатором $post_id с загруженным файлом с
+ * идентификатором $upload_id.
+ *
+ * Аргументы:
+ * $link - связь с базой данных.
+ * $post_id - идентификатор сообщения.
+ * $upload_id - идентификатор сообщения.
+ */
+ function db_posts_uploads_add($link, $post_id, $upload_id)
+ {
+	$result = mysqli_query($link, "call sp_posts_uploads_add($post_id, $upload_id)");
+	if($result == false)
+		throw new Exception(mysqli_error($link));
+	mysqli_free_result($result);
+	cleanup_link($link);
+ }
+/**
  * Возвращает для каждого сообщения из $posts его связь с загруженными файлами.
+ *
  * Аргументы:
  * $posts - сообщения.
  * $link - связь с базой данных.
- * $smarty - экземпляр класса шаблонизатора.
  */
-function db_posts_uploads_get_all($posts, $link, $smarty)
+function db_posts_uploads_get_all($posts, $link)
 {
 	$posts_uploads = array();
 	foreach($posts as $p)
@@ -1028,35 +1323,70 @@ function db_posts_uploads_get_all($posts, $link, $smarty)
 		$result = mysqli_query($link,
 			"call sp_posts_uploads_get_all({$p['id']})");
 		if($result == false)
-			kotoba_error(mysqli_error($link), $smarty,
-				basename(__FILE__) . ' ' . __LINE__, $link);
+			throw new Exception(mysqli_error($link));
 		if(mysqli_affected_rows($link) > 0)
 			while(($row = mysqli_fetch_assoc($result)) != null)
 				array_push($posts_uploads,
 					array('post' => $row['post'],
 							'upload' => $row['upload']));
 		mysqli_free_result($result);
-		cleanup_link($link, $smarty);
+		cleanup_link($link, null);	// TODO Заглушка для cleanup_link!
 	}
 	return $posts_uploads;
 }
-/*
+
+/***********************************
+ * Фукнции для работы с загрузками *
+ ***********************************/
+
+/**
+ * Сохраняет данные о загруженном файле.
+ *
+ * Аргументы:
+ * $link - связь с базой данных.
+ * $board_id - идентификатор доски.
+ * $hash - хеш файла.
+ * $is_image - является файл изображением или нет.
+ * $file_name - относительный путь к файлу.
+ * $file_w - ширина изображения (для изображений).
+ * $file_h - высота изображения (для изображений).
+ * $size - размер файла в байтах.
+ * $thumbnail_name - относительный путь к уменьшенной копии.
+ * $thumbnail_w - ширина уменьшенной копии (для изображений).
+ * $thumbnail_h - высота уменьшенной копии (для изображений).
+ *
+ * Возвращает идентификатор поля с сохранёнными данными.
+ */
+function db_uploads_add($link, $board_id, $hash, $is_image, $file_name, $file_w,
+	$file_h, $size, $thumbnail_name, $thumbnail_w, $thumbnail_h)
+{
+	if(!$is_image)
+		$is_image = 0;	// Преобразование false в String даёт пустую строку.
+	$result = mysqli_query($link, "call sp_uploads_add($board_id, '$hash',
+		$is_image, '$file_name', $file_w, $file_h, $size, '$thumbnail_name',
+		$thumbnail_w, $thumbnail_h)");
+	if($result == false)
+		throw new Exception(mysqli_error($link));
+	$row = mysqli_fetch_assoc($result);
+	mysqli_free_result($result);
+	cleanup_link($link);
+	return $row['id'];
+}
+/**
  * Возвращает для каждого сообщения из $posts информацию о загруженных файлах.
+ *
  * Аргументы:
  * $posts - сообщения.
  * $link - связь с базой данных.
- * $smarty - экземпляр класса шаблонизатора.
  */
-function db_uploads_get_all($posts, $link, $smarty)
+function db_uploads_get_all($posts, $link)
 {
 	$uploads = array();
 	foreach($posts as $p)
 	{
-		$result = mysqli_query($link,
-			"call sp_uploads_get_all({$p['id']})");
+		$result = mysqli_query($link, "call sp_uploads_get_all({$p['id']})");
 		if($result == false)
-			kotoba_error(mysqli_error($link), $smarty,
-				basename(__FILE__) . ' ' . __LINE__, $link);
+			throw new Exception(mysqli_error($link));
 		if(mysqli_affected_rows($link) > 0)
 			while(($row = mysqli_fetch_assoc($result)) != null)
 				array_push($uploads,
@@ -1071,54 +1401,107 @@ function db_uploads_get_all($posts, $link, $smarty)
 							'thumbnail_w' => $row['thumbnail_w'],
 							'thumbnail_h' => $row['thumbnail_h']));
 		mysqli_free_result($result);
-		cleanup_link($link, $smarty);
+		cleanup_link($link);
 	}
 	return $uploads;
 }
-/*
+/**
+ * Получает файлы, загруженные на доску $board_name и имеющие
+ * хеш $img_hash.
+ *
+ * arguments:
+ * $board_name - имя доски.
+ * $img_hash - хеш файла.
+ * $link - связь с базой данных.
+ *
+ * Возвращает массив загруженных файлов или null.
+ */
+function db_uploads_get_same($board_name, $img_hash, $link)
+{
+	$uploads = array();
+	$result = mysqli_query($link,
+		"call sp_uploads_get_same('$board_name', '$img_hash')");
+	if($result == false)
+		throw new Exception(mysqli_error($link));
+	if(mysqli_affected_rows($link) > 0)
+	{
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($uploads,
+				array('id' => $row['id'],
+						'hash' => $row['hash'],
+						'is_image' => $row['is_image'],
+						'file_name' => $row['file_name'],
+						'file_w' => $row['file_w'],
+						'file_h' => $row['file_h'],
+						'size' => $row['size'],
+						'thumbnail_name' => $row['thumbnail_name'],
+						'thumbnail_w' => $row['thumbnail_w'],
+						'thumbnail_h' => $row['thumbnail_h'],
+						'post_number' => $row['post_number'],
+						'thread_id' => $row['thread_id']));
+		mysqli_free_result($result);
+		cleanup_link($link);
+		return $uploads;
+	}
+	else
+	{
+		mysqli_free_result($result);
+		cleanup_link($link);
+		return null;
+	}
+}
+/**
  * Возвращает номера нитей, скрытых пользователем с идентификатором $user_id на
  * доске с идентификатором $board_id.
+ *
  * Аргументы:
  * $board_id - идентификатор доски.
  * $user_id - идентификатор пользователя.
  * $link - связь с базой данных.
- * $smarty - экземпляр класса шаблонизатора.
  */
-function db_hidden_threads_get_all($board_id, $user_id,	$link, $smarty)
+function db_hidden_threads_get_all($board_id, $user_id,	$link)
 {
 	$result = mysqli_query($link,
 		"call sp_hidden_threads_get_all($board_id, $user_id)");
 	if($result == false)
-		kotoba_error(mysqli_error($link), $smarty,
-			basename(__FILE__) . ' ' . __LINE__, $link);
+		throw new Exception(mysqli_error($link));
 	$hidden_threads = array();
 	if(mysqli_affected_rows($link) > 0)
 		while(($row = mysqli_fetch_assoc($result)) != null)
-			array_push($hidden_threads, array('number' => $row['original_post'],
-												'id' => $row['id']));
+			array_push($hidden_threads,
+				array('number' => $row['original_post'],
+						'id' => $row['id']));
 	mysqli_free_result($result);
-	cleanup_link($link, $smarty);
+	cleanup_link($link, null);	// TODO Заглушка для cleanup_link!
 	return $hidden_threads;
 }
-/*
- * Возвращает типы файлов доступных для загрузки на доске с идентификатором $board_id.
+/**
+ * Получает типы файлов, доступных для загрузки на доске с идентификатором
+ * $board_id.
+ *
  * Аргументы:
  * $board_id - идентификатор доски.
  * $link - связь с базой данных.
- * $smarty - экземпляр класса шаблонизатора.
+ *
+ * Возвращает массив расширений файлов.
  */
-function db_upload_types_get_preview($board_id, $link, $smarty)
+function db_upload_types_get($board_id, $link)
 {
-	$result = mysqli_query($link, "call sp_upload_types_get_preview($board_id)");
+	$result = mysqli_query($link, "call sp_upload_types_get($board_id)");
 	if($result == false)
-		kotoba_error(mysqli_error($link), $smarty,
-			basename(__FILE__) . ' ' . __LINE__, $link);
+		throw new Exception(mysqli_error($link));
 	$upload_types = array();
 	if(mysqli_affected_rows($link) > 0)
 		while(($row = mysqli_fetch_assoc($result)) != null)
-			array_push($upload_types, array('extension' => $row['extension']));
+			array_push($upload_types,
+				array('id' => $row['id'],
+						'extension' => $row['extension'],
+						'store_extension' => $row['store_extension'],
+						'upload_handler' => $row['upload_handler'],
+						'upload_handler_name' => $row['upload_handler_name'],
+						'thumbnail_image' => $row['thumbnail_image']));
 	mysqli_free_result($result);
-	cleanup_link($link, $smarty);
+	cleanup_link($link);
 	return $upload_types;
 }
 /*
@@ -1560,25 +1943,23 @@ function db_stylesheets_delete($stylesheet_id, $link, $smarty)
 	cleanup_link($link, $smarty);
 	return true;
 }
-/*
- * Возвращает список категорий досок.
+/**
+ * Возвращает категории досок.
+ *
  * Аргументы:
  * $link - связь с базой данных.
- * $smarty - экземпляр класса шаблонизатора.
  */
-function db_categories_get($link, $smarty)
+function db_categories_get($link)
 {
 	if(($result = mysqli_query($link, 'call sp_categories_get()')) == false)
-		kotoba_error(mysqli_error($link),
-			$smarty,
-			basename(__FILE__) . ' ' . __LINE__);
+		throw new Exception(mysqli_error($link));
 	$categories = array();
 	if(mysqli_affected_rows($link) > 0)
 		while(($row = mysqli_fetch_assoc($result)) != null)
 			array_push($categories, array('id' => $row['id'],
 					'name' => $row['name']));
 	mysqli_free_result($result);
-	cleanup_link($link, $smarty);
+	cleanup_link($link, null);	// TODO Заглушка для cleanup_link!
 	return $categories;
 }
 /*
@@ -1709,18 +2090,16 @@ function db_popdown_handlers_delete($popdown_handler_id, $link, $smarty)
 	cleanup_link($link, $smarty);
 	return true;
 }
-/*
+/**
  * Возвращает список загружаемых типов файлов.
+ *
  * Аргументы:
  * $link - связь с базой данных.
- * $smarty - экземпляр класса шаблонизатора.
  */
-function db_upload_types_get($link, $smarty)
+function db_upload_types_get_all($link, $smarty)
 {
-	if(($result = mysqli_query($link, 'call sp_upload_types_get()')) == false)
-		kotoba_error(mysqli_error($link),
-			$smarty,
-			basename(__FILE__) . ' ' . __LINE__);
+	if(($result = mysqli_query($link, 'call sp_upload_types_get_all()')) == false)
+		throw new Exception(mysqli_error($link));
 	$upload_types = array();
 	if(mysqli_affected_rows($link) > 0)
 		while(($row = mysqli_fetch_assoc($result)) != null)
@@ -1730,7 +2109,7 @@ function db_upload_types_get($link, $smarty)
 					'upload_handler' => $row['upload_handler'],
 					'thumbnail_image' => $row['thumbnail_image']));
 	mysqli_free_result($result);
-	cleanup_link($link, $smarty);
+	cleanup_link($link, null);
 	return $upload_types;
 }
 /*
@@ -2092,5 +2471,356 @@ function db_get_board_types($link, $boardid) {
 	mysqli_stmt_close($st);
 	cleanup_link_use($link);
 	return $types;
+}
+
+/*******************************
+ * Фукнции для работы с нитями *
+ *******************************/
+
+/**
+ * Редактирует настройки нити с идентификатором $thread_id.
+ *
+ * Аргументы:
+ * $thread_id - идентификатор нити.
+ * $bump_limit - бамплимит.
+ * $sage - включение-выключение авто сажи.
+ * $with_images - включение-выключение постинга картинок в нить.
+ * $link - связь с базой данных.
+ */
+function db_threads_edit($thread_id, $bump_limit, $sage, $with_images, $link)
+{
+	$result = mysqli_query($link, "call sp_threads_edit($thread_id,
+				$bump_limit, $sage, $with_images)");
+	cleanup_link($link, null);	// TODO Заглушка для cleanup_link!
+	if($result == false)
+		throw new Exception(mysqli_error($link));
+	return true;
+}
+/*
+ * Возвращает все нити всех досок.
+ * Аргументы:
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_threads_get_all($link, $smarty)
+{
+	$result = mysqli_query($link, "call sp_threads_get_all()");
+	if($result == false)
+		kotoba_error(mysqli_error($link), $smarty,
+			basename(__FILE__) . ' ' . __LINE__, $link);
+	$threads = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($threads,
+				array('id' => $row['id'],
+						'board' => $row['board'],
+						'original_post' => $row['original_post'],
+						'bump_limit' => $row['bump_limit'],
+						'sage' => $row['sage'],
+						'with_images' => $row['with_images']));
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $threads;
+}
+/*
+ * Возвращает нити, доступные для модерирования пользователю с идентификатором
+ * $user_id.
+ * Аргументы:
+ * $user_id - идентификатор пользователя.
+ * $link - связь с базой данных.
+ * $smarty - экземпляр класса шаблонизатора.
+ */
+function db_threads_get_mod($user_id, $link, $smarty)
+{
+	$result = mysqli_query($link, "call sp_threads_get_mod($user_id)");
+	if($result == false)
+		kotoba_error(mysqli_error($link), $smarty,
+			basename(__FILE__) . ' ' . __LINE__, $link);
+	$threads = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($threads,
+				array('id' => $row['id'],
+						'board' => $row['board'],
+						'original_post' => $row['original_post'],
+						'bump_limit' => $row['bump_limit'],
+						'sage' => $row['sage'],
+						'with_images' => $row['with_images']));
+	mysqli_free_result($result);
+	cleanup_link($link, $smarty);
+	return $threads;
+}
+/**
+ * Получает параметры нити с идентификатором $thread_id, доступной для просмотра
+ * пользователю с идентификатором $user_id.
+ *
+ * Аргументы:
+ * $thread_id - идентификатор нити.
+ * $user_id - идентификатор пользователя.
+ * $link - связь с базой данных.
+ *
+ * Возвращает параметры нити.
+ */
+function db_threads_get_specifed_view($thread_id, $user_id, $link)
+{
+	$result = mysqli_query($link,
+		"call sp_threads_get_specifed_view($thread_id, $user_id)");
+	if($result == false)
+		throw new Exception(mysqli_error($link));
+	if(mysqli_affected_rows($link) <= 0)
+	{
+		mysqli_free_result($result);
+		cleanup_link($link);
+		throw new Exception(Errmsgs::$messages['THREAD_NOT_ALLOWED']);
+	}
+	$row = mysqli_fetch_assoc($result);
+	if(isset($row['error']) && $row['error'] == 'NOT_FOUND')
+	{
+		mysqli_free_result($result);
+		cleanup_link($link);
+		throw new Exception(sprintf(Errmsgs::$messages['THREAD_NOT_FOUND'],
+				$thread_id));
+	}
+	$thread = array('id' => $row['id'],
+					'board_name' => $row['board_name'],
+					'original_post' => $row['original_post'],
+					'bump_limit' => $row['bump_limit'],
+					'sage' => $row['sage'],
+					'with_images' => $row['with_images'],
+					'archived' => $row['archived'],
+					'posts_count' => $row['visible_posts_count']);
+	mysqli_free_result($result);
+	cleanup_link($link);
+	return $thread;
+}
+/**
+ * Получает параметры нити с идентификатором $thread_id , доступной для
+ * редактирования пользователю с идентификатором $user_id.
+ *
+ * Аргументы:
+ * $thread_id - идентификатор нити.
+ * $user_id - идентификатор пользователя.
+ * $link - связь с базой данных.
+ *
+ * Возвращает параметры нити.
+ */
+function db_threads_get_specifed_change($thread_id, $user_id, $link)
+{
+	$result = mysqli_query($link,
+		"call sp_threads_get_specifed_change($thread_id, $user_id)");
+	if($result == false)
+		throw new Exception(mysqli_error($link));
+	if(mysqli_affected_rows($link) <= 0)
+	{
+		mysqli_free_result($result);
+		cleanup_link($link);
+		throw new Exception(Errmsgs::$messages['THREAD_NOT_ALLOWED']);
+	}
+	$row = mysqli_fetch_assoc($result);
+	if(isset($row['error']) && $row['error'] == 'NOT_FOUND')
+	{
+		mysqli_free_result($result);
+		cleanup_link($link);
+		throw new Exception(sprintf(Errmsgs::$messages['THREAD_NOT_FOUND'],
+				$thread_id));
+	}
+	$thread = array('id' => $row['id'],
+					'board_name' => $row['board_name'],
+					'original_post' => $row['original_post'],
+					'bump_limit' => $row['bump_limit'],
+					'sage' => $row['sage'],
+					'with_images' => $row['with_images'],
+					'archived' => $row['archived']);
+	mysqli_free_result($result);
+	cleanup_link($link);
+	return $thread;
+}
+/**
+ * Проверяет, существует ли нить с идентификатором thread_id и доступна ли она
+ * для модерирования пользователю с идентификатором user_id.
+ *
+ * Если нить существует и доступна для модерирования, то возвращает
+ * параметры нити. Если нить не доступна для модерирования, то возвращает
+ * null. В противном случае происходит исключение.
+ * Аргументы:
+ * $thread_id - идентификатор нити.
+ * $user_id - идентификатор пользователя.
+ * $link - связь с базой данных.
+ */
+function db_threads_get_specifed_moderate($thread_id, $user_id, $link)
+{
+	$result = mysqli_query($link,
+		"call sp_threads_get_specifed_moderate($thread_id, $user_id)");
+	if($result == false)
+		throw new Exception(mysqli_error($link));
+	if(mysqli_affected_rows($link) <= 0)
+	{
+		mysqli_free_result($result);
+		cleanup_link($link, null);	// TODO Заглушка для cleanup_link!
+		return null;
+	}
+	$row = mysqli_fetch_assoc($result);
+	if(isset($row['error']) && $row['error'] == 'NOT_FOUND')
+	{
+		mysqli_free_result($result);
+		cleanup_link($link, null);	// TODO Заглушка для cleanup_link!
+		throw new Exception(sprintf(Errmsgs::$messages['THREAD_NOT_FOUND'],
+				$thread_id));
+	}
+	$thread = array('id' => $row['id'],
+					'board_name' => $row['board_name'],
+					'original_post' => $row['original_post'],
+					'bump_limit' => $row['bump_limit'],
+					'sage' => $row['sage'],
+					'with_images' => $row['with_images'],
+					'archived' => $row['archived']);
+	mysqli_free_result($result);
+	cleanup_link($link, null);	// TODO Заглушка для cleanup_link!
+	return $thread;
+}
+/**
+ * Возвращает $threads_per_page нитей со страницы $page доски с идентификатором
+ * $board_id, доступные для чтения пользователю с идентификатором
+ * $user_id. А так же количество сообщений в этих нитях.
+ *
+ * Аргументы:
+ * $board_id - идентификатор доски.
+ * $page - номер страницы.
+ * $user_id - идентификатор пользователя.
+ * $threads_per_page - количество нитей ни странице.
+ * $link - связь с базой данных.
+ */
+function db_threads_get_view($board_id, $page, $user_id, $threads_per_page,
+	$link)
+{
+	$result = mysqli_query($link,
+		"call sp_threads_get_view($board_id, $page, $user_id,
+			$threads_per_page)");
+	if($result == false)
+		throw new Exception(mysqli_error($link));
+	$threads = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($threads,
+				array('id' => $row['id'],
+						'original_post' => $row['original_post'],
+						'bump_limit' => $row['bump_limit'],
+						'sage' => $row['sage'],
+						'with_images' => $row['with_images'],
+						'posts_count' => $row['posts_count']));
+	mysqli_free_result($result);
+	cleanup_link($link, null);	// TODO Заглушка для cleanup_link!
+	return $threads;
+}
+/**
+ * Проверяет корректность идентификатора $id нити.
+ *
+ * Аргументы:
+ * $id - идентификатор нити.
+ *
+ * Возвращает безопасный для использования идентификатор нити.
+ */
+function threads_check_id($id)
+{
+	if(!isset($id))
+		throw new Exception(Errmsgs::$messages['THREAD_NOT_SPECIFED']);
+	$length = strlen($id);
+	$max_int_length = strlen('' . PHP_INT_MAX);
+	if($length <= $max_int_length && $length >= 1)
+	{
+		$id = RawUrlEncode($id);
+		$length = strlen($id);
+		if($length > $max_int_length || (ctype_digit($id) === false) || $length < 1)
+			throw new Exception(Errmsgs::$messages['THREAD_ID']);
+	}
+	else
+		throw new Exception(Errmsgs::$messages['THREAD_ID']);
+	return $id;
+}
+
+/********************************
+ * Фукнции для работы с досками *
+ ********************************/
+
+/**
+ * Проверяет корректность имени $name доски.
+ *
+ * Аргументы:
+ * $name - имя доски для проверки.
+ *
+ * Возвращает безопасное для использования имя доски.
+ */
+function boards_check_name($name)
+{
+	if(!isset($name))
+		throw new Exception(Errmsgs::$messages['BOARD_NOT_SPECIFED']);
+	$length = strlen($name);
+	if($length <= 16 && $length >= 1)
+	{
+		$name = RawUrlEncode($name);
+		$length = strlen($name);
+		if($length > 16 || (strpos($name, '%') !== false) || $length < 1)
+			throw new Exception(Errmsgs::$messages['BOARD_NAME']);
+	}
+	else
+		throw new Exception(Errmsgs::$messages['BOARD_NAME']);
+	return $name;
+}
+/*
+// Тесты.
+// require '../kwrapper.php';
+try { echo "test 1:\n"; echo boards_check_name($some_undefined_variable); }
+catch(Exception $e) { echo $e->__toString(); }
+try { echo "test 2:\n"; echo boards_check_name('<hr>badあ'); }
+catch(Exception $e) { echo $e->__toString(); }
+try { echo "test 3:\n"; echo boards_check_name('thisboardnameistooooooolong'); }
+catch(Exception $e) { echo $e->__toString(); }
+try { echo "test 4:\n"; echo boards_check_name(''); }
+catch(Exception $e) { echo $e->__toString(); }
+try { echo "test 5:\n"; echo boards_check_name('good_value'); }
+catch(Exception $e) { echo $e->__toString(); }
+*/
+
+/**
+ * Получает параметры доски с именем $board_name доступной для просмотра
+ * пользователю с идентификатором $user_id.
+ *
+ * Аргументы:
+ * $board_name - имя доски.
+ * $user_id - идентификатор пользователя.
+ * $link - связь с базой данных.
+ *
+ * Возвращает параметры доски.
+ */
+function db_boards_get_specifed_view($board_name, $user_id, $link)
+{
+	$result = mysqli_query($link,
+		"call sp_boards_get_specifed_view('$board_name', $user_id)");
+	if($result == false)
+		throw new Exception(mysqli_error($link));
+	if(mysqli_affected_rows($link) <= 0)
+	{
+		mysqli_free_result($result);
+		cleanup_link($link);
+		throw new Exception(Errmsgs::$messages['BOARD_NOT_ALLOWED']);
+	}
+	$row = mysqli_fetch_assoc($result);
+	if(isset($row['error']) && $row['error'] == 'NOT_FOUND')
+	{
+		mysqli_free_result($result);
+		cleanup_link($link);
+		throw new Exception(sprintf(Errmsgs::$messages['BOARD_NOT_FOUND'],
+							$board_name));
+	}
+	$board = array('id' => $row['id'],
+					'name' => $row['name'],
+					'title' => $row['title'],
+					'bump_limit' => $row['bump_limit'],
+					'same_upload' => $row['same_upload'],
+					'popdown_handler' => $row['popdown_handler'],
+					'category' => $row['category']);
+	mysqli_free_result($result);
+	cleanup_link($link);
+	return $board;
 }
 ?>

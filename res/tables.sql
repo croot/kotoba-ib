@@ -154,7 +154,7 @@ engine=InnoDB|
 create table uploads
 (
 	id int not null auto_increment,
-	board int not null,
+	board int not null,	-- TODO Избыточная информация.
 	`hash` varchar(32) default null,
 	is_image bit not null,
 	file_name varchar(256) not null,

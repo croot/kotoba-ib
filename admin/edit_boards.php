@@ -25,7 +25,17 @@ kotoba_log(sprintf(Logmsgs::$messages['ADMIN_FUNCTIONS'],
 	Logmsgs::open_logfile(Config::ABS_PATH . '/log/' .
 		basename(__FILE__) . '.log'));
 $popdown_handlers = db_popdown_handlers_get($link, $smarty);
-$categories = db_categories_get($link, $smarty);
+try
+{
+	$categories = db_categories_get($link);
+}
+catch(Exception $e)
+{
+	$smarty->assign('msg', $e->__toString());
+	if(isset($link) && $link instanceof MySQLi)
+		mysqli_close($link);
+	die($smarty->fetch('error.tpl'));
+}
 $boards = db_boards_get_all($link, $smarty);
 $reload_boards = false;	// Были ли произведены изменения.
 /*

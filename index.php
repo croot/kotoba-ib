@@ -15,7 +15,17 @@ kotoba_setup($link, $smarty);
 $boards = db_boards_get_allowed($_SESSION['user'], $link, $smarty);
 if(count($boards) > 0)
 {
-	$categories = db_categories_get($link, $smarty);
+	try
+	{
+		$categories = db_categories_get($link);
+	}
+	catch(Exception $e)
+	{
+		$smarty->assign('msg', $e->__toString());
+		if(isset($link) && $link instanceof MySQLi)
+			mysqli_close($link);
+		die($smarty->fetch('error.tpl'));
+	}
 	foreach($categories as $category)
 		foreach($boards as &$board)
 			if($board['category'] == $category['id'])

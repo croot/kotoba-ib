@@ -50,7 +50,7 @@ function post_get_board_id($board_name, $kotoba_stat, &$error_message) {
  * $kotoba_stat is kotoba_stat function name
  * $error_message is reference to variable which would contain error message if any
  */
-function post_check_image_upload_error($error, $allow_no_uploads = false, $kotoba_stat, &$error_message) {
+function post_check_image_upload_error($error, $allow_no_uploads = false, $kotoba_stat, &$error_message) {	// uploads_check_error
 	switch($error)
 	{
 		case UPLOAD_ERR_INI_SIZE:
@@ -106,7 +106,7 @@ function post_check_image_upload_error($error, $allow_no_uploads = false, $kotob
  * $error_message is reference to variable which would contain error message if any
  */
 function post_check_sizes($uplodedFileSize, $with_image, &$message_text, &$message_theme, 
-	&$message_name, $kotoba_stat, &$error_message, $upload = true) {
+	&$message_name, $kotoba_stat, &$error_message, $upload = true) {	// posts_check_data
 
 	if($upload && $uplodedFileSize < Config::MIN_IMGSIZE && $with_image)
 	{
@@ -137,7 +137,7 @@ function post_check_sizes($uplodedFileSize, $with_image, &$message_text, &$messa
 /* post_check_message_size check message text size
  * TODO
  */
-function post_check_message_size(&$message_text, $kotoba_stat, &$error_message) {
+function post_check_message_size(&$message_text, $kotoba_stat, &$error_message) {	// posts_check_data
 	if(mb_strlen($message_text) > Config::MAX_MESSAGE_LENGTH)
 	{
 			
@@ -150,7 +150,7 @@ function post_check_message_size(&$message_text, $kotoba_stat, &$error_message) 
  * postMark format text
  * TODO
  */
-function post_mark($link, &$message_text, &$message_theme, &$message_name, $kotoba_stat, &$error_message) {
+function post_mark($link, &$message_text, &$message_theme, &$message_name, $kotoba_stat, &$error_message) {	// posts_mark
 require 'mark.php';
 KotobaMark($link, $message_text);
 	$message_text = preg_replace("/\n/", '<br>', $message_text);
@@ -182,7 +182,7 @@ function post_get_uploaded_extension($filename) {
  * post_create_filenames create filenames for uploaded image and thumbnail
  * TODO
  */
-function post_create_filenames($recived_ext, $original_ext) {
+function post_create_filenames($recived_ext, $original_ext) {	// posts_create_filenames
 	list($usec, $sec) = explode(' ', microtime());
 	$saved_filename = $sec . substr($usec, 2, 5);				// Три знака после запятой.
 	$saved_thumbname = $saved_filename . 't.' . $recived_ext;   // Имена всех миниатюр заканчиваются на t.
@@ -195,7 +195,7 @@ function post_create_filenames($recived_ext, $original_ext) {
 /*
  * post_move_uploded_file moves uploded file to kotoba folder
  */
-function post_move_uploded_file($source, $target, $kotoba_stat, &$error_message) {
+function post_move_uploded_file($source, $target, $kotoba_stat, &$error_message) {	// posts_move_uploded_file
 	if (!@rename($source, $target))
 	{
 			
@@ -382,7 +382,7 @@ function post_check_supported_type($extension, &$types) {
  * $boardid - board id
  * $img_hash - hash of upload
  */
-function post_find_same_uploads($link, $smarty, $boardname, $img_hash) {
+function post_find_same_uploads($link, $smarty, $boardname, $img_hash) {	// db_uploads_get_same
 	$uploads = array();
 	$st = mysqli_prepare($link, "call sp_uploads_get_same(?, ?)");
 	if(! $st) {
@@ -414,7 +414,7 @@ function post_find_same_uploads($link, $smarty, $boardname, $img_hash) {
  * $boardid - board id
  * $same_uploads - array of identifiers of uploads (see post_find_same_uploads function)
  */
-function post_show_uploads_links($link, $boardid, &$same_uploads) {
+function post_show_uploads_links($link, $boardid, &$same_uploads) {	// display_same_uploads
 	$links = array();
 	foreach($same_uploads as $uploadid) {
 		array_push($links, post_get_uploadlink($link, $boardid, $uploadid['id']));
@@ -460,7 +460,7 @@ function post_get_uploadlink($link, $boardid, $uploadid) {
 	return $posts;
 }
 
-function post_tripcode($name, $encoding = "utf-8") {
+function post_tripcode($name, $encoding = "utf-8") {	// posts_tripcode
 	@list($first, $code) = @preg_split("/[#!]/", $name);
 	if(!isset($code) || strlen($code) == 0) {
 		return $name;

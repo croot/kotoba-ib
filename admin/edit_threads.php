@@ -79,8 +79,18 @@ if(isset($_POST['submited']))
 			|| $new_sage != $thread['sage']
 			|| $new_with_images != $thread['with_images'])
 		{
-			db_threads_edit($thread['id'], $new_bump_limit, $new_sage,
-				$new_with_images, $link, $smarty);
+			try
+			{
+				db_threads_edit($thread['id'], $new_bump_limit, $new_sage,
+					$new_with_images, $link);
+			}
+			catch(Exception $e)
+			{
+				$smarty->assign('msg', $e->__toString());
+				if(isset($link) && $link instanceof MySQLi)
+					mysqli_close($link);
+				die($smarty->fetch('error.tpl'));
+			}
 			$reload_threads = true;
 		}
 	}
