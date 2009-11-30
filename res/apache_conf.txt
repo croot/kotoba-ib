@@ -9,22 +9,26 @@
 	</IfModule>
 
 	RewriteEngine On
-	RewriteRule ^([\w]{1,16})/$ preview.php?b=$1 [NE,L]
-	RewriteRule ^([\w]{1,16})$ preview.php?b=$1 [NE,L]
-	RewriteRule ^([\w]{1,16})/([\d]+)/$ threads.php?b=$1&t=$2 [NE,L]
-	RewriteRule ^([\w]{1,16})/([\d]+)$ threads.php?b=$1&t=$2 [NE,L]
-	RewriteRule ^([\w]{1,16})/([\d]+)/([\d]+)/$ threads.php?b=$1&t=$2&p=$3 [NE,L]
-	RewriteRule ^([\w]{1,16})/([\d]+)/([\d]+)$ threads.php?b=$1&t=$2&p=$3 [NE,L]
-	RewriteRule ^([\w]{1,16})/p([\d]+)/$ preview.php?b=$1&p=$2 [NE,L]
-	RewriteRule ^([\w]{1,16})/p([\d]+)$ preview.php?b=$1&p=$2 [NE,L]
-	RewriteRule ^([\w]{1,16})/r([\d]+)/$ removepost.php?b=$1&r=$2 [NE,L]
-	RewriteRule ^([\w]{1,16})/r([\d]+)$ removepost.php?b=$1&r=$2 [NE,L]
+	RewriteRule ^([\w]{1,16})/$ boards.php?board=$1 [NE,L]
+	RewriteRule ^([\w]{1,16})$ boards.php?board=$1 [NE,L]
+	RewriteRule ^([\w]{1,16})/([\d]+)/$ threads.php?board=$1&thread=$2 [NE,L]
+	RewriteRule ^([\w]{1,16})/([\d]+)$ threads.php?board=$1&thread=$2 [NE,L]
+	RewriteRule ^([\w]{1,16})/p([\d]+)/$ preview.php?board=$1&page=$2 [NE,L]
+	RewriteRule ^([\w]{1,16})/p([\d]+)$ preview.php?board=$1&page=$2 [NE,L]
+	RewriteRule ^([\w]{1,16})/r([\d]+)/$ remove_post.php?board=$1&post=$2 [NE,L]
+	RewriteRule ^([\w]{1,16})/r([\d]+)$ remove_post.php?board=$1&post=$2 [NE,L]
+	RewriteRule ^([\w]{1,16})/h([\d]+)/$ hide_thread.php?board=$1&thread=$2 [NE,L]
 	RewriteRule ^([\w]{1,16})/h([\d]+)$ hide_thread.php?board=$1&thread=$2 [NE,L]
-	RewriteRule ^([\w]{1,16})/h([\d]+)$ hide_thread.php?board=$1&thread=$2 [NE,L]
-	RewriteRule ^([\w]{1,16})/u([\d]+)$ unhide_thread.php?board=$1&thread=$2 [NE,L]
+	RewriteRule ^([\w]{1,16})/u([\d]+)/$ unhide_thread.php?board=$1&thread=$2 [NE,L]
 	RewriteRule ^([\w]{1,16})/u([\d]+)$ unhide_thread.php?board=$1&thread=$2 [NE,L]
 </Directory>
 <Directory "C:/Apache22/htdocs/kotoba/log">
+	Options FollowSymLinks
+	AllowOverride None
+	Order deny,allow
+	Deny from all
+</Directory>
+<Directory "C:/Apache22/htdocs/kotoba/modules">
 	Options FollowSymLinks
 	AllowOverride None
 	Order deny,allow

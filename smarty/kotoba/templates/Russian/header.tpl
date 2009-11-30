@@ -9,10 +9,12 @@
  * See license.txt for more info.*
  *********************************}
 {*
+Заголовок всех страниц Котобы.
+
 Описание переменных:
-    $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $page_title - заголовок страницы.
-    $STYLESHEET - стиль оформления.
+	$DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
+	$STYLESHEET - стиль оформления (см. config.default).
+	$page_title - заголовок страницы.
 *}
 <html>
 <head>

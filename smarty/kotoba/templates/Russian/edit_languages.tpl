@@ -9,16 +9,18 @@
  * See license.txt for more info.*
  *********************************}
 {*
+Код страницы редактирования языков.
+
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $STYLESHEET - стиль оформления.
-	$languages - список языков.
+    $STYLESHEET - стиль оформления (см. config.default).
+	$languages - языки.
 *}
 {include file='header.tpl' page_title='Редактирование языков' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
 <form action="{$DIR_PATH}/admin/edit_languages.php" method="post">
 <table border="1">
 <tr>
-	<td colspan="2">Пометьте языки для удаления или введине имя нового языка, чтобы создать новый язык.</td>
+	<td colspan="2">Пометьте языки для удаления или введине имя нового языка, чтобы добавить новый язык.</td>
 </tr>
 {section name=i loop=$languages}
 <tr>

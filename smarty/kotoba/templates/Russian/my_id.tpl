@@ -9,10 +9,12 @@
  * See license.txt for more info.*
  *********************************}
 {*
+Код страницы, показывающей id пользователя.
+
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
     $STYLESHEET - стиль оформления.
-	$id - идентификактор пользователя
+	$id - идентификактор пользователя.
 *}
 {include file='header.tpl' page_title='Мой id' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
 Ваш id: {$id}

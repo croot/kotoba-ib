@@ -9,16 +9,16 @@
  * See license.txt for more info.*
  *********************************}
 {*
-Этот шаблон содержит код, выводящийся при загрузке файла, который ранее был
-загружен, если загрузка одинаковых файлов была запрещена.
+Код страницы, выводящей ссылки на одинаковые файлы.
 
 Описание переменных:
 	$DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-	$board_name - имя просматриваемой доски.
+	$board_name - имя просматриваемой доски (см. config.default).
     $same_uploads - загруженные ранее файлы.
 *}
-<p>Загрузка одинаковых файлов запрещена. Файл был загружен ранее в следующих
-сообщениях:</p>
+{include file='header.tpl' page_title='Одинаковые файлы' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
+<p>Файл был загружен ранее в следующих сообщениях:</p>
 {section name=i loop=$same_uploads}
-<a href="{$DIR_PATH}/{$board_name}/{$same_uploads[i].thread_id}#{$same_uploads[i].post_number}">&gt;&gt;{$same_uploads[i].post_number}</a><br>
+{if $same_uploads[i].view}<a href="{$DIR_PATH}/{$board_name}/{$same_uploads[i].thread_number}#{$same_uploads[i].post_number}">&gt;&gt;{$same_uploads[i].post_number}</a><br>{/if}
 {/section}
+{include file='footer.tpl'}

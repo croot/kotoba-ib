@@ -9,11 +9,13 @@
  * See license.txt for more info.*
  *********************************}
 {*
+Код страницы редактирования досок.
+
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $STYLESHEET - стиль оформления.
+    $STYLESHEET - стиль оформления (см. config.default).
 	$popdown_handlers - обработчики удаления нитей.
-	$categories - категории досок.
+	$categories - категории.
 	$boards - доски.
 *}
 {include file='header.tpl' page_title='Редактирование досок' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
@@ -105,7 +107,7 @@
 		{/section}
 		</select>
 	</td>
-	<td colaspan="2">
+	<td colspan="2">
 		<select name="new_category">
 			<option value="" selected></option>
 		{section name=n loop=$categories}

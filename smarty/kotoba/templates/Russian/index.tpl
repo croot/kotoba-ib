@@ -9,10 +9,12 @@
  * See license.txt for more info.*
  *********************************}
 {*
+Код главной страницы имэйджборды.
+
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
 	$STYLESHEET - стиль оформления.
-    $boards - список досок.
+    $boards - досоки.
 *}
 {include file='header.tpl' page_title='Главная страница' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
 <p>Версия {$version}. Время модификации {$date}</p>

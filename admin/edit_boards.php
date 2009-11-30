@@ -8,284 +8,153 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
-
-require '../kwrapper.php';
-require_once Config::ABS_PATH . '/lang/' . Config::LANGUAGE . '/logging.php';
-
-kotoba_setup($link, $smarty);
-var_dump($_SESSION['groups']);
-if(! in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
-{
-	mysqli_close($link);
-	kotoba_error(Errmsgs::$messages['NOT_ADMIN'],
-		$smarty, basename(__FILE__) . ' ' . __LINE__);
-}
-kotoba_log(sprintf(Logmsgs::$messages['ADMIN_FUNCTIONS'],
-		'Редактирование досок', $_SESSION['user'], $_SERVER['REMOTE_ADDR']),
-	Logmsgs::open_logfile(Config::ABS_PATH . '/log/' .
-		basename(__FILE__) . '.log'));
-$popdown_handlers = db_popdown_handlers_get($link, $smarty);
+// Скрипт редактирования связей загружаемых типов файлов с досками.
+require '../config.php';
+require Config::ABS_PATH . '/modules/errors.php';
+require Config::ABS_PATH . '/modules/lang/' . Config::LANGUAGE . '/errors.php';
+require Config::ABS_PATH . '/modules/logging.php';
+require Config::ABS_PATH . '/modules/lang/' . Config::LANGUAGE . '/logging.php';
+require Config::ABS_PATH . '/modules/db.php';
+require Config::ABS_PATH . '/modules/cache.php';
+require Config::ABS_PATH . '/modules/common.php';
 try
 {
-	$categories = db_categories_get($link);
+	kotoba_session_start();
+	locale_setup();
+	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
+	if(!in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
+		throw new PremissionException(PremissionException::$messages['NOT_ADMIN']);
+	Logging::write_message(sprintf(Logging::$messages['ADMIN_FUNCTIONS_EDIT_BOARDS'],
+				$_SESSION['user'], $_SERVER['REMOTE_ADDR']),
+			Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log');
+	$popdown_handlers = popdown_handlers_get_all();
+	$categories = categories_get_all();
+	$boards = boards_get_all();
+	$reload_boards = false;	// Были ли произведены изменения.
+	if(isset($_POST['submited']))
+	{
+		// Создание новой доски.
+		if(isset($_POST['new_name'])
+			&& isset($_POST['new_title'])
+			&& isset($_POST['new_bump_limit'])
+			&& isset($_POST['new_same_upload'])
+			&& isset($_POST['new_popdown_handler'])
+			&& isset($_POST['new_category'])
+			&& $_POST['new_name'] !== ''
+			&& $_POST['new_bump_limit'] !== ''
+			&& $_POST['new_same_upload'] !== ''
+			&& $_POST['new_popdown_handler'] !== ''
+			&& $_POST['new_category'] !== '')
+		{
+			$new_name = boards_check_name($_POST['new_name']);
+			if($_POST['new_title'] === '')
+				$new_title = null;
+			else
+				$new_title = boards_check_title($_POST['new_title']);
+			$new_bump_limit = boards_check_bump_limit($_POST['new_bump_limit']);
+			$new_same_upload = boards_check_same_upload($_POST['new_same_upload']);
+			$new_popdown_handler = popdown_handlers_check_id($_POST['new_popdown_handler']);
+			$new_category = categories_check_id($_POST['new_category']);
+			/*
+			 * Проверим, нет ли уже доски с таким именем. Если есть, то изменим
+			 * параметры существующей.
+			 */
+			$found = false;
+			foreach($boards as $board)
+				if($board['name'] == $new_name && $found = true)
+				{
+					boards_edit($board['id'], $new_title, $new_bump_limit,
+						$new_same_upload, $new_popdown_handler, $new_category);
+					$reload_boards = true;
+					break;
+				}
+			if(!$found)
+			{
+				boards_add($new_name, $new_title, $new_bump_limit, $new_same_upload,
+					$new_popdown_handler, $new_category);
+				create_directories($new_name);
+				$reload_boards = true;
+			}
+		}// Создание новой доски.
+		// Изменение параметров существующих досок.
+		foreach($boards as $board)
+		{
+			// Был ли изменён заголовок доски?
+			$param_name = "title_{$board['id']}";
+			$new_title = $board['title'];
+			if(isset($_POST[$param_name]) && $_POST[$param_name] != $board['title'])
+			{
+				if($_POST[$param_name] === '')
+					$new_title = null;
+				else
+					$new_title = boards_check_title($_POST[$param_name]);
+			}
+			// Был ли изменён бамплимит?
+			$param_name = "bump_limit_{$board['id']}";
+			$new_bump_limit = $board['bump_limit'];
+			if(isset($_POST[$param_name]) &&
+				$_POST[$param_name] != $board['bump_limit'])
+			{
+				$new_bump_limit = boards_check_bump_limit($_POST[$param_name]);
+			}
+			// Было ли изменено названия политики загрузки одинаковых файлов?
+			$param_name = "same_upload_{$board['id']}";
+			$new_same_upload = $board['same_upload'];
+			if(isset($_POST[$param_name]) &&
+				$_POST[$param_name] != $board['same_upload'])
+			{
+				$new_same_upload = boards_check_same_upload($_POST[$param_name]);
+			}
+			// Был ли изменён обработчик удаления нитей?
+			$param_name = "popdown_handler_{$board['id']}";
+			$new_popdown_handler = $board['popdown_handler'];
+			if(isset($_POST[$param_name]) &&
+				$_POST[$param_name] != $board['popdown_handler'])
+			{
+				$new_popdown_handler = popdown_handlers_check_id($_POST[$param_name]);
+			}
+			// Была ли изменена категория доски?
+			$param_name = "category_{$board['id']}";
+			$new_category = $board['category'];
+			if(isset($_POST[$param_name]) &&
+				$_POST[$param_name] != $board['category'])
+			{
+				$new_category = categories_check_id($_POST[$param_name]);
+			}
+			// Были ли произведены какие-либо изменения?
+			if($new_title != $board['title']
+				|| $new_bump_limit != $board['bump_limit']
+				|| $new_same_upload != $board['same_upload']
+				|| $new_popdown_handler != $board['popdown_handler']
+				|| $new_category != $board['category'])
+			{
+				boards_edit($board['id'], $new_title, $new_bump_limit,
+					$new_same_upload, $new_popdown_handler, $new_category);
+				$reload_boards = true;
+			}
+		}// Изменение параметров существующих досок.
+		// Удаление выбранных досок.
+		foreach($boards as $board)
+			if(isset($_POST["delete_{$board['id']}"]))
+			{
+				boards_delete($board['id']);
+				$reload_boards = true;
+			}
+	}
+	// Вывод формы редактирования.
+	if($reload_boards)
+		$boards = boards_get_all();
+	DataExchange::releaseResources();
+	$smarty->assign('popdown_handlers', $popdown_handlers);
+	$smarty->assign('categories', $categories);
+	$smarty->assign('boards', $boards);
+	$smarty->display('edit_boards.tpl');
 }
 catch(Exception $e)
 {
 	$smarty->assign('msg', $e->__toString());
-	if(isset($link) && $link instanceof MySQLi)
-		mysqli_close($link);
+	DataExchange::releaseResources();
 	die($smarty->fetch('error.tpl'));
 }
-$boards = db_boards_get_all($link, $smarty);
-$reload_boards = false;	// Были ли произведены изменения.
-/*
- * Создание новой доски.
- */
-if(isset($_POST['submited']) &&
-	isset($_POST['new_name']) &&
-	isset($_POST['new_title']) &&
-	isset($_POST['new_bump_limit']) &&
-	isset($_POST['new_same_upload']) &&
-	isset($_POST['new_popdown_handler']) &&
-	isset($_POST['new_category']) &&
-	$_POST['new_name'] !== '' &&
-	$_POST['new_bump_limit'] !== '' &&
-	$_POST['new_same_upload'] !== '' &&
-	$_POST['new_popdown_handler'] !== '' &&
-	$_POST['new_category'] !== '')
-{
-	/*
-	 * Проверка входных параметров.
-	 */
-	if(($new_name = check_format('board', $_POST['new_name'])) == false)
-	{
-		mysqli_close($link);
-		kotoba_error(Errmsgs::$messages['BOARD_NAME'],
-			$smarty, basename(__FILE__) . ' ' . __LINE__);
-	}
-	if($_POST['new_title'] === '')
-		$new_title = '';
-	elseif((($new_title = check_format('board_title',
-					$_POST['new_title'])) == false))
-	{
-		mysqli_close($link);
-		kotoba_error(Errmsgs::$messages['BOARD_TITLE'],
-			$smarty, basename(__FILE__) . ' ' . __LINE__);
-	}
-	if(($new_bump_limit = check_format('id',
-				$_POST['new_bump_limit'])) == false)
-	{
-		mysqli_close($link);
-		kotoba_error(Errmsgs::$messages['BUMP_LIMIT'],
-			$smarty, basename(__FILE__) . ' ' . __LINE__);
-	}
-	if(($new_same_upload = check_format('same_upload',
-				$_POST['new_same_upload'])) == false)
-	{
-		mysqli_close($link);
-		kotoba_error(Errmsgs::$messages['SAME_UPLOAD'],
-			$smarty, basename(__FILE__) . ' ' . __LINE__);
-	}
-	if(($new_popdown_handler = check_format('id',
-				$_POST['new_popdown_handler'])) == false)
-	{
-		mysqli_close($link);
-		kotoba_error(Errmsgs::$messages['POPDOWN_HANDLER_ID'],
-			$smarty, basename(__FILE__) . ' ' . __LINE__);
-	}
-	$found = false;
-	foreach($popdown_handlers as $popdown_handler)
-		if($popdown_handler['id'] == $new_popdown_handler)
-		{
-			$found = true;
-			break;
-		}
-	if(! $found)
-	{
-		mysqli_close($link);
-		kotoba_error(sprintf(Errmsgs::$messages['POPDOWN_HANDLER_NOT_FOUND'],
-				$new_popdown_handler),
-			$smarty, basename(__FILE__) . ' ' . __LINE__);
-	}
-	if(($new_category = check_format('id',
-				$_POST['new_category'])) == false)
-	{
-		mysqli_close($link);
-		kotoba_error(Errmsgs::$messages['CATEGORY_ID'],
-			$smarty, basename(__FILE__) . ' ' . __LINE__);
-	}
-	$found = false;
-	foreach($categories as $category)
-		if($category['id'] == $new_category)
-		{
-			$found = true;
-			break;
-		}
-	if(! $found)
-	{
-		mysqli_close($link);
-		kotoba_error(sprintf(Errmsgs::$messages['CATEGORY_NOT_FOUND'],
-				$new_category),
-			$smarty, basename(__FILE__) . ' ' . __LINE__);
-	}
-	/*
-	 * Проверим, нет ли уже доски с таким именем. Если есть, то изменим
-	 * параметры существующей, если нет, то добавим новую.
-	 */
-	$found = false;
-	foreach($boards as $board)
-	{
-		if($board['name'] == $new_name)
-		{
-			$found = true;
-			db_boards_edit($board['id'], $new_title, $new_bump_limit,
-				$new_same_upload, $new_popdown_handler, $new_category,
-				$link, $smarty);
-			$reload_boards = true;
-		}
-	}
-	if(! $found)
-	{
-		db_boards_add($new_name, $new_title, $new_bump_limit, $new_same_upload,
-			$new_popdown_handler, $new_category, $link, $smarty);
-		create_directories($new_name);
-		$reload_boards = true;
-	}
-}
-/*
- * Изменение параметров существующих досок.
- */
-if(isset($_POST['submited']))
-	foreach($boards as $board)
-	{
-		$param_name = "title_{$board['id']}";
-		$new_title = $board['title'];
-		if(isset($_POST[$param_name]) && $_POST[$param_name] != $board['title'])
-		{
-			if($_POST[$param_name] === '')
-				$new_title = '';
-			elseif((($new_title = check_format('board_title',
-								$_POST[$param_name])) == false))
-				{
-					mysqli_close($link);
-					kotoba_error(Errmsgs::$messages['BOARD_TITLE'],
-						$smarty, basename(__FILE__) . ' ' . __LINE__);
-				}
-		}
-		$param_name = "bump_limit_{$board['id']}";
-		$new_bump_limit = $board['bump_limit'];
-		if(isset($_POST[$param_name]) &&
-			$_POST[$param_name] != $board['bump_limit'])
-		{
-			if(($new_bump_limit = check_format('id',
-						$_POST[$param_name])) == false)
-			{
-				mysqli_close($link);
-				kotoba_error(Errmsgs::$messages['BUMP_LIMIT'],
-					$smarty, basename(__FILE__) . ' ' . __LINE__);
-			}
-		}
-		$param_name = "same_upload_{$board['id']}";
-		$new_same_upload = $board['same_upload'];
-		if(isset($_POST[$param_name]) &&
-			$_POST[$param_name] != $board['same_upload'])
-		{
-			if(($new_same_upload = check_format('same_upload',
-						$_POST[$param_name])) == false)
-			{
-				mysqli_close($link);
-				kotoba_error(Errmsgs::$messages['SAME_UPLOAD'],
-					$smarty, basename(__FILE__) . ' ' . __LINE__);
-			}
-		}
-		$param_name = "popdown_handler_{$board['id']}";
-		$new_popdown_handler = $board['popdown_handler'];
-		if(isset($_POST[$param_name]) &&
-			$_POST[$param_name] != $board['popdown_handler'])
-		{
-			if(($new_popdown_handler = check_format('id',
-						$_POST[$param_name])) == false)
-			{
-				mysqli_close($link);
-				kotoba_error(Errmsgs::$messages['POPDOWN_HANDLER_ID'],
-					$smarty, basename(__FILE__) . ' ' . __LINE__);
-			}
-			$found = false;
-			foreach($popdown_handlers as $popdown_handler)
-				if($popdown_handler['id'] == $new_popdown_handler)
-				{
-					$found = true;
-					break;
-				}
-			if(! $found)
-			{
-				mysqli_close($link);
-				kotoba_error(sprintf(
-						Errmsgs::$messages['POPDOWN_HANDLER_NOT_FOUND'],
-						$new_popdown_handler),
-					$smarty, basename(__FILE__) . ' ' . __LINE__);
-			}
-		}
-		$param_name = "category_{$board['id']}";
-		$new_category = $board['category'];
-		if(isset($_POST[$param_name]) &&
-			$_POST[$param_name] != $board['category'])
-		{
-			if(($new_category = check_format('id',
-						$_POST[$param_name])) == false)
-			{
-				mysqli_close($link);
-				kotoba_error(Errmsgs::$messages['CATEGORY_ID'],
-					$smarty, basename(__FILE__) . ' ' . __LINE__);
-			}
-			$found = false;
-			foreach($categories as $category)
-				if($category['id'] == $new_category)
-				{
-					$found = true;
-					break;
-				}
-			if(! $found)
-			{
-				mysqli_close($link);
-				kotoba_error(sprintf(Errmsgs::$messages['CATEGORY_NOT_FOUND'],
-						$new_category),
-					$smarty, basename(__FILE__) . ' ' . __LINE__);
-			}
-		}
-		/*
-		 * Если были изменения.
-		 */
-		if($new_title != $board['title'] ||
-			$new_bump_limit != $board['bump_limit'] ||
-			$new_same_upload != $board['same_upload'] ||
-			$new_popdown_handler != $board['popdown_handler'] ||
-			$new_category != $board['category'])
-		{
-			db_boards_edit($board['id'], $new_title, $new_bump_limit,
-				$new_same_upload, $new_popdown_handler, $new_category,
-				$link, $smarty);
-			$reload_boards = true;
-		}
-	}
-/*
- * Удаление выбранных досок.
- */
-if(isset($_POST['submited']))
-	foreach($boards as $board)
-		if(isset($_POST["delete_{$board['id']}"]))
-		{
-			db_boards_delete($board['id'], $link, $smarty);
-			$reload_boards = true;
-		}
-/*
- * Обновление списка досок, если нужно. Вывод формы редактирования.
- */
-if($reload_boards)
-	$boards = db_boards_get_all($link, $smarty);
-mysqli_close($link);
-$smarty->assign('popdown_handlers', $popdown_handlers);
-$smarty->assign('categories', $categories);
-$smarty->assign('boards', $boards);
-$smarty->display('edit_boards.tpl');
 ?>

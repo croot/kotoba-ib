@@ -9,9 +9,17 @@
  * See license.txt for more info.*
  *********************************}
 {*
+Код страницы редактирования настроек.
+
 Описание переменных:
-    $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $STYLESHEET - стиль оформления.
+	$DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
+	$STYLESHEET - стиль оформления.
+	$threads_per_page - количество нитей на странице.
+	$posts_per_thread - количество сообщений в нити.
+	$lines_per_post - количество строк в сообщении.
+	$languages - массив имен языков.
+	$language -	язык.
+	$stylesheets - массив имен стилей оформления.
 *}
 {include file='header.tpl' page_title='Мои настройки' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
 <form action="{$DIR_PATH}/edit_settings.php" method="post">
@@ -29,8 +37,8 @@
     </table>
 <b>Другое:</b>
     <table border="0">
-        <tr valign="top"><td>Язык: </td><td><select name="language">{section name=j loop=$languages}<option value="{$languages[j]}"{if $language == $languages[j]} selected{/if}>{$languages[j]}</option>{/section}</select></td></tr>
-        <tr valign="top"><td>Стиль оформления: </td><td><select name="stylesheet">{section name=i loop=$stylesheets}<option value="{$stylesheets[i]}"{if $stylesheet == $stylesheets[i]} selected{/if}>{$stylesheets[i]}</option>{/section}</select></td></tr>
+        <tr valign="top"><td>Язык: </td><td><select name="language_id">{section name=j loop=$languages}<option value="{$languages[j].id}"{if $language == $languages[j].name} selected{/if}>{$languages[j].name}</option>{/section}</select></td></tr>
+        <tr valign="top"><td>Стиль оформления: </td><td><select name="stylesheet_id">{section name=i loop=$stylesheets}<option value="{$stylesheets[i].id}"{if $STYLESHEET == $stylesheets[i].name} selected{/if}>{$stylesheets[i].name}</option>{/section}</select></td></tr>
     </table>
 <i>Введите ключевое слово, чтобы сохранить эти настройки.<br>
 В дальнейшем вы можете загрузить их, введя ключевое слово.</i><br>

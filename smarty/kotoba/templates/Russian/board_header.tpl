@@ -9,31 +9,40 @@
  * See license.txt for more info.*
  *********************************}
 {*
+Код заголовка страницы просмотра доски.
+
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-	$STYLESHEET - стиль оформления.
-	$boards - список досок.
-	$rempass - пароль на удаление своих сообщений и нитей.
+	$STYLESHEET - стиль оформления (см. config.default).
+	$boards - доски.
+	$rempass - пароль на удаление сообщений и нитей.
 	$board_name - имя просматриваемой доски.
 	$board_title - заголовок просматриваемой доски.
 	$upload_types - типы файлов, доступных для загрузки на просматриваемой доске.
-	$is_guest - пользователь является гостем или нет.
-	$bump_limit - бамплимит вцелом для доски.
-	$pages - массив номеров страниц.
-	$page - номер текущей страницы.
+	$is_guest - флаг гостя.
+	$bump_limit - бамплимит доски.
+	$pages - номера страниц.
+	$page - номер просматриваемой страницы.
+
+Специальные переменные (не входит в котобу):
+	$event_daynight_active - запущен ли эвент времени суток.
+	$event_daynight_code - код, добавляемый к html коду страницы, эвентом.
 *}
-{assign var="page_title" value="Предпросмотр доски $board_name страница $page"}
+{assign var="page_title" value="Просмотр доски $board_name страница $page"}
 {include file='header.tpl' page_title=$page_title DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
+{* Начало кода эвента времени суток (не входит в котобу). *}
+{if isset($event_daynight_active) && $event_daynight_active}{$event_daynight_code}{/if}
+{* Конец кода эвента времени суток. *}
 Список досок: {include file='board_list.tpl' board_list=$boards DIR_PATH=$DIR_PATH}<br>
 <a href="{$DIR_PATH}/edit_settings.php"{if $is_guest} title="Отредактируйте ваши настройки."{/if}>Мои настройки</a><br>
 
-<h4 align=center>kotoba</h4>
+<h4 align=center>✿Kotoba</h4>
 <center><b>/{$board_name}/ {$board_title}</b></center><br><br>
-Глобальный бамплимит: {$bump_limit}<br>
+Бамплимит доски: {$bump_limit}<br>
 {include file='pages_list.tpl' board_name=$board_name pages=$pages page=$page}
 <hr>
 
-<form action="{$DIR_PATH}/createthread.php" method="post" enctype="multipart/form-data">
+<form action="{$DIR_PATH}/create_thread.php" method="post" enctype="multipart/form-data">
 <input type="hidden" name="MAX_FILE_SIZE" value="1560576">
 <table align="center" border="0">
 <tr valign="top"><td>Имя: </td><td><input type="text" name="message_name" size="30"></td></tr>

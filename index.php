@@ -8,38 +8,40 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
+// Скрипт главной страницы имейджборды.
 
-require 'kwrapper.php';
-
-kotoba_setup($link, $smarty);
-$boards = db_boards_get_allowed($_SESSION['user'], $link, $smarty);
-if(count($boards) > 0)
+require 'config.php';
+require 'modules/errors.php';
+require 'modules/lang/' . Config::LANGUAGE . '/errors.php';
+require 'modules/db.php';
+require 'modules/cache.php';
+require 'modules/common.php';
+try
 {
-	try
+	kotoba_session_start();
+	locale_setup();
+	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
+	$boards = boards_get_all_view($_SESSION['user']);
+	if(count($boards) > 0)
 	{
-		$categories = db_categories_get($link);
+		$smarty->assign('boards_exist', true);
+		$smarty->assign('boards', $boards);
 	}
-	catch(Exception $e)
-	{
-		$smarty->assign('msg', $e->__toString());
-		if(isset($link) && $link instanceof MySQLi)
-			mysqli_close($link);
-		die($smarty->fetch('error.tpl'));
-	}
-	foreach($categories as $category)
-		foreach($boards as &$board)
-			if($board['category'] == $category['id'])
-				$board['category'] = $category['name'];
-	$smarty->assign('boards_exist', true);
-	$smarty->assign('boards', $boards);
+	if(in_array(Config::MOD_GROUP_NAME, $_SESSION['groups']))
+		$smarty->assign('mod_panel', true);
+	elseif(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
+		$smarty->assign('adm_panel', true);
+	$smarty->assign('version', '$Revision$');
+	$smarty->assign('date', '$Date$');
+	$smarty->display('index.tpl');
+	DataExchange::releaseResources();
+	exit;
 }
-mysqli_close($link);
-if(in_array(Config::MOD_GROUP_NAME, $_SESSION['groups']))
-    $smarty->assign('mod_panel', true);
-elseif(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
-    $smarty->assign('adm_panel', true);
-$smarty->assign('stylesheet', $_SESSION['stylesheet']);
-$smarty->assign('version', '$Revision$');
-$smarty->assign('date', '$Date$');
-$smarty->display('index.tpl');
+catch(Exception $e)
+{
+	$smarty->assign('msg', $e->__toString());
+	DataExchange::releaseResources();
+	die($smarty->fetch('error.tpl'));
+}
 ?>

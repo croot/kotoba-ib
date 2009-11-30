@@ -28,9 +28,9 @@ class Config
 	const ABS_PATH = 'c:/Apache/htdocs/kotoba';
 
 	/*
-	 * Разрешить постить одинакоые картинки. Значения: true или false.
+	 * Разрешить загружать одинакоые файлы. Значения: true или false.
 	 */
-	const ALLOW_SAEMIMG = false;
+	const ALLOW_SAME_FILES = false;
 
 	/*
 	 * en: Kotoba uses frames
@@ -66,6 +66,9 @@ class Config
 	 */
 	const SQL_ENCODING = 'utf8';
 
+	// Часовой пояс.
+	const DEFAULT_TIMEZONE = 'Europe/Moscow';
+
 	/*********************************************************
 	 * Настройки пользователя Гость (настройки по умолчанию) *
 	 *********************************************************/
@@ -76,18 +79,18 @@ class Config
 	const GUEST_ID = 1;
 
 	/*
-	 * Число нитей на странице предпросмотра доски.
+	 * Число нитей на странице просмотра доски.
 	 */
 	const THREADS_PER_PAGE = 10;
 
 	/*
-	 * Число сообщений в треде на странице предпросмотра доски.
+	 * Число сообщений в треде на странице просмотра доски.
 	 */
 	const POSTS_PER_THREAD = 5;
 
 	/*
 	 * Сообщения, в которых число строк превышает это число будут урезаны
-	 * в предпросмотре доски.
+	 * при просмотре доски.
 	 */
 	const LINES_PER_POST = 15;
 
@@ -159,10 +162,7 @@ class Config
 	 */
 	const MIN_IMGHEIGTH = 32;
 
-	/*
-	 * Минимальный размер загружаемого файла.
-	 */
-	// TODO В каких единицах измерения?
+	// Минимальный размер загружаемого изображения в байтах.
 	const MIN_IMGSIZE = 1000;
 
 	/*
@@ -182,20 +182,20 @@ class Config
 
 	/*
 	 * Минимальное и максимальное число строк сообщения,
-	 * отображаемое на странице предпросмотра доски.
+	 * отображаемое на странице просмотра доски.
 	 */
 	const MIN_LINESPERPOST= 1;
 	const MAX_LINESPERPOST = 50;
 
 	/*
 	 * Минимальное и максимальное количество сообщений
-	 * в нити на страние предпросмотра доски.
+	 * в нити на страние просмотра доски.
 	 */
 	const MIN_POSTSPERTHREAD = 1;
 	const MAX_POSTSPERTHREAD = 20;
 
 	/*
-	 * Минимальное и максимальное количество нитей на страние предпросмотра доски.
+	 * Минимальное и максимальное количество нитей на страние просмотра доски.
 	 */
 	const MIN_THREADSPERPAGE = 3;
 	const MAX_THREADSPERPAGE = 30;
@@ -207,7 +207,7 @@ class Config
 	const PAGES_ONBOARD = 11;
 
 	/*
-	 * Число постов доски, по достижению которого начинают тонуть треды.
+	 * Число постов доски, по достижению которого начинают тонуть нити.
 	 */
 	const POST_LIMIT = 600;
 
@@ -241,17 +241,5 @@ class Config
 	const MOD_GROUP_NAME = 'Moderators';
 	const USR_GROUP_NAME = 'Users';
 	const GST_GROUP_NAME = 'Guests';
-
-	/*********************
-	 * Для разработчиков *
-	 *********************/
-
-	//TODO Переместить эти константы из настроек.
-	const THUMB_SUCCESS = 0;		// thumbnail succesfully created
-	const THUMB_UNSUPPORTED = 1;	// unsupported format
-	const THUMB_NOLIBRARY = 2;		// no suitable library
-	const THUMB_TOOBIG = 4;			// file too big
-	const THUMB_UNKNOWN = 255;		// unknown error
 }
-// vim: set ft=php encoding=utf-8:
 ?>

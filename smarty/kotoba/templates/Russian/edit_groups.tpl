@@ -9,10 +9,12 @@
  * See license.txt for more info.*
  *********************************}
 {*
+Код страницы редактирования группы.
+
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $STYLESHEET - стиль оформления.
-	$groups - список существующих групп с их идентификаторами.
+    $STYLESHEET - стиль оформления (см. config.default).
+	$groups - массив групп.
 *}
 {include file='header.tpl' page_title='Редактирование групп' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
 <form action="{$DIR_PATH}/admin/edit_groups.php" method="post">
@@ -22,7 +24,7 @@
 </tr>
 {section name=i loop=$groups}
 <tr>
-	<td>{$groups[i].name}</td><td><input type="checkbox" name="delete_{$groups[i].name}" value="{$groups[i].id}"></td>
+	<td>{$groups[i].name}</td><td><input type="checkbox" name="delete_{$groups[i].id}" value="{$groups[i].id}"></td>
 </tr>
 {/section}
 <tr>

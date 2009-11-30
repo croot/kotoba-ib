@@ -9,11 +9,13 @@
  * See license.txt for more info.*
  *********************************}
 {*
+Код страницы редактирования списка контроля доступа.
+
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $STYLESHEET - стиль оформления.
-	$groups - список существующих групп с их идентификаторами.
-	$boards - список существующих досок с их идентификаторами.
+    $STYLESHEET - стиль оформления (см. config.default).
+	$groups - групы.
+	$boards - доски.
 	$acl - список контроля доступа.
 *}
 {include file='header.tpl' page_title='Редактирование списка контроля доступа' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
@@ -31,7 +33,8 @@
 {section name=i loop=$acl}
 <tr>
 	<td>
-	{if $acl[i].group == null}NULL
+	{if $acl[i].group === null}
+		&nbsp;
 	{else}
 		{section name=j loop=$groups}
 			{if $acl[i].group == $groups[j].id}{$groups[j].name}{/if}
@@ -39,7 +42,8 @@
 	{/if}
 	</td>
 	<td>
-	{if $acl[i].board == null}NULL
+	{if $acl[i].board === null}
+		&nbsp;
 	{else}
 		{section name=j loop=$boards}
 			{if $acl[i].board == $boards[j].id}{$boards[j].name}{/if}
@@ -47,10 +51,18 @@
 	{/if}
 	</td>
 	<td>
-	{if $acl[i].thread == null}NULL{else}{$acl[i].thread}{/if}
+	{if $acl[i].thread === null}
+		&nbsp;
+	{else}
+		{$acl[i].thread}
+	{/if}
 	</td>
 	<td>
-	{if $acl[i].post == null}NULL{else}{$acl[i].post}{/if}
+	{if $acl[i].post === null}
+		&nbsp;
+	{else}
+		{$acl[i].post}
+	{/if}
 	</td>
 	<td>
 	<input type="checkbox" name="view_{$acl[i].group}_{$acl[i].board}_{$acl[i].thread}_{$acl[i].post}" value="1"{if $acl[i].view == 1} checked{/if}>
@@ -67,8 +79,24 @@
 </tr>
 {/section}
 <tr>
-	<td><input type="text" name="new_group"></td>
-	<td><input type="text" name="new_board"></td>
+	<td>
+		<select name="new_group">
+			<option value="" selected></option>
+		{section name=i loop=$groups}
+			<option value="{$groups[i].id}">{$groups[i].name}</option>
+
+		{/section}
+		</select>
+	</td>
+	<td>
+		<select name="new_board">
+			<option value="" selected></option>
+		{section name=i loop=$boards}
+			<option value="{$boards[i].id}">{$boards[i].name}</option>
+
+		{/section}
+		</select>
+	</td>
 	<td><input type="text" name="new_thread"></td>
 	<td><input type="text" name="new_post"></td>
 	<td><input type="checkbox" name="new_view" value="1"></td>

@@ -9,9 +9,11 @@
  * See license.txt for more info.*
  *********************************}
 {*
+Код страницы редактирования обработчиков загружаемых файлов.
+
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $STYLESHEET - стиль оформления.
+    $STYLESHEET - стиль оформления (см. config.default).
 	$upload_handlers - список обработчиков загружаемых файлов.
 *}
 {include file='header.tpl' page_title='Редактирование обработчиков загружаемых файлов' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}

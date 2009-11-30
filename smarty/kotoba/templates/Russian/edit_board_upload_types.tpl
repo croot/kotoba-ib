@@ -9,19 +9,21 @@
  * See license.txt for more info.*
  *********************************}
 {*
+Код страницы редактирования связей загружаемых типов файлов с досками.
+
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $STYLESHEET - стиль оформления.
+    $STYLESHEET - стиль оформления (см. config.default).
 	$upload_types - типы загружаемых файлов.
 	$boards - доски.
 	$board_upload_types - типы загружаемых файлов для сдосок.
 *}
-{include file='header.tpl' page_title='Редактирование типов загружаемых файлов для досок' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
+{include file='header.tpl' page_title='Редактирование связей загружаемых типов файлов с досками' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
 <form action="{$DIR_PATH}/admin/edit_board_upload_types.php" method="post">
 <table border="1">
 <tr>
-	<td colspan="3">Чтобы удалить тип файлов на доске, пометьте соответствующие записи.<br>
-	Чтобы добавить тип файлов на доске, выберите доску, тип и сохраните изменения (дублирующиеся записи<br>
+	<td colspan="3">Чтобы удалить связи типов файлов с доской, пометьте соответствующие записи.<br>
+	Чтобы добавить связь типа файла с доской, выберите доску, тип и сохраните изменения (дублирующиеся записи<br>
 	будут проигнорированы).</td>
 </tr>
 {section name=i loop=$board_upload_types}
@@ -52,7 +54,7 @@
 		{/section}
 		</select>
 	</td>
-	<td colaspan="2">
+	<td colspan="2">
 		<select name="new_bind_upload_type">
 			<option value="" selected></option>
 

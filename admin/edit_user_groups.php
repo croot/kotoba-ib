@@ -9,70 +9,79 @@
  * See license.txt for more info.*
  *********************************/
 
-require '../kwrapper.php';
-require_once Config::ABS_PATH . '/lang/' . Config::LANGUAGE . '/logging.php';
+/*
+ * Скприпт редактирования принадлежности пользователей группам.
+ */
 
-kotoba_setup($link, $smarty);
-if(! in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
+require '../config.php';
+require Config::ABS_PATH . '/modules/errors.php';
+require Config::ABS_PATH . '/modules/lang/' . Config::LANGUAGE . '/errors.php';
+require Config::ABS_PATH . '/modules/logging.php';
+require Config::ABS_PATH . '/modules/lang/' . Config::LANGUAGE . '/logging.php';
+require Config::ABS_PATH . '/modules/db.php';
+require Config::ABS_PATH . '/modules/cache.php';
+require Config::ABS_PATH . '/modules/common.php';
+try
 {
-	mysqli_close($link);
-	kotoba_error(Errmsgs::$messages['NOT_ADMIN'], $smarty, basename(__FILE__) . ' ' . __LINE__);
-}
-kotoba_log(sprintf(Logmsgs::$messages['ADMIN_FUNCTIONS'], 'Редактировать принадлежность пользователей группам', $_SESSION['user'], $_SERVER['REMOTE_ADDR']), Logmsgs::open_logfile(Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log'));
-$groups = db_group_get($link, $smarty);
-/*
- * Добавим в список групп пользователей фиктивную группу Remove,
- * перезакрепление за которой будет означать удаление текущего закрепления.
- */
-array_push($groups, array('id' => -1, 'name' => 'Remove'));
-$user_groups = db_user_groups_get($link, $smarty);
-$reload_user_groups = false;	// Были ли произведены изменения.
-/*
- * Сначала добавим пользователя в новую группу.
- */
-if(isset($_POST['new_bind_user']) && isset($_POST['new_bind_group']) && $_POST['new_bind_user'] != '')
-{
-	if(($new_bind_user = check_format('id', $_POST['new_bind_user'])) == false)
+	kotoba_session_start();
+	locale_setup();
+	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
+	if(!in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
+		throw new PremissionException(PremissionException::$messages['NOT_ADMIN']);
+	Logging::write_message(sprintf(Logging::$messages['ADMIN_FUNCTIONS_EDIT_USER_GROUPS'],
+				$_SESSION['user'], $_SERVER['REMOTE_ADDR']),
+			Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log');
+	$groups = groups_get_all();
+	$users = users_get_all();
+	$user_groups = user_groups_get_all();
+	$reload_user_groups = false;	// Были ли произведены изменения.
+	/* Добавление нового закрепления. */
+	if(isset($_POST['new_bind_user']) && isset($_POST['new_bind_group'])
+		&& $_POST['new_bind_user'] != '' && $_POST['new_bind_group'] != '')
 	{
-		mysqli_close($link);
-		kotoba_error(Errmsgs::$messages['USER_ID'], $smarty, basename(__FILE__) . ' ' . __LINE__);
+		$new_bind_user = users_check_id($_POST['new_bind_user']);
+		$new_bind_group = groups_check_id($_POST['new_bind_group']);
+		user_groups_add($new_bind_user, $new_bind_group);
+		$reload_user_groups = true;
 	}
-	if(($new_bind_group = check_format('id', $_POST['new_bind_group'])) == false)
-	{
-		mysqli_close($link);
-		kotoba_error(Errmsgs::$messages['GROUP_ID'], $smarty, basename(__FILE__) . ' ' . __LINE__);
-	}
-	db_user_groups_add($new_bind_user, $new_bind_group, $link, $smarty);
-	$reload_user_groups = true;
-}
-/*
- * Переместим пользователя в другую группу или удалим из группы.
- */
-foreach($user_groups as $user_group)
-	if(isset($_POST["group_{$user_group['user']}_{$user_group['group']}"]))
-		if($_POST["group_{$user_group['user']}_{$user_group['group']}"] != $user_group['group'])
+	/* Перезакрепление пользователя. */
+	foreach($user_groups as $user_group)
+		if(isset($_POST["group_{$user_group['user']}_{$user_group['group']}"])
+			&& $_POST["group_{$user_group['user']}_{$user_group['group']}"] != $user_group['group'])
 		{
-			if($_POST["group_{$user_group['user']}_{$user_group['group']}"] === '-1')
-			{
-				db_user_groups_delete($user_group['user'], $user_group['group'], $link, $smarty);
-				$reload_user_groups = true;
-				continue;
-			}
-			if(($new_group_id = check_format('id', $_POST["group_{$user_group['user']}_{$user_group['group']}"])) == false)
-			{
-				mysqli_close($link);
-				kotoba_error(Errmsgs::$messages['GROUP_ID'], $smarty, basename(__FILE__) . ' ' . __LINE__);
-			}
-			db_user_groups_edit($user_group['user'], $user_group['group'], $new_group_id, $link, $smarty);
+			$new_group_id = groups_check_id($_POST["group_{$user_group['user']}_{$user_group['group']}"]);
+			foreach($groups as $group)
+				if($group['id'] == $new_group_id)
+				{
+					user_groups_edit($user_group['user'], $user_group['group'], $new_group_id);
+					$reload_user_groups = true;
+				}
+		}
+	/* Удаление закреплений. */
+	foreach($user_groups as $user_group)
+		if(isset($_POST["delete_{$user_group['user']}_{$user_group['group']}"]))
+		{
+			user_groups_delete($user_group['user'], $user_group['group']);
 			$reload_user_groups = true;
 		}
-/*
- * Вывод формы редактирования.
- */
-if($reload_user_groups)
-	$user_groups = db_user_groups_get($link, $smarty);
-mysqli_close($link);
-$smarty->assign('groups', $groups);
-$smarty->assign('user_groups', $user_groups);
-$smarty->display('edit_user_groups.tpl');
+	if($reload_user_groups)
+	{
+		$groups = groups_get_all();
+		$users = users_get_all();
+		$user_groups = user_groups_get_all();
+	}
+	DataExchange::releaseResources();
+	$smarty->assign('groups', $groups);
+	$smarty->assign('users', $users);
+	$smarty->assign('user_groups', $user_groups);
+	$smarty->display('edit_user_groups.tpl');
+	exit;
+}
+catch(Exception $e)
+{
+	$smarty->assign('msg', $e->__toString());
+	DataExchange::releaseResources();
+	die($smarty->fetch('error.tpl'));
+}
 ?>
