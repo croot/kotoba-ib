@@ -9,22 +9,15 @@
  * See license.txt for more info.*
  *********************************/
 
-require 'config.php';
-require 'common.php';
-
-ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/sessions/');
-ini_set('session.gc_maxlifetime', 60 * 60 * 24);
-ini_set('session.cookie_lifetime', 60 * 60 * 24);
-session_start();
-
+/*
+require 'kwrapper.php';
+kotoba_setup($link, $smarty);
+ */
 if (isset($_COOKIE[session_name()]))
     setcookie(session_name(), '', time() - 42000, '/');	// Удаление куки.
 
-if(isset($_SESSION['isLoggedIn']))
-	unset($_SESSION['isLoggedIn']);
+if(isset($_SESSION['user']))
+	unset($_SESSION['user']);
 
 session_destroy();
-$smarty = new SmartyKotobaSetup();
-
-$smarty->display('logout.tpl');
 ?>

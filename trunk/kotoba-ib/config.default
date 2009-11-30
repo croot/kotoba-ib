@@ -9,42 +9,237 @@
  * See license.txt for more info.*
  *********************************/
 
-define('KOTOBA_DIR_PATH', '/kotoba');   // Путь от корня документов к директории, где хранится index.php. Например: /test/kotoba_drive
-define('KOTOBA_ALLOW_SAEMIMG', false);	// Разрешить постить одинакоые картинки. true or false.
-define('KOTOBA_ENABLE_STAT', true);		// Включить сбор статистики. true or false.
-define('KOTOBA_BUMPLIMIT', 30);			// Глобальный бамплимит.
+class Config
+{
+	/*******************
+	 * Общие настройки *
+	 *******************/
 
-// database settings
-define('KOTOBA_DB_HOST', 'localhost');	// database host
-define('KOTOBA_DB_USER', 'root');		// database username
-define('KOTOBA_DB_PASS', '');			// database password
-define('KOTOBA_DB_BASENAME', 'kotoba');	// database name
+	/*
+	 * Путь от корня документов к директории, где хранится index.php.
+	 * Например: /kotoba
+	 */
+	const DIR_PATH = '/kotoba';
 
-define('KOTOBA_MIN_IMGWIDTH', 32);      // Мнимальная ширина загружаемого изображения.
-define('KOTOBA_MIN_IMGHEIGTH', 32);     // Минимальная высота загружаемого изображения.
-define('KOTOBA_MIN_IMGSIZE', 1000);     // Минимальный размер загружаемого файла.
+	/*
+	 * Абсолютный путь к директории, в которую установлена Котоба.
+	 * Например: c:/Apache/htdocs/kotoba
+	 */
+	const ABS_PATH = 'c:/Apache/htdocs/kotoba';
 
-define('KOTOBA_LONGPOST_LINES', 10);    // Число строк поста, отображаемое в предпросмотре доски.
-define('KOTOBA_POST_LIMIT', 600);       // Число постов доски, по достижению которого начинают тонуть треды.
+	/*
+	 * Разрешить загружать одинакоые файлы. Значения: true или false.
+	 */
+	const ALLOW_SAME_FILES = false;
 
-define('KOTOBA_MAX_MESSAGE_LENGTH', 30000);	// Максимальная длина текста сообщения в байтах.
-define('KOTOBA_MAX_THEME_LENGTH', 120);		// Максимальная длина темы в байтах.
-define('KOTOBA_MAX_NAME_LENGTH', 64);		// Максимальная длина имени в байтах.
+	/*
+	 * en: Kotoba uses frames
+	 * ru: Использовать фреймовый интерфейс. Значения: 0 или 1.
+	 */
+	const FRAMED_INTERFACE = 0;
 
-define('KOTOBA_TRY_IMAGE_GD', 1);		// try load libgd support for image processing
-define('KOTOBA_TRY_IMAGE_IM', 0);		// try load imagemagick support for image processing
+	/*
+	 * en: date and time format
+	 * ru: Формат выводимой даты и времени сообщений.
+	 */
+	// TODO Добавить ссылку на манул по формату даты.
+	const DATETIME_FORMAT = '%d-%m-%Y (%a) %H:%M:%S';
 
-define('KOTOBA_SMALLIMAGE_LIMIT_FILE_SIZE', 1048576);	// small image over that limit wouldn't
-														// processing
+	/*
+	 * Имена локали.
+	 */
+	static $LOCALE_NAMES = array('ru_RU.UTF-8', 'ru', 'rus', 'russian');
 
-define('KOTOBA_THUMB_SUCCESS', 0);		// thumbnail succesfully created
-define('KOTOBA_THUMB_UNSUPPORTED', 1);	// unsupported format
-define('KOTOBA_THUMB_NOLIBRARY', 2);	// no suitable library
-define('KOTOBA_THUMB_TOOBIG', 4);		// file too big
-define('KOTOBA_THUMB_UNKNOWN', 255);	// unknown error
+	/*
+	 * Язык для фукнций работы с многобайтовыми строками. См. описание фукнции
+	 * mb_language().
+	 */
+	const MB_LANGUAGE = 'ru';
 
-define('KOTOBA_SESSION_LIFETIME', 86400);	// Используется для параметров session.gc_maxlifetime и session.cookie_lifetime
+	/*
+	 * Кодировка для фукнций работы с многобайтовыми строками.
+	 */
+	const MB_ENCODING = 'UTF-8';
 
-define('KOTOBA_FRAMED_INTERFACE', 1);       // Kotoba uses frames
+	/*
+	 * Кодировка для обмена данными с базой данных.
+	 */
+	const SQL_ENCODING = 'utf8';
 
+	// Часовой пояс.
+	const DEFAULT_TIMEZONE = 'Europe/Moscow';
+
+	/*********************************************************
+	 * Настройки пользователя Гость (настройки по умолчанию) *
+	 *********************************************************/
+
+	/*
+	 * Идентифиатор пользователя Гость.
+	 */
+	const GUEST_ID = 1;
+
+	/*
+	 * Число нитей на странице просмотра доски.
+	 */
+	const THREADS_PER_PAGE = 10;
+
+	/*
+	 * Число сообщений в треде на странице просмотра доски.
+	 */
+	const POSTS_PER_THREAD = 5;
+
+	/*
+	 * Сообщения, в которых число строк превышает это число будут урезаны
+	 * при просмотре доски.
+	 */
+	const LINES_PER_POST = 15;
+
+	/*
+	 * Стиль оформления страниц.
+	 */
+	const STYLESHEET = 'kotoba.css';
+
+	/*
+	 * Язык.
+	 *
+	 * Замечание: Этот язык будет использоваться для ведения логов и административных скриптов.
+	 * Подразумевается, что родной язык администратора тот же, что и у гостей. То есть
+	 * администраторы и модераторы автоматически используют язык по умолчанию.
+	 */
+	const LANGUAGE = 'Russian';
+
+	/*************************
+	 * Настройки базы данных *
+	 *************************/
+
+	/*
+	 * en: database host
+	 * ru: Доменное имя или адрес узла сети, где расположен серевер базы данных.
+	 */
+	const DB_HOST = 'localhost';
+
+	/*
+	 * en: database username
+	 * ru: Имя пользователя для доступа к базе данных.
+	 */
+	const DB_USER = 'root';
+
+	/*
+	 * en: database password
+	 * ru: Пароль для доступа к базе данных.
+	 */
+	const DB_PASS = '';
+
+	/*
+	 * en: database name
+	 * ru: Имя используемой базы данных Котобы.
+	 */
+	const DB_BASENAME = 'mydb';
+
+	/**************************
+	 * Работа с изображениями *
+	 **************************/
+
+	 /*
+	 * en: try load libgd support for image processing
+	 * ru: Использовать libgd для обработки изображений.
+	 */
+	const TRY_IMAGE_GD = 1;
+
+	/*
+	 * en: try load imagemagick support for image processing
+	 * ru: Использовать imagemagick для обработки изображений.
+	 */
+	const TRY_IMAGE_IM = 0;
+
+	/*
+	 * Мнимальная ширина загружаемого изображения.
+	 */
+	const MIN_IMGWIDTH = 32;
+
+	/*
+	 * Минимальная высота загружаемого изображения.
+	 */
+	const MIN_IMGHEIGTH = 32;
+
+	// Минимальный размер загружаемого изображения в байтах.
+	const MIN_IMGSIZE = 1000;
+
+	/*
+	 * en: small image over that limit wouldn't
+	 * ru: Минимальный размер изображения в байтах.
+	 */
+	const SMALLIMAGE_LIMIT_FILE_SIZE = 1048576;
+
+	/***************
+	 * Ограничения *
+	 ***************/
+
+	/*
+	 * Глобальный бамплимит.
+	 */
+	const BUMPLIMIT = 30;
+
+	/*
+	 * Минимальное и максимальное число строк сообщения,
+	 * отображаемое на странице просмотра доски.
+	 */
+	const MIN_LINESPERPOST= 1;
+	const MAX_LINESPERPOST = 50;
+
+	/*
+	 * Минимальное и максимальное количество сообщений
+	 * в нити на страние просмотра доски.
+	 */
+	const MIN_POSTSPERTHREAD = 1;
+	const MAX_POSTSPERTHREAD = 20;
+
+	/*
+	 * Минимальное и максимальное количество нитей на страние просмотра доски.
+	 */
+	const MIN_THREADSPERPAGE = 3;
+	const MAX_THREADSPERPAGE = 30;
+
+	/*
+	 * en: No more than pages in board preview
+	 * ru: Максимальное количество страниц в просмотре доски.
+	 */
+	const PAGES_ONBOARD = 11;
+
+	/*
+	 * Число постов доски, по достижению которого начинают тонуть нити.
+	 */
+	const POST_LIMIT = 600;
+
+	/*
+	 * Максимальная длина текста сообщения в байтах.
+	 */
+	const MAX_MESSAGE_LENGTH = 30000;
+
+	/*
+	 * Максимальная длина темы в байтах.
+	 */
+	const MAX_THEME_LENGTH = 120;
+
+	/*
+	 * Максимальная длина имени в байтах.
+	 */
+	const MAX_NAME_LENGTH = 64;
+
+	/*
+	 * Время жизни сессии и кукис в секундах. Используется для параметров
+	 * session.gc_maxlifetime и session.cookie_lifetime.
+	 * 86400 = 60 * 60 * 24 = один день.
+	 */
+	const SESSION_LIFETIME = 86400;
+
+	/********************************************
+	 * Названия стандартных групп пользователей *
+	 ********************************************/
+
+	const ADM_GROUP_NAME = 'Administrators';
+	const MOD_GROUP_NAME = 'Moderators';
+	const USR_GROUP_NAME = 'Users';
+	const GST_GROUP_NAME = 'Guests';
+}
 ?>
