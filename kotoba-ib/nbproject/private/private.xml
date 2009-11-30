@@ -1,4 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
-    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/1"/>
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/1">
+        <file>
+            <url>modules/db.php</url>
+            <line>304</line>
+            <line>1275</line>
+        </file>
+        <file>
+            <url>res/stored%20procedures.sql</url>
+            <line>897</line>
+            <line>1380</line>
+        </file>
+        <file>
+            <url>modules/cache.php</url>
+            <line>1071</line>
+            <line>1686</line>
+        </file>
+    </editor-bookmarks>
 </project-private>

@@ -8,65 +8,40 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
+// Скрипт главной страницы имейджборды.
 
 require 'config.php';
-require 'common.php';
-require 'error_processing.php';
-
-if(KOTOBA_ENABLE_STAT)
-    if(($stat_file = @fopen($_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/index.stat', 'a')) == false)
-        kotoba_error("Ошибка. Не удалось открыть или создать файл статистики");
-
-ini_set('session.save_path', $_SERVER['DOCUMENT_ROOT'] . KOTOBA_DIR_PATH . '/sessions/');
-ini_set('session.gc_maxlifetime', 60 * 60 * 24);
-ini_set('session.cookie_lifetime', 60 * 60 * 24);
-session_start();
-
-require 'databaseconnect.php';
-require 'events.php';
-
-$smarty = new SmartyKotobaSetup();
-
-// Получение списка досок.
-if(($result = mysql_query('select `Name`, `id` from `boards` order by `Name`')) !== false)
+require 'modules/errors.php';
+require 'modules/lang/' . Config::LANGUAGE . '/errors.php';
+require 'modules/db.php';
+require 'modules/cache.php';
+require 'modules/common.php';
+try
 {
-	if(mysql_num_rows($result) != 0)
+	kotoba_session_start();
+	locale_setup();
+	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
+	$boards = boards_get_all_view($_SESSION['user']);
+	if(count($boards) > 0)
 	{
-		$smarty->assign('BOARDS_EXIST', '');
-		$boardNames = array();
-		
-		while (($row = mysql_fetch_array($result, MYSQL_ASSOC)) !== false)
-			$boardNames[] = $row['Name'];
-
-		$smarty->assign('boardNames', $boardNames);
-    }
-
-	mysql_free_result($result);
+		$smarty->assign('boards_exist', true);
+		$smarty->assign('boards', $boards);
+	}
+	if(in_array(Config::MOD_GROUP_NAME, $_SESSION['groups']))
+		$smarty->assign('mod_panel', true);
+	elseif(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
+		$smarty->assign('adm_panel', true);
+	$smarty->assign('version', '$Revision$');
+	$smarty->assign('date', '$Date$');
+	$smarty->display('index.tpl');
+	DataExchange::releaseResources();
+	exit;
 }
-else
+catch(Exception $e)
 {
-    if(KOTOBA_ENABLE_STAT)
-            kotoba_stat(sprintf(ERR_BOARDS_LIST, mysql_error()));
-
-	kotoba_error(sprintf(ERR_BOARDS_LIST, mysql_error()));
-}
-
-if(isset($_SESSION['isLoggedIn']))
-	$smarty->assign('isLoggedIn', '');
-
-$smarty->assign('version', '$Revision$');
-$smarty->assign('date', '$Date$');
-
-$smarty->display('index.tpl');
-?>
-<?php
-/*
- * Выводит сообщение $errmsg в файл статистики $stat_file.
- */
-function kotoba_stat($errmsg)
-{
-    global $stat_file;
-    fwrite($stat_file, "$errmsg (" . date("Y-m-d H:i:s") . ")\n");
-    fclose($stat_file);
+	$smarty->assign('msg', $e->__toString());
+	DataExchange::releaseResources();
+	die($smarty->fetch('error.tpl'));
 }
 ?>
