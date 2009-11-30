@@ -8,11 +8,19 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
-
-require_once 'config.php';
-if(!isset($_SESSION['language'])) {
-	$_SESSION['language'] = Config::LANGUAGE;
+// Обработчики автоматического удаления и архивирования нитей.
+/**
+ *
+ */
+function default_handler()
+{
+	echo 'Default popdown handler output.<br>';
 }
-require_once "lang/$_SESSION[language]/errors.php";
-require_once 'common.php';
+/**
+ *
+ */
+function one_day_handler()
+{
+	echo 'One day popdown handler output.<br>';
+}
 ?>

@@ -9,10 +9,12 @@
  * See license.txt for more info.*
  *********************************}
 {*
+Код страницы редактирования обработчиков удаления нитей.
+
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $STYLESHEET - стиль оформления.
-	$popdown_handlers - список обработчиков удаления нитей.
+    $STYLESHEET - стиль оформления (см. config.default).
+	$popdown_handlers - обработчики удаления нитей.
 *}
 {include file='header.tpl' page_title='Редактирование обработчиков удаления нитей' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
 <form action="{$DIR_PATH}/admin/edit_popdown_handlers.php" method="post">

@@ -47,8 +47,9 @@ engine=InnoDB|
 create table groups
 (
 	id int not null auto_increment,
-	name varchar(50) not null,
-	primary key (id)
+	`name` varchar(50) not null,
+	primary key (id),
+	unique key (`name`)
 )
 engine=InnoDB|
 
@@ -66,6 +67,9 @@ create table boards
 	name varchar(16) not null,
 	title varchar(50) default null,
 	bump_limit int not null,
+	force_anonymous bit default null,
+	default_name varchar(128) default null,
+	with_files bit default null,
 	same_upload varchar(32) not null,
 	popdown_handler int not null,
 	category int not null,
@@ -108,6 +112,7 @@ create table upload_types
 	id int not null auto_increment,
 	extension varchar(10) not null,
 	store_extension varchar(10) default null,
+	is_image bit not null,
 	upload_handler int not null,
 	thumbnail_image varchar(256) default null,
 	primary key (id),
@@ -130,7 +135,7 @@ create table threads
 (
 	id int not null auto_increment,
 	board int not null,
-	original_post int not null,
+	original_post int default null,
 	bump_limit int,
 	deleted bit,
 	archived bit,

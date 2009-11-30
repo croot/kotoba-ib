@@ -9,19 +9,22 @@
  * See license.txt for more info.*
  *********************************}
 {*
+Скрипт закреплений пользователей за группами.
+
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
     $STYLESHEET - стиль оформления.
-	$user_groups - список существующих пользователей и их группы.
-	$groups - список существующих групп с их идентификатором.
+	$groups - существующе группы.
+	$users - пользователи.
+	$user_groups - закрепления пользователей за группами.
 *}
-{include file='header.tpl' page_title='Редактировать принадлежность пользователей группам' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
+{include file='header.tpl' page_title='Редактирование закреплений пользователей за группами' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
 <form action="{$DIR_PATH}/admin/edit_user_groups.php" method="post">
 <table border="1">
 <tr>
-	<td colspan="2">Введите id пользователя и выберите ему группу из списка, чтобы закрепить пользователя ещё за одной группой<br>
+	<td colspan="3">Введите id пользователя и выберите ему группу из списка, чтобы закрепить пользователя ещё за одной группой<br>
 	или найдите id пользователя в списке и измените группу, за которой он закреплён.<br>
-	Чтобы удалить закрпление, перезакрепите пользователя за фиктивной группой Remove.</td>
+	Чтобы удалить закрпление, пометьете его и сохраните изменения.</td>
 </tr>
 {section name=i loop=$user_groups}
 <tr>
@@ -34,12 +37,22 @@
 		{/section}
 		</select>
 	</td>
+	<td><input type="checkbox" name="delete_{$user_groups[i].user}_{$user_groups[i].group}"></td>
 </tr>
 {/section}
 <tr>
-	<td><input type="text" name="new_bind_user"></td>
 	<td>
+		<select name="new_bind_user">
+			<option value="" selected></option>
+		{section name=k loop=$users}
+			<option value="{$users[k].id}">{$users[k].id}</option>
+
+		{/section}
+		</select>
+	</td>
+	<td colspan="2">
 		<select name="new_bind_group">
+			<option value="" selected></option>
 		{section name=j loop=$groups}
 			<option value="{$groups[j].id}">{$groups[j].name}</option>
 

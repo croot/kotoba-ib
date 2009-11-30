@@ -8,60 +8,52 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
-
-require '../kwrapper.php';
-require_once Config::ABS_PATH . '/lang/' . Config::LANGUAGE . '/logging.php';
-
-kotoba_setup($link, $smarty);
-/*
- * Только для администраторов.
- */
-if(! in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
+// Скрипт редактирования обработчиков загружаемых файлов.
+require '../config.php';
+require Config::ABS_PATH . '/modules/errors.php';
+require Config::ABS_PATH . '/modules/lang/' . Config::LANGUAGE . '/errors.php';
+require Config::ABS_PATH . '/modules/logging.php';
+require Config::ABS_PATH . '/modules/lang/' . Config::LANGUAGE . '/logging.php';
+require Config::ABS_PATH . '/modules/db.php';
+require Config::ABS_PATH . '/modules/cache.php';
+require Config::ABS_PATH . '/modules/common.php';
+try
 {
-	mysqli_close($link);
-	kotoba_error(Errmsgs::$messages['NOT_ADMIN'],
-		$smarty,
-		basename(__FILE__) . ' ' . __LINE__);
-}
-kotoba_log(sprintf(Logmsgs::$messages['ADMIN_FUNCTIONS'],
-		'Редактирование обработчиков загружаемых файлов',
-		$_SESSION['user'],
-		$_SERVER['REMOTE_ADDR']),
-	Logmsgs::open_logfile(Config::ABS_PATH . '/log/' .
-		basename(__FILE__) . '.log'));
-$upload_handlers = db_upload_handlers_get($link, $smarty);
-$reload_upload_handlers = false;	// Были ли произведены изменения.
-/*
- * Добавим обработчик загружаемых файлов.
- */
-if(isset($_POST['new_upload_handler']) && $_POST['new_upload_handler'] !== '')
-{
-	if(($new_upload_handler_name = check_format('upload_handler', $_POST['new_upload_handler'])) == false)
+	kotoba_session_start();
+	locale_setup();
+	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
+	if(!in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
+		throw new PremissionException(PremissionException::$messages['NOT_ADMIN']);
+	Logging::write_message(sprintf(Logging::$messages['ADMIN_FUNCTIONS_EDIT_UPLOAD_HANDLERS'],
+				$_SESSION['user'], $_SERVER['REMOTE_ADDR']),
+			Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log');
+	$upload_handlers = upload_handlers_get_all();
+	$reload_upload_handlers = false;	// Были ли произведены изменения.
+	// Регистрация обработчика загружаемых файлов.
+	if(isset($_POST['new_upload_handler']) && $_POST['new_upload_handler'] !== '')
 	{
-		mysqli_close($link);
-		kotoba_error(Errmsgs::$messages['UPLOAD_HANDLER_NAME'],
-			$smarty,
-			basename(__FILE__) . ' ' . __LINE__);
-	}
-	db_upload_handlers_add($new_upload_handler_name, $link, $smarty);
-	$reload_upload_handlers = true;
-}
-/*
- * Удалим обработчики загружаемых файлов.
- */
-foreach($upload_handlers as $handler)
-	if(isset($_POST['delete_' . $handler['id']]))
-	{
-		db_upload_handlers_delete($handler['id'], $link, $smarty);
+		upload_handlers_add(upload_handlers_check_name($_POST['new_upload_handler']));
 		$reload_upload_handlers = true;
 	}
-/*
- * Если нужно, получение обновлённого списка обработчиков загружаемых файлов,
- * вывод формы редактирования.
- */
-if($reload_upload_handlers)
-	 $upload_handlers = db_upload_handlers_get($link, $smarty);
-mysqli_close($link);
-$smarty->assign('upload_handlers', $upload_handlers);
-$smarty->display('edit_upload_handlers.tpl');
+	// Удаление обработчика загружаемых файлов.
+	foreach($upload_handlers as $handler)
+		if(isset($_POST['delete_' . $handler['id']]))
+		{
+			upload_handlers_delete($handler['id']);
+			$reload_upload_handlers = true;
+		}
+	// Вывод формы редактирования.
+	if($reload_upload_handlers)
+		 $upload_handlers = upload_handlers_get_all();
+	DataExchange::releaseResources();
+	$smarty->assign('upload_handlers', $upload_handlers);
+	$smarty->display('edit_upload_handlers.tpl');
+}
+catch(Exception $e)
+{
+	$smarty->assign('msg', $e->__toString());
+	DataExchange::releaseResources();
+	die($smarty->fetch('error.tpl'));
+}
 ?>

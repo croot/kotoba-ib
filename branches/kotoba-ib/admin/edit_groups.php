@@ -9,50 +9,60 @@
  * See license.txt for more info.*
  *********************************/
 
-require '../kwrapper.php';
-require_once Config::ABS_PATH . '/lang/' . Config::LANGUAGE . '/logging.php';
+/*
+ * Скприпт редактирования групп.
+ */
 
-kotoba_setup($link, $smarty);
-if(! in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
+require '../config.php';
+require Config::ABS_PATH . '/modules/errors.php';
+require Config::ABS_PATH . '/modules/lang/' . Config::LANGUAGE . '/errors.php';
+require Config::ABS_PATH . '/modules/logging.php';
+require Config::ABS_PATH . '/modules/lang/' . Config::LANGUAGE . '/logging.php';
+require Config::ABS_PATH . '/modules/db.php';
+require Config::ABS_PATH . '/modules/cache.php';
+require Config::ABS_PATH . '/modules/common.php';
+try
 {
-	mysqli_close($link);
-	kotoba_error(Errmsgs::$messages['NOT_ADMIN'], $smarty, basename(__FILE__) . ' ' . __LINE__);
-}
-kotoba_log(sprintf(Logmsgs::$messages['ADMIN_FUNCTIONS'], 'Редактировать группы пользователей', $_SESSION['user'], $_SERVER['REMOTE_ADDR']), Logmsgs::open_logfile(Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log'));
-$groups = db_group_get($link, $smarty);
-$delete_list = array();		// Массив имён групп для удаления.
-$reload_groups = false;	// Были ли произведены изменения.
-/*
- * Сначала создадим группу, если передано её имя.
- */
-if(isset($_POST['new_group']) && $_POST['new_group'] !== '')
-{
-	if(($new_group_name = check_format('group', $_POST['new_group'])) == false)
+	kotoba_session_start();
+	locale_setup();
+	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
+	if(!in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
+		throw new PremissionException(PremissionException::$messages['NOT_ADMIN']);
+	Logging::write_message(sprintf(Logging::$messages['ADMIN_FUNCTIONS_EDIT_GROUPS'],
+				$_SESSION['user'], $_SERVER['REMOTE_ADDR']),
+			Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log');
+	Logging::close_logfile();
+	$groups = groups_get_all();
+	$delete_list = array();		// Массив идентификаторов групп для удаления.
+	$reload_groups = false;		// Были ли произведены изменения в группах.
+	/* Если создаётся новая группа. */
+	if(isset($_POST['new_group']) && $_POST['new_group'] !== '')
 	{
-		mysqli_close($link);
-		kotoba_error(Errmsgs::$messages['GROUP_NAME'], $smarty, basename(__FILE__) . ' ' . __LINE__);
+		$new_group = groups_check_name($_POST['new_group']);
+		groups_add($new_group);
+		$reload_groups = true;
 	}
-	db_group_add($new_group_name, $link, $smarty);
-	$reload_groups = true;
+	/* Удаление группы. */
+	foreach($groups as $group)
+		if(isset($_POST['delete_' . $group['id']]))
+			array_push($delete_list, $group['id']);
+	if(count($delete_list) > 0)
+	{
+		groups_delete($delete_list);
+		$reload_groups = true;
+	}
+	if($reload_groups)
+		$groups = groups_get_all();
+	DataExchange::releaseResources();
+	$smarty->assign('groups', $groups);
+	$smarty->display('edit_groups.tpl');
+	exit;
 }
-/*
- * Затем удалим группы, которые были выбраны.
- */
-foreach($groups as $group)
-	if(isset($_POST['delete_' . $group['name']]))
-		array_push($delete_list, $group['id']);
-if(count($delete_list) > 0)
+catch(Exception $e)
 {
-	db_group_delete($delete_list, $link, $smarty);
-	$reload_groups = true;
+	$smarty->assign('msg', $e->__toString());
+	DataExchange::releaseResources();
+	die($smarty->fetch('error.tpl'));
 }
-/*
- * Если группы не удалялись и не добавлялись, то получать их список заново
- * не нужно.
- */
-if($reload_groups)
-	$groups = db_group_get($link, $smarty);
-mysqli_close($link);
-$smarty->assign('groups', $groups);
-$smarty->display('edit_groups.tpl');
 ?>
