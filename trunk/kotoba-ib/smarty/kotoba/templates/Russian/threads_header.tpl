@@ -9,30 +9,34 @@
  * See license.txt for more info.*
  *********************************}
 {*
-Этот шаблон содержит код просмотра нити.
+Код начала страницы просмотра нити.
 
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-	$STYLESHEET - стиль оформления.
-	$boards - список досок.
-	$rempass - пароль на удаление своих сообщений и нитей.
+	$STYLESHEET - стиль оформления (см. config.default).
+	$boards - доски.
+	$rempass - пароль на удаление сообщений и нитей.
 	$board_name - имя доски, на которой расположена нить.
-    $original_post - номер оригинального сообщения.
-	$thread_id - идентификатор нити.
-	$bump_limit - индивидуальный бамплимит, если задан.
-	$posts_count - число сообщений в нити.
+	$thread - просматриваемая нить.
 	$upload_types - типы файлов, доступные для загрузки.
-	$thread_mod - текущая нить, если она доступна для модерирования.
+	$is_moderatable - текущая нить доступна для модерирования.
+
+Специальные переменные (не входит в котобу):
+	$event_daynight_active - запущен ли эвент времени суток.
+	$event_daynight_code - код, добавляемый к html коду страницы, эвентом.
 *}
-{assign var="page_title" value="Просмотр нити $original_post"}
+{assign var="page_title" value="Просмотр нити `$thread[0].original_post`"}
 {include file='header.tpl' page_title=$page_title DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
+{* Начало кода эвента времени суток (не входит в котобу). *}
+{if isset($event_daynight_active) && $event_daynight_active}{$event_daynight_code}{/if}
+{* Конец кода эвента времени суток. *}
 Список досок: {include file='board_list.tpl' board_list=$boards DIR_PATH=$DIR_PATH}<br>
 <a href="{$DIR_PATH}/edit_settings.php"{if $is_guest} title="Отредактируйте ваши настройки."{/if}>Мои настройки</a><br>
 
 <h4 align=center>✿Kotoba</h4>
-<br><center><b>Kotoba - {$board_name}/{$original_post}</b></center>
-{if $bump_limit > 0}Индивидуальный бамплимит: {$bump_limit}<br>{/if}
-Число сообщений: {$posts_count}
+<br><center><b>Kotoba - {$board_name}/{$thread[0].original_post}</b></center>
+{if $thread[0].bump_limit > 0}Индивидуальный бамплимит: {$thread[0].bump_limit}<br>{/if}
+Число сообщений: {$thread[0].posts_count}
 <hr>
 
 <form name="reply_form" action="{$DIR_PATH}/reply.php" method="post" enctype="multipart/form-data">
@@ -47,7 +51,7 @@
 <tr valign="top"><td>Sage: </td><td><input type="checkbox" name="sage" value="sage"></td></tr>
 <tr valign="top"><td colspan = "2">Типы файлов, доступных для загрзки:{section name=i loop=$upload_types} {$upload_types[i].extension}{/section}</td></tr>
 </table>
-<input type="hidden" name="t" value="{$thread_id}">
+<input type="hidden" name="t" value="{$thread[0].id}">
 </form>
 <hr>
-{if count($thread_mod) > 0}{include file='threads_settings_list.tpl' boards=$boards threads=$thread_mod DIR_PATH=$DIR_PATH}{/if}
+{if $is_moderatable}{include file='threads_settings_list.tpl' boards=$boards threads=$thread DIR_PATH=$DIR_PATH}{/if}

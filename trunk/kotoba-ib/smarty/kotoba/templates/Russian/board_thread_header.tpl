@@ -14,9 +14,9 @@
 Описание переменных:
 	$DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
 	$board_name - имя просматриваемой доски.
-    $thread_id - Идентификатор нити.
+    $thread_num - номер нити.
 
-    $with_image - логическая переменная, указывает на то, содержит ли
+    $original_with_image - логическая переменная, указывает на то, содержит ли
         сообщение прикреплённую картинку или нет.
 	$original_theme - тема сообщения.
     $original_name - имя отправителя.
@@ -39,17 +39,17 @@
 *}
 <div>
 <span class="filetitle">{$original_theme}</span> <span class="postername">{$original_name}</span>{if $original_hascode == 1}<span class="postertrip">!{$original_tripcode}</span>{/if} {$original_time}
-{if $with_image == true}<span class="filesize">Файл: <a target="_blank" href="{$original_file_link}">{$original_file_name}</a> -(<em>{$original_file_size} Байт {$original_file_width}x{$original_file_heigth}</em>)</span>
+{if $original_with_image == true}<span class="filesize">Файл: <a target="_blank" href="{$original_file_link}">{$original_file_name}</a> -(<em>{$original_file_size} Байт {$original_file_width}x{$original_file_heigth}</em>)</span>
 {/if}
 <span class="reflink">
 	<span onclick="insert('>>{$original_num}');">#</span>
-	<a href="{$DIR_PATH}/{$board_name}/{$thread_id}#{$original_num}">{$original_num}</a>
-	[<a href="{$DIR_PATH}/{$board_name}/{$thread_id}">Ответить</a>]
+	<a href="{$DIR_PATH}/{$board_name}/{$thread_num}#{$original_num}">{$original_num}</a>
+	[<a href="{$DIR_PATH}/{$board_name}/{$thread_num}">Ответить</a>]
 </span>
-<span class="hidebtn">[<a href="{$DIR_PATH}/{$board_name}/h{$thread_id}" title="Скрыть">-</a>]</span>
+<span class="hidebtn">[<a href="{$DIR_PATH}/{$board_name}/h{$thread_num}" title="Скрыть">-</a>]</span>
 <span class="delbtn">[<a href="{$DIR_PATH}/{$board_name}/r{$original_num}" title="Удалить">×</a>]</span>
 <a name="{$original_id}"></a>
-{if $with_image == true}<br><a target="_blank" href="{$original_file_link}"><img src="{$original_file_thumbnail_link}" class="thumb" width="{$original_file_thumbnail_width}" heigth="{$original_file_thumbnail_heigth}"></a>
+{if $original_with_image == true}<br><a target="_blank" href="{$original_file_link}"><img src="{$original_file_thumbnail_link}" class="thumb" width="{$original_file_thumbnail_width}" heigth="{$original_file_thumbnail_heigth}"></a>
 {/if}
 <blockquote>
 {$original_text}
