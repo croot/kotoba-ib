@@ -245,47 +245,70 @@ begin
 	from boards where id = board_id;
 end|
 
+-- Добавляет доску.
 --
+-- Аргументы:
+-- _name - Имя доски.
+-- _title - Заголовок.
+-- _bump_limit - Специфичный для доски бамплимит.
+-- _force_anonymous - Флаг отображения имени отправителя.
+-- _default_name - Имя отправителя по умолчанию.
+-- _with_files - Флаг загрузки файлов.
+-- _same_upload - Политика загрузки одинаковых файлов.
+-- _popdown_handler - Обработчик удаления нитей.
+-- _category - Категория.
 create procedure sp_boards_add
 (
 	_name varchar(16),
 	_title varchar(50),
 	_bump_limit int,
+	_force_anonymous bit,
+	_default_name varchar(128),
+	_with_files bit,
 	_same_upload varchar(32),
 	_popdown_handler int,
 	_category int
 )
 begin
-	insert into boards (`name`, title, bump_limit, same_upload,
-		popdown_handler, category) values (_name, _title, _bump_limit,
-			_same_upload, _popdown_handler, _category);
+	insert into boards (`name`, title, bump_limit, force_anonymous,
+		default_name, with_files, same_upload, popdown_handler, category)
+	values (_name, _title, _bump_limit, _force_anonymous, _default_name,
+		_with_files, _same_upload, _popdown_handler, _category);
 end|
 
 -- Редактирует параметры доски.
 --
 -- Аргументы:
--- _id - идентификатор доски.
--- _title - заголовок доски.
--- _bump_limit - бамплимит.
--- _same_upload - поведение при добавлении одинаковых файлов.
--- _popdown_handler - обработчик удаления нитей.
--- _category - категория доски.
+-- _id - Идентификатор.
+-- _title - Заголовок.
+-- _bump_limit - Специфичный для доски бамплимит.
+-- _force_anonymous - Флаг отображения имени отправителя.
+-- _default_name - Имя отправителя по умолчанию.
+-- _with_files - Флаг загрузки файлов.
+-- _same_upload - Политика загрузки одинаковых файлов.
+-- _popdown_handler - Обработчик удаления нитей.
+-- _category - Категория.
 create procedure sp_boards_edit
 (
 	_id int,
 	_title varchar(50),
 	_bump_limit int,
+	_force_anonymous bit,
+	_default_name varchar(128),
+	_with_files bit,
 	_same_upload varchar(32),
 	_popdown_handler int,
 	_category int
 )
 begin
 	update boards set title = _title, bump_limit = _bump_limit,
-		same_upload = _same_upload, popdown_handler = _popdown_handler,
-		category = _category where id = _id;
+		force_anonymous = _force_anonymous, default_name = _default_name,
+		with_files = _with_files, same_upload = _same_upload,
+		popdown_handler = _popdown_handler, category = _category
+	where id = _id;
 end|
 
---
+-- Удаляет заданную доску.
 create procedure sp_boards_delete
 (
 	_id int
@@ -864,29 +887,29 @@ end|
 -- Выбирает все нити.
 create procedure sp_threads_get_all ()
 begin
-	select id, board, original_post, bump_limit, sage, with_images
+	select id, board, original_post, bump_limit, sage, with_files
 	from threads
-	where (deleted = 0 or deleted is null) and (archived = 0 or archived is null)
+	where deleted = 0 and archived = 0
 	order by id desc;
 end|
 
 -- Редактирует настройки нити.
 --
 -- Аргументы:
---_id - идентификатор нити.
--- _bump_limit - бамплимит.
--- _sage - флаг поднятия нити при ответе
--- _with_images - флаг прикрепления файлов к ответам в нить.
+-- _id - Идентификатор нити.
+-- _bump_limit - Специфичный для нити бамплимит.
+-- _sage - Флаг поднятия нити при ответе
+-- _with_files - Флаг загрузки файлов.
 create procedure sp_threads_edit
 (
 	_id int,
 	_bump_limit int,
 	_sage bit,
-	_with_images bit
+	_with_files bit
 )
 begin
 	update threads set bump_limit = _bump_limit, sage = _sage,
-		with_images = _with_images
+		with_files = _with_files
 	where id = _id;
 end|
 
@@ -905,8 +928,7 @@ begin
 	where id = _id;
 end|
 
--- Получает нити, доступные для модерирования пользователю с заданным
--- идентификатором.
+-- Выбирает нити, доступные для модерирования заданному пользователю.
 --
 -- Аргументы:
 -- user_id - идентификатор пользователя.
@@ -915,7 +937,7 @@ create procedure sp_threads_get_all_moderate
 	user_id int
 )
 begin
-	select t.id, t.board, t.original_post, t.bump_limit, t.sage, t.with_images
+	select t.id, t.board, t.original_post, t.bump_limit, t.sage, t.with_files
 	from threads t
 	join user_groups ug on ug.`user` = user_id
 	left join hidden_threads ht on t.id = ht.thread and ug.`user` = ht.`user`
@@ -928,24 +950,40 @@ begin
 	-- Правило для всех групп и конкретной доски.
 	left join acl a4 on a4.`group` is null and a4.board = t.board
 	-- Правило для конкретной групы.
-	left join acl a5 on a5.`group` = ug.`group` and a5.board is null and a5.thread is null and a5.post is null
-	where (t.deleted = 0 or t.deleted is null)
-		and (t.archived = 0 or t.archived is null)
+	left join acl a5 on a5.`group` = ug.`group` and a5.board is null
+		and a5.thread is null and a5.post is null
+	where t.deleted = 0
+		and t.archived = 0
 		and ht.thread is null
 		-- Нить должна быть доступна для просмотра.
-		and ((a1.`view` = 1 or a1.`view` is null)			-- Просмотр нити не запрещен конкретной группе и
-				and (a2.`view` = 1 or a2.`view` is null)	-- просмотр нити не запрещен всем группам и
-				and (a3.`view` = 1 or a3.`view` is null)	-- просмотр доски не запрещен конкретной группе и
-				and (a4.`view` = 1 or a4.`view` is null)	-- просмотр доски не запрещен всем группам и
-				and a5.`view` = 1)							-- просмотр разрешен конкретной группе.
+			-- Просмотр нити не запрещен конкретной группе и
+		and ((a1.`view` = 1 or a1.`view` is null)
+			-- просмотр нити не запрещен всем группам и
+			and (a2.`view` = 1 or a2.`view` is null)
+			-- просмотр доски не запрещен конкретной группе и
+			and (a3.`view` = 1 or a3.`view` is null)
+			-- просмотр доски не запрещен всем группам и
+			and (a4.`view` = 1 or a4.`view` is null)
+			-- просмотр разрешен конкретной группе.
+			and a5.`view` = 1)
 		-- Нить должна быть доступна для редактирования.
-		and (a1.change = 1														-- Редактирование нити разрешено конкретной группе или
-				or (a1.change is null and a2.change = 1)						-- редактирование нити не запрещено конкретной группе и разрешено всем группам или
-				or (a1.change is null and a2.change is null and a5.change = 1))	-- редактирование нити не запрещено ни конкретной группе ни всем, и конкретной группе редактирование разрешено.
+			-- Редактирование нити разрешено конкретной группе или
+		and (a1.change = 1
+			-- редактирование нити не запрещено конкретной группе и разрешено
+			-- всем группам или
+			or (a1.change is null and a2.change = 1)
+			-- редактирование нити не запрещено ни конкретной группе ни всем, и
+			-- конкретной группе редактирование разрешено.
+			or (a1.change is null and a2.change is null and a5.change = 1))
 		-- Нить должна быть доступна для модерирования
-		and (a1.moderate = 1														-- Модерирование нити разрешено конкретной группе или
-			or (a1.moderate is null and a2.moderate = 1)							-- модерирование нити не запрещено конкретной группе и разрешено всем группам или
-			or (a1.moderate is null and a2.moderate is null and a5.moderate = 1))	-- модерирование нити не запрещено ни конкретной группе ни всем, и конкретной группе модерирование разрешено.
+			-- Модерирование нити разрешено конкретной группе или
+		and (a1.moderate = 1
+			-- модерирование нити не запрещено конкретной группе и разрешено
+			-- всем группам или
+			or (a1.moderate is null and a2.moderate = 1)
+			-- модерирование нити не запрещено ни конкретной группе ни всем, и
+			-- конкретной группе модерирование разрешено.
+			or (a1.moderate is null and a2.moderate is null and a5.moderate = 1))
 	group by t.id
 	order by t.id desc;
 end|

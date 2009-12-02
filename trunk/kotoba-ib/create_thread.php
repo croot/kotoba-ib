@@ -79,9 +79,6 @@ try
 	else
 		// Подписывать сообщения запрещено на этой доске.
 		$message_name = '';
-	if(!$board['force_anonymous'] && $message_name == ''
-		&& $board['default_name'])
-			$message_name = $board['default_name'];
 	if($upload_type['is_image'])
 		uploads_check_image_size($uploaded_file_size);
 	$message_text = htmlspecialchars($_POST['message_text'], ENT_QUOTES);

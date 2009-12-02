@@ -13,7 +13,7 @@
 
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $STYLESHEET - стиль оформления.
+    $STYLESHEET - стиль оформления (см. config.default).
 	$boards - доски.
 	$threads - нити.
 *}

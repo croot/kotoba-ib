@@ -94,9 +94,6 @@ try
 	else
 		// Подписывать сообщения запрещено на этой доске.
 		$message_name = '';
-	if(!$board['force_anonymous'] && $message_name == ''
-		&& $board['default_name'])
-			$message_name = $board['default_name'];
 	$message_text = htmlspecialchars($_POST['message_text'], ENT_QUOTES);
 	$message_subject = htmlspecialchars($_POST['message_theme'], ENT_QUOTES);
 	$message_text = stripslashes($message_text);

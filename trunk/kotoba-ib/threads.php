@@ -77,6 +77,12 @@ try
 	foreach($posts as $p)
 		if($thread['original_post'] == $p['number'])
 		{
+			// У некоторых старых сообщений нет имени отправителя.
+			if(!$board['force_anonymous'] && $board['default_name']
+				&& !$p['name'])
+			{
+				$p['name'] = $board['default_name'];
+			}
 			// Оригинальное сообщение.
 			$smarty->assign('original_with_image', false);
 			$smarty->assign('original_theme', $p['subject']);
