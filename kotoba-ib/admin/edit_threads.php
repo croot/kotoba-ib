@@ -38,19 +38,19 @@ try
 	Logging::write_message(sprintf(Logging::$messages['EDIT_THREADS'],
 				$_SESSION['user'], $_SERVER['REMOTE_ADDR']),
 			Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log');
-	$boards = boards_get_all();	// TODO Даже модерировать треды на доске, которая не видна?
+	$boards = boards_get_all();
 	$reload_threads = false;	// Были ли произведены изменения.
-	// Изменение параметров существующих нитей.
+// Изменение параметров существующих нитей.
 	if(isset($_POST['submited']))
 		foreach($threads as $thread)
 		{
-			// Был ли изменён бампилимит?
+			// Был ли изменён специфичный для нити бампилимит?
 			$param_name = "bump_limit_{$thread['id']}";
 			$new_bump_limit = $thread['bump_limit'];
 			if(isset($_POST[$param_name])
 				&& $_POST[$param_name] != $thread['bump_limit'])
 			{
-				if($_POST[$param_name] === '')
+				if($_POST[$param_name] == '')
 					$new_bump_limit = null;
 				else
 					$new_bump_limit = threads_check_bump_limit($_POST[$param_name]);
@@ -61,31 +61,75 @@ try
 			if(isset($_POST[$param_name])
 				&& $_POST[$param_name] != $thread['sage'])
 			{
-				$new_sage = threads_check_sage($_POST[$param_name]);
+				$new_sage = '1';
 			}
-			if($thread['sage'] && !isset($_POST[$param_name]))
-				$new_sage = 0;
-			// Был ли изменен флаг прикрепления файлов к ответам в нить?
-			$param_name = "with_images_{$thread['id']}";
-			$new_with_images = $thread['with_images'];
+			if(!isset($_POST[$param_name]) && $thread['sage'])
+				$new_sage = '0';
+			// Был ли изменен флаг загрузки файлов?
+			$param_name = "with_files_{$thread['id']}";
+			$new_with_images = $thread['with_files'];
 			if(isset($_POST[$param_name])
-				&& $_POST[$param_name] != $thread['with_images'])
+				&& $_POST[$param_name] != $thread['with_files'])
 			{
-				$new_with_images = threads_check_with_images($_POST[$param_name]);
+				switch($_POST[$param_name])
+				{
+					case '':
+						$new_with_images = null;
+						break;
+					case '1':
+						foreach($boards as $board)
+							if($board['id'] == $thread['board'])
+							{
+								if($board['with_files'])
+									/*
+									 * Загрузка файлов на доске разрешена,
+									 * поэтому дополнительно разрешать её в этой
+									 * нити не нужно.
+									 */
+									$new_with_images = null;
+								else
+									/*
+									 * Загрузка файлов на доске запрещена, а в
+									 * этой нити будет разрешена.
+									 */
+									$new_with_images = '1';
+								break;
+							}
+						break;
+					case '0':
+						foreach($boards as $board)
+							if($board['id'] == $thread['board'])
+							{
+								if($board['with_files'])
+									/*
+									 * Загрузка файлов на доске разрешена, а в
+									 * этой нити будет запрещена.
+									 */
+									$new_with_images = '0';
+								else
+									/*
+									 * Загрузка файлов на доске запрещена,
+									 * поэтому дополнительно запрещать её в этой
+									 * нити не нужно.
+									 */
+									$new_with_images = null;
+								break;
+							}
+						break;
+				}
+				
 			}
-			if($thread['with_images'] && !isset($_POST[$param_name]))
-				$new_with_images = 0;
 			// Были ли произведены какие-либо изменения?
 			if($new_bump_limit != $thread['bump_limit']
 				|| $new_sage != $thread['sage']
-				|| $new_with_images != $thread['with_images'])
+				|| $new_with_images != $thread['with_files'])
 			{
 				threads_edit($thread['id'], $new_bump_limit, $new_sage,
 						$new_with_images);
 				$reload_threads = true;
 			}
 		}
-	// Вывод формы редактирования.
+// Вывод формы редактирования.
 	if($reload_threads)
 	{
 		if(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))

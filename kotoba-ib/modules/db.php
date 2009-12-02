@@ -257,7 +257,7 @@ function db_boards_get_all_change($link, $user_id)
  * 'name' - имя.<br>
  * 'title' - заголовок.<br>
  * 'bump_limit' - спецефиный для доски бамплимит.<br>
- * 'force_anonymous' - флаг отображения имя отправителя.<br>
+ * 'force_anonymous' - флаг отображения имени отправителя.<br>
  * 'default_name' - имя отправителя по умолчанию.<br>
  * 'with_files' - флаг загрузки файлов.<br>
  * 'same_upload' - политика загрузки одинаковых изображений.<br>
@@ -328,52 +328,56 @@ function db_boards_get_specifed($link, $board_id)
 }
 /**
  * Редактирует параметры доски.
- *
- * Аргументы:
- * $link - связь с базой данных.
- * $id - идентификатор доски.
- * $title - заголовок доски.
- * $bump_limit - бамплимит.
- * $same_upload - поведение при добавлении одинаковых файлов.
- * $popdown_handler - обработчик удаления нитей.
- * $category - категория доски.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param id mixed <p>Идентификатор.</p>
+ * @param title string <p>Заголовок.</p>
+ * @param bump_limit mixed <p>Специфичный для доски бамплимит.</p>
+ * @param force_anonymous string <p>Флаг отображения имени отправителя.</p>
+ * @param default_name string <p>Имя отправителя по умолчанию.</p>
+ * @param with_files string <p>Флаг загрузки файлов.</p>
+ * @param same_upload string <p>Политика загрузки одинаковых файлов.</p>
+ * @param popdown_handler mixed <p>Обработчик удаления нитей.</p>
+ * @param category mixed <p>Категория.</p>
  */
-function db_boards_edit($link, $id, $title, $bump_limit, $same_upload,
-	$popdown_handler, $category)
+function db_boards_edit($link, $id, $title, $bump_limit, $force_anonymous,
+	$default_name, $with_files, $same_upload, $popdown_handler, $category)
 {
 	$title = ($title === null ? 'null' : "'$title'");
+	$default_name = ($default_name === null ? 'null' : "'$default_name'");
 	if(!mysqli_query($link, "call sp_boards_edit($id, $title, $bump_limit,
-			'$same_upload', $popdown_handler, $category)"))
+			$force_anonymous, $default_name, $with_files, '$same_upload',
+			$popdown_handler, $category)"))
 		throw new CommonException(mysqli_error($link));
 	db_cleanup_link($link);
 }
 /**
  * Добавляет доску.
- *
- * Аргументы:
- * $link - связь с базой данных.
- * $name - имя доски.
- * $title - заголовок доски.
- * $bump_limit - бамплимит.
- * $same_upload - поведение при добавлении одинаковых файлов.
- * $popdown_handler - обработчик удаления нитей.
- * $category - категория доски.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param name string <p>Имя доски.</p>
+ * @param title string <p>Заголовок.</p>
+ * @param bump_limit mixed <p>Специфичный для доски бамплимит.</p>
+ * @param force_anonymous string <p>Флаг отображения имени отправителя.</p>
+ * @param default_name string <p>Имя отправителя по умолчанию.</p>
+ * @param with_files string <p>Флаг загрузки файлов.</p>
+ * @param same_upload string <p>Политика загрузки одинаковых файлов.</p>
+ * @param popdown_handler mixed <p>Обработчик удаления нитей.</p>
+ * @param category mixed <p>Категория.</p>
  */
-function db_boards_add($link, $name, $title, $bump_limit, $same_upload,
-	$popdown_handler, $category)
+function db_boards_add($link, $name, $title, $bump_limit, $force_anonymous,
+	$default_name, $with_files, $same_upload, $popdown_handler, $category)
 {
 	$title = ($title === null ? 'null' : "'$title'");
+	$default_name = ($default_name === null ? 'null' : "'$default_name'");
 	if(!mysqli_query($link, "call sp_boards_add('$name', $title, $bump_limit,
-			'$same_upload', $popdown_handler, $category)"))
+			$force_anonymous, $default_name, $with_files, '$same_upload',
+			$popdown_handler, $category)"))
 		throw new CommonException(mysqli_error($link));
 	db_cleanup_link($link);
 }
 /**
- * Удаление доски.
- *
- * Аргументы:
- * $link - связь с базой данных.
- * $id - идентификатор доски.
+ * Удаляет заданную доску.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param id mixed <p>Идентификатор доски.</p>
  */
 function db_boards_delete($link, $id)
 {
@@ -1218,17 +1222,15 @@ function db_board_upload_types_delete($link, $board_id, $upload_type_id)
 
 /**
  * Получает все нити.
- *
- * Аргументы:
- * $link - связь с базой данных.
- *
- * Возвращает нити:
- * 'id' - идентификатор нити.
- * 'board' - идентификатор доски.
- * 'original_post' - оригинальный пост.
- * 'bump_limit' - специфичный для нити бамплимит.
- * 'sage' - не поднимать нить при ответе в неё.
- * 'with_images' - разрешить прикреплять файлы к ответам в нить.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @return array
+ * Возвращает нити:<p>
+ * 'id' - идентификатор.<br>
+ * 'board' - идентификатор доски.<br>
+ * 'original_post' - оригинальное сообщение.<br>
+ * 'bump_limit' - специфичный для нити бамплимит.<br>
+ * 'sage' - флаг поднятия нити при ответе.<br>
+ * 'with_files' - флаг загрузки файлов.</p>
  */
 function db_threads_get_all($link)
 {
@@ -1244,26 +1246,25 @@ function db_threads_get_all($link)
 						'original_post' => $row['original_post'],
 						'bump_limit' => $row['bump_limit'],
 						'sage' => $row['sage'],
-						'with_images' => $row['with_images']));
+						'with_files' => $row['with_files']));
 	mysqli_free_result($result);
 	db_cleanup_link($link);
 	return $threads;
 }
 /**
  * Редактирует настройки нити.
- *
- * Аргументы:
- * $link - связь с базой данных.
- * $thread_id - идентификатор нити.
- * $bump_limit - бамплимит.
- * $sage - флаг поднятия нити при ответе
- * $with_images - флаг прикрепления файлов к ответам в нить.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param thread_id mixed <p>Идентификатор нити.</p>
+ * @param bump_limit mixed <p>Специфичный для нити бамплимит.</p>
+ * @param sage mixed <p>Флаг поднятия нити при ответе.</p>
+ * @param with_files mixed <p>Флаг загрузки файлов.</p>
  */
-function db_threads_edit($link, $thread_id, $bump_limit, $sage, $with_images)
+function db_threads_edit($link, $thread_id, $bump_limit, $sage, $with_files)
 {
 	$bump_limit = ($bump_limit === null ? 'null' : $bump_limit);
+	$with_files = ($with_files === null ? 'null' : $with_files);
 	if(!mysqli_query($link, "call sp_threads_edit($thread_id, $bump_limit,
-			$sage, $with_images)"))
+			$sage, $with_files)"))
 		throw new CommonException(mysqli_error($link));
 	db_cleanup_link($link);
 }
@@ -1309,20 +1310,17 @@ function db_threads_add($link, $board_id, $original_post, $bump_limit, $sage,
 	return $row;
 }
 /**
- * Получает нити, доступные для модерирования пользователю с заданным
- * идентификатором.
- *
- * Аргументы:
- * $link - связь с базой данных.
- * $user_id - идентификатор пользователя.
- *
- * Возвращает нити:
- * 'id' - идентификатор нити.
- * 'board' - идентификатор доски.
- * 'original_post' - оригинальный пост.
- * 'bump_limit' - специфичный для нити бамплимит.
- * 'sage' - не поднимать нить при ответе в неё.
- * 'with_images' - разрешить прикреплять файлы к ответам в нить.
+ * Получает нити, доступные для модерирования заданному пользователю.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает нити:<p>
+ * 'id' - идентификатор.<br>
+ * 'board' - идентификатор доски.<br>
+ * 'original_post' - оригинальное сообщение.<br>
+ * 'bump_limit' - специфичный для нити бамплимит.<br>
+ * 'sage' - флаг поднятия нити при ответе.<br>
+ * 'with_files' - флаг загрузки файлов.</p>
  */
 function db_threads_get_all_moderate($link, $user_id)
 {
@@ -1338,7 +1336,7 @@ function db_threads_get_all_moderate($link, $user_id)
 						'original_post' => $row['original_post'],
 						'bump_limit' => $row['bump_limit'],
 						'sage' => $row['sage'],
-						'with_images' => $row['with_images']));
+						'with_files' => $row['with_files']));
 	mysqli_free_result($result);
 	db_cleanup_link($link);
 	return $threads;

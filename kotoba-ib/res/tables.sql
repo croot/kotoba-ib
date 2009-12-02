@@ -67,9 +67,11 @@ create table boards
 	name varchar(16) not null,
 	title varchar(50) default null,
 	bump_limit int not null,
-	force_anonymous bit default null,
+	force_anonymous bit not null,
 	default_name varchar(128) default null,
-	with_files bit default null,
+	-- Этот флаг не может быть null, так как для него нет родительского
+	-- значения, которое можно было бы унаследовать.
+	with_files bit not null,
 	same_upload varchar(32) not null,
 	popdown_handler int not null,
 	category int not null,
@@ -137,10 +139,13 @@ create table threads
 	board int not null,
 	original_post int default null,
 	bump_limit int,
-	deleted bit,
-	archived bit,
-	sage bit,
-	with_images bit,
+	deleted bit not null,
+	archived bit not null,
+	-- Этот флаг не может быть null, так как для него нет родительского
+	-- значения, которое можно было бы унаследовать.
+	sage bit not null,
+	-- Если этот флаг null, то берётся родительский with_files от доски.
+	with_files bit default null,
 	primary key (id),
 	constraint foreign key (board) references boards (id) on delete restrict on update restrict
 )
@@ -187,8 +192,9 @@ create table posts
 	subject varchar(128) default null,
 	date_time datetime default null,
 	text text default null,
+	-- Если этот флаг null, то берётся родительский sage от нити.
 	sage bit default null,
-	deleted bit default null,
+	deleted bit not null,
 	primary key (id),
 	constraint foreign key (board) references boards (id) on delete restrict on update restrict,
 	constraint foreign key (thread) references threads (id) on delete restrict on update restrict,

@@ -41,16 +41,14 @@ class DataExchange
 }
 /**
  * Создаёт необходимые директории при создании доски.
- *
- * Аргументы:
- * $name - имя новой доски.
- *
+ * @param name string <p>Имя новой доски.</p>
+ * @return boolean
  * Возвращает TRUE в случае успешного создания директорий и FALSE в противном
  * случае.
  */
 function create_directories($name) {
 	$base = Config::ABS_PATH . "/$name";
-	if(mkdir ($base)) {
+	if(@mkdir ($base)) {		// Hide warning when directory exists.
 		chmod ($base, 0777);
 		foreach(array("arch", "img", "thumb") as $dir) {
 			$subdir = "$base/$dir";
@@ -70,11 +68,9 @@ function create_directories($name) {
  ******************************/
 
 /**
- * Проверяет, заблокирован ли адрес $ip и если да, то зверашет работу скрипта.
- *
- * Аргументы:
- * $smarty - экземпляр шаблонизатора.
- * $ip - адрес.
+ * Проверяет, заблокирован ли IP адрес. Если да, то зверашет работу скрипта.
+ * @param smarty SmartyKotobaSetup <p>Экземпляр шаблонизатора.</p>
+ * @param ip string <p>IP адрес.</p>
  */
 function bans_check($smarty, $ip)
 {
@@ -83,7 +79,7 @@ function bans_check($smarty, $ip)
 		$smarty->assign('ip', long2ip($ip));
 		$smarty->assign('reason', $ban['reason']);
 		session_destroy();
-		mysqli_close(DataExchange::getDBLink());
+		DataExchange::releaseResources();
 		die($smarty->fetch('banned.tpl'));
 	}
 }
@@ -254,15 +250,18 @@ function boards_get_all_change($user_id)
 }
 /**
  * Получает все доски.
- *
- * Возвращает доски:
- * 'id' - идентификатор доски.
- * 'name' - имя доски.
- * 'title' - заголовок доски.
- * 'bump_limit' - спецефиный для доски бамплимит.
- * 'same_upload' - политика загрузки одинаковых файлов.
- * 'popdown_handler' - обработчик автоматического удаления нитей.
- * 'category' - категория доски.
+ * @return array
+ * Возвращает доски:<p>
+ * 'id' - идентификатор.<br>
+ * 'name' - имя.<br>
+ * 'title' - заголовок.<br>
+ * 'bump_limit' - спецефиный для доски бамплимит.<br>
+ * 'force_anonymous' - флаг отображения имени отправителя.<br>
+ * 'default_name' - имя отправителя по умолчанию.<br>
+ * 'with_files' - флаг загрузки файлов.<br>
+ * 'same_upload' - политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
+ * 'category' - категория.</p>
  */
 function boards_get_all()
 {
@@ -336,10 +335,8 @@ function boards_check_name($name)
 }
 /**
  * Проверяет корректность заголовка доски.
- *
- * Аргументы:
- * $title - заголовок доски.
- *
+ * @param title string <p>Заголовок доски.</p>
+ * @return string
  * Возвращает безопасный для использования заголовок доски.
  */
 function boards_check_title($title)
@@ -359,12 +356,10 @@ function boards_check_title($title)
 	return $title;
 }
 /**
- * Проверяет корректность бамплимита.
- *
- * Аргументы:
- * $bump_limit - бампилимит.
- *
- * Возвращает безопасный для использования бампилимит.
+ * Проверяет корректность специфичного для доски бамплимита.
+ * @param $bump_limit string <p>Сецифичный для доски бампилимит.</p>
+ * @return string
+ * Возвращает безопасный для использования сецифичный для доски бампилимит.
  */
 function boards_check_bump_limit($bump_limit)
 {
@@ -384,18 +379,26 @@ function boards_check_bump_limit($bump_limit)
 	return $bump_limit;
 }
 /**
- * Проверяет корректность названия политики загрузки одинаковых файлов.
- *
- * Аргументы:
- * $same_upload - название политики загрузки одинаковых файлов.
- *
- * Возвращает безопасный для использования название политики загрузки одинаковых
- * файлов.
+ * Проверяет корректность имени по умолчанию.
+ * @param name string <p>Имя по умолчанию.</p>
+ * @return string
+ * Возвращает безопасное для использования имя по умолчанию.
+ */
+function boards_check_default_name($name)
+{
+	posts_check_name_size($name);
+	$name = htmlentities($name, ENT_QUOTES, Config::MB_ENCODING);
+	posts_check_name_size($name);
+	return $name;
+}
+/**
+ * Проверяет корректность политики загрузки одинаковых файлов.
+ * @param same_upload string <p>Политика загрузки одинаковых файлов.</p>
+ * @return string
+ * Возвращает безопасную для использования политику загрузки одинаковых файлов.
  */
 function boards_check_same_upload($same_upload)
 {
-	if(!isset($same_upload))
-		throw new NodataException(NodataException::$messages['BOARD_SAME_UPLOAD_NOT_SPECIFED']);
 	$length = strlen($same_upload);
 	if($length <= 32 && $length >= 1)
 	{
@@ -410,43 +413,45 @@ function boards_check_same_upload($same_upload)
 }
 /**
  * Редактирует параметры доски.
- *
- * Аргументы:
- * $id - идентификатор доски.
- * $title - заголовок доски.
- * $bump_limit - бамплимит.
- * $same_upload - поведение при добавлении одинаковых файлов.
- * $popdown_handler - обработчик удаления нитей.
- * $category - категория доски.
+ * @param id mixed <p>Идентификатор.</p>
+ * @param title string <p>Заголовок.</p>
+ * @param bump_limit mixed <p>Специфичный для доски бамплимит.</p>
+ * @param force_anonymous string <p>Флаг отображения имени отправителя.</p>
+ * @param default_name string <p>Имя отправителя по умолчанию.</p>
+ * @param with_files string <p>Флаг загрузки файлов.</p>
+ * @param same_upload string <p>Политика загрузки одинаковых файлов.</p>
+ * @param popdown_handler mixed <p>Обработчик удаления нитей.</p>
+ * @param category mixed <p>Категория.</p>
  */
-function boards_edit($id, $title, $bump_limit, $same_upload,
-	$popdown_handler, $category)
+function boards_edit($id, $title, $bump_limit, $force_anonymous, $default_name,
+	$with_files, $same_upload, $popdown_handler, $category)
 {
 	db_boards_edit(DataExchange::getDBLink(), $id, $title, $bump_limit,
-		$same_upload, $popdown_handler, $category);
+		$force_anonymous, $default_name, $with_files, $same_upload,
+		$popdown_handler, $category);
 }
 /**
  * Добавляет доску.
- *
- * Аргументы:
- * $name - имя доски.
- * $title - заголовок доски.
- * $bump_limit - бамплимит.
- * $same_upload - поведение при добавлении одинаковых файлов.
- * $popdown_handler - обработчик удаления нитей.
- * $category - категория доски.
+ * @param name string <p>Имя доски.</p>
+ * @param title string <p>Заголовок.</p>
+ * @param bump_limit mixed <p>Специфичный для доски бамплимит.</p>
+ * @param force_anonymous string <p>Флаг отображения имени отправителя.</p>
+ * @param default_name string <p>Имя отправителя по умолчанию.</p>
+ * @param with_files string <p>Флаг загрузки файлов.</p>
+ * @param same_upload string <p>Политика загрузки одинаковых файлов.</p>
+ * @param popdown_handler mixed <p>Обработчик удаления нитей.</p>
+ * @param category mixed <p>Категория.</p>
  */
-function boards_add($name, $title, $bump_limit, $same_upload,
-	$popdown_handler, $category)
+function boards_add($name, $title, $bump_limit, $force_anonymous, $default_name,
+	$with_files, $same_upload, $popdown_handler, $category)
 {
 	db_boards_add(DataExchange::getDBLink(), $name, $title, $bump_limit,
-		$same_upload, $popdown_handler, $category);
+		$force_anonymous, $default_name, $with_files, $same_upload,
+		$popdown_handler, $category);
 }
 /**
- * Удаление доски.
- *
- * Аргументы:
- * $id - идентификатор доски.
+ * Удаляет заданную доску.
+ * @param id mixed <p>Идентификатор доски.</p>
  */
 function boards_delete($id)
 {
@@ -483,16 +488,12 @@ function categories_check_name($name)
 }
 /**
  * Проверяет корректность идентификатора категории.
- *
- * Аргументы:
- * $id - идентификатор категории.
- *
+ * @param id mixed <p>Идентификатор категории.</p>
+ * @return string
  * Возвращает безопасный для использования идентификатор категории.
  */
 function categories_check_id($id)
 {
-	if(!isset($id))
-		throw new NodataException(NodataException::$messages['CATEGORY_ID_NOT_SPECIFED']);
 	$length = strlen($id);
 	$max_int_length = strlen('' . PHP_INT_MAX);
 	if($length <= $max_int_length && $length >= 1)
@@ -508,10 +509,10 @@ function categories_check_id($id)
 }
 /**
  * Получает все категории.
- *
- * Возвращает пустой массив, если нет ни одной категории или массив категорий:
- * 'id' - идентификатор категории.
- * 'name' - имя категории.
+ * @return array
+ * Возвращает категории:<p>
+ * 'id' - идентификатор.<br>
+ * 'name' - имя.</p>
  */
 function categories_get_all()
 {
@@ -1059,33 +1060,6 @@ function acl_get_all()
 	return db_acl_get_all(DataExchange::getDBLink());
 }
 
-/********************
- * Работа с нитями. *
- ********************/
-
-/**
- * Проверяет корректность идентификатора $id нити.
- * @param id string <p>Идентификатор нити.</p>
- * @return string
- * Возвращает безопасный для использования идентификатор нити.
- */
-function threads_check_id($id)
-{
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false)
-			|| $length < 1)
-				throw new FormatException(FormatException::$messages['THREAD_ID']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['THREAD_ID']);
-	return $id;
-}
-
 /*************************
  * Работа с сообщениями. *
  *************************/
@@ -1232,9 +1206,7 @@ function posts_check_subject_size($subject)
 }
 /**
  * Проверяет, удовлетворяет ли имя отправителя ограничениям по размеру.
- *
- * Аргументы:
- * $name - имя отправителя.
+ * @param name string <p>Имя отправителя.</p>
  */
 function posts_check_name_size($name)
 {
@@ -1338,10 +1310,10 @@ function upload_handlers_delete($id)
 
 /**
  * Получает все обработчики удаления нитей.
- *
- * Возвращает обработчики удаления нитей:
- * 'id' - идентификатор обработчика.
- * 'name' - имя обработчика.
+ * @return array
+ * Возвращает обработчики удаления нитей:<p>
+ * 'id' - идентификатор.<br>
+ * 'name' - имя.</p>
  */
 function popdown_handlers_get_all()
 {
@@ -1394,17 +1366,13 @@ function popdown_handlers_check_name($name)
 }
 /**
  * Проверяет корректность идентификатора обработчика удаления нитей.
- *
- * Аргументы:
- * $id - идентификатор обработчика удаления нитей.
- *
+ * @param id mixed <p>Идентификатор обработчика удаления нитей.</p>
+ * @return string
  * Возвращает безопасный для использования идентификатор обработчика удаления
  * нитей.
  */
 function popdown_handlers_check_id($id)
 {
-	if(!isset($id))
-		throw new NodataException(NodataException::$messages['POPDOWN_HANDLER_ID_NOT_SPECIFED']);
 	$length = strlen($id);
 	$max_int_length = strlen('' . PHP_INT_MAX);
 	if($length <= $max_int_length && $length >= 1)
@@ -1689,26 +1657,24 @@ function board_upload_types_delete($board_id, $upload_type_id)
 
 /**
  * Получает все нити.
- * 
- * Возвращает нити:
- * 'id' - идентификатор нити.
- * 'board' - идентификатор доски.
- * 'original_post' - оригинальный пост.
- * 'bump_limit' - специфичный для нити бамплимит.
- * 'sage' - флаг поднятия нити при ответе.
- * 'with_images' - флаг прикрепления файлов к ответам в нить.
+ * @return array
+ * Возвращает нити:<p>
+ * 'id' - идентификатор.<br>
+ * 'board' - идентификатор доски.<br>
+ * 'original_post' - оригинальное сообщение.<br>
+ * 'bump_limit' - специфичный для нити бамплимит.<br>
+ * 'sage' - флаг поднятия нити при ответе.<br>
+ * 'with_files' - флаг загрузки файлов.</p>
  */
 function threads_get_all()
 {
 	return db_threads_get_all(DataExchange::getDBLink());
 }
 /**
- * Проверяет корректность бамплимита.
- *
- * Аргументы:
- * $bump_limit - бампилимит.
- *
- * Возвращает безопасный для использования бампилимит.
+ * Проверяет корректность специфичного для нити бамплимита.
+ * @param bump_limit mixed <p>Специфичный для нити бампилимит.</p>
+ * @return string
+ * Возвращает безопасный для использования специфичный для нити бампилимит.
  */
 function threads_check_bump_limit($bump_limit)
 {
@@ -1718,43 +1684,35 @@ function threads_check_bump_limit($bump_limit)
 	{
 		$bump_limit = RawUrlEncode($bump_limit);
 		$length = strlen($bump_limit);
-		if($length > $max_int_length || (ctype_digit($bump_limit) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['THREAD_BUMP_LIMIT']);
+		if($length > $max_int_length || (ctype_digit($bump_limit) === false)
+			|| $length < 1)
+				throw new FormatException(FormatException::$messages['THREAD_BUMP_LIMIT']);
 	}
 	else
 		throw new FormatException(FormatException::$messages['THREAD_BUMP_LIMIT']);
 	return $bump_limit;
 }
 /**
- * Проверяет корректность флага поднятия нити при ответе.
- *
- * Аргументы:
- * $sage - флаг поднятия нити при ответе.
- *
- * Возвращает безопасный для использования флаг поднятия нити при ответе.
+ * Проверяет корректность идентификатора $id нити.
+ * @param id string <p>Идентификатор нити.</p>
+ * @return string
+ * Возвращает безопасный для использования идентификатор нити.
  */
-function threads_check_sage($sage)
+function threads_check_id($id)
 {
-	if($sage === '1' || $sage === '0')
-		return $sage;
+	$length = strlen($id);
+	$max_int_length = strlen('' . PHP_INT_MAX);
+	if($length <= $max_int_length && $length >= 1)
+	{
+		$id = RawUrlEncode($id);
+		$length = strlen($id);
+		if($length > $max_int_length || (ctype_digit($id) === false)
+			|| $length < 1)
+				throw new FormatException(FormatException::$messages['THREAD_ID']);
+	}
 	else
-		throw new FormatException(FormatException::$messages['THREAD_SAGE']);
-}
-/**
- * Проверяет корректность флага прикрепления файлов к ответам в нить.
- *
- * Аргументы:
- * $sage - флаг прикрепления файлов к ответам в нить.
- *
- * Возвращает безопасный для использования флаг прикрепления файлов к ответам в
- * нить.
- */
-function threads_check_with_images($with_images)
-{
-	if($with_images === '1' || $with_images === '0')
-		return $with_images;
-	else
-		throw new FormatException(FormatException::$messages['THREAD_WITH_IMAGES']);
+		throw new FormatException(FormatException::$messages['THREAD_ID']);
+	return $id;
 }
 /**
  * Проверяет корректность номера нити.
@@ -1781,17 +1739,15 @@ function threads_check_number($number)
 }
 /**
  * Редактирует настройки нити.
- *
- * Аргументы:
- * $thread_id - идентификатор нити.
- * $bump_limit - бамплимит.
- * $sage - флаг поднятия нити при ответе
- * $with_images - флаг прикрепления файлов к ответам в нить.
+ * @param thread_id mixed <p>Идентификатор нити.</p>
+ * @param bump_limit mixed <p>Специфичный для нити бамплимит.</p>
+ * @param sage mixed <p>Флаг поднятия нити при ответе.</p>
+ * @param with_files mixed <p>Флаг загрузки файлов.</p>
  */
-function threads_edit($thread_id, $bump_limit, $sage, $with_images)
+function threads_edit($thread_id, $bump_limit, $sage, $with_files)
 {
 	db_threads_edit(DataExchange::getDBLink(), $thread_id, $bump_limit, $sage,
-		$with_images);
+		$with_files);
 }
 /**
  * Редактирует оригинальное сообщение нити.
@@ -1820,19 +1776,16 @@ function threads_add($board_id, $original_post, $bump_limit, $sage, $with_images
 		$bump_limit, $sage, $with_images);
 }
 /**
- * Получает нити, доступные для модерирования пользователю с заданным
- * идентификатором.
- * 
- * Аргументы:
- * $user_id - идентификатор пользователя.
- *
- * Возвращает нити:
- * 'id' - идентификатор нити.
- * 'board' - идентификатор доски.
- * 'original_post' - оригинальный пост.
- * 'bump_limit' - специфичный для нити бамплимит.
- * 'sage' - не поднимать нить при ответе в неё.
- * 'with_images' - разрешить прикреплять файлы к ответам в нить.
+ * Получает нити, доступные для модерирования заданному пользователю.
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает нити:<p>
+ * 'id' - идентификатор.<br>
+ * 'board' - идентификатор доски.<br>
+ * 'original_post' - оригинальное сообщение.<br>
+ * 'bump_limit' - специфичный для нити бамплимит.<br>
+ * 'sage' - флаг поднятия нити при ответе.<br>
+ * 'with_files' - флаг загрузки файлов.</p>
  */
 function threads_get_all_moderate($user_id)
 {

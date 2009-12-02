@@ -94,6 +94,12 @@ try
 			if($t['id'] == $p['thread'])
 			{
 				$recived_posts_count++;
+				// У некоторых старых сообщений нет имени отправителя.
+				if(!$board['force_anonymous'] && $board['default_name']
+					&& !$p['name'])
+				{
+					$p['name'] = $board['default_name'];
+				}
 				if($t['original_post'] == $p['number'])
 				{
 					// Оригинальное сообщение.
