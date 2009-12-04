@@ -1342,24 +1342,21 @@ function db_threads_get_all_moderate($link, $user_id)
 	return $threads;
 }
 /**
- * Получает $threads_per_page нитей со страницы $page доски с идентификатором
- * $board_id, доступные для чтения пользователю с идентификатором
- * $user_id. А так же количество доступных для просмотра сообщений в этих нитях.
- *
- * Аргументы:
- * $link - связь с базой данных.
- * $board_id - идентификатор доски.
- * $page - номер страницы.
- * $user_id - идентификатор пользователя.
- * $threads_per_page - количество нитей ни странице.
- *
- * Возвращает нити:
- * 'id' - идентификатор нити.
- * 'original_post' - оригинальный пост.
- * 'bump_limit' - специфичный для нити бамплимит.
- * 'sage' - не поднимать нить при ответе в неё.
- * 'with_images' - разрешить прикреплять файлы к ответам в нить.
- * 'posts_count' - число доступных для просмотра сообщений в нити.
+ * Получает доступные для просмотра пользователю нити и количество сообщений в
+ * них, с заданной страницы доски.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param page mixed <p>Номер страницы.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param threads_per_page mixed <p>Количество нитей на странице.</p>
+ * @return array
+ * Возвращает нити:<p>
+ * 'id' - идентификатор.<br>
+ * 'original_post' - оригинальное сообщение.<br>
+ * 'bump_limit' - специфичный для нити бамплимит.<br>
+ * 'sage' - флаг поднятия нити при ответе.<br>
+ * 'with_files' - флаг загрузки файлов.<br>
+ * 'posts_count' - число доступных для просмотра сообщений в нити.</p>
  */
 function db_threads_get_board_view($link, $board_id, $page, $user_id,
 	$threads_per_page)
@@ -1377,7 +1374,7 @@ function db_threads_get_board_view($link, $board_id, $page, $user_id,
 						'original_post' => $row['original_post'],
 						'bump_limit' => $row['bump_limit'],
 						'sage' => $row['sage'],
-						'with_images' => $row['with_images'],
+						'with_files' => $row['with_files'],
 						'posts_count' => $row['posts_count']));
 	mysqli_free_result($result);
 	db_cleanup_link($link);
@@ -1386,13 +1383,11 @@ function db_threads_get_board_view($link, $board_id, $page, $user_id,
 /**
  * Вычисляет количество нитей, доступных для просмотра заданному пользователю
  * на заданной доске.
- *
- * Аргументы:
- * $link - связь с базой данных.
- * $user_id - идентификатор пользователя.
- * $board_id - идентификатор доски.
- *
- * Возвращает строку, содержащую число нитей.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param board_id mixed <p>идентификатор доски.</p>
+ * @return string
+ * Возвращает число нитей.
  */
 function db_threads_get_view_threadscount($link, $user_id, $board_id)
 {
@@ -1415,25 +1410,22 @@ function db_threads_get_view_threadscount($link, $user_id, $board_id)
 	}
 }
 /**
- * Получает нить с номером $thread_num на доске с идентификатором $board_id,
- * доступную для просмотра пользователю с идентификатором $user_id. А так же
- * число сообщений в нити, видимых этим пользователем.
- *
- * Аргументы:
- * $link - связь с базой данных.
- * $board_id - идентификатор доски.
- * $thread_num - номер нити.
- * $user_id - идентификатор пользователя.
- *
- * Возвращает нить:
+ * Получает доступную для просмотра пользователю нить с заданной страницы доски,
+ * и количество сообщений в ней.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param thread_num mixed <p>Номер нити.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает нить:<p>
  * 'id' - идентификатор.
  * 'board' - идентификатор доски.
  * 'original_post' - оригинальное сообщение.
  * 'bump_limit' - специфичный для нити бамплимит.
  * 'sage' - флаг поднятия нити
- * 'with_images' - разрешить прикреплять файлы к ответам в нить.
+ * 'with_files' - флаг загрузки файлов.
  * 'archived' - нить помечена для архивирования.
- * 'posts_count' - число сообщений.
+ * 'posts_count' - число доступных для просмотра сообщений в нити.</p>
  */
 function db_threads_get_specifed_view($link, $board_id, $thread_num, $user_id)
 {

@@ -84,7 +84,7 @@ try
 				$p['name'] = $board['default_name'];
 			}
 			// Оригинальное сообщение.
-			$smarty->assign('original_with_image', false);
+			$smarty->assign('original_with_files', false);
 			$smarty->assign('original_theme', $p['subject']);
 			$smarty->assign('original_name', $p['name']);
 			$smarty->assign('original_time', $p['date_time']);
@@ -99,7 +99,7 @@ try
 					foreach($uploads as $u)
 						if($pu['upload'] == $u['id'])
 						{
-							$smarty->assign('original_with_image', true);
+							$smarty->assign('original_with_files', true);
 							$smarty->assign('original_file_link', Config::DIR_PATH . "/{$board['name']}/img/" . basename($u['file_name']));
 							$smarty->assign('original_file_name', $u['file_name']);
 							$smarty->assign('original_file_size', $u['size']);
@@ -114,7 +114,7 @@ try
 		}
 		else
 		{
-			$smarty->assign('simple_with_image', false);
+			$smarty->assign('simple_with_files', false);
 			$smarty->assign('simple_theme', $p['subject']);
 			$smarty->assign('simple_name', $p['name']);
 			$smarty->assign('simple_time', $p['date_time']);
@@ -126,7 +126,7 @@ try
 					foreach($uploads as $u)
 						if($pu['upload'] == $u['id'])
 						{
-							$smarty->assign('simple_with_image', true);
+							$smarty->assign('simple_with_files', true);
 							$smarty->assign('simple_file_link', Config::DIR_PATH . "/{$board['name']}/img/" . basename($u['file_name']));
 							$smarty->assign('simple_file_name', $u['file_name']);
 							$smarty->assign('simple_file_size', $u['size']);

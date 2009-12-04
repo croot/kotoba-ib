@@ -17,8 +17,7 @@
 	$board_name - имя просматриваемой доски.
     $thread_num - номер нити.
 
-    $simple_with_image - логическая переменная, указывает на то, содержит ли
-        сообщение прикреплённую картинку или нет.
+    $simple_with_files - сообщение содержит прикреплённый файл.
     $simple_theme - тема сообщения.
     $simple_name - имя отправителя.
     $simple_time - время получения (время сервера).
@@ -40,12 +39,12 @@
     <tr>
         <td class="reply">
             <span class="filetitle">{$simple_theme}</span> <span class="postername">{$simple_name}</span> {$simple_time}
-{if $simple_with_image == true}            <span class="filesize">Файл: <a target="_blank" href="{$simple_file_link}">{$simple_file_name}</a> -(<em>{$simple_file_size} Байт {$simple_file_width}x{$simple_file_heigth}</em>)</span>
+{if $simple_with_files == true}            <span class="filesize">Файл: <a target="_blank" href="{$simple_file_link}">{$simple_file_name}</a> -(<em>{$simple_file_size} Байт {$simple_file_width}x{$simple_file_heigth}</em>)</span>
 {/if}
             <span class="reflink"><span onclick="insert('>>{$simple_id}');">#</span> <a href="{$DIR_PATH}/{$board_name}/{$thread_num}#{$simple_num}">{$simple_num}</a></span>
             <span class="delbtn">[<a href="{$DIR_PATH}/{$board_name}/r{$simple_num}" title="Удалить">×</a>]</span>
             <a name="{$simple_num}"></a>
-{if $simple_with_image == true}            <br><a target="_blank" href="{$simple_file_link}"><img src="{$simple_file_thumbnail_link}" class="thumb" width="{$simple_file_thumbnail_width}" heigth="{$simple_file_thumbnail_heigth}"></a>
+{if $simple_with_files == true}            <br><a target="_blank" href="{$simple_file_link}"><img src="{$simple_file_thumbnail_link}" class="thumb" width="{$simple_file_thumbnail_width}" heigth="{$simple_file_thumbnail_heigth}"></a>
 {/if}
             <blockquote>
             {$simple_text}

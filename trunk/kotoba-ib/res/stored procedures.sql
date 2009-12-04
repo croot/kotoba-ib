@@ -988,15 +988,14 @@ begin
 	order by t.id desc;
 end|
 
--- Выбирает threads_per_page нитей со страницы page доски с идентификатором
--- board_id, доступные для чтения пользователю с идентификатором user_id. А так
--- же количество доступных для просмотра сообщений в этих нитях.
+-- Выбирает доступные для просмотра пользователю нити и количество сообщений в
+-- них, с заданной страницы доски.
 --
 -- Аргументы:
 -- board_id - идентификатор доски.
 -- page - номер страницы.
 -- user_id - идентификатор пользователя.
--- threads_per_page - количество нитей ни странице.
+-- threads_per_page - количество нитей на странице.
 create procedure sp_threads_get_board_view
 (
 	board_id int,
@@ -1007,47 +1006,71 @@ create procedure sp_threads_get_board_view
 begin
 	-- Потому что в limit нельзя использовать переменные.
 	prepare stmnt from
-		'select t.id, t.original_post, t.bump_limit, t.sage, t.with_images, count(distinct p.id) as posts_count
-		from threads t
-		join boards b on b.id = t.board and b.id = ?
-		join posts p on p.board = ? and p.thread = t.id
-		join user_groups ug on ug.`user` = ?
-		left join hidden_threads ht on t.id = ht.thread and ug.`user` = ht.`user`
-		-- Правило для конкретной группы и сообщения.
-		left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
-		-- Правило для всех групп и конкретного сообщения.
-		left join acl a2 on a2.`group` is null and a2.post = p.id
-		-- Правила для конкретной группы и нити.
-		left join acl a3 on a3.`group` = ug.`group` and a3.thread = t.id
-		-- Правило для всех групп и конкретной нити.
-		left join acl a4 on a4.`group` is null and a4.thread = t.id
-		-- Правила для конкретной группы и доски.
-		left join acl a5 on a5.`group` = ug.`group` and a5.board = b.id
-		-- Правило для всех групп и конкретной доски.
-		left join acl a6 on a6.`group` is null and a6.board = b.id
-		-- Правило для конкретной групы.
-		left join acl a7 on a7.`group` = ug.`group` and a7.board is null and a7.thread is null and a7.post is null
-		where (t.deleted = 0 or t.deleted is null)
-			and (t.archived = 0 or t.archived is null)
-			and ht.thread is null
-			and (p.deleted = 0 or p.deleted is null)
-			and (p.sage is null or p.sage = 0)
-			-- Нить должна быть доступна для просмотра.
-			and ((a3.`view` = 1 or a3.`view` is null)		-- Просмотр нити не запрещен конкретной группе и
-				and (a4.`view` = 1 or a4.`view` is null)	-- просмотр нити не запрещен всем группам и
-				and (a5.`view` = 1 or a5.`view` is null)	-- просмотр доски не запрещен конкретной группе и
-				and (a6.`view` = 1 or a6.`view` is null)	-- просмотр доски не запрещен всем группам и
-				and a7.`view` = 1)							-- просмотр разрешен конкретной группе.
-			-- Сообщение должно быть доступно для просмотра, чтобы правильно подсчитать их количество в нити.
-			and ((a1.`view` = 1 or a1.`view` is null)		-- Просмотр сообщения не запрещен конкретной группе и
-				and (a2.`view` = 1 or a2.`view` is null)	-- просмотр сообщения не запрещен всем группам и
-				and (a3.`view` = 1 or a3.`view` is null)	-- просмотр нити не запрещен конкретной группе и
-				and (a4.`view` = 1 or a4.`view` is null)	-- просмотр нити не запрещен всем группам и
-				and (a5.`view` = 1 or a5.`view` is null)	-- просмотр доски не запрещен конкретной группе и
-				and (a6.`view` = 1 or a6.`view` is null)	-- просмотр доски не запрещен всем группам и
-				and a7.`view` = 1)							-- просмотр разрешен конкретной группе.
-		group by t.id
-		order by max(p.`number`) desc
+		'-- Выберем нити, отсортированные по последнему сообщению без сажи.
+		select q1.id, q1.original_post, q1.bump_limit, q1.sage, q1.with_files,
+			q1.posts_count
+		from (
+			-- Без учёта постов с сажей вычислим последнее сообщение в нити.
+			select q.id, q.original_post, q.bump_limit, q.sage, q.with_files,
+				q.posts_count, max(p.`number`) as last_post_num
+			from posts p
+			join (
+				-- Выберем видимые нити и подсчитаем количество видимых сообщений.
+				select t.id, t.original_post, t.bump_limit, t.sage, t.with_files,
+					count(distinct p.id) as posts_count
+				from posts p
+				join threads t on t.id = p.thread and t.board = ?
+				join user_groups ug on ug.`user` = ?
+				left join hidden_threads ht on ht.thread = t.id and ht.`user` = ug.`user`
+				-- Правило для конкретной группы и сообщения.
+				left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+				-- Правило для всех групп и конкретного сообщения.
+				left join acl a2 on a2.`group` is null and a2.post = p.id
+				-- Правила для конкретной группы и нити.
+				left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+				-- Правило для всех групп и конкретной нити.
+				left join acl a4 on a4.`group` is null and a4.thread = p.thread
+				-- Правила для конкретной группы и доски.
+				left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+				-- Правило для всех групп и конкретной доски.
+				left join acl a6 on a6.`group` is null and a6.board = p.board
+				-- Правило для конкретной групы.
+				left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+					and a7.thread is null and a7.post is null
+				where t.deleted = 0
+					and t.archived = 0
+					and ht.thread is null
+					and p.deleted = 0
+					-- Нить должна быть доступна для просмотра.
+						-- Просмотр нити не запрещен конкретной группе и
+					and ((a3.`view` = 1 or a3.`view` is null)
+						-- просмотр нити не запрещен всем группам и
+						and (a4.`view` = 1 or a4.`view` is null)
+						-- просмотр доски не запрещен конкретной группе и
+						and (a5.`view` = 1 or a5.`view` is null)
+						-- просмотр доски не запрещен всем группам и
+						and (a6.`view` = 1 or a6.`view` is null)
+						-- просмотр разрешен конкретной группе.
+						and a7.`view` = 1)
+					-- Сообщение должно быть доступно для просмотра, чтобы правильно
+					-- подсчитать их количество в нити.
+						-- Просмотр сообщения не запрещен конкретной группе и
+					and ((a1.`view` = 1 or a1.`view` is null)
+						-- просмотр сообщения не запрещен всем группам и
+						and (a2.`view` = 1 or a2.`view` is null)
+						-- просмотр нити не запрещен конкретной группе и
+						and (a3.`view` = 1 or a3.`view` is null)
+						-- просмотр нити не запрещен всем группам и
+						and (a4.`view` = 1 or a4.`view` is null)
+						-- просмотр доски не запрещен конкретной группе и
+						and (a5.`view` = 1 or a5.`view` is null)
+						-- просмотр доски не запрещен всем группам и
+						and (a6.`view` = 1 or a6.`view` is null)
+						-- просмотр разрешен конкретной группе.
+						and a7.`view` = 1)
+				group by t.id) q on q.id = p.thread and (p.sage = 0 or p.sage is null)
+			group by q.id) q1
+		order by q1.last_post_num desc
 		limit ? offset ?';
 	-- Потому что в prepare можно использовать только переменные.
 	set @board_id = board_id;
@@ -1058,7 +1081,7 @@ begin
 	else
 		set @offset = threads_per_page * (page - 1);
 	end if;
-	execute stmnt using @board_id, @board_id, @user_id, @limit, @offset;
+	execute stmnt using @board_id, @user_id, @limit, @offset;
 	deallocate prepare stmnt;
 end|
 
@@ -1091,8 +1114,8 @@ begin
 	left join acl a5 on a5.`group` = ug.`group` and a5.board is null
 		and a5.thread is null and a5.post is null
 	where t.board = board_id
-		and (t.deleted = 0 or t.deleted is null)
-		and (t.archived = 0 or t.archived is null)
+		and t.deleted = 0
+		and t.archived = 0
 		and ht.thread is null
 		-- Нить должна быть доступна для просмотра.
 			-- Просмотр нити не запрещен конкретной группе и
@@ -1108,9 +1131,8 @@ begin
 	group by t.id) q;
 end|
 
--- Получает нить с номером thread_num на доске с идентификатором board_id,
--- доступную для просмотра пользователю с идентификатором user_id. А так же
--- число сообщений в нити, видимых этим пользователем.
+-- Выбирает доступную для просмотра пользователю нить с заданной страницы доски,
+-- и количество сообщений в ней.
 --
 -- Аргументы:
 -- board_id - идентификатор доски.
@@ -1131,7 +1153,7 @@ begin
 		select 'NOT_FOUND' as error;
 	else
 		select t.id, t.original_post, t.bump_limit, t.archived, t.sage,
-			t.with_images, count(p.id) as visible_posts_count
+			t.with_files, count(p.id) as visible_posts_count
 		from posts p
 		join threads t on t.id = p.thread
 		join user_groups ug on ug.`user` = user_id

@@ -24,7 +24,7 @@ try
 	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
 	header("Cache-Control: private");						// Fix for Firefox.
-	// Проверка входных параметров.
+// Проверка входных параметров.
 	$board_name = boards_check_name($_GET['b']);
 	$page = 1;
 	if(isset($_GET['p']))
@@ -59,7 +59,7 @@ try
 		$page_max = 1;		// Important for empty boards.
 	if($page > $page_max)
 		$page = $page_max;	// TODO May be throw exception here?
-	// Получние нитей, сообщений и другой необходимой информации.
+// Получние нитей, сообщений и другой необходимой информации.
 	$threads = threads_get_board_view($board['id'], $page, $_SESSION['user'],
 		$_SESSION['threads_per_page']);
 	$posts = posts_get_threads_view($threads, $_SESSION['user'],
@@ -103,7 +103,7 @@ try
 				if($t['original_post'] == $p['number'])
 				{
 					// Оригинальное сообщение.
-					$smarty->assign('original_with_image', false);
+					$smarty->assign('original_with_files', false);
 					$smarty->assign('original_theme', $p['subject']);
 					$smarty->assign('original_name', $p['name']);
 					$smarty->assign('original_time', $p['date_time']);
@@ -118,7 +118,7 @@ try
 							foreach($uploads as $u)
 								if($pu['upload'] == $u['id'])
 								{
-									$smarty->assign('original_with_image', true);
+									$smarty->assign('original_with_files', true);
 									$smarty->assign('original_file_link', Config::DIR_PATH . "/{$board['name']}/img/" . basename($u['file_name']));
 									$smarty->assign('original_file_name', basename($u['file_name']));
 									$smarty->assign('original_file_size', $u['size']);
@@ -133,7 +133,7 @@ try
 				}
 				else
 				{
-					$smarty->assign('simple_with_image', false);
+					$smarty->assign('simple_with_files', false);
 					$smarty->assign('simple_theme', $p['subject']);
 					$smarty->assign('simple_name', $p['name']);
 					$smarty->assign('simple_time', $p['date_time']);
@@ -146,7 +146,7 @@ try
 							foreach($uploads as $u)
 								if($pu['upload'] == $u['id'])
 								{
-									$smarty->assign('simple_with_image', true);
+									$smarty->assign('simple_with_files', true);
 									$smarty->assign('simple_file_link', Config::DIR_PATH . "/{$board['name']}/img/" . basename($u['file_name']));
 									$smarty->assign('simple_file_name', basename($u['file_name']));
 									$smarty->assign('simple_file_size', $u['size']);
