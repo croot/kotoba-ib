@@ -231,18 +231,19 @@ function boards_get_all_view($user_id)
 }
 /**
  * Получает доски, доступные для редактирования пользователю.
- *
- * Аргументы:
- * $user_id - идентификатор пользователя.
- *
- * Возвращает доски:
- * 'id' - идентификатор.
- * 'name' - имя.
- * 'title' - заголовок.
- * 'bump_limit' - спецефиный для доски бамплимит.
- * 'same_upload' - политика загрузки одинаковых изображений.
- * 'popdown_handler' - обработчик автоматического удаления нитей.
- * 'category' - категория.
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает доски:<p>
+ * 'id' - идентификатор.<br>
+ * 'name' - имя.<br>
+ * 'title' - заголовок.<br>
+ * 'bump_limit' - спецефиный для доски бамплимит.<br>
+ * 'force_anonymous' - флаг отображения имя отправителя.<br>
+ * 'default_name' - имя отправителя по умолчанию.<br>
+ * 'with_files' - флаг загрузки файлов.<br>
+ * 'same_upload' - политика загрузки одинаковых изображений.<br>
+ * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
+ * 'category' - категория.</p>
  */
 function boards_get_all_change($user_id)
 {
@@ -276,6 +277,9 @@ function boards_get_all()
  * 'name' - имя доски.<br>
  * 'title' - заголовок доски.<br>
  * 'bump_limit' - спецефиный для доски бамплимит.<br>
+ * 'force_anonymous' - флаг отображения имя отправителя.<br>
+ * 'default_name' - имя отправителя по умолчанию.<br>
+ * 'with_files' - флаг загрузки файлов.<br>
  * 'same_upload' - политика загрузки одинаковых файлов.<br>
  * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
  * 'category' - категория.</p>
@@ -1757,19 +1761,19 @@ function threads_edit_originalpost($thread_id, $original_post)
 }
 /**
  * Создаёт нить. Если номер оригинального сообщения null, то будет создана
- * "пустая" нить.
+ * пустая нить.
  * @param board_id mixed <p>Идентификатор доски.</p>
- * @param original_post mixed <p>Номер оригинального сообщения нити.</p>
+ * @param original_post mixed <p>Номер оригинального сообщения.</p>
  * @param bump_limit mixed <p>Специфичный для нити бамплимит.</p>
- * @param sage mixed <p>Не поднимать нить ответами.</p>
- * @param with_images mixed <p>Флаг прикрепления файлов к ответам в нить.</p>
+ * @param sage mixed <p>Флаг поднятия нити.</p>
+ * @param with_files mixed <p>Флаг загрузки файлов.</p>
  * @return array
  * Возвращает нить.
  */
-function threads_add($board_id, $original_post, $bump_limit, $sage, $with_images)
+function threads_add($board_id, $original_post, $bump_limit, $sage, $with_files)
 {
 	return db_threads_add(DataExchange::getDBLink(), $board_id, $original_post,
-		$bump_limit, $sage, $with_images);
+		$bump_limit, $sage, $with_files);
 }
 /**
  * Получает нити, доступные для модерирования заданному пользователю.
@@ -1919,7 +1923,7 @@ function posts_get_threads_view($threads, $user_id, $posts_per_thread)
  * @param subject string <p>Тема.</p>
  * @param datetime string <p>Время получения сообщения.</p>
  * @param text string <p>Текст.</p>
- * @param sage mixed <p>Не поднимать нить этим сообщением.</p>
+ * @param sage mixed <p>Флаг поднятия нити.</p>
  * @return array
  * Возвращает сообщение.
  */

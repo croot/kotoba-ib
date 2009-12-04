@@ -23,6 +23,8 @@
 	$bump_limit - бамплимит доски.
 	$pages - номера страниц.
 	$page - номер просматриваемой страницы.
+	$with_files - флаг загрузки файлов.
+	$force_anonymous - флаг отображения имени отправителя.
 
 Специальные переменные (не входит в котобу):
 	$event_daynight_active - запущен ли эвент времени суток.
@@ -45,10 +47,10 @@
 <form action="{$DIR_PATH}/create_thread.php" method="post" enctype="multipart/form-data">
 <input type="hidden" name="MAX_FILE_SIZE" value="1560576">
 <table align="center" border="0">
-<tr valign="top"><td>Имя: </td><td><input type="text" name="message_name" size="30"></td></tr>
+{if !$force_anonymous}<tr valign="top"><td>Имя: </td><td><input type="text" name="message_name" size="30"></td></tr>{/if}
 <tr valign="top"><td>Тема: </td><td><input type="text" name="message_theme" size="48"> <input type="submit" value="Создать нить"></td></tr>
 <tr valign="top"><td>Сообщение: </td><td><textarea name="message_text" rows="7" cols="50"></textarea></td></tr>
-<tr valign="top"><td>Файл: </td><td><input type="file" name="message_img" size="54"></td></tr>
+{if $with_files}<tr valign="top"><td>Файл: </td><td><input type="file" name="message_img" size="54"></td></tr>{/if}
 <tr valign="top"><td>Пароль: </td><td><input type="password" name="message_pass" size="30" value="{$rempass}"></td></tr>
 <tr valign="top"><td>Перейти: </td><td>(нить: <input type="radio" name="goto" value="t">) (доска: <input type="radio" name="goto" value="b" checked>)</td></tr>
 <tr valign="top"><td colspan = "2">Типы файлов, доступных для загрузки:{section name=i loop=$upload_types} {$upload_types[i].extension}{/section}</td></tr>

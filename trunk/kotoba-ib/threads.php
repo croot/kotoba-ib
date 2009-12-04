@@ -44,7 +44,7 @@ try
 				$board_name));
 	// Получение данных.
 	$thread = threads_get_specifed_view($board['id'], $thread_num, $_SESSION['user']);
-	if($thread['archived'] == '1')
+	if($thread['archived'])
 	{
 		// TODO На самом деле заархивированные нити не будут существовать в базе всё время.
 		// Нить была сброшена в архив.
@@ -70,6 +70,8 @@ try
 	$smarty->assign('is_guest', $_SESSION['user'] == 1 ? true : false);
 	$smarty->assign('upload_types', $upload_types);
 	$smarty->assign('is_moderatable', $is_moderatable);
+	$smarty->assign('with_files', $board['with_files'] || $thread['with_files']);
+	$smarty->assign('force_anonymous', $board['force_anonymous']);
 	event_daynight($smarty);	// EVENT HERE! (not default kotoba function)
 	$view_html = $smarty->fetch('threads_header.tpl');
 	$view_thread_html = '';
