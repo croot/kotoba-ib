@@ -66,7 +66,6 @@ NodataException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE_NOT_SPECIFED'] = 'Не �
 NodataException::$messages['UPLOAD_TYPE_ID_NOT_SPECIFED'] = 'Не задан идентификатор типа загружаемых файлов.';
 NodataException::$messages['BOARD_TITLE_NOT_SPECIFED'] = 'Не задан заголовок доски.';
 NodataException::$messages['BOARD_BUMP_LIMIT_NOT_SPECIFED'] = 'Не задан бампилимит.';
-NodataException::$messages['BOARD_NAME_NOT_SPECIFED'] = 'Не задано имя доски.';
 NodataException::$messages['THREADS_EDIT'] = 'Нет нитей для редактирования настроек';
 // Параметры: имя доски.
 NodataException::$messages['BOARD_NOT_FOUND'] = 'Доски с именем %s не существует.';

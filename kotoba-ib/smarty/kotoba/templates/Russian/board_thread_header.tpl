@@ -16,8 +16,7 @@
 	$board_name - имя просматриваемой доски.
     $thread_num - номер нити.
 
-    $original_with_image - логическая переменная, указывает на то, содержит ли
-        сообщение прикреплённую картинку или нет.
+    $original_with_files - сообщение содержит прикреплённый файл.
 	$original_theme - тема сообщения.
     $original_name - имя отправителя.
     $original_time - время получения (время сервера).
@@ -49,7 +48,7 @@
 <span class="hidebtn">[<a href="{$DIR_PATH}/{$board_name}/h{$thread_num}" title="Скрыть">-</a>]</span>
 <span class="delbtn">[<a href="{$DIR_PATH}/{$board_name}/r{$original_num}" title="Удалить">×</a>]</span>
 <a name="{$original_id}"></a>
-{if $original_with_image == true}<br><a target="_blank" href="{$original_file_link}"><img src="{$original_file_thumbnail_link}" class="thumb" width="{$original_file_thumbnail_width}" heigth="{$original_file_thumbnail_heigth}"></a>
+{if $original_with_files == true}<br><a target="_blank" href="{$original_file_link}"><img src="{$original_file_thumbnail_link}" class="thumb" width="{$original_file_thumbnail_width}" heigth="{$original_file_thumbnail_heigth}"></a>
 {/if}
 <blockquote>
 {$original_text}

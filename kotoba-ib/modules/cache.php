@@ -311,16 +311,12 @@ function boards_check_id($id)
 }
 /**
  * Проверяет корректность имени доски.
- *
- * Аргументы:
- * $name - имя доски.
- *
- * Возвращает безопасный для использования имя доски.
+ * @param name string <p>Имя доски.</p>
+ * @return string
+ * Возвращает безопасное для использования имя доски.
  */
 function boards_check_name($name)
 {
-	if(!isset($name))
-		throw new NodataException(NodataException::$messages['BOARD_NAME_NOT_SPECIFED']);
 	$length = strlen($name);
 	if($length <= 16 && $length >= 1)
 	{
@@ -1792,23 +1788,20 @@ function threads_get_all_moderate($user_id)
 	return db_threads_get_all_moderate(DataExchange::getDBLink(), $user_id);
 }
 /**
- * Получает $threads_per_page нитей со страницы $page доски с идентификатором
- * $board_id, доступные для чтения пользователю с идентификатором
- * $user_id. А так же количество доступных для просмотра сообщений в этих нитях.
- *
- * Аргументы:
- * $board_id - идентификатор доски.
- * $page - номер страницы.
- * $user_id - идентификатор пользователя.
- * $threads_per_page - количество нитей ни странице.
- *
- * Возвращает нити:
- * 'id' - идентификатор нити.
- * 'original_post' - оригинальный пост.
- * 'bump_limit' - специфичный для нити бамплимит.
- * 'sage' - не поднимать нить при ответе в неё.
- * 'with_images' - разрешить прикреплять файлы к ответам в нить.
- * 'posts_count' - число доступных для просмотра сообщений в нити.
+ * Получает доступные для просмотра пользователю нити и количество сообщений в
+ * них, с заданной страницы доски.
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param page mixed <p>Номер страницы.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param threads_per_page mixed <p>Количество нитей на странице.</p>
+ * @return array
+ * Возвращает нити:<p>
+ * 'id' - идентификатор.<br>
+ * 'original_post' - оригинальное сообщение.<br>
+ * 'bump_limit' - специфичный для нити бамплимит.<br>
+ * 'sage' - флаг поднятия нити при ответе.<br>
+ * 'with_files' - флаг загрузки файлов.<br>
+ * 'posts_count' - число доступных для просмотра сообщений в нити.</p>
  */
 function threads_get_board_view($board_id, $page, $user_id,
 	$threads_per_page)
@@ -1819,12 +1812,10 @@ function threads_get_board_view($board_id, $page, $user_id,
 /**
  * Вычисляет количество нитей, доступных для просмотра заданному пользователю
  * на заданной доске.
- *
- * Аргументы:
- * $user_id - идентификатор пользователя.
- * $board_id - идентификатор доски.
- *
- * Возвращает строку, содержащую число нитей.
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @return string
+ * Возвращает число нитей.
  */
 function threads_get_view_threadscount($user_id, $board_id)
 {
@@ -1832,24 +1823,21 @@ function threads_get_view_threadscount($user_id, $board_id)
 		$user_id, $board_id);
 }
 /**
- * Получает нить с номером $thread_num на доске с идентификатором $board_id,
- * доступную для просмотра пользователю с идентификатором $user_id. А так же
- * число сообщений в нити, видимых этим пользователем.
- *
- * Аргументы:
- * $board_id - идентификатор доски.
- * $thread_num - номер нити.
- * $user_id - идентификатор пользователя.
- *
- * Возвращает нить:
+ * Получает доступную для просмотра пользователю нить с заданной страницы доски,
+ * и количество сообщений в ней.
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param thread_num mixed <p>Номер нити.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает нить:<p>
  * 'id' - идентификатор.
  * 'board' - идентификатор доски.
  * 'original_post' - оригинальное сообщение.
  * 'bump_limit' - специфичный для нити бамплимит.
  * 'sage' - флаг поднятия нити
- * 'with_images' - разрешить прикреплять файлы к ответам в нить.
+ * 'with_files' - флаг загрузки файлов.
  * 'archived' - нить помечена для архивирования.
- * 'posts_count' - число сообщений.
+ * 'posts_count' - число доступных для просмотра сообщений в нити.</p>
  */
 function threads_get_specifed_view($board_id, $thread_num, $user_id)
 {
