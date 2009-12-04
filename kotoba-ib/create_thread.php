@@ -39,24 +39,28 @@ try
 	if(!$found)
 		throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']
 			. PremissionException::$messages['BOARD_NOT_ALLOWED']);
-	// TODO with_files!!!
-	check_upload_error($_FILES['message_img']['error']);
-	$uploaded_file_size = $_FILES['message_img']['size'];
-	$uploaded_file_path = $_FILES['message_img']['tmp_name'];
-	$uploaded_file_name = $_FILES['message_img']['name'];
-	$uploaded_file_ext = get_extension($uploaded_file_name);
-	$upload_types = upload_types_get_board($board['id']);
-	$found = false;
-	$upload_type = null;
-	foreach($upload_types as $ut)
-		if($ut['extension'] == $uploaded_file_ext)
-		{
-			$found = true;
-			$upload_type = $ut;
-			break;
-		}
-	if(!$found)
-		throw new UploadException(UploadException::$messages['UPLOAD_FILETYPE_NOT_SUPPORTED']);
+	if($board['with_files'])
+	{
+		check_upload_error($_FILES['message_img']['error']);
+		$uploaded_file_size = $_FILES['message_img']['size'];
+		$uploaded_file_path = $_FILES['message_img']['tmp_name'];
+		$uploaded_file_name = $_FILES['message_img']['name'];
+		$uploaded_file_ext = get_extension($uploaded_file_name);
+		$upload_types = upload_types_get_board($board['id']);
+		$found = false;
+		$upload_type = null;
+		foreach($upload_types as $ut)
+			if($ut['extension'] == $uploaded_file_ext)
+			{
+				$found = true;
+				$upload_type = $ut;
+				break;
+			}
+		if(!$found)
+			throw new UploadException(UploadException::$messages['UPLOAD_FILETYPE_NOT_SUPPORTED']);
+		if($upload_type['is_image'])
+			uploads_check_image_size($uploaded_file_size);
+	}
 	$message_pass = null;
 	if(isset($_POST['message_pass']) && $_POST['message_pass'] != '')
 	{
@@ -79,8 +83,6 @@ try
 	else
 		// Подписывать сообщения запрещено на этой доске.
 		$message_name = '';
-	if($upload_type['is_image'])
-		uploads_check_image_size($uploaded_file_size);
 	$message_text = htmlspecialchars($_POST['message_text'], ENT_QUOTES);
 	$message_subject = htmlspecialchars($_POST['message_theme'], ENT_QUOTES);
 	$message_text = stripslashes($message_text);
@@ -160,18 +162,17 @@ try
 					$upload_type['is_image'], $file_names[0], null, null,
 					$uploaded_file_size, $virt_thumb_path, 200, 200);
 
-		}
+		}// Файл не был загружен ранее.
 		else
 			// Первый попавшийся из одинаковых файлов.
 			$upload_id = $same_uploads[0]['id'];
 	}
 	// Создаём пустую нить.
-	$thread = threads_add($board['id'], null, $board['bump_limit'], 0,
-		$board['with_files']);
+	$thread = threads_add($board['id'], null, $board['bump_limit'], 0, null);
 	date_default_timezone_set(Config::DEFAULT_TIMEZONE);
 	$post = posts_add($board['id'], $thread['id'], $_SESSION['user'],
 		$message_pass, $message_name, ip2long($_SERVER['REMOTE_ADDR']),
-		$message_subject, date("Y-m-d H:i:s"), $message_text, $thread['sage']);
+		$message_subject, date("Y-m-d H:i:s"), $message_text, null);
 	// Закрепляем сообщение как оригинальное сообщение созданной пустой нити.
 	threads_edit_originalpost($thread['id'], $post['number']);
 	if($board['with_files'])

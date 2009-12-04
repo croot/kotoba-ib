@@ -38,7 +38,7 @@ try
 			$_SESSION['rempass'] = $message_pass;
 	}
 	$with_file = false;	// Сообщение с файлом.
-	if($board['with_files'])
+	if($board['with_files'] || $thread['with_files'])
 	{
 		if($_FILES['message_img']['error'] == UPLOAD_ERR_NO_FILE
 			&& !isset($_POST['message_text']) || $_POST['message_text'] == '')
@@ -100,10 +100,10 @@ try
 	$message_subject = stripslashes($message_subject);
 	posts_check_text_size($message_text);
 	posts_check_subject_size($message_subject);
-	$is_sage = '0';
+	$sage = null;	// Наследует от нити.
 	if(isset($_POST['sage']) && $_POST['sage'] == 'sage')
-		$is_sage = '1';
-	if($board['with_files'] && $with_file)
+		$sage = '1';
+	if(($board['with_files'] || $thread['with_files']) && $with_file)
 	{
 // 2. Подготовка файла к сохранению.
 		$file_hash = calculate_file_hash($uploaded_file_path);
@@ -155,7 +155,7 @@ try
 			else
 				// TODO Actually it must be only a name not path.
 				$virt_thumb_path = $upload_type['thumbnail_image'];
-	// 3. Сохранение данных.
+// 3. Сохранение данных.
 			move_uploded_file($uploaded_file_path, $abs_img_path);
 			if($upload_type['is_image'])
 			{
@@ -184,8 +184,8 @@ try
 	date_default_timezone_set(Config::DEFAULT_TIMEZONE);
 	$post = posts_add($board['id'], $thread['id'], $_SESSION['user'],
 		$message_pass, $message_name, ip2long($_SERVER['REMOTE_ADDR']),
-		$message_subject, date("Y-m-d H:i:s"), $message_text, $is_sage);
-	if($board['with_files'] && $with_file)
+		$message_subject, date("Y-m-d H:i:s"), $message_text, $sage);
+	if(($board['with_files'] || $thread['with_files']) && $with_file)
 		posts_uploads_add($post['id'], $upload_id);
 	DataExchange::releaseResources();
 // 4. Перенаправление.

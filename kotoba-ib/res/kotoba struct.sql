@@ -213,7 +213,7 @@ CREATE TABLE `posts` (
   CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`),
   CONSTRAINT `posts_ibfk_2` FOREIGN KEY (`user`) REFERENCES `users` (`id`),
   CONSTRAINT `posts_ibfk_3` FOREIGN KEY (`thread`) REFERENCES `threads` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=770 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=775 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -266,7 +266,7 @@ CREATE TABLE `threads` (
   PRIMARY KEY (`id`),
   KEY `board` (`board`),
   CONSTRAINT `threads_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=805 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=808 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -326,7 +326,7 @@ CREATE TABLE `uploads` (
   PRIMARY KEY (`id`),
   KEY `board` (`board`),
   CONSTRAINT `uploads_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=396 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=397 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2062,9 +2062,9 @@ begin
 		set _datetime = now();
 	end if;
 	insert into posts (board, thread, `number`, `user`, password, `name`, ip,
-		subject, date_time, text, sage)
+		subject, date_time, text, sage, deleted)
 	values (_board_id, _thread_id, post_number, _user_id, _password, _name, _ip,
-		_subject, _datetime, _text, _sage);
+		_subject, _datetime, _text, _sage, 0);
 	select last_insert_id() into post_id;
 	select * from posts where id = post_id;
 end */;;
@@ -2702,12 +2702,14 @@ DELIMITER ;;
 	_original_post int,
 	_bump_limit int,
 	_sage bit,
-	_with_images bit
+	_with_files bit
 )
 begin
 	declare thread_id int;
-	insert into threads (board, original_post, bump_limit, sage, with_images)
-	values (_board_id, _original_post, _bump_limit, _sage, _with_images);
+	insert into threads (board, original_post, bump_limit, deleted, archived,
+		sage, with_files)
+	values (_board_id, _original_post, _bump_limit, 0, 0,
+		_sage, _with_files);
 	select last_insert_id() into thread_id;
 	select * from threads where id = thread_id;
 end */;;
@@ -3240,7 +3242,7 @@ DELIMITER ;;
 )
 begin
 	select t.id, t.board, t.original_post, t.bump_limit, t.archived, t.sage,
-		t.with_images as with_files
+		t.with_files
 	from threads t
 	join user_groups ug on ug.`user` = user_id
 	left join hidden_threads ht on t.id = ht.thread and ug.`user` = ht.`user`
@@ -4307,4 +4309,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2009-12-03 19:50:58
+-- Dump completed on 2009-12-04  5:40:17

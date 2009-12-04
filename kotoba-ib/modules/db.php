@@ -1283,25 +1283,25 @@ function db_threads_edit_originalpost($link, $thread_id, $original_post)
 }
 /**
  * Создаёт нить. Если номер оригинального сообщения null, то будет создана
- * "пустая" нить.
+ * пустая нить.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param board_id mixed <p>Идентификатор доски.</p>
- * @param original_post mixed <p>Номер оригинального сообщения нити.</p>
+ * @param original_post mixed <p>Номер оригинального сообщения.</p>
  * @param bump_limit mixed <p>Специфичный для нити бамплимит.</p>
- * @param sage mixed <p>Не поднимать нить ответами.</p>
- * @param with_images mixed <p>Флаг прикрепления файлов к ответам в нить.</p>
+ * @param sage mixed <p>Флаг поднятия нити.</p>
+ * @param with_files mixed <p>Флаг загрузки файлов.</p>
  * @return array
  * Возвращает нить.
  */
 function db_threads_add($link, $board_id, $original_post, $bump_limit, $sage,
-	$with_images)
+	$with_files)
 {
 	$original_post = ($original_post === null ? 'null' : $original_post);
 	$bump_limit = ($bump_limit === null ? 'null' : $bump_limit);
 	$sage = $sage ? '1' : '0';
-	$with_images = $with_images ? '1' : '0';
-	$result = mysqli_query($link, "call sp_threads_add($board_id, $original_post,
-		$bump_limit, $sage, $with_images)");
+	$with_files = $with_files === null ? 'null' : $with_files;
+	$result = mysqli_query($link, "call sp_threads_add($board_id,
+		$original_post, $bump_limit, $sage, $with_files)");
 	if(!$result)
 		throw new CommonException(mysqli_error($link));
 	$row = mysqli_fetch_assoc($result);
@@ -1452,7 +1452,7 @@ function db_threads_get_specifed_view($link, $board_id, $thread_num, $user_id)
 					'original_post' => $row['original_post'],
 					'bump_limit' => $row['bump_limit'],
 					'sage' => $row['sage'],
-					'with_images' => $row['with_images'],
+					'with_files' => $row['with_files'],
 					'archived' => $row['archived'],
 					'posts_count' => $row['visible_posts_count']);
 	mysqli_free_result($result);
@@ -1593,6 +1593,7 @@ function db_posts_get_threads_view($link, $threads, $user_id, $posts_per_thread)
 function db_posts_add($link, $board_id, $thread_id, $user_id, $password, $name,
 	$ip, $subject, $datetime, $text, $sage)
 {
+	$sage = $sage === null ? 'null' : $sage;
 	$result = mysqli_query($link, "call sp_posts_add($board_id, $thread_id,
 		$user_id, '$password', '$name', $ip, '$subject', '$datetime', '$text',
 		$sage)");
