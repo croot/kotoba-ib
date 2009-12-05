@@ -35,6 +35,7 @@
 	$original_tripcode - трипкод.
 	$original_text_cutted - сообщение было урезано.
 	$skipped - количество не показанных сообщений.
+	$sticky - флаг закрепления.
 *}
 <div>
 <span class="filetitle">{$original_theme}</span> <span class="postername">{$original_name}</span>{if $original_hascode == 1}<span class="postertrip">!{$original_tripcode}</span>{/if} {$original_time}
@@ -47,6 +48,7 @@
 </span>
 <span class="hidebtn">[<a href="{$DIR_PATH}/{$board_name}/h{$thread_num}" title="Скрыть">-</a>]</span>
 <span class="delbtn">[<a href="{$DIR_PATH}/{$board_name}/r{$original_num}" title="Удалить">×</a>]</span>
+{if $sticky} Нить закреплена.{/if}
 <a name="{$original_id}"></a>
 {if $original_with_files == true}<br><a target="_blank" href="{$original_file_link}"><img src="{$original_file_thumbnail_link}" class="thumb" width="{$original_file_thumbnail_width}" heigth="{$original_file_thumbnail_heigth}"></a>
 {/if}
@@ -54,5 +56,5 @@
 {$original_text}
 </blockquote>
 {if $original_text_cutted == 1}<br><span class="omittedposts">Нажмите "Ответ" для просмотра сообщения целиком.</span>{/if}
-{if $skipped > 0}<br><span class="omittedposts">Сообщений пропущено: {$skipped}
+{if $skipped > 0}<br><span class="omittedposts">Сообщений пропущено: {$skipped}</span>
 <br><br>{/if}

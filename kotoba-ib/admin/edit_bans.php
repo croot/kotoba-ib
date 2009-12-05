@@ -8,8 +8,7 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
-// Скрипт редактирования связей загружаемых типов файлов с досками.
-// TODO Обработка Hard ban-а.
+// Скрипт редактирования банов.
 require '../config.php';
 require Config::ABS_PATH . '/modules/errors.php';
 require Config::ABS_PATH . '/modules/lang/' . Config::LANGUAGE . '/errors.php';
@@ -50,9 +49,9 @@ try
 		// Добавление нового бана.
 		if(isset($_POST['new_range_beg']) && isset($_POST['new_range_end'])
 			&& isset($_POST['new_reason']) && isset($_POST['new_untill'])
-			&& $_POST['new_range_beg'] !== ''
-			&& $_POST['new_range_end'] !== ''
-			&& $_POST['new_untill'] !== '')
+			&& $_POST['new_range_beg'] != ''
+			&& $_POST['new_range_end'] != ''
+			&& $_POST['new_untill'] != '')
 		{
 			$new_range_beg = bans_check_range_beg($_POST['new_range_beg']);
 			$new_range_end = bans_check_range_end($_POST['new_range_end']);

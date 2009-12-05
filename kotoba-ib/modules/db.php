@@ -1229,6 +1229,7 @@ function db_board_upload_types_delete($link, $board_id, $upload_type_id)
  * 'board' - идентификатор доски.<br>
  * 'original_post' - оригинальное сообщение.<br>
  * 'bump_limit' - специфичный для нити бамплимит.<br>
+ * 'sticky' - флаг закрепления.<br>
  * 'sage' - флаг поднятия нити при ответе.<br>
  * 'with_files' - флаг загрузки файлов.</p>
  */
@@ -1245,6 +1246,7 @@ function db_threads_get_all($link)
 						'board' => $row['board'],
 						'original_post' => $row['original_post'],
 						'bump_limit' => $row['bump_limit'],
+						'sticky' => $row['sticky'],
 						'sage' => $row['sage'],
 						'with_files' => $row['with_files']));
 	mysqli_free_result($result);
@@ -1256,15 +1258,17 @@ function db_threads_get_all($link)
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param thread_id mixed <p>Идентификатор нити.</p>
  * @param bump_limit mixed <p>Специфичный для нити бамплимит.</p>
+ * @param sticky mixed <p>Флаг закрепления.</p>
  * @param sage mixed <p>Флаг поднятия нити при ответе.</p>
  * @param with_files mixed <p>Флаг загрузки файлов.</p>
  */
-function db_threads_edit($link, $thread_id, $bump_limit, $sage, $with_files)
+function db_threads_edit($link, $thread_id, $bump_limit, $sticky, $sage,
+	$with_files)
 {
 	$bump_limit = ($bump_limit === null ? 'null' : $bump_limit);
 	$with_files = ($with_files === null ? 'null' : $with_files);
 	if(!mysqli_query($link, "call sp_threads_edit($thread_id, $bump_limit,
-			$sage, $with_files)"))
+			$sticky, $sage, $with_files)"))
 		throw new CommonException(mysqli_error($link));
 	db_cleanup_link($link);
 }
@@ -1319,6 +1323,7 @@ function db_threads_add($link, $board_id, $original_post, $bump_limit, $sage,
  * 'board' - идентификатор доски.<br>
  * 'original_post' - оригинальное сообщение.<br>
  * 'bump_limit' - специфичный для нити бамплимит.<br>
+ * 'sticky' - флаг закрепления.<br>
  * 'sage' - флаг поднятия нити при ответе.<br>
  * 'with_files' - флаг загрузки файлов.</p>
  */
@@ -1335,6 +1340,7 @@ function db_threads_get_all_moderate($link, $user_id)
 						'board' => $row['board'],
 						'original_post' => $row['original_post'],
 						'bump_limit' => $row['bump_limit'],
+						'sticky' => $row['sticky'],
 						'sage' => $row['sage'],
 						'with_files' => $row['with_files']));
 	mysqli_free_result($result);
@@ -1354,6 +1360,7 @@ function db_threads_get_all_moderate($link, $user_id)
  * 'id' - идентификатор.<br>
  * 'original_post' - оригинальное сообщение.<br>
  * 'bump_limit' - специфичный для нити бамплимит.<br>
+ * 'sticky' - флаг закрепления.<br>
  * 'sage' - флаг поднятия нити при ответе.<br>
  * 'with_files' - флаг загрузки файлов.<br>
  * 'posts_count' - число доступных для просмотра сообщений в нити.</p>
@@ -1361,18 +1368,39 @@ function db_threads_get_all_moderate($link, $user_id)
 function db_threads_get_board_view($link, $board_id, $page, $user_id,
 	$threads_per_page)
 {
+	$threads = array();
+	if($page == 1)
+	{
+		$result = mysqli_query($link,
+			"call sp_threads_get_board_view($board_id, $page, $user_id,
+				$threads_per_page, 1)");
+		if(!$result)
+			throw new CommonException(mysqli_error($link));
+		if(mysqli_affected_rows($link) > 0)
+			while(($row = mysqli_fetch_assoc($result)) != null)
+				array_push($threads,
+					array('id' => $row['id'],
+							'original_post' => $row['original_post'],
+							'bump_limit' => $row['bump_limit'],
+							'sticky' => $row['sticky'],
+							'sage' => $row['sage'],
+							'with_files' => $row['with_files'],
+							'posts_count' => $row['posts_count']));
+		mysqli_free_result($result);
+		db_cleanup_link($link);
+	}
 	$result = mysqli_query($link,
 		"call sp_threads_get_board_view($board_id, $page, $user_id,
-			$threads_per_page)");
+			$threads_per_page, 0)");
 	if(!$result)
 		throw new CommonException(mysqli_error($link));
-	$threads = array();
 	if(mysqli_affected_rows($link) > 0)
 		while(($row = mysqli_fetch_assoc($result)) != null)
 			array_push($threads,
 				array('id' => $row['id'],
 						'original_post' => $row['original_post'],
 						'bump_limit' => $row['bump_limit'],
+						'sticky' => $row['sticky'],
 						'sage' => $row['sage'],
 						'with_files' => $row['with_files'],
 						'posts_count' => $row['posts_count']));
@@ -1416,21 +1444,25 @@ function db_threads_get_view_threadscount($link, $user_id, $board_id)
  * @param board_id mixed <p>Идентификатор доски.</p>
  * @param thread_num mixed <p>Номер нити.</p>
  * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param sticky mixed <p>Флаг закрепления.</p>
  * @return array
  * Возвращает нить:<p>
- * 'id' - идентификатор.
- * 'board' - идентификатор доски.
- * 'original_post' - оригинальное сообщение.
- * 'bump_limit' - специфичный для нити бамплимит.
- * 'sage' - флаг поднятия нити
- * 'with_files' - флаг загрузки файлов.
- * 'archived' - нить помечена для архивирования.
+ * 'id' - идентификатор.<br>
+ * 'board' - идентификатор доски.<br>
+ * 'original_post' - оригинальное сообщение.<br>
+ * 'bump_limit' - специфичный для нити бамплимит.<br>
+ * 'sticky' - флаг закрепления.<br>
+ * 'sage' - флаг поднятия нити<br>
+ * 'with_files' - флаг загрузки файлов.<br>
+ * 'archived' - нить помечена для архивирования.<br>
  * 'posts_count' - число доступных для просмотра сообщений в нити.</p>
  */
-function db_threads_get_specifed_view($link, $board_id, $thread_num, $user_id)
+function db_threads_get_specifed_view($link, $board_id, $thread_num, $user_id,
+	$sticky)
 {
 	$result = mysqli_query($link,
-		"call sp_threads_get_specifed_view($board_id, $thread_num, $user_id)");
+		"call sp_threads_get_specifed_view($board_id, $thread_num, $user_id,
+			$sticky)");
 	if(!$result)
 		throw new CommonException(mysqli_error($link));
 	if(mysqli_affected_rows($link) <= 0)
@@ -1452,6 +1484,7 @@ function db_threads_get_specifed_view($link, $board_id, $thread_num, $user_id)
 					'original_post' => $row['original_post'],
 					'bump_limit' => $row['bump_limit'],
 					'sage' => $row['sage'],
+					'sticky' => $row['sticky'],
 					'with_files' => $row['with_files'],
 					'archived' => $row['archived'],
 					'posts_count' => $row['visible_posts_count']);

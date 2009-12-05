@@ -112,6 +112,7 @@ try
 							$smarty->assign('original_file_thumbnail_heigth', $u['thumbnail_h']);
 						}
 				}
+			$smarty->assign('sticky', $thread['sticky']);
 			$view_thread_html = $smarty->fetch('post_original.tpl');
 		}
 		else

@@ -64,7 +64,7 @@ CREATE TABLE `bans` (
   `untill` datetime NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `ip_range` (`range_beg`,`range_end`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -213,7 +213,7 @@ CREATE TABLE `posts` (
   CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`),
   CONSTRAINT `posts_ibfk_2` FOREIGN KEY (`user`) REFERENCES `users` (`id`),
   CONSTRAINT `posts_ibfk_3` FOREIGN KEY (`thread`) REFERENCES `threads` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=775 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=776 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -261,12 +261,13 @@ CREATE TABLE `threads` (
   `bump_limit` int(11) DEFAULT NULL,
   `deleted` bit(1) NOT NULL,
   `archived` bit(1) NOT NULL,
+  `sticky` bit(1) NOT NULL DEFAULT b'0',
   `sage` bit(1) NOT NULL,
   `with_files` bit(1) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `board` (`board`),
   CONSTRAINT `threads_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=808 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=809 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -326,7 +327,7 @@ CREATE TABLE `uploads` (
   PRIMARY KEY (`id`),
   KEY `board` (`board`),
   CONSTRAINT `uploads_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=397 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=398 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2797,11 +2798,12 @@ DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_threads_edit`(
 	_id int,
 	_bump_limit int,
+	_sticky bit,
 	_sage bit,
 	_with_files bit
 )
 begin
-	update threads set bump_limit = _bump_limit, sage = _sage,
+	update threads set bump_limit = _bump_limit, sticky = _sticky, sage = _sage,
 		with_files = _with_files
 	where id = _id;
 end */;;
@@ -2845,7 +2847,7 @@ DELIMITER ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_threads_get_all`()
 begin
-	select id, board, original_post, bump_limit, sage, with_files
+	select id, board, original_post, bump_limit, sticky, sage, with_files
 	from threads
 	where deleted = 0 and archived = 0
 	order by id desc;
@@ -2869,7 +2871,8 @@ DELIMITER ;;
 	user_id int
 )
 begin
-	select t.id, t.board, t.original_post, t.bump_limit, t.sage, t.with_files
+	select t.id, t.board, t.original_post, t.bump_limit, t.sticky, t.sage,
+		t.with_files
 	from threads t
 	join user_groups ug on ug.`user` = user_id
 	left join hidden_threads ht on t.id = ht.thread and ug.`user` = ht.`user`
@@ -3017,22 +3020,23 @@ DELIMITER ;;
 	board_id int,
 	page int,
 	user_id int,
-	threads_per_page int
+	threads_per_page int,
+	sticky bit
 )
 begin
 	
 	prepare stmnt from
 		'-- Выберем нити, отсортированные по последнему сообщению без сажи.
-		select q1.id, q1.original_post, q1.bump_limit, q1.sage, q1.with_files,
-			q1.posts_count
+		select q1.id, q1.original_post, q1.bump_limit, q1.sticky, q1.sage, q1.with_files,
+			q1.posts_count, q1.last_post_num
 		from (
 			-- Без учёта постов с сажей вычислим последнее сообщение в нити.
-			select q.id, q.original_post, q.bump_limit, q.sage, q.with_files,
+			select q.id, q.original_post, q.bump_limit, q.sticky, q.sage, q.with_files,
 				q.posts_count, max(p.`number`) as last_post_num
 			from posts p
 			join (
 				-- Выберем видимые нити и подсчитаем количество видимых сообщений.
-				select t.id, t.original_post, t.bump_limit, t.sage, t.with_files,
+				select t.id, t.original_post, t.bump_limit, t.sticky, t.sage, t.with_files,
 					count(distinct p.id) as posts_count
 				from posts p
 				join threads t on t.id = p.thread and t.board = ?
@@ -3055,6 +3059,7 @@ begin
 					and a7.thread is null and a7.post is null
 				where t.deleted = 0
 					and t.archived = 0
+					and t.sticky = ?
 					and ht.thread is null
 					and p.deleted = 0
 					-- Нить должна быть доступна для просмотра.
@@ -3092,12 +3097,13 @@ begin
 	set @board_id = board_id;
 	set @user_id = user_id;
 	set @limit = threads_per_page;
+	set @sticky = sticky;
 	if(page = 1) then
 		set @offset = 0;
 	else
 		set @offset = threads_per_page * (page - 1);
 	end if;
-	execute stmnt using @board_id, @user_id, @limit, @offset;
+	execute stmnt using @board_id, @user_id, @sticky, @limit, @offset;
 	deallocate prepare stmnt;
 end */;;
 DELIMITER ;
@@ -3351,7 +3357,7 @@ begin
 	then
 		select 'NOT_FOUND' as error;
 	else
-		select t.id, t.original_post, t.bump_limit, t.archived, t.sage,
+		select t.id, t.original_post, t.bump_limit, t.sticky, t.archived, t.sage,
 			t.with_files, count(p.id) as visible_posts_count
 		from posts p
 		join threads t on t.id = p.thread
@@ -4309,4 +4315,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2009-12-04  5:40:17
+-- Dump completed on 2009-12-05 19:24:46
