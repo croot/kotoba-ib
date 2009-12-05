@@ -34,6 +34,7 @@
 	$original_text - текст сообщения.
 	$original_hascode - ?
 	$original_tripcode - трипкод.
+	$sticky - флаг закрепления.
 *}
 <div>
 	<span class="filetitle">{$original_theme}</span> <span class="postername">{$original_name}</span>{if $original_hascode == 1}<span class="postertrip">!{$original_tripcode}</span>{/if} {$original_time}
@@ -41,6 +42,7 @@
 {/if}
 	<span class="reflink"><span onclick="insert('>>{$original_num}');">#</span> <a href="{$KDIR_PATH}/{$board_name}/{$thread_num}#{$original_num}">{$original_num}</a></span>
 	<span class="delbtn">[<a href="{$DIR_PATH}/{$board_name}/r{$original_num}" title="Удалить">×</a>]</span>
+	{if $sticky} Нить закреплена.{/if}
 	<a name="{$original_num}"></a>
 {if $original_with_files == true}			<br><a target="_blank" href="{$original_file_link}"><img src="{$original_file_thumbnail_link}" class="thumb" width="{$original_file_thumbnail_width}" heigth="{$original_file_thumbnail_heigth}"></a>
 {/if}

@@ -144,6 +144,7 @@ create table threads
 	-- Этот флаг не может быть null, так как для него нет родительского
 	-- значения, которое можно было бы унаследовать.
 	sage bit not null,
+	sticky bit not null default 0,
 	-- Если этот флаг null, то берётся родительский with_files от доски.
 	with_files bit default null,
 	primary key (id),

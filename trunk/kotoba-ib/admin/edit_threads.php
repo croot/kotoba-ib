@@ -55,6 +55,16 @@ try
 				else
 					$new_bump_limit = threads_check_bump_limit($_POST[$param_name]);
 			}
+			// Был ли измен флаг закрепления?
+			$param_name = "sticky_{$thread['id']}";
+			$new_sticky = $thread['sticky'];
+			if(isset($_POST[$param_name])
+				&& $_POST[$param_name] != $thread['sticky'])
+			{
+				$new_sticky = '1';
+			}
+			if(!isset($_POST[$param_name]) && $thread['sticky'])
+				$new_sticky = '0';
 			// Был ли измен флаг поднятия нити при ответе?
 			$param_name = "sage_{$thread['id']}";
 			$new_sage = $thread['sage'];
@@ -121,11 +131,12 @@ try
 			}
 			// Были ли произведены какие-либо изменения?
 			if($new_bump_limit != $thread['bump_limit']
+				|| $new_sticky != $thread['sticky']
 				|| $new_sage != $thread['sage']
 				|| $new_with_images != $thread['with_files'])
 			{
-				threads_edit($thread['id'], $new_bump_limit, $new_sage,
-						$new_with_images);
+				threads_edit($thread['id'], $new_bump_limit, $new_sticky,
+					$new_sage, $new_with_images);
 				$reload_threads = true;
 			}
 		}

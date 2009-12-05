@@ -1663,6 +1663,7 @@ function board_upload_types_delete($board_id, $upload_type_id)
  * 'board' - идентификатор доски.<br>
  * 'original_post' - оригинальное сообщение.<br>
  * 'bump_limit' - специфичный для нити бамплимит.<br>
+ * 'sticky' - флаг закрепления.<br>
  * 'sage' - флаг поднятия нити при ответе.<br>
  * 'with_files' - флаг загрузки файлов.</p>
  */
@@ -1742,12 +1743,13 @@ function threads_check_number($number)
  * @param thread_id mixed <p>Идентификатор нити.</p>
  * @param bump_limit mixed <p>Специфичный для нити бамплимит.</p>
  * @param sage mixed <p>Флаг поднятия нити при ответе.</p>
+ * @param sticky mixed <p>Флаг закрепления.</p>
  * @param with_files mixed <p>Флаг загрузки файлов.</p>
  */
-function threads_edit($thread_id, $bump_limit, $sage, $with_files)
+function threads_edit($thread_id, $bump_limit, $sticky, $sage, $with_files)
 {
-	db_threads_edit(DataExchange::getDBLink(), $thread_id, $bump_limit, $sage,
-		$with_files);
+	db_threads_edit(DataExchange::getDBLink(), $thread_id, $bump_limit, $sticky,
+		$sage, $with_files);
 }
 /**
  * Редактирует оригинальное сообщение нити.
@@ -1784,6 +1786,7 @@ function threads_add($board_id, $original_post, $bump_limit, $sage, $with_files)
  * 'board' - идентификатор доски.<br>
  * 'original_post' - оригинальное сообщение.<br>
  * 'bump_limit' - специфичный для нити бамплимит.<br>
+ * 'sticky' - флаг закрепления.<br>
  * 'sage' - флаг поднятия нити при ответе.<br>
  * 'with_files' - флаг загрузки файлов.</p>
  */
@@ -1803,6 +1806,7 @@ function threads_get_all_moderate($user_id)
  * 'id' - идентификатор.<br>
  * 'original_post' - оригинальное сообщение.<br>
  * 'bump_limit' - специфичный для нити бамплимит.<br>
+ * 'sticky' - флаг закрепления.<br>
  * 'sage' - флаг поднятия нити при ответе.<br>
  * 'with_files' - флаг загрузки файлов.<br>
  * 'posts_count' - число доступных для просмотра сообщений в нити.</p>
@@ -1834,18 +1838,20 @@ function threads_get_view_threadscount($user_id, $board_id)
  * @param user_id mixed <p>Идентификатор пользователя.</p>
  * @return array
  * Возвращает нить:<p>
- * 'id' - идентификатор.
- * 'board' - идентификатор доски.
- * 'original_post' - оригинальное сообщение.
- * 'bump_limit' - специфичный для нити бамплимит.
- * 'sage' - флаг поднятия нити
- * 'with_files' - флаг загрузки файлов.
- * 'archived' - нить помечена для архивирования.
+ * 'id' - идентификатор.<br>
+ * 'board' - идентификатор доски.<br>
+ * 'original_post' - оригинальное сообщение.<br>
+ * 'bump_limit' - специфичный для нити бамплимит.<br>
+ * 'sticky' - флаг закрепления.<br>
+ * 'sage' - флаг поднятия нити.<br>
+ * 'with_files' - флаг загрузки файлов.<br>
+ * 'archived' - нить помечена для архивирования.<br>
  * 'posts_count' - число доступных для просмотра сообщений в нити.</p>
  */
 function threads_get_specifed_view($board_id, $thread_num, $user_id)
 {
-	return db_threads_get_specifed_view(DataExchange::getDBLink(), $board_id, $thread_num, $user_id);
+	return db_threads_get_specifed_view(DataExchange::getDBLink(), $board_id,
+		$thread_num, $user_id);
 }
 /**
  * Проверяет, доступна ли нить для модерирования пользователю.

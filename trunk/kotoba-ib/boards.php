@@ -59,6 +59,9 @@ try
 		$page_max = 1;		// Important for empty boards.
 	if($page > $page_max)
 		$page = $page_max;	// TODO May be throw exception here?
+	$is_admin = false;
+	if(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
+		$is_admin = true;
 // Получние нитей, сообщений и другой необходимой информации.
 	$threads = threads_get_board_view($board['id'], $page, $_SESSION['user'],
 		$_SESSION['threads_per_page']);
@@ -131,7 +134,8 @@ try
 									$smarty->assign('original_file_thumbnail_heigth', $u['thumbnail_h']);
 								}
 						}
-					//$preview_thread_html .= $smarty->fetch('board_thread_header.tpl');
+					$original_ip = long2ip($p['ip']);
+					$original_id = $p['id'];
 				}
 				else
 				{
@@ -160,10 +164,23 @@ try
 								}
 						}
 					$boards_posts_html .= $smarty->fetch('post_simple.tpl');
+					if($is_admin)
+					{
+						$smarty->assign('post_id',  $p['id']);
+						$smarty->assign('ip', long2ip($p['ip']));
+						$boards_posts_html .= $smarty->fetch('mod_mini_panel.tpl');
+					}
 				}// Оригинальное или простое сообщение.
 			}// Сообщение принадлежит текущей нити.
+		$smarty->assign('sticky', $t['sticky']);
 		$smarty->assign('skipped', ($t['posts_count'] - $recived_posts_count));
 		$boards_thread_html .= $smarty->fetch('board_thread_header.tpl');
+		if($is_admin)
+		{
+			$smarty->assign('post_id',  $original_id);
+			$smarty->assign('ip', $original_ip);
+			$boards_thread_html .= $smarty->fetch('mod_mini_panel.tpl');
+		}
 		$boards_thread_html .= $boards_posts_html;
 		$boards_thread_html .= $smarty->fetch('board_thread_footer.tpl');
 		$boards_html .= $boards_thread_html;

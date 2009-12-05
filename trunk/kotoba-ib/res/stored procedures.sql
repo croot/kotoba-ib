@@ -887,7 +887,7 @@ end|
 -- Выбирает все нити.
 create procedure sp_threads_get_all ()
 begin
-	select id, board, original_post, bump_limit, sage, with_files
+	select id, board, original_post, bump_limit, sticky, sage, with_files
 	from threads
 	where deleted = 0 and archived = 0
 	order by id desc;
@@ -898,17 +898,19 @@ end|
 -- Аргументы:
 -- _id - Идентификатор нити.
 -- _bump_limit - Специфичный для нити бамплимит.
--- _sage - Флаг поднятия нити при ответе
+-- _sticky - Флаг закрепления.
+-- _sage - Флаг поднятия нити при ответе.
 -- _with_files - Флаг загрузки файлов.
 create procedure sp_threads_edit
 (
 	_id int,
 	_bump_limit int,
+	_sticky bit,
 	_sage bit,
 	_with_files bit
 )
 begin
-	update threads set bump_limit = _bump_limit, sage = _sage,
+	update threads set bump_limit = _bump_limit, sticky = _sticky, sage = _sage,
 		with_files = _with_files
 	where id = _id;
 end|
@@ -937,7 +939,8 @@ create procedure sp_threads_get_all_moderate
 	user_id int
 )
 begin
-	select t.id, t.board, t.original_post, t.bump_limit, t.sage, t.with_files
+	select t.id, t.board, t.original_post, t.bump_limit, t.sticky, t.sage,
+		t.with_files
 	from threads t
 	join user_groups ug on ug.`user` = user_id
 	left join hidden_threads ht on t.id = ht.thread and ug.`user` = ht.`user`
@@ -996,27 +999,29 @@ end|
 -- page - номер страницы.
 -- user_id - идентификатор пользователя.
 -- threads_per_page - количество нитей на странице.
+-- sticky - фалг закрепления.
 create procedure sp_threads_get_board_view
 (
 	board_id int,
 	page int,
 	user_id int,
-	threads_per_page int
+	threads_per_page int,
+	sticky bit
 )
 begin
 	-- Потому что в limit нельзя использовать переменные.
 	prepare stmnt from
 		'-- Выберем нити, отсортированные по последнему сообщению без сажи.
-		select q1.id, q1.original_post, q1.bump_limit, q1.sage, q1.with_files,
-			q1.posts_count
+		select q1.id, q1.original_post, q1.bump_limit, q1.sticky, q1.sage, q1.with_files,
+			q1.posts_count, q1.last_post_num
 		from (
 			-- Без учёта постов с сажей вычислим последнее сообщение в нити.
-			select q.id, q.original_post, q.bump_limit, q.sage, q.with_files,
+			select q.id, q.original_post, q.bump_limit, q.sticky, q.sage, q.with_files,
 				q.posts_count, max(p.`number`) as last_post_num
 			from posts p
 			join (
 				-- Выберем видимые нити и подсчитаем количество видимых сообщений.
-				select t.id, t.original_post, t.bump_limit, t.sage, t.with_files,
+				select t.id, t.original_post, t.bump_limit, t.sticky, t.sage, t.with_files,
 					count(distinct p.id) as posts_count
 				from posts p
 				join threads t on t.id = p.thread and t.board = ?
@@ -1039,6 +1044,7 @@ begin
 					and a7.thread is null and a7.post is null
 				where t.deleted = 0
 					and t.archived = 0
+					and t.sticky = ?
 					and ht.thread is null
 					and p.deleted = 0
 					-- Нить должна быть доступна для просмотра.
@@ -1076,12 +1082,13 @@ begin
 	set @board_id = board_id;
 	set @user_id = user_id;
 	set @limit = threads_per_page;
+	set @sticky = sticky;
 	if(page = 1) then
 		set @offset = 0;
 	else
 		set @offset = threads_per_page * (page - 1);
 	end if;
-	execute stmnt using @board_id, @user_id, @limit, @offset;
+	execute stmnt using @board_id, @user_id, @sticky, @limit, @offset;
 	deallocate prepare stmnt;
 end|
 
@@ -1152,7 +1159,7 @@ begin
 	then
 		select 'NOT_FOUND' as error;
 	else
-		select t.id, t.original_post, t.bump_limit, t.archived, t.sage,
+		select t.id, t.original_post, t.bump_limit, t.sticky, t.archived, t.sage,
 			t.with_files, count(p.id) as visible_posts_count
 		from posts p
 		join threads t on t.id = p.thread
