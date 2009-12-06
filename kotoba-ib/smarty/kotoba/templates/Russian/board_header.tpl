@@ -25,6 +25,7 @@
 	$page - номер просматриваемой страницы.
 	$with_files - флаг загрузки файлов.
 	$force_anonymous - флаг отображения имени отправителя.
+	$annotation - аннотация.
 
 Специальные переменные (не входит в котобу):
 	$event_daynight_active - запущен ли эвент времени суток.
@@ -54,6 +55,7 @@
 <tr valign="top"><td>Пароль: </td><td><input type="password" name="message_pass" size="30" value="{$rempass}"></td></tr>
 <tr valign="top"><td>Перейти: </td><td>(нить: <input type="radio" name="goto" value="t">) (доска: <input type="radio" name="goto" value="b" checked>)</td></tr>
 <tr valign="top"><td colspan = "2">Типы файлов, доступных для загрузки:{section name=i loop=$upload_types} {$upload_types[i].extension}{/section}</td></tr>
+<tr valign="top"><td colspan = "2">{$annotation}</td></tr>
 </table>
 <input type="hidden" name="b" value="{$board_name}">
 </form>

@@ -170,15 +170,15 @@ function db_bans_get_all($link)
  *********************/
 
 /**
- * Получает доски, доступные для чтения пользователю с идентификатором $user_id.
+ * Получает доски, доступные для чтения пользователю.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param user_id mixed <p>Идентификатор пользователя.</p>
  * @return array
- * Возвращает пустой массив, если досок доступных для просмотра нет. Если есть,
- * то возвращает массив досок:<p>
+ * Возвращает доски:<p>
  * 'id' - идентификатор доски.<br>
  * 'name' - имя доски.<br>
  * 'title' - заголовок доски.<br>
+ * 'annotation' - аннотация.<br>
  * 'bump_limit' - спецефиный для доски бамплимит.<br>
  * 'force_anonymous' - флаг отображения имя отправителя.<br>
  * 'default_name' - имя отправителя по умолчанию.<br>
@@ -198,6 +198,7 @@ function db_boards_get_all_view($link, $user_id)
 			array_push($boards, array('id' => $row['id'],
 					'name' => $row['name'],
 					'title' => $row['title'],
+					'annotation' => $row['annotation'],
 					'bump_limit' => $row['bump_limit'],
 					'force_anonymous' => $row['force_anonymous'],
 					'default_name' => $row['default_name'],
@@ -256,6 +257,7 @@ function db_boards_get_all_change($link, $user_id)
  * 'id' - идентификатор.<br>
  * 'name' - имя.<br>
  * 'title' - заголовок.<br>
+ * 'annotation' - аннотация.<br>
  * 'bump_limit' - спецефиный для доски бамплимит.<br>
  * 'force_anonymous' - флаг отображения имени отправителя.<br>
  * 'default_name' - имя отправителя по умолчанию.<br>
@@ -274,6 +276,7 @@ function db_boards_get_all($link)
 			array_push($boards,
 				array('id' => $row['id'], 'name' => $row['name'],
 						'title' => $row['title'],
+						'annotation' => $row['annotation'],
 						'bump_limit' => $row['bump_limit'],
 						'force_anonymous' => $row['force_anonymous'],
 						'default_name' => $row['default_name'],
@@ -347,6 +350,19 @@ function db_boards_edit($link, $id, $title, $bump_limit, $force_anonymous,
 	if(!mysqli_query($link, "call sp_boards_edit($id, $title, $bump_limit,
 			$force_anonymous, $default_name, $with_files, '$same_upload',
 			$popdown_handler, $category)"))
+		throw new CommonException(mysqli_error($link));
+	db_cleanup_link($link);
+}
+/**
+ * Редактирует аннотацию доски.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param id mixed <p>Идентификатор.</p>
+ * @param annotation string <p>Аннотация.</p>
+ */
+function db_boards_edit_annotation($link, $id, $annotation)
+{
+	$annotation = ($annotation === null ? 'null' : "'$annotation'");
+	if(!mysqli_query($link, "call sp_boards_edit_annotation($id, $annotation)"))
 		throw new CommonException(mysqli_error($link));
 	db_cleanup_link($link);
 }

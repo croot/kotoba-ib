@@ -66,6 +66,7 @@ create table boards
 	id int not null auto_increment,
 	name varchar(16) not null,
 	title varchar(50) default null,
+	annotation text default null,
 	bump_limit int not null,
 	force_anonymous bit not null,
 	default_name varchar(128) default null,

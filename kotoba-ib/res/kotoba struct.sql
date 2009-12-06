@@ -95,6 +95,7 @@ CREATE TABLE `boards` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(16) COLLATE utf8_unicode_ci NOT NULL,
   `title` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `annotation` text COLLATE utf8_unicode_ci,
   `bump_limit` int(11) NOT NULL,
   `force_anonymous` bit(1) NOT NULL,
   `default_name` varchar(128) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -938,6 +939,28 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_boards_edit_annotation` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_boards_edit_annotation`(
+	_id int,
+	_annotation text
+)
+begin
+	update boards set annotation = _annotation where id = _id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_boards_get_all` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -950,8 +973,8 @@ DELIMITER ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_boards_get_all`()
 begin
-	select id, `name`, title, bump_limit, force_anonymous, default_name,
-		with_files, same_upload, popdown_handler, category
+	select id, `name`, title, annotation, bump_limit, force_anonymous,
+		default_name, with_files, same_upload, popdown_handler, category
 	from boards;
 end */;;
 DELIMITER ;
@@ -1049,7 +1072,7 @@ DELIMITER ;;
 	user_id int
 )
 begin
-	select b.id, b.`name`, b.title, b.bump_limit, b.force_anonymous,
+	select b.id, b.`name`, b.title, b.annotation, b.bump_limit, b.force_anonymous,
 		b.default_name, b.with_files, b.same_upload, b.popdown_handler,
 		ct.`name` as category
 	from boards b
@@ -4315,4 +4338,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2009-12-05 19:24:46
+-- Dump completed on 2009-12-06  6:00:18
