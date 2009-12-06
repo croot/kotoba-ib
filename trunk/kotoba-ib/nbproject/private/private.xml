@@ -3,18 +3,16 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/1">
         <file>
             <url>modules/db.php</url>
-            <line>304</line>
-            <line>1224</line>
-            <line>1276</line>
-        </file>
-        <file>
-            <url>res/stored%20procedures.sql</url>
-            <line>920</line>
-            <line>1442</line>
+            <line>465</line>
+            <line>1367</line>
         </file>
         <file>
             <url>modules/cache.php</url>
-            <line>1789</line>
+            <line>1792</line>
+        </file>
+        <file>
+            <url>res/stored%20procedures.sql</url>
+            <line>1449</line>
         </file>
     </editor-bookmarks>
 </project-private>

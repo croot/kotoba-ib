@@ -210,20 +210,30 @@ function bans_get_all()
  *********************/
 
 /**
- * Получает доски, доступные для чтения пользователю с идентификатором $user_id.
- *
- * Аргументы:
- * $user_id - идентификатор пользователя.
- *
- * Возвращает пустой массив, если досок доступных для просмотра нет. Если есть,
- * то возвращает массив досок:
- * 'id' - идентификатор доски.
- * 'name' - имя доски.
- * 'title' - заголовок доски.
- * 'bump_limit' - спецефиный для доски бамплимит.
- * 'same_upload' - политика загрузки одинаковых изображений.
- * 'popdown_handler' - обработчик автоматического удаления нитей.
- * 'category' - категория доски.
+ * Редактирует аннотацию доски.
+ * @param id mixed <p>Идентификатор.</p>
+ * @param annotation string <p>Аннотация.</p>
+ */
+function boards_edit_annotation($id, $annotation)
+{
+	db_boards_edit_annotation(DataExchange::getDBLink(), $id, $annotation);
+}
+/**
+ * Получает доски, доступные для чтения пользователю.
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает доски:<p>
+ * 'id' - идентификатор доски.<br>
+ * 'name' - имя доски.<br>
+ * 'title' - заголовок доски.<br>
+ * 'annotation' - аннотация.<br>
+ * 'bump_limit' - спецефиный для доски бамплимит.<br>
+ * 'force_anonymous' - флаг отображения имя отправителя.<br>
+ * 'default_name' - имя отправителя по умолчанию.<br>
+ * 'with_files' - флаг загрузки файлов.<br>
+ * 'same_upload' - политика загрузки одинаковых изображений.<br>
+ * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
+ * 'category' - категория доски.</p>
  */
 function boards_get_all_view($user_id)
 {
@@ -256,6 +266,7 @@ function boards_get_all_change($user_id)
  * 'id' - идентификатор.<br>
  * 'name' - имя.<br>
  * 'title' - заголовок.<br>
+ * 'annotation' - аннотация.<br>
  * 'bump_limit' - спецефиный для доски бамплимит.<br>
  * 'force_anonymous' - флаг отображения имени отправителя.<br>
  * 'default_name' - имя отправителя по умолчанию.<br>
@@ -410,6 +421,17 @@ function boards_check_same_upload($same_upload)
 	else
 		throw new FormatException(FormatException::$messages['BOARD_SAME_UPLOAD']);
 	return $same_upload;
+}
+/**
+ * Проверяет корректность аннотации.
+ * @param annotation string <p>Аннотация.</p>
+ * @return string
+ * Возвращает безопасную для использования аннотацию.
+ */
+function boards_check_annotation($annotation)
+{
+	// TODO Какая-то проверка всё же не помешала бы.
+	return $annotation;
 }
 /**
  * Редактирует параметры доски.

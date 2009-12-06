@@ -10,6 +10,7 @@ drop procedure if exists sp_boards_get_all_view|
 drop procedure if exists sp_boards_get_all_change|
 drop procedure if exists sp_boards_get_specifed|
 drop procedure if exists sp_boards_edit|
+drop procedure if exists sp_boards_edit_annotation|
 drop procedure if exists sp_boards_delete|
 drop procedure if exists sp_boards_add|
 drop procedure if exists sp_categories_get_all|
@@ -164,7 +165,7 @@ create procedure sp_boards_get_all_view
 	user_id int
 )
 begin
-	select b.id, b.`name`, b.title, b.bump_limit, b.force_anonymous,
+	select b.id, b.`name`, b.title, b.annotation, b.bump_limit, b.force_anonymous,
 		b.default_name, b.with_files, b.same_upload, b.popdown_handler,
 		ct.`name` as category
 	from boards b
@@ -226,8 +227,8 @@ end|
 -- Выбирает все доски.
 create procedure sp_boards_get_all ()
 begin
-	select id, `name`, title, bump_limit, force_anonymous, default_name,
-		with_files, same_upload, popdown_handler, category
+	select id, `name`, title, annotation, bump_limit, force_anonymous,
+		default_name, with_files, same_upload, popdown_handler, category
 	from boards;
 end|
 
@@ -306,6 +307,20 @@ begin
 		with_files = _with_files, same_upload = _same_upload,
 		popdown_handler = _popdown_handler, category = _category
 	where id = _id;
+end|
+
+-- Редактирует аннотацию доски.
+--
+-- Аргументы:
+-- _id - Идентификатор.
+-- _annotation - Аннотация.
+create procedure sp_boards_edit_annotation
+(
+	_id int,
+	_annotation text
+)
+begin
+	update boards set annotation = _annotation where id = _id;
 end|
 
 -- Удаляет заданную доску.
