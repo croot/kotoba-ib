@@ -42,6 +42,9 @@ try
 	if(!$found)
 		throw new NodataException(sprintf(NodataException::$messages['BOARD_NOT_FOUND'],
 				$board_name));
+	$is_admin = false;
+	if(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
+		$is_admin = true;
 	// Получение данных.
 	$thread = threads_get_specifed_view($board['id'], $thread_num, $_SESSION['user']);
 	if($thread['archived'])
@@ -114,6 +117,13 @@ try
 				}
 			$smarty->assign('sticky', $thread['sticky']);
 			$view_thread_html = $smarty->fetch('post_original.tpl');
+			if($is_admin)
+			{
+				$smarty->assign('post_id',  $p['id']);
+				$smarty->assign('ip', long2ip($p['ip']));
+				$smarty->assign('post_num', $p['number']);
+				$view_thread_html .= $smarty->fetch('mod_mini_panel.tpl');
+			}
 		}
 		else
 		{
@@ -141,6 +151,13 @@ try
 						}
 				}
 			$view_posts_html .= $smarty->fetch('post_simple.tpl');
+			if($is_admin)
+			{
+				$smarty->assign('post_id',  $p['id']);
+				$smarty->assign('ip', long2ip($p['ip']));
+				$smarty->assign('post_num', $p['number']);
+				$view_posts_html .= $smarty->fetch('mod_mini_panel.tpl');
+			}
 		}
 	$view_html .= $view_thread_html . $view_posts_html;
 	$smarty->assign('hidden_threads', $hidden_threads);

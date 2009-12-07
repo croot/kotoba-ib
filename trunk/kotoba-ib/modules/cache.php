@@ -300,6 +300,26 @@ function boards_get_specifed($board_id)
 	return db_boards_get_specifed(DataExchange::getDBLink(), $board_id);
 }
 /**
+ * Получает доску по заданному имени.
+ * @param board_name string <p>Имя доски.</p>
+ * @return array
+ * Возвращает доски:<p>
+ * 'id' - идентификатор доски.<br>
+ * 'name' - имя доски.<br>
+ * 'title' - заголовок доски.<br>
+ * 'bump_limit' - спецефиный для доски бамплимит.<br>
+ * 'force_anonymous' - флаг отображения имя отправителя.<br>
+ * 'default_name' - имя отправителя по умолчанию.<br>
+ * 'with_files' - флаг загрузки файлов.<br>
+ * 'same_upload' - политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
+ * 'category' - категория.</p>
+ */
+function boards_get_specifed_byname($board_name)
+{
+	return db_boards_get_specifed_byname(DataExchange::getDBLink(), $board_name);
+}
+/**
  * Проверяет корректность идентификатора $id доски.
  *
  * Аргументы:
@@ -1133,10 +1153,8 @@ function posts_check_password($password)
 }
 /**
  * Проверяет корректность номера сообщения.
- *
- * Аргументы:
- * $number - номер сообщения.
- *
+ * @param number mixed <p>Номер сообщения.</p>
+ * @return string
  * Возвращает безопасный для использования номер сообщения.
  */
 function posts_check_number($number)
@@ -1836,8 +1854,8 @@ function threads_get_all_moderate($user_id)
 function threads_get_board_view($board_id, $page, $user_id,
 	$threads_per_page)
 {
-	return db_threads_get_board_view(DataExchange::getDBLink(), $board_id, $page,
-		$user_id, $threads_per_page);
+	return db_threads_get_board_view(DataExchange::getDBLink(), $board_id,
+		$page, $user_id, $threads_per_page);
 }
 /**
  * Вычисляет количество нитей, доступных для просмотра заданному пользователю
@@ -1917,28 +1935,49 @@ function threads_get_specifed_change($thread_id, $user_id)
  * Получает $posts_per_thread сообщений и оригинальное сообщение для каждой
  * нити из $threads, доступных для чтения пользователю с идентификатором
  * $user_id.
- *
- * Аргументы:
- * $threads - нити.
- * $user_id - идентификатор пользователя.
- * $posts_per_thread - количество сообщений, которое необходимо вернуть.
- *
- * Возвращает сообщения:
- * 'id' - идентификатор.
- * 'thread' - идентификатор нити.
- * 'number' - номер.
- * 'password' - пароль для удаления.
- * 'name' - имя отправителя.
- * 'ip' - ip адрес отправителя.
- * 'subject' - тема.
- * 'date_time' - время сохранения.
- * 'text' - текст.
- * 'sage' - флаг поднятия нити.
+ * @param threads array <p>Нити.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param posts_per_thread mixed <p>Количество сообщений, которое необходимо вернуть.</p>
+ * @return array
+ * Возвращает сообщения:<p>
+ * 'id' - идентификатор.<br>
+ * 'thread' - идентификатор нити.<br>
+ * 'number' - номер.<br>
+ * 'password' - пароль для удаления.<br>
+ * 'name' - имя отправителя.<br>
+ * 'ip' - ip адрес отправителя.<br>
+ * 'subject' - тема.<br>
+ * 'date_time' - время сохранения.<br>
+ * 'text' - текст.<br>
+ * 'sage' - флаг поднятия нити.</p>
  */
 function posts_get_threads_view($threads, $user_id, $posts_per_thread)
 {
 	return db_posts_get_threads_view(DataExchange::getDBLink(), $threads,
 		$user_id, $posts_per_thread);
+}
+/**
+ * Получает сообщение по номеру.
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param post_num mixed <p>Номер сообщения.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает сообщение:<p>
+ * 'id' - идентификатор.<br>
+ * 'thread' - идентификатор нити.<br>
+ * 'number' - номер.<br>
+ * 'password' - пароль для удаления.<br>
+ * 'name' - имя отправителя.<br>
+ * 'ip' - ip адрес отправителя.<br>
+ * 'subject' - тема.<br>
+ * 'date_time' - время сохранения.<br>
+ * 'text' - текст.<br>
+ * 'sage' - флаг поднятия нити.</p>
+ */
+function posts_get_specifed_view_bynumber($board_id, $post_num, $user_id)
+{
+	return db_posts_get_specifed_view_bynumber(DataExchange::getDBLink(),
+		$board_id, $post_num, $user_id);
 }
 /**
  * Добавляет сообщение.
@@ -1983,6 +2022,14 @@ function posts_corp_text(&$message, $preview_lines, &$is_cutted)
 		$is_cutted = 0;
 		return $message;
 	}
+}
+/**
+ * Удаляет сообщение с заданным идентификатором.
+ * @param id mixed <p>Идентификатор сообщения.</p>
+ */
+function posts_delete($id)
+{
+	db_posts_delete(DataExchange::getDBLink(), $id);
 }
 
 /******************************************************************

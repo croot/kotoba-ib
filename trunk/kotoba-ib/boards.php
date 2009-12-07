@@ -137,6 +137,7 @@ try
 						}
 					$original_ip = long2ip($p['ip']);
 					$original_id = $p['id'];
+					$original_num = $p['number'];
 				}
 				else
 				{
@@ -169,6 +170,7 @@ try
 					{
 						$smarty->assign('post_id',  $p['id']);
 						$smarty->assign('ip', long2ip($p['ip']));
+						$smarty->assign('post_num', $p['number']);
 						$boards_posts_html .= $smarty->fetch('mod_mini_panel.tpl');
 					}
 				}// Оригинальное или простое сообщение.
@@ -180,6 +182,7 @@ try
 		{
 			$smarty->assign('post_id',  $original_id);
 			$smarty->assign('ip', $original_ip);
+			$smarty->assign('post_num', $original_num);
 			$boards_thread_html .= $smarty->fetch('mod_mini_panel.tpl');
 		}
 		$boards_thread_html .= $boards_posts_html;

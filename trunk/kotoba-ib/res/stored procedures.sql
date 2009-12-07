@@ -9,6 +9,7 @@ drop procedure if exists sp_boards_get_all|
 drop procedure if exists sp_boards_get_all_view|
 drop procedure if exists sp_boards_get_all_change|
 drop procedure if exists sp_boards_get_specifed|
+drop procedure if exists sp_boards_get_specifed_byname|
 drop procedure if exists sp_boards_edit|
 drop procedure if exists sp_boards_edit_annotation|
 drop procedure if exists sp_boards_delete|
@@ -61,9 +62,11 @@ drop procedure if exists sp_threads_get_specifed_change|
 drop procedure if exists sp_threads_check_specifed_moderate|
 drop procedure if exists sp_threads_add|
 drop procedure if exists sp_posts_get_thread_view|
+drop procedure if exists sp_posts_get_specifed_view_bynumber|
 drop procedure if exists sp_posts_add|
 drop procedure if exists sp_posts_uploads_get_post|
 drop procedure if exists sp_posts_uploads_add|
+drop procedure if exists sp_posts_delete|
 drop procedure if exists sp_uploads_get_post|
 drop procedure if exists sp_uploads_get_same|
 drop procedure if exists sp_uploads_add|
@@ -244,6 +247,20 @@ begin
 	select id, `name`, title, bump_limit, force_anonymous, default_name,
 		with_files, same_upload, popdown_handler, category
 	from boards where id = board_id;
+end|
+
+-- Получает доску по заданному имени.
+--
+-- Аргументы:
+-- board_name - Имя доски.
+create procedure sp_boards_get_specifed_byname
+(
+	board_name varchar(16)
+)
+begin
+	select id, `name`, title, bump_limit, force_anonymous, default_name,
+		with_files, same_upload, popdown_handler, category
+	from boards where `name` = board_name;
 end|
 
 -- Добавляет доску.
@@ -1449,6 +1466,59 @@ begin
 	deallocate prepare stmnt;
 end|
 
+-- Выбирает сообщение по номеру.
+--
+-- Аргументы:
+-- board_id - Идентификатор доски.
+-- post_num - Номер сообщения.
+-- user_id - Идентификатор пользователя.
+create procedure sp_posts_get_specifed_view_bynumber
+(
+	board_id int,
+	post_num int,
+	user_id int
+)
+begin
+	select p.id, p.thread, p.`number`, p.password, p.`name`, p.ip, p.subject,
+		p.date_time, p.text, p.sage
+	from posts p
+	join user_groups ug on ug.`user` = user_id
+	-- Правило для конкретной группы и сообщения.
+	left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+	-- Правило для всех групп и конкретного сообщения.
+	left join acl a2 on a2.`group` is null and a2.post = p.id
+	-- Правила для конкретной группы и нити.
+	left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+	-- Правило для всех групп и конкретной нити.
+	left join acl a4 on a4.`group` is null and a4.thread = p.thread
+	-- Правила для конкретной группы и доски.
+	left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+	-- Правило для всех групп и конкретной доски.
+	left join acl a6 on a6.`group` is null and a6.board = p.board
+	-- Правило для конкретной групы.
+	left join acl a7 on a7.`group` = ug.`group` and a7.board is null and
+		a7.thread is null and a7.post is null
+	where p.board = board_id
+		and p.`number` = post_num
+		and p.deleted = 0
+		-- Сообщение должно быть доступно для просмотра.
+			-- Просмотр сообщения не запрещен конкретной группе и
+		and ((a1.`view` = 1 or a1.`view` is null)
+			-- просмотр сообщения не запрещен всем группам и
+			and (a2.`view` = 1 or a2.`view` is null)
+			-- просмотр нити не запрещен конкретной группе и
+			and (a3.`view` = 1 or a3.`view` is null)
+			-- просмотр нити не запрещен всем группам и
+			and (a4.`view` = 1 or a4.`view` is null)
+			-- просмотр доски не запрещен конкретной группе и
+			and (a5.`view` = 1 or a5.`view` is null)
+			-- просмотр доски не запрещен всем группам и
+			and (a6.`view` = 1 or a6.`view` is null)
+			-- просмотр разрешен конкретной группе.
+			and a7.`view` = 1)
+	group by p.id;
+end|
+
 -- Добавляет сообщение в сущестующую нить.
 --
 -- Аргументы:
@@ -1509,6 +1579,31 @@ begin
 		_subject, _datetime, _text, _sage, 0);
 	select last_insert_id() into post_id;
 	select * from posts where id = post_id;
+end|
+
+-- Удаляет сообщение с заданным идентификатором.
+--
+-- Аргументы:
+-- _id - Идентификатор сообщения.
+create procedure sp_posts_delete
+(
+	_id int
+)
+begin
+	declare thread_id int;
+	set thread_id = null;
+	-- Проверим, не является ли пост оригинальным. Если да, то удалим всю нить
+	-- целиком.
+	select p.thread into thread_id
+	from posts p
+	join threads t on t.id = p.thread and p.id = _id
+		and p.`number` = t.original_post;
+	if(thread_id is null) then
+		update posts set deleted = 1 where id = _id;
+	else
+		update threads set deleted = 1 where id = thread_id;
+		update posts set deleted = 1 where thread = thread_id;
+	end if;
 end|
 
 --------------------------------------------------------------------
