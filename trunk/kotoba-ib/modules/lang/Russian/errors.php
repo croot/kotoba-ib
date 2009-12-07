@@ -129,6 +129,7 @@ PremissionException::$messages['NOT_ADMIN'] = 'Вы не являетесь ад
 PremissionException::$messages['NOT_MOD'] = 'Вы не являетесь модератором.';
 PremissionException::$messages['THREAD_NOT_ALLOWED'] = 'Нет прав для запрашиваемого действия с нитью.';
 PremissionException::$messages['BOARD_NOT_ALLOWED'] = 'Нет прав для запрашиваемого действия с доской.';
+PremissionException::$messages['GUEST'] = 'Гости не могут скрывать нити.';
 
 /***************************************
  * Ошибки обмена данными с хранилищем. *

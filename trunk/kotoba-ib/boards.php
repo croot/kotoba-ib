@@ -25,10 +25,10 @@ try
 	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
 	header("Cache-Control: private");						// Fix for Firefox.
 // Проверка входных параметров.
-	$board_name = boards_check_name($_GET['b']);
+	$board_name = boards_check_name($_GET['board']);
 	$page = 1;
-	if(isset($_GET['p']))
-		$page = check_page($_GET['p']);
+	if(isset($_GET['page']))
+		$page = check_page($_GET['page']);
 	$rempass = !isset($_SESSION['rempass']) || $_SESSION['rempass'] === null
 		? '' : $_SESSION['rempass'];
 	$boards = boards_get_all_view($_SESSION['user']);
