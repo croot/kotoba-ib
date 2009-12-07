@@ -330,6 +330,48 @@ function db_boards_get_specifed($link, $board_id)
 	return $board;
 }
 /**
+ * Получает доску по заданному имени.
+ * @param board_name string <p>Имя доски.</p>
+ * @return array
+ * Возвращает доску:<p>
+ * 'id' - идентификатор доски.<br>
+ * 'name' - имя доски.<br>
+ * 'title' - заголовок доски.<br>
+ * 'bump_limit' - спецефиный для доски бамплимит.<br>
+ * 'force_anonymous' - флаг отображения имя отправителя.<br>
+ * 'default_name' - имя отправителя по умолчанию.<br>
+ * 'with_files' - флаг загрузки файлов.<br>
+ * 'same_upload' - политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
+ * 'category' - категория.</p>
+ */
+function db_boards_get_specifed_byname($link, $board_name)
+{
+	$result = mysqli_query($link, "call sp_boards_get_specifed_byname('$board_name')");
+	if(!$result)
+		throw new CommonException(mysqli_error($link));
+	$board = null;
+	if(mysqli_affected_rows($link) > 0
+		&& ($row = mysqli_fetch_assoc($result)) !== null)
+	{
+		$board['id'] = $row['id'];
+		$board['name'] = $row['name'];
+		$board['title'] = $row['title'];
+		$board['bump_limit'] = $row['bump_limit'];
+		$board['force_anonymous'] = $row['force_anonymous'];
+		$board['default_name'] = $row['default_name'];
+		$board['with_files'] = $row['with_files'];
+		$board['same_upload'] = $row['same_upload'];
+		$board['popdown_handler'] = $row['popdown_handler'];
+		$board['category'] = $row['category'];
+	}
+	if($board === null)
+		throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']);
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $board;
+}
+/**
  * Редактирует параметры доски.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param id mixed <p>Идентификатор.</p>
@@ -1473,12 +1515,10 @@ function db_threads_get_view_threadscount($link, $user_id, $board_id)
  * 'archived' - нить помечена для архивирования.<br>
  * 'posts_count' - число доступных для просмотра сообщений в нити.</p>
  */
-function db_threads_get_specifed_view($link, $board_id, $thread_num, $user_id,
-	$sticky)
+function db_threads_get_specifed_view($link, $board_id, $thread_num, $user_id)
 {
 	$result = mysqli_query($link,
-		"call sp_threads_get_specifed_view($board_id, $thread_num, $user_id,
-			$sticky)");
+		"call sp_threads_get_specifed_view($board_id, $thread_num, $user_id)");
 	if(!$result)
 		throw new CommonException(mysqli_error($link));
 	if(mysqli_affected_rows($link) <= 0)
@@ -1577,24 +1617,22 @@ function db_threads_check_specifed_moderate($link, $thread_id, $user_id)
  * Получает $posts_per_thread сообщений и оригинальное сообщение для каждой
  * нити из $threads, доступных для чтения пользователю с идентификатором
  * $user_id.
- *
- * Аргументы:
- * $link - связь с базой данных.
- * $threads - нити.
- * $user_id - идентификатор пользователя.
- * $posts_per_thread - количество сообщений, которое необходимо вернуть.
- *
- * Возвращает сообщения:
- * 'id' - идентификатор.
- * 'thread' - идентификатор нити.
- * 'number' - номер.
- * 'password' - пароль для удаления.
- * 'name' - имя отправителя.
- * 'ip' - ip адрес отправителя.
- * 'subject' - тема.
- * 'date_time' - время сохранения.
- * 'text' - текст.
- * 'sage' - флаг поднятия нити.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param threads array <p>Нити.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param posts_per_thread mixed <p>Количество сообщений, которое необходимо вернуть.</p>
+ * @return array
+ * Возвращает сообщения:<p>
+ * 'id' - идентификатор.<br>
+ * 'thread' - идентификатор нити.<br>
+ * 'number' - номер.<br>
+ * 'password' - пароль для удаления.<br>
+ * 'name' - имя отправителя.<br>
+ * 'ip' - ip адрес отправителя.<br>
+ * 'subject' - тема.<br>
+ * 'date_time' - время сохранения.<br>
+ * 'text' - текст.<br>
+ * 'sage' - флаг поднятия нити.</p>
  */
 function db_posts_get_threads_view($link, $threads, $user_id, $posts_per_thread)
 {
@@ -1622,6 +1660,52 @@ function db_posts_get_threads_view($link, $threads, $user_id, $posts_per_thread)
 		db_cleanup_link($link);
 	}
 	return $posts;
+}
+/**
+ * Получает сообщение по номеру.
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param post_num mixed <p>Номер сообщения.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает сообщение:<p>
+ * 'id' - идентификатор.<br>
+ * 'thread' - идентификатор нити.<br>
+ * 'number' - номер.<br>
+ * 'password' - пароль для удаления.<br>
+ * 'name' - имя отправителя.<br>
+ * 'ip' - ip адрес отправителя.<br>
+ * 'subject' - тема.<br>
+ * 'date_time' - время сохранения.<br>
+ * 'text' - текст.<br>
+ * 'sage' - флаг поднятия нити.</p>
+ */
+function db_posts_get_specifed_view_bynumber($link, $board_id, $post_num,
+	$user_id)
+{
+	$result = mysqli_query($link, "call sp_posts_get_specifed_view_bynumber($board_id,
+		$post_num, $user_id)");
+	if(!$result)
+		throw new CommonException(mysqli_error($link));
+	$post = null;
+	if(mysqli_affected_rows($link) > 0
+		&& ($row = mysqli_fetch_assoc($result)) != null)
+	{
+		$post['id'] = $row['id'];
+		$post['thread'] = $row['thread'];
+		$post['number'] = $row['number'];
+		$post['password'] = $row['password'];
+		$post['name'] = $row['name'];
+		$post['ip'] = $row['ip'];
+		$post['subject'] = $row['subject'];
+		$post['date_time'] = $row['date_time'];
+		$post['text'] = $row['text'];
+		$post['sage'] = $row['sage'];
+	}
+	if($post === null)
+		throw new NodataException(NodataException::$messages['POST_NUMBER_NOT_FOUND']);
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $post;
 }
 /**
  * Добавляет сообщение.
@@ -1652,6 +1736,17 @@ function db_posts_add($link, $board_id, $thread_id, $user_id, $password, $name,
 	mysqli_free_result($result);
 	db_cleanup_link($link);
 	return $row;
+}
+/**
+ * Удаляет сообщение с заданным идентификатором.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param id mixed <p>Идентификатор сообщения.</p>
+ */
+function db_posts_delete($link, $id)
+{
+	if(!mysqli_query($link, "call sp_posts_delete($id)"))
+		throw new CommonException(mysqli_error($link));
+	db_cleanup_link($link);
 }
 
 /******************************************************************

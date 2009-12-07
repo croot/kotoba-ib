@@ -16,6 +16,8 @@
 	$STYLESHEET - стиль оформления (см. config.default).
 	$post_id - идентификатор сообщения.
 	$ip - IP адрес автора сообщения.
+	$board_name - имя доски.
+	$post_num - номер сообщения.
 *}
 <table border="1">
 <tr valign="top">
@@ -34,6 +36,13 @@
 		<input type="submit" value="Бан ф.">
 		<input type="hidden" name="range_beg" value="{$ip}">
 		<input type="hidden" name="range_end" value="{$ip}">
+		</form>
+	</td>
+	<td>
+		<form action="{$DIR_PATH}/admin/remove_post.php" method="post">
+		<input type="submit" value="Удалить">
+		<input type="hidden" name="board" value="{$board_name}">
+		<input type="hidden" name="post" value="{$post_num}">
 		</form>
 	</td>
 </tr>
