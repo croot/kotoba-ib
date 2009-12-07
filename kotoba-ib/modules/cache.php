@@ -1757,10 +1757,8 @@ function threads_check_id($id)
 }
 /**
  * Проверяет корректность номера нити.
- *
- * Аргументы:
- * $number - номер нити.
- *
+ * @param number mixed <p>Номер нити.</p>
+ * @return string
  * Возвращает безопасный для использования номер нити.
  */
 function threads_check_number($number)
@@ -1871,8 +1869,8 @@ function threads_get_view_threadscount($user_id, $board_id)
 		$user_id, $board_id);
 }
 /**
- * Получает доступную для просмотра пользователю нить с заданной страницы доски,
- * и количество сообщений в ней.
+ * Получает доступную для просмотра пользователю нить с заданной доски и
+ * количество сообщений в ней.
  * @param board_id mixed <p>Идентификатор доски.</p>
  * @param thread_num mixed <p>Номер нити.</p>
  * @param user_id mixed <p>Идентификатор пользователя.</p>
@@ -1892,6 +1890,29 @@ function threads_get_specifed_view($board_id, $thread_num, $user_id)
 {
 	return db_threads_get_specifed_view(DataExchange::getDBLink(), $board_id,
 		$thread_num, $user_id);
+}
+/**
+ * Получает доступную для просмотра пользователю скрытую нить с заданной доски
+ * и количество сообщений в ней.
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param thread_num mixed <p>Номер нити.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает нить:<p>
+ * 'id' - идентификатор.<br>
+ * 'board' - идентификатор доски.<br>
+ * 'original_post' - оригинальное сообщение.<br>
+ * 'bump_limit' - специфичный для нити бамплимит.<br>
+ * 'sticky' - флаг закрепления.<br>
+ * 'sage' - флаг поднятия нити.<br>
+ * 'with_files' - флаг загрузки файлов.<br>
+ * 'archived' - нить помечена для архивирования.<br>
+ * 'posts_count' - число доступных для просмотра сообщений в нити.</p>
+ */
+function threads_get_specifed_view_hiden($board_id, $thread_num, $user_id)
+{
+	return db_threads_get_specifed_view_hiden(DataExchange::getDBLink(),
+		$board_id, $thread_num, $user_id);
 }
 /**
  * Проверяет, доступна ли нить для модерирования пользователю.
@@ -2104,20 +2125,37 @@ function uploads_check_image_size($img_size)
  ******************************/
 
 /**
- * Получает нити, скрыте пользователем с идентификатором $user_id на
- * доске с идентификатором $board_id.
- *
- * Аргументы:
- * $board_id - идентификатор доски.
- * $user_id - идентификатор пользователя.
- *
- * Возвращает скрытые нити:
- * 'number' - номер оригинального сообщения.
- * 'id' - идентификатор нити.
+ * Получает нити, скрыте пользователем на заданной доске.
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает скрытые нити:<p>
+ * 'number' - номер оригинального сообщения.<br>
+ * 'id' - идентификатор нити.</p>
  */
 function hidden_threads_get_board($board_id, $user_id)
 {
 	return db_hidden_threads_get_board(DataExchange::getDBLink(), $board_id,
+		$user_id);
+}
+/**
+ * Скрывает нить.
+ * @param thread_id mixed <p>Идентификатор доски.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ */
+function hidden_threads_add($thread_id, $user_id)
+{
+	return db_hidden_threads_add(DataExchange::getDBLink(), $thread_id,
+		$user_id);
+}
+/**
+ * Отменяет скрытие нити.
+ * @param thread_id mixed <p>Идентификатор доски.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ */
+function hidden_threads_delete($thread_id, $user_id)
+{
+	return db_hidden_threads_delete(DataExchange::getDBLink(), $thread_id,
 		$user_id);
 }
 ?>

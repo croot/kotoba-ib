@@ -41,6 +41,7 @@
 {if $original_with_files == true}			<span class="filesize">Файл: <a target="_blank" href="{$original_file_link}">{$original_file_name}</a> -(<em>{$original_file_size} Байт {$original_file_width}x{$original_file_heigth}</em>)</span>
 {/if}
 	<span class="reflink"><span onclick="insert('>>{$original_num}');">#</span> <a href="{$KDIR_PATH}/{$board_name}/{$thread_num}#{$original_num}">{$original_num}</a></span>
+	<span class="hidebtn">[<a href="{$DIR_PATH}/{$board_name}/h{$original_num}" title="Скрыть">-</a>]</span>
 	<span class="delbtn">[<a href="{$DIR_PATH}/{$board_name}/r{$original_num}" title="Удалить">×</a>]</span>
 	{if $sticky} Нить закреплена.{/if}
 	<a name="{$original_num}"></a>

@@ -1549,6 +1549,61 @@ function db_threads_get_specifed_view($link, $board_id, $thread_num, $user_id)
 	return $thread;
 }
 /**
+ * Получает доступную для просмотра пользователю скрытую нить с заданной доски
+ * и количество сообщений в ней.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param thread_num mixed <p>Номер нити.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param sticky mixed <p>Флаг закрепления.</p>
+ * @return array
+ * Возвращает нить:<p>
+ * 'id' - идентификатор.<br>
+ * 'board' - идентификатор доски.<br>
+ * 'original_post' - оригинальное сообщение.<br>
+ * 'bump_limit' - специфичный для нити бамплимит.<br>
+ * 'sticky' - флаг закрепления.<br>
+ * 'sage' - флаг поднятия нити<br>
+ * 'with_files' - флаг загрузки файлов.<br>
+ * 'archived' - нить помечена для архивирования.<br>
+ * 'posts_count' - число доступных для просмотра сообщений в нити.</p>
+ */
+function db_threads_get_specifed_view_hiden($link, $board_id, $thread_num,
+	$user_id)
+{
+	$result = mysqli_query($link,
+		"call sp_threads_get_specifed_view_hiden($board_id, $thread_num,
+			$user_id)");
+	if(!$result)
+		throw new CommonException(mysqli_error($link));
+	if(mysqli_affected_rows($link) <= 0)
+	{
+		mysqli_free_result($result);
+		db_cleanup_link($link);
+		throw new PremissionException(PremissionException::$messages['THREAD_NOT_ALLOWED']);
+	}
+	$row = mysqli_fetch_assoc($result);
+	if(isset($row['error']) && $row['error'] == 'NOT_FOUND')
+	{
+		mysqli_free_result($result);
+		db_cleanup_link($link);
+		throw new NodataException(sprintf(NodataException::$messages['THREAD_NOT_FOUND'],
+				$thread_num, $board_id));
+	}
+	$thread = array('id' => $row['id'],
+					'board' => $board_id,
+					'original_post' => $row['original_post'],
+					'bump_limit' => $row['bump_limit'],
+					'sage' => $row['sage'],
+					'sticky' => $row['sticky'],
+					'with_files' => $row['with_files'],
+					'archived' => $row['archived'],
+					'posts_count' => $row['visible_posts_count']);
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $thread;
+}
+/**
  * Получает нить доступную для редактирования заданному пользователю.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param thread_id mixed <p>Идентификатор нити.</p>
@@ -1937,17 +1992,14 @@ function db_uploads_add($link, $board_id, $hash, $is_image, $file_name, $file_w,
  ******************************/
 
 /**
- * Получает нити, скрыте пользователем с идентификатором $user_id на
- * доске с идентификатором $board_id.
- *
- * Аргументы:
- * $link - связь с базой данных.
- * $board_id - идентификатор доски.
- * $user_id - идентификатор пользователя.
- *
- * Возвращает скрытые нити:
- * 'number' - номер оригинального сообщения.
- * 'id' - идентификатор нити.
+ * Получает нити, скрыте пользователем на заданной доске.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает скрытые нити:<p>
+ * 'number' - номер оригинального сообщения.<br>
+ * 'id' - идентификатор нити.</p>
  */
 function db_hidden_threads_get_board($link, $board_id, $user_id)
 {
@@ -1964,5 +2016,30 @@ function db_hidden_threads_get_board($link, $board_id, $user_id)
 	mysqli_free_result($result);
 	db_cleanup_link($link);
 	return $hidden_threads;
+}
+/**
+ * Скрывает нить.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param thread_id mixed <p>Идентификатор доски.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ */
+function db_hidden_threads_add($link, $thread_id, $user_id)
+{
+	if(!mysqli_query($link, "call sp_hidden_threads_add($thread_id, $user_id)"))
+		throw new CommonException(mysqli_error($link));
+	db_cleanup_link($link);
+}
+/**
+ * Отменяет скрытие нити.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param thread_id mixed <p>Идентификатор доски.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ */
+function db_hidden_threads_delete($link, $thread_id, $user_id)
+{
+	if(!mysqli_query($link, "call sp_hidden_threads_delete($thread_id,
+			$user_id)"))
+		throw new CommonException(mysqli_error($link));
+	db_cleanup_link($link);
 }
 ?>

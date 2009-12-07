@@ -21,7 +21,7 @@
 {if count($hidden_threads) > 0}
 Скрытые вами нити:
 {section name=i loop=$hidden_threads}
- <a href="{$DIR_PATH}/{$board_name}/u{$hidden_threads[i].id}" title="Нажмите, чтобы отменить скрытие нити.">{$hidden_threads[i].number}</a>
+ <a href="{$DIR_PATH}/{$board_name}/u{$hidden_threads[i].number}" title="Нажмите, чтобы отменить скрытие нити.">{$hidden_threads[i].number}</a>
 {/section}
 {/if}<br>
 {include file='pages_list.tpl' board_name=$board_name pages=$pages page=$page}

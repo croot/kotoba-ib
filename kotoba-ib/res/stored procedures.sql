@@ -58,6 +58,7 @@ drop procedure if exists sp_threads_edit_originalpost|
 drop procedure if exists sp_threads_get_board_view|
 drop procedure if exists sp_threads_get_view_threadscount|
 drop procedure if exists sp_threads_get_specifed_view|
+drop procedure if exists sp_threads_get_specifed_view_hiden|
 drop procedure if exists sp_threads_get_specifed_change|
 drop procedure if exists sp_threads_check_specifed_moderate|
 drop procedure if exists sp_threads_add|
@@ -71,6 +72,8 @@ drop procedure if exists sp_uploads_get_post|
 drop procedure if exists sp_uploads_get_same|
 drop procedure if exists sp_uploads_add|
 drop procedure if exists sp_hidden_threads_get_board|
+drop procedure if exists sp_hidden_threads_add|
+drop procedure if exists sp_hidden_threads_delete|
 
 --------------------------------
 -- Блокировки адресов (баны). --
@@ -1248,6 +1251,84 @@ begin
 	end if;
 end|
 
+-- Получает доступную для просмотра пользователю скрытую нить с заданной доски
+-- и количество сообщений в ней.
+--
+-- Аргументы:
+-- board_id - идентификатор доски.
+-- thread_num - номер нити.
+-- user_id - идентификатор пользователя.
+create procedure sp_threads_get_specifed_view_hiden
+(
+	board_id int,
+	thread_num int,
+	user_id int
+)
+begin
+	declare thread_id int;
+	select id into thread_id from threads
+	where original_post = thread_num and board = board_id;
+	if thread_id is null
+	then
+		select 'NOT_FOUND' as error;
+	else
+		select t.id, t.original_post, t.bump_limit, t.sticky, t.archived,
+			t.sage, t.with_files, count(p.id) as visible_posts_count
+		from posts p
+		join threads t on t.id = p.thread
+		join user_groups ug on ug.`user` = user_id
+		left join hidden_threads ht on t.id = ht.thread
+			and ug.`user` = ht.`user`
+		-- Правило для конкретной группы и сообщения.
+		left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+		-- Правило для всех групп и конкретного сообщения.
+		left join acl a2 on a2.`group` is null and a2.post = p.id
+		-- Правила для конкретной группы и нити.
+		left join acl a3 on a3.`group` = ug.`group` and a3.thread = t.id
+		-- Правило для всех групп и конкретной нити.
+		left join acl a4 on a4.`group` is null and a4.thread = t.id
+		-- Правила для конкретной группы и доски.
+		left join acl a5 on a5.`group` = ug.`group` and a5.board = t.board
+		-- Правило для всех групп и конкретной доски.
+		left join acl a6 on a6.`group` is null and a6.board = t.board
+		-- Правило для конкретной групы.
+		left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+			and a7.thread is null and a7.post is null
+		where t.id = thread_id
+			and t.deleted = 0
+			and ht.thread is not null
+			and p.deleted = 0
+			-- Нить должна быть доступна для просмотра.
+				-- Просмотр нити не запрещен конкретной группе и
+			and ((a3.`view` = 1 or a3.`view` is null)
+				-- просмотр нити не запрещен всем группам и
+				and (a4.`view` = 1 or a4.`view` is null)
+				-- просмотр доски не запрещен конкретной группе и
+				and (a5.`view` = 1 or a5.`view` is null)
+				-- просмотр доски не запрещен всем группам и
+				and (a6.`view` = 1 or a6.`view` is null)
+				-- просмотр разрешен конкретной группе.
+				and a7.`view` = 1)
+			-- Сообщение должно быть доступно для просмотра, чтобы правильно
+			-- подсчитать количество видимых сообщений в нити.
+				-- Просмотр сообщения не запрещен конкретной группе и
+			and ((a1.`view` = 1 or a1.`view` is null)
+				-- просмотр сообщения не запрещен всем группам и
+				and (a2.`view` = 1 or a2.`view` is null)
+				-- просмотр нити не запрещен конкретной группе и
+				and (a3.`view` = 1 or a3.`view` is null)
+				-- просмотр нити не запрещен всем группам и
+				and (a4.`view` = 1 or a4.`view` is null)
+				-- просмотр доски не запрещен конкретной группе и
+				and (a5.`view` = 1 or a5.`view` is null)
+				-- просмотр доски не запрещен всем группам и
+				and (a6.`view` = 1 or a6.`view` is null)
+				-- просмотр разрешен конкретной группе.
+				and a7.`view` = 1)
+		group by t.id;
+	end if;
+end|
+
 -- Выбирает нить доступную для редактирования заданному пользователю.
 --
 -- Аргументы:
@@ -1755,4 +1836,32 @@ begin
 	from hidden_threads ht
 	join threads t on ht.thread = t.id and t.board = board_id
 	where ht.user = user_id;
+end|
+
+-- Скрывает нить.
+--
+-- Аргументы:
+-- thread_id - Идентификатор доски.
+-- user_id - Идентификатор пользователя.
+create procedure sp_hidden_threads_add
+(
+	thread_id int,
+	user_id int
+)
+begin
+	insert into hidden_threads (`user`, thread) values (user_id, thread_id);
+end|
+
+-- Отменяет скрытие нити.
+--
+-- Аргументы:
+-- thread_id - Идентификатор доски.
+-- user_id - Идентификатор пользователя.
+create procedure sp_hidden_threads_delete
+(
+	thread_id int,
+	user_id int
+)
+begin
+	delete from hidden_threads where `user` = user_id and thread = thread_id;
 end|
