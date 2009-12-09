@@ -241,5 +241,13 @@ class Config
 	const MOD_GROUP_NAME = 'Moderators';
 	const USR_GROUP_NAME = 'Users';
 	const GST_GROUP_NAME = 'Guests';
+
+	/**********
+	 * Разное *
+	 **********/
+
+	const LINK_TYPE_VIRTUAL = 1;
+	const LINK_TYPE_URL = 2;
+	const LINK_TYPE_CODE = 3;
 }
 ?>

@@ -125,12 +125,26 @@ try
 								if($pu['upload'] == $u['id'])
 								{
 									$smarty->assign('original_with_files', true);
-									$smarty->assign('original_file_link', Config::DIR_PATH . "/{$board['name']}/img/" . basename($u['file_name']));
-									$smarty->assign('original_file_name', basename($u['file_name']));
+									switch($u['link_type'])
+									{
+										case Config::LINK_TYPE_VIRTUAL:
+											$smarty->assign('original_file_link', Config::DIR_PATH . "/{$board['name']}/img/{$u['file']}");
+											$smarty->assign('original_file_name', $u['file']);
+											$smarty->assign('original_file_thumbnail_link', Config::DIR_PATH . "/{$board['name']}/thumb/{$u['thumbnail']}");
+											break;
+										case Config::LINK_TYPE_URL:
+											$smarty->assign('original_file_link', $u['file']);
+											$smarty->assign('original_file_name', $u['file']);
+											$smarty->assign('original_file_thumbnail_link', $u['thumbnail']);
+											break;
+										case Config::LINK_TYPE_CODE:
+										default:
+											throw new CommonException('Not supported.');
+											break;
+									}
 									$smarty->assign('original_file_size', $u['size']);
 									$smarty->assign('original_file_width', $u['file_w']);
 									$smarty->assign('original_file_heigth', $u['file_h']);
-									$smarty->assign('original_file_thumbnail_link', Config::DIR_PATH . "/{$board['name']}/thumb/" . basename($u['thumbnail_name']));
 									$smarty->assign('original_file_thumbnail_width', $u['thumbnail_w']);
 									$smarty->assign('original_file_thumbnail_heigth', $u['thumbnail_h']);
 								}
@@ -155,12 +169,26 @@ try
 								if($pu['upload'] == $u['id'])
 								{
 									$smarty->assign('simple_with_files', true);
-									$smarty->assign('simple_file_link', Config::DIR_PATH . "/{$board['name']}/img/" . basename($u['file_name']));
-									$smarty->assign('simple_file_name', basename($u['file_name']));
+									switch($u['link_type'])
+									{
+										case Config::LINK_TYPE_VIRTUAL:
+											$smarty->assign('simple_file_link', Config::DIR_PATH . "/{$board['name']}/img/{$u['file']}");
+											$smarty->assign('simple_file_name', $u['file']);
+											$smarty->assign('simple_file_thumbnail_link', Config::DIR_PATH . "/{$board['name']}/thumb/{$u['thumbnail']}");
+											break;
+										case Config::LINK_TYPE_URL:
+											$smarty->assign('simple_file_link', $u['file']);
+											$smarty->assign('simple_file_name', $u['file']);
+											$smarty->assign('simple_file_thumbnail_link', $u['thumbnail']);
+											break;
+										case Config::LINK_TYPE_CODE:
+										default:
+											throw new CommonException('Not supported.');
+											break;
+									}
 									$smarty->assign('simple_file_size', $u['size']);
 									$smarty->assign('simple_file_width', $u['file_w']);
 									$smarty->assign('simple_file_heigth', $u['file_h']);
-									$smarty->assign('simple_file_thumbnail_link', Config::DIR_PATH . "/{$board['name']}/thumb/" . basename($u['thumbnail_name']));
 									$smarty->assign('simple_file_thumbnail_width', $u['thumbnail_w']);
 									$smarty->assign('simple_file_thumbnail_heigth', $u['thumbnail_h']);
 								}

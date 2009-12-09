@@ -1715,11 +1715,11 @@ begin
 	insert into posts_uploads (post, upload) values (_post_id, _upload_id);
 end|
 
-------------------------------------------------
--- Работа с информацией о загруженных файлах. --
-------------------------------------------------
+---------------------------------------
+-- Работа с информацией о загрузках. --
+---------------------------------------
 
--- Выбирает для сообщения информацию о загруженных файлах.
+-- Выбирает для сообщения информацию о загрузках.
 --
 -- Аргументы:
 -- post_id - идентификатор сообщения.
@@ -1728,8 +1728,8 @@ create procedure sp_uploads_get_post
 	post_id int
 )
 begin
-	select id, `hash`, is_image, file_name, file_w, file_h, `size`,
-		thumbnail_name, thumbnail_w, thumbnail_h
+	select id, `hash`, is_image, link_type, `file`, file_w, file_h, `size`,
+		thumbnail, thumbnail_w, thumbnail_h
 	from uploads u
 	join posts_uploads pu on pu.upload = u.id and pu.post = post_id;
 end|
@@ -1747,8 +1747,8 @@ create procedure sp_uploads_get_same
 	_user_id int
 )
 begin
-	select u.id, u.`hash`, u.is_image, u.file_name, u.file_w, u.file_h,
-		u.`size`, u.thumbnail_name, u.thumbnail_w, u.thumbnail_h,
+	select u.id, u.`hash`, u.is_image, u.link_type, u.`file`, u.file_w,
+		u.file_h, u.`size`, u.thumbnail, u.thumbnail_w, u.thumbnail_h,
 		p.`number`, t.original_post, max(case
 		when a1.`view` = 0 then 0
 		when a2.`view` = 0 then 0
@@ -1776,44 +1776,45 @@ begin
 	-- Правило для всех групп и конкретной доски.
 	left join acl a6 on a6.`group` is null and a6.board = p.board
 	-- Правило для конкретной групы.
-	left join acl a7 on a7.`group` = ug.`group` and a7.board is null and a7.thread is null and a7.post is null
+	left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+		and a7.thread is null and a7.post is null
 	where u.`hash` = _hash
 	group by u.id, p.id;
 end|
 
--- Сохраняет данные о загруженном файле.
+-- Сохраняет данные о загрузке.
 --
 -- Аргументы:
--- _board_id - идентификатор доски.
 -- _hash - хеш файла.
--- _is_image - является файл изображением или нет.
--- _file_name - относительный путь к файлу.
+-- _is_image - флаг картинки.
+-- _link_type - тип ссылки на файл.
+-- _file - файл.
 -- _file_w - ширина изображения (для изображений).
 -- _file_h - высота изображения (для изображений).
 -- _size - размер файла в байтах.
--- _thumbnail_name - относительный путь к уменьшенной копии.
--- _thumbnail_w - ширина уменьшенной копии (для изображений).
--- _thumbnail_h - высота уменьшенной копии (для изображений).
+-- _thumbnail - уменьшенная копия.
+-- _thumbnail_w - ширина уменьшенной копии.
+-- _thumbnail_h - высота уменьшенной копии.
 create procedure sp_uploads_add
 (
-	_board_id int,
 	_hash varchar(32),
 	_is_image bit,
-	_file_name varchar(256),
+	_link_type int,
+	_file varchar(256),
 	_file_w int,
 	_file_h int,
 	_size int,
-	_thumbnail_name varchar(256),
+	_thumbnail varchar(256),
 	_thumbnail_w int,
 	_thumbnail_h int
 )
 begin
-	insert into uploads (board, `hash`, is_image, file_name, file_w, file_h,
-		`size`, thumbnail_name, thumbnail_w, thumbnail_h)
+	insert into uploads (`hash`, is_image, link_type, `file`, file_w, file_h,
+		`size`, thumbnail, thumbnail_w, thumbnail_h)
 	values
-	(_board_id, _hash, _is_image, _file_name, _file_w, _file_h,
-		_size, _thumbnail_name, _thumbnail_w, _thumbnail_h);
-	select last_insert_id() as `id`;
+	(_hash, _is_image, _link_type, _file, _file_w, _file_h,
+		_size, _thumbnail, _thumbnail_w, _thumbnail_h);
+	select last_insert_id() as id;
 end|
 
 --------------------------------

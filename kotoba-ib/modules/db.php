@@ -1852,28 +1852,28 @@ function db_posts_uploads_get_posts($link, $posts)
 	db_cleanup_link($link);
  }
 
-/**********************************************
- * Работа с информацией о загруженных файлах. *
- **********************************************/
+/*************************************
+ * Работа с информацией о загрузках. *
+ *************************************/
+// TODO Структура таблицы загрузок и работа с ней требует специальных пояснений.
 
 /**
- * Получает для каждого сообщения из $posts информацию о загруженных файлах.
- *
- * Аргументы:
- * $link - связь с базой данных.
- * $posts - сообщения.
- *
- * Возвращает информацию о загруженных файлах:
- * 'id' - идентификатор.
- * 'hash' - хеш файла.
- * 'is_image' - флаг картинки.
- * 'file_name' - имя файла.
- * 'file_w' - ширина файла (для изображений).
- * 'file_h' - высота файла (для изображений).
- * 'size' - размер файла в байтах.
- * 'thumbnail_name' - имя уменьшенной копии (для изображений).
- * 'thumbnail_w' - ширина уменьшенной копии (для изображений).
- * 'thumbnail_h' - высота уменьшенной копии (для изображений).
+ * Получает для каждого сообщения из массива сообщений информацию о загрузках.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param posts array <p>Массив сообщений.</p>
+ * @return array
+ * Возвращает информацию о загруженных файлах:<p>
+ * 'id' - идентификатор.<br>
+ * 'hash' - хеш файла.<br>
+ * 'is_image' - флаг картинки.<br>
+ * 'link_type' - тип ссылки на файл.<br>
+ * 'file' - файл.<br>
+ * 'file_w' - ширина файла (для изображений).<br>
+ * 'file_h' - высота файла (для изображений).<br>
+ * 'size' - размер файла в байтах.<br>
+ * 'thumbnail' - имя уменьшенной копии.<br>
+ * 'thumbnail_w' - ширина уменьшенной копии.<br>
+ * 'thumbnail_h' - высота уменьшенной копии.</p>
  */
 function db_uploads_get_posts($link, $posts)
 {
@@ -1889,11 +1889,12 @@ function db_uploads_get_posts($link, $posts)
 					array('id' => $row['id'],
 							'hash' => $row['hash'],
 							'is_image' => $row['is_image'],
-							'file_name' => $row['file_name'],
+							'link_type' => $row['link_type'],
+							'file' => $row['file'],
 							'file_w' => $row['file_w'],
 							'file_h' => $row['file_h'],
 							'size' => $row['size'],
-							'thumbnail_name' => $row['thumbnail_name'],
+							'thumbnail' => $row['thumbnail'],
 							'thumbnail_w' => $row['thumbnail_w'],
 							'thumbnail_h' => $row['thumbnail_h']));
 		mysqli_free_result($result);
@@ -1912,35 +1913,37 @@ function db_uploads_get_posts($link, $posts)
  * 'id' - идентификатор.<br>
  * 'hash' - хеш файла.<br>
  * 'is_image' - флаг картинки.<br>
- * 'file_name' - имя файла.<br>
+ * 'link_type' - тип ссылки на файл.<br>
+ * 'file' - файл.<br>
  * 'file_w' - ширина файла (для изображений).<br>
  * 'file_h' - высота файла (для изображений).<br>
  * 'size' - размер файла в байтах.<br>
- * 'thumbnail_name' - имя уменьшенной копии (для изображений).<br>
- * 'thumbnail_w' - ширина уменьшенной копии (для изображений).<br>
- * 'thumbnail_h' - высота уменьшенной копии (для изображений).<br>
+ * 'thumbnail' - имя уменьшенной копии.<br>
+ * 'thumbnail_w' - ширина уменьшенной копии.<br>
+ * 'thumbnail_h' - высота уменьшенной копии.<br>
  * 'post_number' - номер сообщения, к которому прикреплен файл.<br>
  * 'thread_number' - номер нити с сообщением, к которому прикреплен файл.<br>
  * 'view' - видно ли сообщение пользователю.</p>
  */
 function db_uploads_get_same($link, $board_id, $hash, $user_id)
 {
-	$uploads = array();
 	$result = mysqli_query($link,
 		"call sp_uploads_get_same($board_id, '$hash', $user_id)");
 	if(!$result)
 		throw new CommonException(mysqli_error($link));
+	$uploads = array();
 	if(mysqli_affected_rows($link) > 0)
 		while(($row = mysqli_fetch_assoc($result)) !== null)
 			array_push($uploads,
 				array('id' => $row['id'],
 						'hash' => $row['hash'],
 						'is_image' => $row['is_image'],
-						'file_name' => $row['file_name'],
+						'link_type' => $row['link_type'],
+						'file' => $row['file'],
 						'file_w' => $row['file_w'],
 						'file_h' => $row['file_h'],
 						'size' => $row['size'],
-						'thumbnail_name' => $row['thumbnail_name'],
+						'thumbnail' => $row['thumbnail'],
 						'thumbnail_w' => $row['thumbnail_w'],
 						'thumbnail_h' => $row['thumbnail_h'],
 						'post_number' => $row['number'],
@@ -1951,34 +1954,34 @@ function db_uploads_get_same($link, $board_id, $hash, $user_id)
 	return $uploads;
 }
 /**
- * Сохраняет данные о загруженном файле.
+ * Сохраняет данные о загрузке.
  * @param link MySQLi <p>Связь с базой данных.</p>
- * @param board_id string <p>Идентификатор доски.</p>
  * @param hash string <p>Хеш файла.</p>
- * @param is_image string <p>Является файл изображением или нет.</p>
- * @param file_name string <p>Относительный путь к файлу.</p>
- * @param file_w string <p>Ширина изображения (для изображений).</p>
- * @param file_h string <p>Высота изображения (для изображений).</p>
+ * @param is_image mixed <p>Флаг изображения.</p>
+ * @param link_type mixed <p>Тип ссылки на файл.</p>
+ * @param file string <p>Файл.</p>
+ * @param file_w mixed <p>Ширина изображения (для изображений).</p>
+ * @param file_h mixed <p>Высота изображения (для изображений).</p>
  * @param size string <p>Размер файла в байтах.</p>
- * @param thumbnail_name string <p>Относительный путь к уменьшенной копии.</p>
- * @param thumbnail_w string <p>Ширина уменьшенной копии (для изображений).</p>
- * @param thumbnail_h string <p>Высота уменьшенной копии (для изображений).</p>
+ * @param thumbnail string <p>Уменьшенная копия.</p>
+ * @param thumbnail_w mixed <p>Ширина уменьшенной копии.</p>
+ * @param thumbnail_h mixed <p>Высота уменьшенной копии.</p>
  * @return string
  * Возвращает идентификатор поля с сохранёнными данными.
  */
-function db_uploads_add($link, $board_id, $hash, $is_image, $file_name, $file_w,
-	$file_h, $size, $thumbnail_name, $thumbnail_w, $thumbnail_h)
+function db_uploads_add($link, $hash, $is_image, $link_type, $file, $file_w,
+	$file_h, $size, $thumbnail, $thumbnail_w, $thumbnail_h)
 {
 	$is_image = $is_image ? '1' : '0';
 	$hash = $hash ? "'$hash'" : 'null';
 	$file_w = $file_w ? $file_w : 'null';
 	$file_h = $file_h ? $file_h : 'null';
-	$thumbnail_name = $thumbnail_name ? "'$thumbnail_name'" : 'null';
+	$thumbnail = $thumbnail ? "'$thumbnail'" : 'null';
 	$thumbnail_w = $thumbnail_w ? $thumbnail_w : 'null';
 	$thumbnail_h = $thumbnail_h ? $thumbnail_h : 'null';
-	$result = mysqli_query($link, "call sp_uploads_add($board_id, $hash,
-		$is_image, '$file_name', $file_w, $file_h, $size, $thumbnail_name,
-		$thumbnail_w, $thumbnail_h)");
+	$result = mysqli_query($link, "call sp_uploads_add($hash, $is_image,
+		$link_type, '$file', $file_w, $file_h, $size, $thumbnail, $thumbnail_w,
+		$thumbnail_h)");
 	if(!$result)
 		throw new CommonException(mysqli_error($link));
 	$row = mysqli_fetch_assoc($result);
