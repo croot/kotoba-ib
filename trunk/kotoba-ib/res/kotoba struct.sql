@@ -64,7 +64,7 @@ CREATE TABLE `bans` (
   `untill` datetime NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `ip_range` (`range_beg`,`range_end`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -315,19 +315,17 @@ DROP TABLE IF EXISTS `uploads`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `uploads` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `board` int(11) NOT NULL,
   `hash` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
   `is_image` bit(1) NOT NULL,
-  `file_name` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
+  `link_type` tinyint(4) NOT NULL,
+  `file` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
   `file_w` int(11) DEFAULT NULL,
   `file_h` int(11) DEFAULT NULL,
   `size` int(11) NOT NULL,
-  `thumbnail_name` varchar(256) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `thumbnail` varchar(256) COLLATE utf8_unicode_ci DEFAULT NULL,
   `thumbnail_w` int(11) DEFAULT NULL,
   `thumbnail_h` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `board` (`board`),
-  CONSTRAINT `uploads_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`)
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=399 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1739,6 +1737,50 @@ DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_group_get`()
 begin
 	select id, `name` from groups order by id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_hidden_threads_add` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_hidden_threads_add`(
+	thread_id int,
+	user_id int
+)
+begin
+	insert into hidden_threads (`user`, thread) values (user_id, thread_id);
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_hidden_threads_delete` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_hidden_threads_delete`(
+	thread_id int,
+	user_id int
+)
+begin
+	delete from hidden_threads where `user` = user_id and thread = thread_id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -3558,6 +3600,90 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_threads_get_specifed_view_hiden` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_threads_get_specifed_view_hiden`(
+	board_id int,
+	thread_num int,
+	user_id int
+)
+begin
+	declare thread_id int;
+	select id into thread_id from threads
+	where original_post = thread_num and board = board_id;
+	if thread_id is null
+	then
+		select 'NOT_FOUND' as error;
+	else
+		select t.id, t.original_post, t.bump_limit, t.sticky, t.archived,
+			t.sage, t.with_files, count(p.id) as visible_posts_count
+		from posts p
+		join threads t on t.id = p.thread
+		join user_groups ug on ug.`user` = user_id
+		left join hidden_threads ht on t.id = ht.thread
+			and ug.`user` = ht.`user`
+		
+		left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+		
+		left join acl a2 on a2.`group` is null and a2.post = p.id
+		
+		left join acl a3 on a3.`group` = ug.`group` and a3.thread = t.id
+		
+		left join acl a4 on a4.`group` is null and a4.thread = t.id
+		
+		left join acl a5 on a5.`group` = ug.`group` and a5.board = t.board
+		
+		left join acl a6 on a6.`group` is null and a6.board = t.board
+		
+		left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+			and a7.thread is null and a7.post is null
+		where t.id = thread_id
+			and t.deleted = 0
+			and ht.thread is not null
+			and p.deleted = 0
+			
+				
+			and ((a3.`view` = 1 or a3.`view` is null)
+				
+				and (a4.`view` = 1 or a4.`view` is null)
+				
+				and (a5.`view` = 1 or a5.`view` is null)
+				
+				and (a6.`view` = 1 or a6.`view` is null)
+				
+				and a7.`view` = 1)
+			
+			
+				
+			and ((a1.`view` = 1 or a1.`view` is null)
+				
+				and (a2.`view` = 1 or a2.`view` is null)
+				
+				and (a3.`view` = 1 or a3.`view` is null)
+				
+				and (a4.`view` = 1 or a4.`view` is null)
+				
+				and (a5.`view` = 1 or a5.`view` is null)
+				
+				and (a6.`view` = 1 or a6.`view` is null)
+				
+				and a7.`view` = 1)
+		group by t.id;
+	end if;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_threads_get_specifed_view_threadscount` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -3758,24 +3884,24 @@ DELIMITER ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_uploads_add`(
-	_board_id int,
 	_hash varchar(32),
 	_is_image bit,
-	_file_name varchar(256),
+	_link_type int,
+	_file varchar(256),
 	_file_w int,
 	_file_h int,
 	_size int,
-	_thumbnail_name varchar(256),
+	_thumbnail varchar(256),
 	_thumbnail_w int,
 	_thumbnail_h int
 )
 begin
-	insert into uploads (board, `hash`, is_image, file_name, file_w, file_h,
-		`size`, thumbnail_name, thumbnail_w, thumbnail_h)
+	insert into uploads (`hash`, is_image, link_type, `file`, file_w, file_h,
+		`size`, thumbnail, thumbnail_w, thumbnail_h)
 	values
-	(_board_id, _hash, _is_image, _file_name, _file_w, _file_h,
-		_size, _thumbnail_name, _thumbnail_w, _thumbnail_h);
-	select last_insert_id() as `id`;
+	(_hash, _is_image, _link_type, _file, _file_w, _file_h,
+		_size, _thumbnail, _thumbnail_w, _thumbnail_h);
+	select last_insert_id() as id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -3820,8 +3946,8 @@ DELIMITER ;;
 	post_id int
 )
 begin
-	select id, `hash`, is_image, file_name, file_w, file_h, `size`,
-		thumbnail_name, thumbnail_w, thumbnail_h
+	select id, `hash`, is_image, link_type, `file`, file_w, file_h, `size`,
+		thumbnail, thumbnail_w, thumbnail_h
 	from uploads u
 	join posts_uploads pu on pu.upload = u.id and pu.post = post_id;
 end */;;
@@ -3846,8 +3972,8 @@ DELIMITER ;;
 	_user_id int
 )
 begin
-	select u.id, u.`hash`, u.is_image, u.file_name, u.file_w, u.file_h,
-		u.`size`, u.thumbnail_name, u.thumbnail_w, u.thumbnail_h,
+	select u.id, u.`hash`, u.is_image, u.link_type, u.`file`, u.file_w,
+		u.file_h, u.`size`, u.thumbnail, u.thumbnail_w, u.thumbnail_h,
 		p.`number`, t.original_post, max(case
 		when a1.`view` = 0 then 0
 		when a2.`view` = 0 then 0
@@ -3875,7 +4001,8 @@ begin
 	
 	left join acl a6 on a6.`group` is null and a6.board = p.board
 	
-	left join acl a7 on a7.`group` = ug.`group` and a7.board is null and a7.thread is null and a7.post is null
+	left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+		and a7.thread is null and a7.post is null
 	where u.`hash` = _hash
 	group by u.id, p.id;
 end */;;
@@ -4455,4 +4582,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2009-12-07 12:26:58
+-- Dump completed on 2009-12-09  2:13:54

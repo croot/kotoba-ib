@@ -1462,54 +1462,6 @@ function upload_types_get_board($board_id)
 	return db_upload_types_get_board(DataExchange::getDBLink(), $board_id);
 }
 /**
- * Получает одинаковые файлы, загруженные на заданную доску.
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param hash string <p>Хеш файла.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @return array
- * Возвращает массив загруженных файлов:<p>
- * 'id' - идентификатор.<br>
- * 'hash' - хеш файла.<br>
- * 'is_image' - флаг картинки.<br>
- * 'file_name' - имя файла.<br>
- * 'file_w' - ширина файла (для изображений).<br>
- * 'file_h' - высота файла (для изображений).<br>
- * 'size' - размер файла в байтах.<br>
- * 'thumbnail_name' - имя уменьшенной копии (для изображений).<br>
- * 'thumbnail_w' - ширина уменьшенной копии (для изображений).<br>
- * 'thumbnail_h' - высота уменьшенной копии (для изображений).<br>
- * 'post_number' - номер сообщения, к которому прикреплен файл.<br>
- * 'thread_number' - номер нити с сообщением, к которому прикреплен файл.<br>
- * 'view' - видно ли сообщение пользователю.</p>
- */
-function uploads_get_same($board_id, $hash, $user_id)
-{
-	return db_uploads_get_same(DataExchange::getDBLink(), $board_id, $hash,
-		$user_id);
-}
-/**
- * Сохраняет данные о загруженном файле.
- * @param board_id string <p>Идентификатор доски.</p>
- * @param hash string <p>Хеш файла.</p>
- * @param is_image string <p>Является файл изображением или нет.</p>
- * @param file_name string <p>Относительный путь к файлу.</p>
- * @param file_w string <p>Ширина изображения (для изображений).</p>
- * @param file_h string <p>Высота изображения (для изображений).</p>
- * @param size string <p>Размер файла в байтах.</p>
- * @param thumbnail_name string <p>Относительный путь к уменьшенной копии.</p>
- * @param thumbnail_w string <p>Ширина уменьшенной копии (для изображений).</p>
- * @param thumbnail_h string <p>Высота уменьшенной копии (для изображений).</p>
- * @return string
- * Возвращает идентификатор поля с сохранёнными данными.
- */
-function uploads_add($board_id, $hash, $is_image, $file_name, $file_w, $file_h,
-	$size, $thumbnail_name, $thumbnail_w, $thumbnail_h)
-{
-	return db_uploads_add(DataExchange::getDBLink(), $board_id, $hash,
-		$is_image, $file_name, $file_w, $file_h, $size, $thumbnail_name,
-		$thumbnail_w, $thumbnail_h);
-}
-/**
  * Проверяет корректность расширения загружаемого файла.
  *
  * Аргументы:
@@ -2082,27 +2034,26 @@ function posts_uploads_get_posts($posts)
 	db_posts_uploads_add(DataExchange::getDBLink(), $post_id, $upload_id);
  }
 
-/**********************************************
- * Работа с информацией о загруженных файлах. *
- **********************************************/
+/*************************************
+ * Работа с информацией о загрузках. *
+ *************************************/
 
 /**
- * Получает для каждого сообщения из $posts информацию о загруженных файлах.
- *
- * Аргументы:
- * $posts - сообщения.
- *
- * Возвращает информацию о загруженных файлах:
- * 'id' - идентификатор.
- * 'hash' - хеш файла.
- * 'is_image' - флаг картинки.
- * 'file_name' - имя файла.
- * 'file_w' - ширина файла (для изображений).
- * 'file_h' - высота файла (для изображений).
- * 'size' - размер файла в байтах.
- * 'thumbnail_name' - имя уменьшенной копии (для изображений).
- * 'thumbnail_w' - ширина уменьшенной копии (для изображений).
- * 'thumbnail_h' - высота уменьшенной копии (для изображений).
+ * Получает для каждого сообщения из массива сообщений информацию о загрузках.
+ * @param posts array <p>Массив сообщений.</p>
+ * @return array
+ * Возвращает информацию о загруженных файлах:<p>
+ * 'id' - идентификатор.<br>
+ * 'hash' - хеш файла.<br>
+ * 'is_image' - флаг картинки.<br>
+ * 'link_type' - тип ссылки на файл.<br>
+ * 'file' - файл.<br>
+ * 'file_w' - ширина файла (для изображений).<br>
+ * 'file_h' - высота файла (для изображений).<br>
+ * 'size' - размер файла в байтах.<br>
+ * 'thumbnail' - имя уменьшенной копии.<br>
+ * 'thumbnail_w' - ширина уменьшенной копии.<br>
+ * 'thumbnail_h' - высота уменьшенной копии.</p>
  */
 function uploads_get_posts($posts)
 {
@@ -2110,14 +2061,61 @@ function uploads_get_posts($posts)
 }
 /**
  * Проверяет, удовлетворяет ли загружаемое изображение ограничениям по размеру.
- *
- * Аргументы:
- * $img_size - размер изображения в байтах.
+ * @param img_size mixed <p>Размер изображения в байтах.</p>
  */
 function uploads_check_image_size($img_size)
 {
 	if($img_size < Config::MIN_IMGSIZE)
 		throw new LimitException(LimitException::$messages['MIN_IMG_SIZE']);
+}
+/**
+ * Получает одинаковые файлы, загруженные на заданную доску.
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param hash string <p>Хеш файла.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает массив загруженных файлов:<p>
+ * 'id' - идентификатор.<br>
+ * 'hash' - хеш файла.<br>
+ * 'is_image' - флаг картинки.<br>
+ * 'link_type' - тип ссылки на файл.<br>
+ * 'file' - файл.<br>
+ * 'file_w' - ширина файла (для изображений).<br>
+ * 'file_h' - высота файла (для изображений).<br>
+ * 'size' - размер файла в байтах.<br>
+ * 'thumbnail' - имя уменьшенной копии.<br>
+ * 'thumbnail_w' - ширина уменьшенной копии.<br>
+ * 'thumbnail_h' - высота уменьшенной копии.<br>
+ * 'post_number' - номер сообщения, к которому прикреплен файл.<br>
+ * 'thread_number' - номер нити с сообщением, к которому прикреплен файл.<br>
+ * 'view' - видно ли сообщение пользователю.</p>
+ */
+function uploads_get_same($board_id, $hash, $user_id)
+{
+	return db_uploads_get_same(DataExchange::getDBLink(), $board_id, $hash,
+		$user_id);
+}
+/**
+ * Сохраняет данные о загрузке.
+ * @param hash string <p>Хеш файла.</p>
+ * @param is_image mixed <p>Флаг изображения.</p>
+ * @param link_type mixed <p>Тип ссылки на файл.</p>
+ * @param file string <p>Файл.</p>
+ * @param file_w mixed <p>Ширина изображения (для изображений).</p>
+ * @param file_h mixed <p>Высота изображения (для изображений).</p>
+ * @param size string <p>Размер файла в байтах.</p>
+ * @param thumbnail string <p>Уменьшенная копия.</p>
+ * @param thumbnail_w mixed <p>Ширина уменьшенной копии.</p>
+ * @param thumbnail_h mixed <p>Высота уменьшенной копии.</p>
+ * @return string
+ * Возвращает идентификатор поля с сохранёнными данными.
+ */
+function uploads_add($hash, $is_image, $link_type, $file, $file_w, $file_h,
+	$size, $thumbnail, $thumbnail_w, $thumbnail_h)
+{
+	return db_uploads_add(DataExchange::getDBLink(), $hash, $is_image,
+		$link_type, $file, $file_w, $file_h, $size, $thumbnail, $thumbnail_w,
+		$thumbnail_h);
 }
 
 /******************************
