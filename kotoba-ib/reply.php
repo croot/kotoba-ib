@@ -9,6 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 // Скрипт ответа в нить.
+// TODO Сохранение перехода к доске или нити при ответе и создании нити.
 require 'config.php';
 require 'modules/errors.php';
 require 'modules/lang/' . Config::LANGUAGE . '/errors.php';
@@ -40,28 +41,28 @@ try
 	$with_file = false;	// Сообщение с файлом.
 	if($board['with_files'] || $thread['with_files'])
 	{
-		if($_FILES['message_img']['error'] == UPLOAD_ERR_NO_FILE
+		if($_FILES['file']['error'] == UPLOAD_ERR_NO_FILE
 			&& !isset($_POST['message_text']) || $_POST['message_text'] == '')
 		{
 			// Файл не был загружен и текст сообщения пуст.
 			throw new NodataException(NodataException::$messages['EMPTY_MESSAGE']);
 		}
-		if($_FILES['message_img']['error'] != UPLOAD_ERR_NO_FILE)
+		if($_FILES['file']['error'] != UPLOAD_ERR_NO_FILE)
 		{
 			// По крайней мере была попытка загрузить файл.
 			$with_file = true;
 			try
 			{
-				check_upload_error($_FILES['message_img']['error']);
+				check_upload_error($_FILES['file']['error']);
 			}
 			catch(UploadException $e)
 			{
 				if($e->getReason() != UploadException::$messages['UPLOAD_ERR_NO_FILE'])
 					throw $e;
 			}
-			$uploaded_file_size = $_FILES['message_img']['size'];
-			$uploaded_file_path = $_FILES['message_img']['tmp_name'];
-			$uploaded_file_name = $_FILES['message_img']['name'];
+			$uploaded_file_size = $_FILES['file']['size'];
+			$uploaded_file_path = $_FILES['file']['tmp_name'];
+			$uploaded_file_name = $_FILES['file']['name'];
 			$uploaded_file_ext = get_extension($uploaded_file_name);
 			$upload_types = upload_types_get_board($board['id']);
 			$found = false;
@@ -164,16 +165,16 @@ try
 				$thumb_dimensions = create_thumbnail($abs_img_path,
 					$abs_thumb_path, $img_dimensions, $upload_type, 200, 200,
 					$force);
-				$upload_id = uploads_add($board['id'], $file_hash,
-					$upload_type['is_image'], $file_names[0],
+				$upload_id = uploads_add($file_hash, $upload_type['is_image'],
+					Config::LINK_TYPE_VIRTUAL, $file_names[0],
 					$img_dimensions['x'], $img_dimensions['y'],
 					$uploaded_file_size, $file_names[1], $thumb_dimensions['x'],
 					$thumb_dimensions['y']);
 			}
 			else
 				// 200 x 200 is default thumb dimensions for non images.
-				$upload_id = uploads_add($board['id'], $file_hash,
-					$upload_type['is_image'], $file_names[0], null, null,
+				$upload_id = uploads_add($file_hash, $upload_type['is_image'],
+					Config::LINK_TYPE_VIRTUAL, $file_names[0], null, null,
 					$uploaded_file_size, $virt_thumb_path, 200, 200);
 
 		}
