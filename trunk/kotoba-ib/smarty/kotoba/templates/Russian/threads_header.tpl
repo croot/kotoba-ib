@@ -47,7 +47,7 @@
 {if !$force_anonymous}<tr valign="top"><td>Имя: </td><td><input type="text" name="message_name" size="30"></td></tr>{/if}
 <tr valign="top"><td>Тема: </td><td><input type="text" name="message_theme" size="56"> <input type="submit" value="Ответить"></td></tr>
 <tr valign="top"><td>Сообщение: </td><td><textarea name="message_text" rows="7" cols="50"></textarea></td></tr>
-{if $with_files}<tr valign="top"><td>Файл: </td><td><input type="file" name="message_img" size="54"></td></tr>{/if}
+{if $with_files}<tr valign="top"><td>Файл: </td><td><input type="file" name="file" size="54"></td></tr>{/if}
 <tr valign="top"><td>Пароль: </td><td><input type="password" name="message_pass" size="30" value="{$rempass}"></td></tr>
 <tr valign="top"><td>Перейти к: </td><td>(нити: <input type="radio" name="goto" value="t" checked>) (доске: <input type="radio" name="goto" value="b">)</td></tr>
 <tr valign="top"><td>Sage: </td><td><input type="checkbox" name="sage" value="sage"></td></tr>

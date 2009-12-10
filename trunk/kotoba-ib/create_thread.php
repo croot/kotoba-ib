@@ -26,7 +26,7 @@ try
 	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
 // 1 Проверка входных параметров.
 	$board_name = boards_check_name($_POST['b']);
-	$boards = boards_get_all_change($_SESSION['user']);
+	$boards = boards_get_all_change($_SESSION['user']);	// TODO На самом деле здесь нужна только одна доска, а не все.
 	$board = null;
 	$found = false;
 	foreach($boards as $b)
@@ -41,10 +41,10 @@ try
 			. PremissionException::$messages['BOARD_NOT_ALLOWED']);
 	if($board['with_files'])
 	{
-		check_upload_error($_FILES['message_img']['error']);
-		$uploaded_file_size = $_FILES['message_img']['size'];
-		$uploaded_file_path = $_FILES['message_img']['tmp_name'];
-		$uploaded_file_name = $_FILES['message_img']['name'];
+		check_upload_error($_FILES['file']['error']);
+		$uploaded_file_size = $_FILES['file']['size'];
+		$uploaded_file_path = $_FILES['file']['tmp_name'];
+		$uploaded_file_name = $_FILES['file']['name'];
 		$uploaded_file_ext = get_extension($uploaded_file_name);
 		$upload_types = upload_types_get_board($board['id']);
 		$found = false;
@@ -150,16 +150,18 @@ try
 				$thumb_dimensions = create_thumbnail($abs_img_path,
 					$abs_thumb_path, $img_dimensions, $upload_type, 200, 200,
 					$force);
-				$upload_id = uploads_add($board['id'], $file_hash,
-					$upload_type['is_image'], $file_names[0],
+				$upload_id = uploads_add($file_hash, $upload_type['is_image'],
+					Config::LINK_TYPE_VIRTUAL, $file_names[0],
 					$img_dimensions['x'], $img_dimensions['y'],
 					$uploaded_file_size, $file_names[1], $thumb_dimensions['x'],
 					$thumb_dimensions['y']);
 			}
 			else
 				// 200 x 200 is default thumb dimensions for non images.
-				$upload_id = uploads_add($board['id'], $file_hash,
-					$upload_type['is_image'], $file_names[0], null, null,
+				// TODO Another link types support.
+				// TODO Customize thumbnail size.
+				$upload_id = uploads_add($file_hash, $upload_type['is_image'],
+					Config::LINK_TYPE_VIRTUAL, $file_names[0], null, null,
 					$uploaded_file_size, $virt_thumb_path, 200, 200);
 
 		}// Файл не был загружен ранее.
