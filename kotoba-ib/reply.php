@@ -9,7 +9,6 @@
  * See license.txt for more info.*
  *********************************/
 // Скрипт ответа в нить.
-// TODO Сохранение перехода к доске или нити при ответе и создании нити.
 require 'config.php';
 require 'modules/errors.php';
 require 'modules/lang/' . Config::LANGUAGE . '/errors.php';
@@ -104,6 +103,10 @@ try
 	$sage = null;	// Наследует от нити.
 	if(isset($_POST['sage']) && $_POST['sage'] == 'sage')
 		$sage = '1';
+	if(isset($_POST['goto'])
+		&& ($_POST['goto'] == 't' || $_POST['goto'] == 'b')
+		&& $_POST['goto'] != $_SESSION['goto'])
+			$_SESSION['goto'] = $_POST['goto'];
 	if(($board['with_files'] || $thread['with_files']) && $with_file)
 	{
 // 2. Подготовка файла к сохранению.
@@ -154,7 +157,7 @@ try
 				$virt_thumb_path = "$virt_thumb_dir/{$file_names[1]}";
 			}
 			else
-				// TODO Actually it must be only a name not path.
+				// TODO Сделать поддержку флага is_image. См. описание этого поля таблицы uploads в res/notes.txt.
 				$virt_thumb_path = $upload_type['thumbnail_image'];
 // 3. Сохранение данных.
 			move_uploded_file($uploaded_file_path, $abs_img_path);
@@ -191,7 +194,7 @@ try
 		posts_uploads_add($post['id'], $upload_id);
 	DataExchange::releaseResources();
 // 4. Перенаправление.
-	if(isset($_POST['goto']) && $_POST['goto'] == 't')
+	if($_SESSION['goto'] == 't')
 	{
 		header('Location: ' . Config::DIR_PATH . "/{$board['name']}/{$thread['original_post']}/");
 		exit;

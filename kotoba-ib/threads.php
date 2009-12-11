@@ -25,8 +25,8 @@ try
 	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
 	header("Cache-Control: private");						// Fix for Firefox.
 	// Проверка входных параметров.
-	$board_name = boards_check_name($_GET['b']);
-	$thread_num = threads_check_number($_GET['t']);
+	$board_name = boards_check_name($_GET['board']);
+	$thread_num = threads_check_number($_GET['thread']);
 	$rempass = !isset($_SESSION['rempass']) || $_SESSION['rempass'] == null
 		? '' : $_SESSION['rempass'];
 	$boards = boards_get_all_view($_SESSION['user']);
@@ -49,7 +49,6 @@ try
 	$thread = threads_get_specifed_view($board['id'], $thread_num, $_SESSION['user']);
 	if($thread['archived'])
 	{
-		// TODO На самом деле заархивированные нити не будут существовать в базе всё время.
 		// Нить была сброшена в архив.
 		DataExchange::releaseResources();
 		header('Location: ' . Config::DIR_PATH . "/{$board['name']}/arch/"
@@ -75,6 +74,7 @@ try
 	$smarty->assign('is_moderatable', $is_moderatable);
 	$smarty->assign('with_files', $board['with_files'] || $thread['with_files']);
 	$smarty->assign('force_anonymous', $board['force_anonymous']);
+	$smarty->assign('goto', $_SESSION['goto']);
 	event_daynight($smarty);	// EVENT HERE! (not default kotoba function)
 	$view_html = $smarty->fetch('threads_header.tpl');
 	$view_thread_html = '';

@@ -187,7 +187,7 @@ function png_gd_create($source, $dest, $x, $y, $resize_x, $resize_y)
  * @param dimensions array <p>Ссылка на массив для сохранения размеров созданной
  * уменьшенной копии изображения.</p>
  * @param fill boolean[false] <p>Заполнить изображение прозрачностью.</p>
- * @param blend boolean[false] <p>blend image with transparent color FIXME</p>
+ * @param blend boolean[false] <p>blend image with transparent color</p>
  * @return resource
  * Возвращает новое GD изображение.
  */

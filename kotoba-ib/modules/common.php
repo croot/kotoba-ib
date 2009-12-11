@@ -58,7 +58,7 @@ function kotoba_session_start()
 	ini_set('session.cookie_lifetime', Config::SESSION_LIFETIME);
 	if(! session_start())
 		throw new CommonException(CommonException::$messages['SESSION_START']);
-	/* По умолчанию пользователь является Гостем. */
+	// По умолчанию пользователь является Гостем.
 	if(!isset($_SESSION['user']) || $_SESSION['user'] == Config::GUEST_ID)
 	{
 		$_SESSION['user'] = Config::GUEST_ID;
@@ -69,6 +69,7 @@ function kotoba_session_start()
 		$_SESSION['stylesheet'] = Config::STYLESHEET;
 		$_SESSION['language'] = Config::LANGUAGE;
 		$_SESSION['rempass'] = null;
+		$_SESSION['goto'] = 'b';	// Переход к доске.
 	}
 	/* Язык мог измениться на язык пользователя. */
 	require Config::ABS_PATH . "/modules/lang/{$_SESSION['language']}/errors.php";
@@ -106,6 +107,7 @@ function load_user_settings($keyword)
 		require "modules/lang/{$_SESSION['language']}/errors.php";
 	$_SESSION['language'] = $user_settings['language'];
 	$_SESSION['rempass'] = $user_settings['rempass'];
+	$_SESSION['goto'] = 'b';	// TODO Сделать сохранение и редактирование этого параметра.
 }
 /**
  * Проверяет корректность номера страницы в постраничной разбивке просмотра
