@@ -42,7 +42,7 @@ try
 	if($board['with_files'] || $thread['with_files'])
 	{
 		if($_FILES['file']['error'] == UPLOAD_ERR_NO_FILE
-			&& !isset($_POST['message_text']) || $_POST['message_text'] == '')
+			&& (!isset($_POST['message_text']) || $_POST['message_text'] == ''))
 		{
 			// Файл не был загружен и текст сообщения пуст.
 			throw new NodataException(NodataException::$messages['EMPTY_MESSAGE']);
@@ -163,8 +163,8 @@ try
 				$force = $upload_type['upload_handler_name'] === 'thumb_internal_png'
 					? true : false;	// TODO Unhardcode handler name.
 				$thumb_dimensions = create_thumbnail($abs_img_path,
-					$abs_thumb_path, $img_dimensions, $upload_type, 200, 200,
-					$force);
+					$abs_thumb_path, $img_dimensions, $upload_type,
+					Config::THUMBNAIL_WIDTH, Config::THUMBNAIL_HEIGHT, $force);
 				$upload_id = uploads_add($file_hash, $upload_type['is_image'],
 					Config::LINK_TYPE_VIRTUAL, $file_names[0],
 					$img_dimensions['x'], $img_dimensions['y'],
@@ -175,7 +175,8 @@ try
 				// 200 x 200 is default thumb dimensions for non images.
 				$upload_id = uploads_add($file_hash, $upload_type['is_image'],
 					Config::LINK_TYPE_VIRTUAL, $file_names[0], null, null,
-					$uploaded_file_size, $virt_thumb_path, 200, 200);
+					$uploaded_file_size, $virt_thumb_path,
+					Config::THUMBNAIL_WIDTH, Config::THUMBNAIL_HEIGHT);
 
 		}
 		else
@@ -185,7 +186,7 @@ try
 	date_default_timezone_set(Config::DEFAULT_TIMEZONE);
 	$post = posts_add($board['id'], $thread['id'], $_SESSION['user'],
 		$message_pass, $message_name, ip2long($_SERVER['REMOTE_ADDR']),
-		$message_subject, date("Y-m-d H:i:s"), $message_text, $sage);
+		$message_subject, date(Config::DATETIME_FORMAT), $message_text, $sage);
 	if(($board['with_files'] || $thread['with_files']) && $with_file)
 		posts_uploads_add($post['id'], $upload_id);
 	DataExchange::releaseResources();

@@ -62,6 +62,21 @@ function create_directories($name) {
 		return false;
 	return true;
 }
+/**
+ * Создаёт необходимые директории при добавлении нового языка.
+ * @param name string <p>Имя нового языка.</p>
+ */
+function create_language_directories($name) {
+	$dir = Config::ABS_PATH . "/smarty/kotoba/templates/$name";
+	@mkdir($dir);		// Hide warning when directory exists.
+	chmod($dir, 0777);
+	$dir = Config::ABS_PATH . "/smarty/kotoba/templates_c/$name";
+	@mkdir($dir);		// Hide warning when directory exists.
+	chmod($dir, 0777);
+	$dir = Config::ABS_PATH . "/modules/lang/$name";
+	@mkdir($dir);		// Hide warning when directory exists.
+	chmod($dir, 0777);
+}
 
 /******************************
  * Блокировки адресов (баны). *
@@ -251,7 +266,7 @@ function boards_get_all_view($user_id)
  * 'force_anonymous' - флаг отображения имя отправителя.<br>
  * 'default_name' - имя отправителя по умолчанию.<br>
  * 'with_files' - флаг загрузки файлов.<br>
- * 'same_upload' - политика загрузки одинаковых изображений.<br>
+ * 'same_upload' - политика загрузки одинаковых файлов.<br>
  * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
  * 'category' - категория.</p>
  */
@@ -318,6 +333,50 @@ function boards_get_specifed($board_id)
 function boards_get_specifed_byname($board_name)
 {
 	return db_boards_get_specifed_byname(DataExchange::getDBLink(), $board_name);
+}
+/**
+ * Получает доску по заданному имени, доступную для редактирования пользователю.
+ * @param board_name string <p>Имя доски.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает доски:<p>
+ * 'id' - идентификатор.<br>
+ * 'name' - имя.<br>
+ * 'title' - заголовок.<br>
+ * 'bump_limit' - спецефиный для доски бамплимит.<br>
+ * 'force_anonymous' - флаг отображения имя отправителя.<br>
+ * 'default_name' - имя отправителя по умолчанию.<br>
+ * 'with_files' - флаг загрузки файлов.<br>
+ * 'same_upload' - политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
+ * 'category' - категория.</p>
+ */
+function boards_get_specifed_change_byname($board_name, $user_id)
+{
+	return db_boards_get_specifed_change_byname(DataExchange::getDBLink(),
+		$board_name, $user_id);
+}
+/**
+ * Получает доску, доступную для редактирования пользователю.
+ * @param board_id string <p>Идентификатор доски.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает доски:<p>
+ * 'id' - идентификатор.<br>
+ * 'name' - имя.<br>
+ * 'title' - заголовок.<br>
+ * 'bump_limit' - спецефиный для доски бамплимит.<br>
+ * 'force_anonymous' - флаг отображения имя отправителя.<br>
+ * 'default_name' - имя отправителя по умолчанию.<br>
+ * 'with_files' - флаг загрузки файлов.<br>
+ * 'same_upload' - политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
+ * 'category' - категория.</p>
+ */
+function boards_get_specifed_change($board_id, $user_id)
+{
+	return db_boards_get_specifed_change(DataExchange::getDBLink(), $board_id,
+		$user_id);
 }
 /**
  * Проверяет корректность идентификатора $id доски.
@@ -884,11 +943,9 @@ function languages_check_id($id)
 	return $id;
 }
 /**
- * Проверяет корректность имени $name языка.
- *
- * Аргументы:
- * $name - имя языка.
- *
+ * Проверяет корректность имени языка.
+ * @param name string <p>Имя языка.</p>
+ * @return string
  * Возвращает безопасное для использования имя языка.
  */
 function languages_check_name($name)
@@ -919,10 +976,8 @@ function languages_get_all()
 	return db_languages_get_all(DataExchange::getDBLink());
 }
 /**
- * Добавляет новый язык с именем $name.
- *
- * Аргументы:
- * $name - имя нового языка.
+ * Добавляет новый язык.
+ * @param name string <p>Имя нового языка.</p>
  */
 function languages_add($name)
 {
@@ -1261,12 +1316,10 @@ function posts_check_name_size($name)
 
 /**
  * Получает все обработчики загружаемых файлов.
- *
- * Аргументы:
- *
- * Возвращает обработчики загружаемых файлов:
- * 'id' - идентификатор обработчика.
- * 'name' - имя обработчика.
+ * @return array
+ * Возвращает обработчики загружаемых файлов:<p>
+ * 'id' - идентификатор.<br>
+ * 'name' - имя.</p>
  */
 function upload_handlers_get_all()
 {
@@ -1299,10 +1352,8 @@ function upload_handlers_check_name($name)
 }
 /**
  * Проверяет корректность идентификатора обработчика загружаемых файлов.
- *
- * Аргументы:
- * $id - идентификатор обработчика загружаемых файлов.
- *
+ * @param id mixed <p>Идентификатор обработчика загружаемых файлов.</p>
+ * @return string
  * Возвращает безопасный для использования идентификатор обработчика загружаемых
  * файлов.
  */
@@ -1433,13 +1484,13 @@ function popdown_handlers_check_id($id)
 
 /**
  * Получает все типы загружаемых файлов.
- *
- * Возвращает массив типов загружаемых файлов:
- * 'id' - идентификатор типа.
- * 'extension' - расширение файла.
- * 'store_extension' - сохраняемое расширение файла.
- * 'upload_handler' - обработчик загружаемых файлов, обслуживающий данный тип.
- * 'thumbnail_image' - имя картинки для файлов, не являющихся изображением.
+ * @return array
+ * Возвращает типы загружаемых файлов:<p>
+ * 'id' - идентификатор.<br>
+ * 'extension' - расширение файла.<br>
+ * 'store_extension' - сохраняемое расширение файла.<br>
+ * 'upload_handler' - обработчик загружаемых файлов, обслуживающий данный тип.<br>
+ * 'thumbnail_image' - имя картинки для файлов, не являющихся изображением.</p>
  */
 function upload_types_get_all()
 {
@@ -1463,10 +1514,8 @@ function upload_types_get_board($board_id)
 }
 /**
  * Проверяет корректность расширения загружаемого файла.
- *
- * Аргументы:
- * $ext - расширение загружаемого файла.
- *
+ * @param ext string <p>Расширение загружаемого файла.</p>
+ * @return string
  * Возвращает безопасное для использования расширение загружаемого файла.
  */
 function upload_types_check_extension($ext)
@@ -1487,10 +1536,8 @@ function upload_types_check_extension($ext)
 }
 /**
  * Проверяет корректность сохраняемого расширения загружаемого файла.
- *
- * Аргументы:
- * $store_ext - сохраняемое расширение загружаемого файла.
- *
+ * @param store_ext string <p>Сохраняемое расширение загружаемого файла.</p>
+ * @return string
  * Возвращает безопасное для использования сохраняемое расширение загружаемого
  * файла.
  */
@@ -1512,10 +1559,8 @@ function upload_types_check_store_extension($store_ext)
 }
 /**
  * Проверяет корректность имени картинки для файла, не являющегося изображением.
- *
- * Аргументы:
- * $thumbnail_image - имя картинки для файла, не являющегося изображением.
- *
+ * @param thumbnail_image string <p>имя картинки для файла, не являющегося изображением.</p>
+ * @return string
  * Возвращает безопасное для использования имя картинки для файла, не
  * являющегося изображением.
  */
@@ -1569,9 +1614,7 @@ function upload_types_add($extension, $store_extension, $is_image,
 }
 /**
  * Удаляет тип загружаемых файлов.
- *
- * Аргументы:
- * $id - идентифаикатор типа загружаемых файлов.
+ * @param id mixed <p>Идентифаикатор типа загружаемых файлов.</p>
  */
 function upload_types_delete($id)
 {

@@ -64,7 +64,7 @@ CREATE TABLE `bans` (
   `untill` datetime NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `ip_range` (`range_beg`,`range_end`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -214,7 +214,7 @@ CREATE TABLE `posts` (
   CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`),
   CONSTRAINT `posts_ibfk_2` FOREIGN KEY (`user`) REFERENCES `users` (`id`),
   CONSTRAINT `posts_ibfk_3` FOREIGN KEY (`thread`) REFERENCES `threads` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=783 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=788 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -268,7 +268,7 @@ CREATE TABLE `threads` (
   PRIMARY KEY (`id`),
   KEY `board` (`board`),
   CONSTRAINT `threads_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=811 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=814 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -326,7 +326,7 @@ CREATE TABLE `uploads` (
   `thumbnail_w` int(11) DEFAULT NULL,
   `thumbnail_h` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=401 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=405 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -494,6 +494,64 @@ begin
 	and p.deleted <> 1;
 
 	return count;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `db_boards_get_specifed_change_byname` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `db_boards_get_specifed_change_byname`(
+	board_name varchar(16),
+	user_id int
+)
+begin
+	declare board_id int;
+	select id into board_id from boards where `name` = board_name;
+	if(board_id is null) then
+		select 'NOT_FOUND' as error;
+	else
+		select b.id, b.`name`, b.title, b.bump_limit, b.force_anonymous,
+			b.default_name, b.with_files, b.same_upload, b.popdown_handler,
+			ct.`name` as category
+		from boards b
+		join categories ct on ct.id = b.category
+		join user_groups ug on ug.user = user_id
+		
+		left join acl a1 on ug.`group` = a1.`group` and b.id = a1.board
+		
+		left join acl a2 on a2.`group` is null and b.id = a2.board
+		
+		left join acl a3 on ug.`group` = a3.`group` and a3.board is null
+			and a3.thread is null and a3.post is null
+		where
+			b.id = board_id
+				
+			((a1.`view` = 1 or a1.`view` is null)
+				
+				and (a2.`view` = 1 or a2.`view` is null)
+				
+				and a3.`view` = 1)
+				
+			and (a1.change = 1
+				
+				
+				or (a1.change is null and a2.change = 1)
+				
+				
+				or (a1.change is null and a2.change is null and a3.change = 1))
+		group by b.id
+		order by b.category, b.`name`;
+	end if;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1169,6 +1227,124 @@ begin
 	select id, `name`, title, bump_limit, force_anonymous, default_name,
 		with_files, same_upload, popdown_handler, category
 	from boards where `name` = board_name;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_boards_get_specifed_change` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_boards_get_specifed_change`(
+	_board_id int,
+	user_id int
+)
+begin
+	declare board_id int;
+	select id into board_id from boards where id = _board_id;
+	if(board_id is null) then
+		select 'NOT_FOUND' as error;
+	else
+		select b.id, b.`name`, b.title, b.bump_limit, b.force_anonymous,
+			b.default_name, b.with_files, b.same_upload, b.popdown_handler,
+			ct.`name` as category
+		from boards b
+		join categories ct on ct.id = b.category
+		join user_groups ug on ug.user = user_id
+		
+		left join acl a1 on ug.`group` = a1.`group` and b.id = a1.board
+		
+		left join acl a2 on a2.`group` is null and b.id = a2.board
+		
+		left join acl a3 on ug.`group` = a3.`group` and a3.board is null
+			and a3.thread is null and a3.post is null
+		where
+			b.id = board_id
+			and
+				
+			((a1.`view` = 1 or a1.`view` is null)
+				
+				and (a2.`view` = 1 or a2.`view` is null)
+				
+				and a3.`view` = 1)
+				
+			and (a1.change = 1
+				
+				
+				or (a1.change is null and a2.change = 1)
+				
+				
+				or (a1.change is null and a2.change is null and a3.change = 1))
+		group by b.id
+		order by b.category, b.`name`;
+	end if;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_boards_get_specifed_change_byname` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_boards_get_specifed_change_byname`(
+	board_name varchar(16),
+	user_id int
+)
+begin
+	declare board_id int;
+	select id into board_id from boards where `name` = board_name;
+	if(board_id is null) then
+		select 'NOT_FOUND' as error;
+	else
+		select b.id, b.`name`, b.title, b.bump_limit, b.force_anonymous,
+			b.default_name, b.with_files, b.same_upload, b.popdown_handler,
+			ct.`name` as category
+		from boards b
+		join categories ct on ct.id = b.category
+		join user_groups ug on ug.user = user_id
+		
+		left join acl a1 on ug.`group` = a1.`group` and b.id = a1.board
+		
+		left join acl a2 on a2.`group` is null and b.id = a2.board
+		
+		left join acl a3 on ug.`group` = a3.`group` and a3.board is null
+			and a3.thread is null and a3.post is null
+		where
+			b.id = board_id
+			and
+				
+			((a1.`view` = 1 or a1.`view` is null)
+				
+				and (a2.`view` = 1 or a2.`view` is null)
+				
+				and a3.`view` = 1)
+				
+			and (a1.change = 1
+				
+				
+				or (a1.change is null and a2.change = 1)
+				
+				
+				or (a1.change is null and a2.change is null and a3.change = 1))
+		group by b.id
+		order by b.category, b.`name`;
+	end if;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -4582,4 +4758,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2009-12-10  3:49:08
+-- Dump completed on 2009-12-11  3:07:08

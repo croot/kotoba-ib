@@ -9,7 +9,6 @@
  * See license.txt for more info.*
  *********************************/
 // Скрипт редактирования языков.
-// TODO Добавить создание и удаление директорий при добавлении и удалении языка, соответственно.
 require '../config.php';
 require Config::ABS_PATH . '/modules/errors.php';
 require Config::ABS_PATH . '/modules/lang/' . Config::LANGUAGE . '/errors.php';
@@ -34,7 +33,9 @@ try
 	// Добавление нового языка.
 	if(isset($_POST['new_language']) && $_POST['new_language'] !== '')
 	{
-		languages_add(languages_check_name($_POST['new_language']));
+		$name = languages_check_name($_POST['new_language']);
+		languages_add($name);
+		create_language_directories($name);
 		$reload_languages = true;
 	}
 	// Удаление языков.

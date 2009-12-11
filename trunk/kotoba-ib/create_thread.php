@@ -25,20 +25,8 @@ try
 	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
 // 1 Проверка входных параметров.
-	$board_name = boards_check_name($_POST['b']);
-	$boards = boards_get_all_change($_SESSION['user']);	// TODO На самом деле здесь нужна только одна доска, а не все.
-	$board = null;
-	$found = false;
-	foreach($boards as $b)
-		if($b['name'] == $board_name)
-		{
-			$found = true;
-			$board = $b;
-			break;
-		}
-	if(!$found)
-		throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']
-			. PremissionException::$messages['BOARD_NOT_ALLOWED']);
+	$board = boards_get_specifed_change(boards_check_id($_POST['board']),
+		$_SESSION['user']);
 	if($board['with_files'])
 	{
 		check_upload_error($_FILES['file']['error']);
@@ -148,8 +136,8 @@ try
 				$force = $upload_type['upload_handler_name'] === 'thumb_internal_png'
 					? true : false;	// TODO Unhardcode handler name.
 				$thumb_dimensions = create_thumbnail($abs_img_path,
-					$abs_thumb_path, $img_dimensions, $upload_type, 200, 200,
-					$force);
+					$abs_thumb_path, $img_dimensions, $upload_type,
+					Config::THUMBNAIL_WIDTH, Config::THUMBNAIL_HEIGHT, $force);
 				$upload_id = uploads_add($file_hash, $upload_type['is_image'],
 					Config::LINK_TYPE_VIRTUAL, $file_names[0],
 					$img_dimensions['x'], $img_dimensions['y'],
@@ -159,10 +147,10 @@ try
 			else
 				// 200 x 200 is default thumb dimensions for non images.
 				// TODO Another link types support.
-				// TODO Customize thumbnail size.
 				$upload_id = uploads_add($file_hash, $upload_type['is_image'],
 					Config::LINK_TYPE_VIRTUAL, $file_names[0], null, null,
-					$uploaded_file_size, $virt_thumb_path, 200, 200);
+					$uploaded_file_size, $virt_thumb_path,
+					Config::THUMBNAIL_WIDTH, Config::THUMBNAIL_HEIGHT);
 
 		}// Файл не был загружен ранее.
 		else
@@ -174,7 +162,7 @@ try
 	date_default_timezone_set(Config::DEFAULT_TIMEZONE);
 	$post = posts_add($board['id'], $thread['id'], $_SESSION['user'],
 		$message_pass, $message_name, ip2long($_SERVER['REMOTE_ADDR']),
-		$message_subject, date("Y-m-d H:i:s"), $message_text, null);
+		$message_subject, date(Config::DATETIME_FORMAT), $message_text, null);
 	// Закрепляем сообщение как оригинальное сообщение созданной пустой нити.
 	threads_edit_originalpost($thread['id'], $post['number']);
 	if($board['with_files'])

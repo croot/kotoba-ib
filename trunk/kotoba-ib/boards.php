@@ -58,7 +58,7 @@ try
 	if($page_max == 0)
 		$page_max = 1;		// Important for empty boards.
 	if($page > $page_max)
-		$page = $page_max;	// TODO May be throw exception here?
+		throw new LimitException(LimitException::$messages['MAX_PAGE']);
 	$is_admin = false;
 	if(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
 		$is_admin = true;
@@ -75,6 +75,7 @@ try
 	$smarty->assign('boards', $boards);
 	$smarty->assign('rempass', $rempass);
 	$smarty->assign('board_name', $board['name']);
+	$smarty->assign('board_id', $board['id']);
 	$smarty->assign('board_title', $board['title']);
 	$smarty->assign('upload_types', $upload_types);
 	$smarty->assign('is_guest', $_SESSION['user'] == 1 ? true : false);
