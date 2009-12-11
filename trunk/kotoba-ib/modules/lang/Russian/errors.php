@@ -165,4 +165,5 @@ LimitException::$messages['MAX_NAME_LENGTH'] = 'Имя отправителя с
 LimitException::$messages['MIN_IMG_DIMENTIONS'] = 'Размеры изображения слишком малы.';
 LimitException::$messages['MAX_SMALL_IMG_SIZE'] = 'Слишком большой размер в байтах для такого маленького изображения.';
 LimitException::$messages['MAX_PAGE'] = 'Номер страницы слишком большой. Такой страницы не существует.';
+LimitException::$messages['MAX_ANNOTATION'] = 'Аннотация слишком длинная.';
 ?>

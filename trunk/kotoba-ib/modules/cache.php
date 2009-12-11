@@ -505,11 +505,12 @@ function boards_check_same_upload($same_upload)
  * Проверяет корректность аннотации.
  * @param annotation string <p>Аннотация.</p>
  * @return string
- * Возвращает безопасную для использования аннотацию.
+ * Возвращает аннотацию.
  */
 function boards_check_annotation($annotation)
 {
-	// TODO Какая-то проверка всё же не помешала бы.
+	if(strlen($annotation) > Config::MAX_ANNOTATION_LENGTH)
+		throw new LimitException(LimitException::$messages['MAX_ANNOTATION']);
 	return $annotation;
 }
 /**
@@ -1295,7 +1296,6 @@ function posts_check_text_size($text)
  */
 function posts_check_subject_size($subject)
 {
-	// TODO А почему же не mb_?
 	if(strlen($subject) > Config::MAX_THEME_LENGTH)
 		throw new LimitException(LimitException::$messages['MAX_SUBJECT_LENGTH']);
 }
@@ -1305,7 +1305,6 @@ function posts_check_subject_size($subject)
  */
 function posts_check_name_size($name)
 {
-	// TODO А почему же не mb_?
 	if(strlen($name) > Config::MAX_THEME_LENGTH)
 		throw new LimitException(LimitException::$messages['MAX_NAME_LENGTH']);
 }
@@ -1335,7 +1334,6 @@ function upload_handlers_get_all()
  */
 function upload_handlers_check_name($name)
 {
-	// TODO имя обрабтчика не может начинаться с цифры т.к. это имя фукнции
 	if(!isset($name))
 		throw new NodataException(NodataException::$messages['UPLOAD_HANDLER_NAME_NOT_SPECIFED']);
 	$length = strlen($name);
@@ -1343,7 +1341,8 @@ function upload_handlers_check_name($name)
 	{
 		$name = RawUrlEncode($name);
 		$length = strlen($name);
-		if($length > 50 || (strpos($name, '%') !== false) || $length < 1)
+		if($length > 50 || (strpos($name, '%') !== false)
+			|| $length < 1 || ctype_digit($name[0]))
 			throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_NAME']);
 	}
 	else
@@ -1440,7 +1439,6 @@ function popdown_handlers_delete($id)
  */
 function popdown_handlers_check_name($name)
 {
-	// TODO имя обрабтчика не может начинаться с цифры т.к. это имя фукнции
 	if(!isset($name))
 		throw new NodataException(NodataException::$messages['POPDOWN_HANDLER_NAME_NOT_SPECIFED']);
 	$length = strlen($name);
@@ -1448,7 +1446,8 @@ function popdown_handlers_check_name($name)
 	{
 		$name = RawUrlEncode($name);
 		$length = strlen($name);
-		if($length > 50 || (strpos($name, '%') !== false) || $length < 1)
+		if($length > 50 || (strpos($name, '%') !== false)
+			|| $length < 1 || ctype_digit($name[0]))
 			throw new FormatException(FormatException::$messages['POPDOWN_HANDLER_NAME']);
 	}
 	else
@@ -2018,21 +2017,19 @@ function posts_add($board_id, $thread_id, $user_id, $password, $name,
 }
 /**
  * Урезает длинное сообщение.
- * TODO: limit only lines
- *
- * arguments:
- * $message - текст сообщения.
- * $preview_lines - количество строк, которые нужно оставить.
- * $is_cutted - ссылка на флаг, было ли сообщение урезано или нет.
- *
+ * TODO: Урезание в длины.
+ * @param message string <p>Текст сообщения.</p>
+ * @param preview_lines mixed <p>Количество строк, которые нужно оставить.</p>
+ * @param is_cutted boolean <p>Ссылка на флаг урезанного сообщения.</p>
+ * @return string
  * Возвращает урезанное сообщение.
  */
 function posts_corp_text(&$message, $preview_lines, &$is_cutted)
 {
-	$lines = explode("<br>", $message);
+	$lines = explode('<br>', $message);
 	if(count($lines) > $preview_lines) {
 		$is_cutted = 1;
-		return implode("<br>", array_slice($lines, 0, $preview_lines));
+		return implode('<br>', array_slice($lines, 0, $preview_lines));
 	}
 	else {
 		$is_cutted = 0;

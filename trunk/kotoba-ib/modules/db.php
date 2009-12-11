@@ -10,8 +10,6 @@
  *********************************/
 // Интерфейс работы с БД.
 // TODO Закрепление нитей.
-// TODO Отключение поле name на доске.
-// TODO Отключение картинок на всей доске.
 
 /***********
  * Разное. *
@@ -19,10 +17,10 @@
 
 /**
  * Устанавливает соединение с сервером баз данных.
- *
+ * @return MySQLi
  * Возвращает соединение.
  */
-function db_connect()	// TODO db_connect не имеет обёртки в chache.php
+function db_connect()
 {
 	$link = mysqli_connect(Config::DB_HOST, Config::DB_USER, Config::DB_PASS,
 		Config::DB_BASENAME);
@@ -1729,17 +1727,21 @@ function db_threads_get_specifed_change($link, $thread_id, $user_id)
 	if(!$result)
 		throw new CommonException(mysqli_error($link));
 	$thread = array();
-	if(mysqli_affected_rows($link) > 0
-		&& ($row = mysqli_fetch_assoc($result)) !== null)
+	if(mysqli_affected_rows($link) > 0)
 	{
-		$thread = array('id' => $row['id'],
-						'board' => $row['board'],
-						'original_post' => $row['original_post'],
-						'bump_limit' => $row['bump_limit'],
-						'archived' => $row['archived'],
-						'sage' => $row['sage'],
-						'with_files' => $row['with_files']);
+		if(($row = mysqli_fetch_assoc($result)) !== null)
+		{
+			$thread['id'] = $row['id'];
+			$thread['board'] = $row['board'];
+			$thread['original_post'] = $row['original_post'];
+			$thread['bump_limit'] = $row['bump_limit'];
+			$thread['archived'] = $row['archived'];
+			$thread['sage'] = $row['sage'];
+			$thread['with_files'] = $row['with_files'];
+		}
 	}
+	else
+		throw new PremissionException(PremissionException::$messages['THREAD_NOT_ALLOWED']);
 	mysqli_free_result($result);
 	db_cleanup_link($link);
 	return $thread;
@@ -1959,7 +1961,6 @@ function db_posts_uploads_get_posts($link, $posts)
 /*************************************
  * Работа с информацией о загрузках. *
  *************************************/
-// TODO Структура таблицы загрузок и работа с ней требует специальных пояснений.
 
 /**
  * Получает для каждого сообщения из массива сообщений информацию о загрузках.

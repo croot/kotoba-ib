@@ -88,6 +88,7 @@ try
 	$smarty->assign('with_files', $board['with_files']);
 	$smarty->assign('force_anonymous', $board['force_anonymous']);
 	$smarty->assign('annotation', $board['annotation']);
+	$smarty->assign('goto', $_SESSION['goto']);
 	event_daynight($smarty);	// EVENT HERE! (not default kotoba function)
 	$boards_html = $smarty->fetch('board_header.tpl');
 	$boards_thread_html = '';

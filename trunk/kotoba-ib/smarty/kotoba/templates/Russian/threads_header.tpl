@@ -22,6 +22,7 @@
 	$is_moderatable - текущая нить доступна для модерирования.
 	$with_files - флаг загрузки файлов.
 	$force_anonymous - флаг отображения имени отправителя.
+	$goto - переход к нити или доске.
 
 Специальные переменные (не входит в котобу):
 	$event_daynight_active - запущен ли эвент времени суток.
@@ -49,7 +50,7 @@
 <tr valign="top"><td>Сообщение: </td><td><textarea name="message_text" rows="7" cols="50"></textarea></td></tr>
 {if $with_files}<tr valign="top"><td>Файл: </td><td><input type="file" name="file" size="54"></td></tr>{/if}
 <tr valign="top"><td>Пароль: </td><td><input type="password" name="message_pass" size="30" value="{$rempass}"></td></tr>
-<tr valign="top"><td>Перейти к: </td><td>(нити: <input type="radio" name="goto" value="t" checked>) (доске: <input type="radio" name="goto" value="b">)</td></tr>
+<tr valign="top"><td>Перейти к: </td><td>(нити: <input type="radio" name="goto" value="t"{if $goto == 't'} checked{/if}>) (доске: <input type="radio" name="goto" value="b"{if $goto == 'b'} checked{/if}>)</td></tr>
 <tr valign="top"><td>Sage: </td><td><input type="checkbox" name="sage" value="sage"></td></tr>
 <tr valign="top"><td colspan = "2">Типы файлов, доступных для загрзки:{section name=i loop=$upload_types} {$upload_types[i].extension}{/section}</td></tr>
 </table>

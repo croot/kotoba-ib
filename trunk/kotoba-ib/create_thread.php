@@ -27,6 +27,10 @@ try
 // 1 Проверка входных параметров.
 	$board = boards_get_specifed_change(boards_check_id($_POST['board']),
 		$_SESSION['user']);
+	if(isset($_POST['goto'])
+		&& ($_POST['goto'] == 't' || $_POST['goto'] == 'b')
+		&& $_POST['goto'] != $_SESSION['goto'])
+			$_SESSION['goto'] = $_POST['goto'];
 	if($board['with_files'])
 	{
 		check_upload_error($_FILES['file']['error']);
@@ -169,7 +173,7 @@ try
 		posts_uploads_add($post['id'], $upload_id);
 	DataExchange::releaseResources();
 // 4. Перенаправление.
-	if(isset($_POST['goto']) && $_POST['goto'] == 't')
+	if($_SESSION['goto'] == 't')
 	{
 		header('Location: ' . Config::DIR_PATH . "/{$board['name']}/{$post['number']}/");
 		exit;

@@ -163,6 +163,9 @@ create table hidden_threads
 )
 engine=InnoDB|
 
+-- TODO Имя файла слишком коротко для ссылок и кода встроенных объектов.
+-- TODO Хранить ссылку на стандартноую картинку для не картинок тут не желательно.
+-- TODO Флаг is_image сейчас нигде не используется.
 create table uploads
 (
 	id int not null auto_increment,
