@@ -10,6 +10,8 @@ drop procedure if exists sp_boards_get_all_view|
 drop procedure if exists sp_boards_get_all_change|
 drop procedure if exists sp_boards_get_specifed|
 drop procedure if exists sp_boards_get_specifed_byname|
+drop procedure if exists sp_boards_get_specifed_change_byname|
+drop procedure if exists sp_boards_get_specifed_change|
 drop procedure if exists sp_boards_edit|
 drop procedure if exists sp_boards_edit_annotation|
 drop procedure if exists sp_boards_delete|
@@ -228,6 +230,108 @@ begin
 			or (a1.change is null and a2.change is null and a3.change = 1))
 	group by b.id
 	order by b.category, b.`name`;
+end|
+
+-- Выбирает доску по заданному имени, доступную для редактирования пользователю.
+--
+-- Аргументы:
+-- board_name - Имя доски.
+-- user_id - Идентификатор пользователя.
+create procedure sp_boards_get_specifed_change_byname
+(
+	board_name varchar(16),
+	user_id int
+)
+begin
+	declare board_id int;
+	select id into board_id from boards where `name` = board_name;
+	if(board_id is null) then
+		select 'NOT_FOUND' as error;
+	else
+		select b.id, b.`name`, b.title, b.bump_limit, b.force_anonymous,
+			b.default_name, b.with_files, b.same_upload, b.popdown_handler,
+			ct.`name` as category
+		from boards b
+		join categories ct on ct.id = b.category
+		join user_groups ug on ug.user = user_id
+		-- Правила для конкретной группы и доски.
+		left join acl a1 on ug.`group` = a1.`group` and b.id = a1.board
+		-- Правило для конкретной доски.
+		left join acl a2 on a2.`group` is null and b.id = a2.board
+		-- Правила для конкретной группы.
+		left join acl a3 on ug.`group` = a3.`group` and a3.board is null
+			and a3.thread is null and a3.post is null
+		where
+			b.id = board_id
+			and
+				-- Доска не запрещена для просмотра группе и
+			((a1.`view` = 1 or a1.`view` is null)
+				-- доска не запрещена для просмотра всем и
+				and (a2.`view` = 1 or a2.`view` is null)
+				-- группе разрешен просмотр.
+				and a3.`view` = 1)
+				-- Редактирование доски разрешено конкретной группе или
+			and (a1.change = 1
+				-- редактирование доски не запрещено конкретной группе и
+				-- разрешено всем группам или
+				or (a1.change is null and a2.change = 1)
+				-- редактирование доски не запрещено ни конкретной группе ни
+				-- всем, и конкретной группе редактирование разрешено.
+				or (a1.change is null and a2.change is null and a3.change = 1))
+		group by b.id
+		order by b.category, b.`name`;
+	end if;
+end|
+
+-- Выбирает доску, доступную для редактирования пользователю.
+--
+-- Аргументы:
+-- board_id - Идентификатор доски.
+-- user_id - Идентификатор пользователя.
+create procedure sp_boards_get_specifed_change
+(
+	_board_id int,
+	user_id int
+)
+begin
+	declare board_id int;
+	select id into board_id from boards where id = _board_id;
+	if(board_id is null) then
+		select 'NOT_FOUND' as error;
+	else
+		select b.id, b.`name`, b.title, b.bump_limit, b.force_anonymous,
+			b.default_name, b.with_files, b.same_upload, b.popdown_handler,
+			ct.`name` as category
+		from boards b
+		join categories ct on ct.id = b.category
+		join user_groups ug on ug.user = user_id
+		-- Правила для конкретной группы и доски.
+		left join acl a1 on ug.`group` = a1.`group` and b.id = a1.board
+		-- Правило для конкретной доски.
+		left join acl a2 on a2.`group` is null and b.id = a2.board
+		-- Правила для конкретной группы.
+		left join acl a3 on ug.`group` = a3.`group` and a3.board is null
+			and a3.thread is null and a3.post is null
+		where
+			b.id = board_id
+			and
+				-- Доска не запрещена для просмотра группе и
+			((a1.`view` = 1 or a1.`view` is null)
+				-- доска не запрещена для просмотра всем и
+				and (a2.`view` = 1 or a2.`view` is null)
+				-- группе разрешен просмотр.
+				and a3.`view` = 1)
+				-- Редактирование доски разрешено конкретной группе или
+			and (a1.change = 1
+				-- редактирование доски не запрещено конкретной группе и
+				-- разрешено всем группам или
+				or (a1.change is null and a2.change = 1)
+				-- редактирование доски не запрещено ни конкретной группе ни
+				-- всем, и конкретной группе редактирование разрешено.
+				or (a1.change is null and a2.change is null and a3.change = 1))
+		group by b.id
+		order by b.category, b.`name`;
+	end if;
 end|
 
 -- Выбирает все доски.

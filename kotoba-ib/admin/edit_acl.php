@@ -52,48 +52,36 @@ try
 			$new_change = (isset($_POST['new_change'])) ? 1 : 0;
 			$new_moderate = (isset($_POST['new_moderate'])) ? 1 : 0;
 			/*
-			 * TODO Программа не должна исправлять за пользователем его ошибки,
-			 * по крайней мере должна предупреждать, что они есть.
+			 * Идентификатор доски, нити или сообщения в правилах однозначно
+			 * определяют доску, нить и сообщение соотвественно.
 			 */
-			if($new_board !== null)
+			if($new_board !== null
+				&& ($new_thread !== null || $new_post !== null))
 			{
-				/*
-				 * Если задана доска, то это правило для доски.
-				 * См. res/notes.txt
-				 */
-				$new_thread = null;
-				$new_post = null;
+				throw new CommonException(CommonException::$messages['ACL_RULE_EXCESS']);
 			}
-			if($new_thread != null)
+			if($new_thread !== null
+				&& ($new_board !== null || $new_post !== null))
 			{
-				/*
-				 * Если задана нить, то это правило для нити.
-				 * См. res/notes.txt
-				 */
-				$new_board = null;
-				$new_post = null;
+				throw new CommonException(CommonException::$messages['ACL_RULE_EXCESS']);
 			}
-			if($new_post != null)
+			if($new_post != null
+				&& ($new_board !== null || $new_thread !== null))
 			{
-				/*
-				 * Если задано сообщение, то это правило для сообщения.
-				 * См. res/notes.txt
-				 */
-				$new_board = null;
-				$new_thread = null;
+				throw new CommonException(CommonException::$messages['ACL_RULE_EXCESS']);
 			}
 			/*
 			 * Если запрещен просмотр, то редактирование и модерирование не
 			 * имеют смысла. Если запрещено редактирование, то модерирование не
 			 * имеет смысла.
 			 */
-			if($new_view == 0)
+			if($new_view == 0
+				&& ($new_change != 0 || $new_moderate != 0))
 			{
-				$new_change = 0;
-				$new_moderate = 0;
+				throw new CommonException(CommonException::$messages['ACL_RULE_CONFLICT']);
 			}
-			elseif($new_change == 0)
-					$new_moderate = 0;
+			elseif($new_change == 0 && $new_moderate != 0)
+				throw new CommonException(CommonException::$messages['ACL_RULE_CONFLICT']);
 			/*
 			 * Поищем, нет ли уже такого правилаы. Если есть, то надо только
 			 * изменить существующее.

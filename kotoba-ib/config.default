@@ -38,12 +38,8 @@ class Config
 	 */
 	const FRAMED_INTERFACE = 0;
 
-	/*
-	 * en: date and time format
-	 * ru: Формат выводимой даты и времени сообщений.
-	 */
-	// TODO Добавить ссылку на манул по формату даты.
-	const DATETIME_FORMAT = '%d-%m-%Y (%a) %H:%M:%S';
+	// Формат даты и времени сохранения сообщений. См. описание фукнции date().
+	const DATETIME_FORMAT = 'Y-m-d H:i:s';
 
 	/*
 	 * Имена локали.
@@ -170,6 +166,12 @@ class Config
 	 * ru: Минимальный размер изображения в байтах.
 	 */
 	const SMALLIMAGE_LIMIT_FILE_SIZE = 1048576;
+
+	// Ширина уменьшенной копии файлов.
+	const THUMBNAIL_WIDTH = 200;
+
+	// Высота уменьшенной копии файлов.
+	const THUMBNAIL_HEIGHT = 200;
 
 	/***************
 	 * Ограничения *

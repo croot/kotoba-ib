@@ -17,6 +17,7 @@
 	$boards - доски.
 	$rempass - пароль на удаление сообщений и нитей.
 	$board_name - имя просматриваемой доски.
+	$board_id - идентификатор просматриваемой доски.
 	$board_title - заголовок просматриваемой доски.
 	$upload_types - типы файлов, доступных для загрузки на просматриваемой доске.
 	$is_guest - флаг гостя.
@@ -57,6 +58,6 @@
 <tr valign="top"><td colspan = "2">Типы файлов, доступных для загрузки:{section name=i loop=$upload_types} {$upload_types[i].extension}{/section}</td></tr>
 <tr valign="top"><td colspan = "2">{$annotation}</td></tr>
 </table>
-<input type="hidden" name="b" value="{$board_name}">
+<input type="hidden" name="board" value="{$board_id}">
 </form>
 <hr>

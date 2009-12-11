@@ -9,7 +9,6 @@
  * See license.txt for more info.*
  *********************************/
 // Скрипт редактирования типов загружаемых файлов.
-// TODO new is_image field support.
 require '../config.php';
 require Config::ABS_PATH . '/modules/errors.php';
 require Config::ABS_PATH . '/modules/lang/' . Config::LANGUAGE . '/errors.php';

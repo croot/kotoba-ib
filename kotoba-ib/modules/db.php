@@ -250,6 +250,110 @@ function db_boards_get_all_change($link, $user_id)
 	return $boards;
 }
 /**
+ * Получает доску по заданному имени, доступную для редактирования пользователю.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param board_name string <p>Имя доски.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает доски:<p>
+ * 'id' - идентификатор.<br>
+ * 'name' - имя.<br>
+ * 'title' - заголовок.<br>
+ * 'bump_limit' - спецефиный для доски бамплимит.<br>
+ * 'force_anonymous' - флаг отображения имя отправителя.<br>
+ * 'default_name' - имя отправителя по умолчанию.<br>
+ * 'with_files' - флаг загрузки файлов.<br>
+ * 'same_upload' - политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
+ * 'category' - категория.</p>
+ */
+function db_boards_get_specifed_change_byname($link, $board_name, $user_id)
+{
+	$result = mysqli_query($link,
+		"call sp_boards_get_specifed_change_byname('$board_name', $user_id)");
+	if(!$result)
+		throw new CommonException(mysqli_error($link));
+	if(mysqli_affected_rows($link) <= 0)
+	{
+		mysqli_free_result($result);
+		db_cleanup_link($link);
+		throw new PremissionException(PremissionException::$messages['BOARD_NOT_ALLOWED']);
+	}
+	$row = mysqli_fetch_assoc($result);
+	if(isset($row['error']) && $row['error'] == 'NOT_FOUND')
+	{
+		mysqli_free_result($result);
+		db_cleanup_link($link);
+		throw new NodataException(sprintf(NodataException::$messages['BOARD_NOT_FOUND'],
+				$board_name));
+	}
+	$board['id'] = $row['id'];
+	$board['name'] = $row['name'];
+	$board['title'] = $row['title'];
+	$board['bump_limit'] = $row['bump_limit'];
+	$board['force_anonymous'] = $row['force_anonymous'];
+	$board['default_name'] = $row['default_name'];
+	$board['with_files'] = $row['with_files'];
+	$board['same_upload'] = $row['same_upload'];
+	$board['popdown_handler'] = $row['popdown_handler'];
+	$board['category'] = $row['category'];
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $board;
+}
+/**
+ * Получает доску, доступную для редактирования пользователю.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param board_id string <p>Идентификатор доски.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает доски:<p>
+ * 'id' - идентификатор.<br>
+ * 'name' - имя.<br>
+ * 'title' - заголовок.<br>
+ * 'bump_limit' - спецефиный для доски бамплимит.<br>
+ * 'force_anonymous' - флаг отображения имя отправителя.<br>
+ * 'default_name' - имя отправителя по умолчанию.<br>
+ * 'with_files' - флаг загрузки файлов.<br>
+ * 'same_upload' - политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
+ * 'category' - категория.</p>
+ */
+function db_boards_get_specifed_change($link, $board_id, $user_id)
+{
+	$result = mysqli_query($link,
+		"call sp_boards_get_specifed_change($board_id, $user_id)");
+	if(!$result)
+		throw new CommonException(mysqli_error($link));
+	if(mysqli_affected_rows($link) <= 0)
+	{
+		mysqli_free_result($result);
+		db_cleanup_link($link);
+		throw new PremissionException(PremissionException::$messages['BOARD_NOT_ALLOWED']);
+	}
+	$row = mysqli_fetch_assoc($result);
+	if(isset($row['error']) && $row['error'] == 'NOT_FOUND')
+	{
+		mysqli_free_result($result);
+		db_cleanup_link($link);
+		throw new NodataException(sprintf(NodataException::$messages['BOARD_NOT_FOUND'],
+				$board_name));
+	}
+	$board['id'] = $row['id'];
+	$board['name'] = $row['name'];
+	$board['title'] = $row['title'];
+	$board['bump_limit'] = $row['bump_limit'];
+	$board['force_anonymous'] = $row['force_anonymous'];
+	$board['default_name'] = $row['default_name'];
+	$board['with_files'] = $row['with_files'];
+	$board['same_upload'] = $row['same_upload'];
+	$board['popdown_handler'] = $row['popdown_handler'];
+	$board['category'] = $row['category'];
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $board;
+}
+/**
  * Получает все доски.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @return array
