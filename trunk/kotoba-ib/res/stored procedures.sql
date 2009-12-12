@@ -54,6 +54,7 @@ drop procedure if exists sp_board_upload_types_get_all|
 drop procedure if exists sp_board_upload_types_add|
 drop procedure if exists sp_board_upload_types_delete|
 drop procedure if exists sp_threads_get_all|
+drop procedure if exists sp_threads_get_all_archived|
 drop procedure if exists sp_threads_get_all_moderate|
 drop procedure if exists sp_threads_edit|
 drop procedure if exists sp_threads_edit_originalpost|
@@ -64,7 +65,9 @@ drop procedure if exists sp_threads_get_specifed_view_hiden|
 drop procedure if exists sp_threads_get_specifed_change|
 drop procedure if exists sp_threads_check_specifed_moderate|
 drop procedure if exists sp_threads_add|
+drop procedure if exists sp_threads_edit_archived_postlimit|
 drop procedure if exists sp_posts_get_thread_view|
+drop procedure if exists sp_posts_get_thread|
 drop procedure if exists sp_posts_get_specifed_view_bynumber|
 drop procedure if exists sp_posts_add|
 drop procedure if exists sp_posts_uploads_get_post|
@@ -1032,6 +1035,14 @@ begin
 	order by id desc;
 end|
 
+-- Выбирает все нити, помеченные для архивирования.
+create procedure sp_threads_get_all_archived ()
+begin
+	select id, board, original_post, bump_limit, sticky, sage, with_files
+	from threads
+	where deleted = 0 and archived = 1;
+end|
+
 -- Редактирует настройки нити.
 --
 -- Аргументы:
@@ -1571,6 +1582,55 @@ begin
 	select * from threads where id = thread_id;
 end|
 
+-- Оставляет не помеченными на архивирование нити заданной доски, суммарное
+-- количество сообщений в которых не более чем x * бамплимит доски.
+--
+-- Аргументы:
+-- board_id - идентификатор доски.
+-- x - множитель.
+create procedure sp_threads_edit_archived_postlimit
+(
+	board_id int,
+	x int
+)
+begin
+	declare board_bump_limit int;
+	declare done int default 0;
+	declare thread_id int;
+	declare posts_count int;
+	declare total int default 0;
+	declare `c` cursor for
+		select q2.id, q2.posts_count
+		from (
+			-- Без учёта постов с сажей вычислим последнее сообщение в нити.
+			select q1.id, q1.posts_count, max(p.`number`) as last_post_num
+			from posts p
+			join(
+				-- Выберем все нити и подсчитаем количество сообщений в них.
+				select t.id, count(distinct p.id) as posts_count
+				from posts p
+				join threads t on t.id = p.thread and t.board = board_id
+				where t.deleted = 0 and t.archived = 0 and p.deleted = 0
+				group by t.id) q1 on q1.id = p.thread
+					and (p.sage = 0 or p.sage is null)
+			group by q1.id) q2
+		order by q2.last_post_num desc;
+	declare continue handler for not found set done = 1;
+	select bump_limit into board_bump_limit from boards where id = board_id;
+	set x = x * board_bump_limit;
+	open `c`;
+	repeat
+	fetch `c` into thread_id, posts_count;
+	if(not done) then
+		set total = total + posts_count;
+		if(total > x) then
+			update threads set archived = 1 where id = thread_id;
+		end if;
+	end if;
+	until done end repeat;
+	close `c`;
+end|
+
 ---------------------------
 -- Работа с сообщениями. --
 ---------------------------
@@ -1649,6 +1709,21 @@ begin
 	set @limit = posts_per_thread;
 	execute stmnt using @user_id, @thread_id, @limit, @thread_id;
 	deallocate prepare stmnt;
+end|
+
+-- Выбирает все сообщения заданной нити.
+--
+-- Аргументы:
+-- thread_id - идентификатор нити.
+create procedure sp_posts_get_thread
+(
+	thread_id int
+)
+begin
+	select id, thread, `number`, password, `name`, ip, subject, date_time, text,
+		sage
+	from posts p
+	where thread = thread_id;
 end|
 
 -- Выбирает сообщение по номеру.

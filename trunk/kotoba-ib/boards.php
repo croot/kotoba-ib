@@ -44,12 +44,6 @@ try
 	if(!$found)
 		throw new NodataException(sprintf(NodataException::$messages['BOARD_NOT_FOUND'],
 				$board_name));
-	foreach(popdown_handlers_get_all() as $popdown_handler)
-		if($board['popdown_handler'] == $popdown_handler['id'])
-		{
-			$popdown_handler['name']();
-			break;
-		}
 	$threads_count = threads_get_view_threadscount($_SESSION['user'],
 		$board['id']);
 	$page_max = ($threads_count % $_SESSION['threads_per_page'] == 0

@@ -52,7 +52,7 @@ try
 		// Нить была сброшена в архив.
 		DataExchange::releaseResources();
 		header('Location: ' . Config::DIR_PATH . "/{$board['name']}/arch/"
-			. "{$thread['original_post']}/{$thread['original_post']}.html");
+			. "{$thread['original_post']}.html");
 		exit;
 	}
 	$is_moderatable = threads_check_specifed_moderate($thread['id'],
