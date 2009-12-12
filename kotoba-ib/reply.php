@@ -192,14 +192,20 @@ try
 		$message_subject, date(Config::DATETIME_FORMAT), $message_text, $sage);
 	if(($board['with_files'] || $thread['with_files']) && $with_file)
 		posts_uploads_add($post['id'], $upload_id);
+// 4. Запуск обработчика автоматического удаления нитей.
+	foreach(popdown_handlers_get_all() as $popdown_handler)
+		if($board['popdown_handler'] == $popdown_handler['id'])
+		{
+			$popdown_handler['name']($board['id']);
+			break;
+		}
 	DataExchange::releaseResources();
-// 4. Перенаправление.
+// 5. Перенаправление.
 	if($_SESSION['goto'] == 't')
-	{
-		header('Location: ' . Config::DIR_PATH . "/{$board['name']}/{$thread['original_post']}/");
-		exit;
-	}
-	header('Location: ' . Config::DIR_PATH . "/{$board['name']}/");
+		header('Location: ' . Config::DIR_PATH
+			. "/{$board['name']}/{$thread['original_post']}/");
+	else
+		header('Location: ' . Config::DIR_PATH . "/{$board['name']}/");
 	exit;
 }
 catch(Exception $e)

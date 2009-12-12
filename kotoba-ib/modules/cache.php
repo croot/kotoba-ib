@@ -1706,6 +1706,22 @@ function threads_get_all()
 	return db_threads_get_all(DataExchange::getDBLink());
 }
 /**
+ * Получает все нити, помеченные для архивирования.
+ * @return array
+ * Возвращает нити:<p>
+ * 'id' - идентификатор.<br>
+ * 'board' - идентификатор доски.<br>
+ * 'original_post' - оригинальное сообщение.<br>
+ * 'bump_limit' - специфичный для нити бамплимит.<br>
+ * 'sticky' - флаг закрепления.<br>
+ * 'sage' - флаг поднятия нити при ответе.<br>
+ * 'with_files' - флаг загрузки файлов.</p>
+ */
+function threads_get_all_archived()
+{
+	return db_threads_get_all_archived(DataExchange::getDBLink());
+}
+/**
  * Проверяет корректность специфичного для нити бамплимита.
  * @param bump_limit mixed <p>Специфичный для нити бампилимит.</p>
  * @return string
@@ -1970,6 +1986,26 @@ function posts_get_threads_view($threads, $user_id, $posts_per_thread)
 {
 	return db_posts_get_threads_view(DataExchange::getDBLink(), $threads,
 		$user_id, $posts_per_thread);
+}
+/**
+ * Получает все сообщения заданной нити.
+ * @param thread_id array <p>Идентификатор нити.</p>
+ * @return array
+ * Возвращает сообщения:<p>
+ * 'id' - идентификатор.<br>
+ * 'thread' - идентификатор нити.<br>
+ * 'number' - номер.<br>
+ * 'password' - пароль для удаления.<br>
+ * 'name' - имя отправителя.<br>
+ * 'ip' - ip адрес отправителя.<br>
+ * 'subject' - тема.<br>
+ * 'date_time' - время сохранения.<br>
+ * 'text' - текст.<br>
+ * 'sage' - флаг поднятия нити.</p>
+ */
+function posts_get_thread($thread_id)
+{
+	return db_posts_get_thread(DataExchange::getDBLink(), $thread_id);
 }
 /**
  * Получает сообщение по номеру.

@@ -1414,6 +1414,39 @@ function db_threads_get_all($link)
 	return $threads;
 }
 /**
+ * Получает все нити, помеченные для архивирования.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @return array
+ * Возвращает нити:<p>
+ * 'id' - идентификатор.<br>
+ * 'board' - идентификатор доски.<br>
+ * 'original_post' - оригинальное сообщение.<br>
+ * 'bump_limit' - специфичный для нити бамплимит.<br>
+ * 'sticky' - флаг закрепления.<br>
+ * 'sage' - флаг поднятия нити при ответе.<br>
+ * 'with_files' - флаг загрузки файлов.</p>
+ */
+function db_threads_get_all_archived($link)
+{
+	$result = mysqli_query($link, 'call sp_threads_get_all_archived()');
+	if(!$result)
+		throw new CommonException(mysqli_error($link));
+	$threads = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) !== null)
+			array_push($threads,
+				array('id' => $row['id'],
+						'board' => $row['board'],
+						'original_post' => $row['original_post'],
+						'bump_limit' => $row['bump_limit'],
+						'sticky' => $row['sticky'],
+						'sage' => $row['sage'],
+						'with_files' => $row['with_files']));
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $threads;
+}
+/**
  * Редактирует настройки нити.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param thread_id mixed <p>Идентификатор нити.</p>
@@ -1820,6 +1853,46 @@ function db_posts_get_threads_view($link, $threads, $user_id, $posts_per_thread)
 		mysqli_free_result($result);
 		db_cleanup_link($link);
 	}
+	return $posts;
+}
+/**
+ * Получает все сообщения заданной нити.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param thread_id array <p>Идентификатор нити.</p>
+ * @return array
+ * Возвращает сообщения:<p>
+ * 'id' - идентификатор.<br>
+ * 'thread' - идентификатор нити.<br>
+ * 'number' - номер.<br>
+ * 'password' - пароль для удаления.<br>
+ * 'name' - имя отправителя.<br>
+ * 'ip' - ip адрес отправителя.<br>
+ * 'subject' - тема.<br>
+ * 'date_time' - время сохранения.<br>
+ * 'text' - текст.<br>
+ * 'sage' - флаг поднятия нити.</p>
+ */
+function db_posts_get_thread($link, $thread_id)
+{
+	$posts = array();
+	$result = mysqli_query($link, "call sp_posts_get_thread($thread_id)");
+	if(!$result)
+		throw new CommonException(mysqli_error($link));
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($posts,
+				array('id' => $row['id'],
+						'thread' => $row['thread'],
+						'number' => $row['number'],
+						'password' => $row['password'],
+						'name' => $row['name'],
+						'ip' => $row['ip'],
+						'subject' => $row['subject'],
+						'date_time' => $row['date_time'],
+						'text' => $row['text'],
+						'sage' => $row['sage']));
+	mysqli_free_result($result);
+	db_cleanup_link($link);
 	return $posts;
 }
 /**
