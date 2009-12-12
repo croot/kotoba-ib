@@ -17,6 +17,7 @@ require 'modules/cache.php';
 require 'modules/common.php';
 require 'modules/popdown_handlers.php';
 require 'modules/upload_handlers.php';
+include 'securimage/securimage.php';
 try
 {
 // 0. Инициализация.
@@ -25,6 +26,9 @@ try
 	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
 // 1. Проверка входных параметров.
+	$securimage = new Securimage();
+	if ($securimage->check($_POST['captcha_code']) == false)
+		throw new CommonException(CommonException::$messages['CAPTCHA']);
 	$thread = threads_get_specifed_change(threads_check_id($_POST['t']),
 		$_SESSION['user']);
 	$board = boards_get_specifed($thread['board']);

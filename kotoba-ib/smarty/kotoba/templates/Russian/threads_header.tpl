@@ -52,6 +52,7 @@
 <tr valign="top"><td>Пароль: </td><td><input type="password" name="message_pass" size="30" value="{$rempass}"></td></tr>
 <tr valign="top"><td>Перейти к: </td><td>(нити: <input type="radio" name="goto" value="t"{if $goto == 't'} checked{/if}>) (доске: <input type="radio" name="goto" value="b"{if $goto == 'b'} checked{/if}>)</td></tr>
 <tr valign="top"><td>Sage: </td><td><input type="checkbox" name="sage" value="sage"></td></tr>
+<tr valign="top"><td>Капча: </td><td><img id="captcha" src="{$DIR_PATH}/securimage/securimage_show.php" alt="CAPTCHA Image" /> <input type="text" name="captcha_code" size="10" maxlength="6" /></tr>
 <tr valign="top"><td colspan = "2">Типы файлов, доступных для загрзки:{section name=i loop=$upload_types} {$upload_types[i].extension}{/section}</td></tr>
 </table>
 <input type="hidden" name="t" value="{$thread[0].id}">

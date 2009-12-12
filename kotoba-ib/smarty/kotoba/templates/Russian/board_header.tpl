@@ -56,6 +56,7 @@
 {if $with_files}<tr valign="top"><td>Файл: </td><td><input type="file" name="file" size="54"></td></tr>{/if}
 <tr valign="top"><td>Пароль: </td><td><input type="password" name="message_pass" size="30" value="{$rempass}"></td></tr>
 <tr valign="top"><td>Перейти: </td><td>(нить: <input type="radio" name="goto" value="t"{if $goto == 't'} checked{/if}>) (доска: <input type="radio" name="goto" value="b"{if $goto == 'b'} checked{/if}>)</td></tr>
+<tr valign="top"><td>Капча: </td><td><img id="captcha" src="{$DIR_PATH}/securimage/securimage_show.php" alt="CAPTCHA Image" /> <input type="text" name="captcha_code" size="10" maxlength="6" /></tr>
 <tr valign="top"><td colspan = "2">Типы файлов, доступных для загрузки:{section name=i loop=$upload_types} {$upload_types[i].extension}{/section}</td></tr>
 <tr valign="top"><td colspan = "2">{$annotation}</td></tr>
 </table>

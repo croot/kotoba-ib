@@ -1,0 +1,9 @@
+a4 8
+// BEGIN Required for Kotoba
+require '../config.php';
+require Config::ABS_PATH . '/modules/errors.php';
+require Config::ABS_PATH . '/modules/lang/' . Config::LANGUAGE . '/errors.php';
+require Config::ABS_PATH . '/modules/common.php';
+kotoba_session_start();
+// END Required for Kotoba
+
