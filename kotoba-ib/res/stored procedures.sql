@@ -73,6 +73,7 @@ drop procedure if exists sp_posts_add|
 drop procedure if exists sp_posts_uploads_get_post|
 drop procedure if exists sp_posts_uploads_add|
 drop procedure if exists sp_posts_delete|
+drop procedure if exists sp_posts_edit_specifed_addtext|
 drop procedure if exists sp_uploads_get_post|
 drop procedure if exists sp_uploads_get_same|
 drop procedure if exists sp_uploads_add|
@@ -1655,10 +1656,10 @@ create procedure sp_posts_get_thread_view
 )
 begin
 	prepare stmnt from
-		'select q.id, q.thread, q.number, q.password, q.name, q.ip, q.subject,
-			q.date_time, q.text, q.sage
-		from (select p.id, p.thread, p.number, p.password, p.name, p.ip, p.subject,
-			p.date_time, p.text, p.sage
+		'select q.id, q.thread, q.number, q.password, q.name, q.tripcode, q.ip,
+			q.subject, q.date_time, q.text, q.sage
+		from (select p.id, p.thread, p.number, p.password, p.name, p.tripcode,
+			p.ip, p.subject, p.date_time, p.text, p.sage
 		from posts p
 		join threads t on t.board = p.board and t.id = p.thread
 		join user_groups ug on ug.user = ?
@@ -1698,8 +1699,8 @@ begin
 		order by number desc
 		limit ?) q
 		union all
-		select p.id, p.thread, p.number, p.password, p.name, p.ip, p.subject,
-			p.date_time, p.text, p.sage
+		select p.id, p.thread, p.number, p.password, p.name, p.tripcode, p.ip,
+			p.subject, p.date_time, p.text, p.sage
 		from posts p
 		join threads t on t.board = p.board and t.id = p.thread
 		where p.number = t.original_post and p.thread = ?
@@ -1720,8 +1721,8 @@ create procedure sp_posts_get_thread
 	thread_id int
 )
 begin
-	select id, thread, `number`, password, `name`, ip, subject, date_time, text,
-		sage
+	select id, thread, `number`, password, `name`, tripcode, ip, subject,
+		date_time, text, sage
 	from posts p
 	where thread = thread_id;
 end|
@@ -1739,8 +1740,8 @@ create procedure sp_posts_get_specifed_view_bynumber
 	user_id int
 )
 begin
-	select p.id, p.thread, p.`number`, p.password, p.`name`, p.ip, p.subject,
-		p.date_time, p.text, p.sage
+	select p.id, p.thread, p.`number`, p.password, p.`name`, p.tripcode, p.ip,
+		p.subject, p.date_time, p.text, p.sage
 	from posts p
 	join user_groups ug on ug.`user` = user_id
 	-- Правило для конкретной группы и сообщения.
@@ -1799,6 +1800,7 @@ create procedure sp_posts_add
 	_user_id int,
 	_password varchar(128),
 	_name varchar(128),
+	_tripcode varchar(128),
 	_ip bigint,
 	_subject varchar(128),
 	_datetime datetime,
@@ -1833,10 +1835,10 @@ begin
 	then
 		set _datetime = now();
 	end if;
-	insert into posts (board, thread, `number`, `user`, password, `name`, ip,
-		subject, date_time, text, sage, deleted)
-	values (_board_id, _thread_id, post_number, _user_id, _password, _name, _ip,
-		_subject, _datetime, _text, _sage, 0);
+	insert into posts (board, thread, `number`, `user`, password, `name`,
+		tripcode, ip, subject, date_time, text, sage, deleted)
+	values (_board_id, _thread_id, post_number, _user_id, _password, _name,
+		_tripcode, _ip, _subject, _datetime, _text, _sage, 0);
 	select last_insert_id() into post_id;
 	select * from posts where id = post_id;
 end|
@@ -1864,6 +1866,20 @@ begin
 		update threads set deleted = 1 where id = thread_id;
 		update posts set deleted = 1 where thread = thread_id;
 	end if;
+end|
+
+-- Добавляет текст в конец текста заданного сообщения.
+--
+-- Аргументы:
+-- _id - Идентификатор сообщения.
+-- _text - Текст.
+create procedure sp_posts_edit_specifed_addtext
+(
+	_id int,
+	_text text
+)
+begin
+	update posts set text = concat(text, _text) where id = _id;
 end|
 
 --------------------------------------------------------------------

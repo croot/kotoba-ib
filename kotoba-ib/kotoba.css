@@ -1,4 +1,4 @@
-html, body
+﻿html, body
 {
          font-size:12pt;
          background:#ECFFD0;
@@ -103,9 +103,6 @@ a:hover {
         float:right;
 }
 .postblock {
-        background:#6e7532;
-        color:#4c0000;
-        font-weight:800;
 }
 
 .dellist {
@@ -126,7 +123,7 @@ margin-left: 0em
 	background:inherit;
 	font-size:18px;
 	font-family:serif;
-	color:#FFFFFF;
+	color:#000000;
 	font-weight:800;
 font-style:italic;
 }
@@ -148,7 +145,7 @@ font-style:italic;
  	vertical-align:top;
 	clear:both;
 	float:left;
-color:#FFFFFF;
+color:#443a00;
 }
 .replytitle {
         background:inherit;
@@ -230,4 +227,27 @@ input, textarea {
 {
 	font-family: "Courier", monospace;
     background: Silver;
+}
+.logo
+{
+clear:both;
+	text-align:center;
+	font-size:2em;
+	width:100%;
+}
+.rules
+{
+	font-size: 12px;
+}
+.footer
+{
+	text-align:center;
+	font-size:12px;
+}
+form {display: inline;
+}
+
+.uwb4tp
+{
+	color: red;
 }

@@ -169,7 +169,7 @@ function create_filenames($stored_ext)
  * Создаёт трипкод.
  * @param name string <p>Имя отправителя, которое может содержать ключевое слово
  * для создания трипкода.</p>
- * @return string
+ * @return array
  * Возвращает имя отправителя со сгенерированным трипкодом, если было задано
  * ключевое слово или просто имя отправителя, если ключевое слово задано небыло.
  */
@@ -178,15 +178,15 @@ function calculate_tripcode($name)
 	@list($first, $code) = @preg_split("/[#!]/", $name);
 	if(!isset($code) || strlen($code) == 0)
 	{
-		return $name;
+		return array($name, null);
 	}
 	$enc = mb_convert_encoding($code, 'Shift_JIS', Config::MB_ENCODING);
-	$salt = substr($enc.'H..', 1, 2);
+	$salt = substr($enc .'H..', 1, 2);
 	$salt2 = preg_replace("/![\.-z]/", '.', $salt);
 	$salt3 = strtr($salt2, ":;<=>?@[\]^_`", "ABCDEFGabcdef");
 	$cr = crypt($code, $salt3);
 	$trip = substr($cr, -10);
-	return "$first!$trip";
+	return array($first, $trip);
 }
 /**
  * Перемещает загруженный файл на постоянное место хранения.

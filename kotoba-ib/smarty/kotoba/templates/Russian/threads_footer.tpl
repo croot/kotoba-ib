@@ -12,7 +12,8 @@
 
 Описание переменных:
 	$DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-	$board_name - имя просматриваемой доски.
+	$board - доска, на которой расположена просматриваемая нить.
+	$boards - доски.
 	$hidden_threads - скрытые пользователем нити на текущей доске.
 *}
 </div>
@@ -21,7 +22,9 @@
 {if count($hidden_threads) > 0}
 Скрытые вами нити:
 {section name=i loop=$hidden_threads}
- <a href="{$DIR_PATH}/{$board_name}/u{$hidden_threads[i].id}" title="Нажмите, чтобы отменить скрытие нити.">{$hidden_threads[i].number}</a>
+ <a href="{$DIR_PATH}/{$board.name}/u{$hidden_threads[i].number}" title="Нажмите, чтобы отменить скрытие нити.">{$hidden_threads[i].number}</a>
 {/section}
-{/if}
+{/if}<br>
+<div class="navbar">{include file='board_list.tpl' boards=$boards DIR_PATH=$DIR_PATH} [<a href="{$DIR_PATH}/">Главная</a>]</div>
+<div class="footer" style="clear: both;">- Kotoba 0.8 -</div>
 {include file='footer.tpl'}
