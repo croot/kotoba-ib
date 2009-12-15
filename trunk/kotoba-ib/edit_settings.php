@@ -58,9 +58,11 @@ try
 			}
 		if(!$found)
 			throw new NodataException(sprintf(NodataException::$messages['LANGUAGE_NOT_EXIST']), $language_id);
+		$goto = users_check_goto($_POST['goto']);
 		users_edit_bykeyword($keyword_hash, $threads_per_page,
 			$posts_per_thread, $lines_per_post, $stylesheet_id, $language_id,
-			(!isset($_SESSION['rempass']) || $_SESSION['rempass'] == null ? '' : $_SESSION['rempass']));
+			(!isset($_SESSION['rempass']) || $_SESSION['rempass'] == null ? '' : $_SESSION['rempass']),
+			$goto);
 		load_user_settings($keyword_hash);	// Потому что нужно получить id пользователя.
 	}
 	DataExchange::releaseResources();
@@ -76,6 +78,7 @@ try
 	$smarty->assign('language', $_SESSION['language']);
 	$smarty->assign('languages', $languages);
 	$smarty->assign('stylesheets', $stylesheets);
+	$smarty->assign('goto', $_SESSION['goto']);
 	$smarty->display('edit_settings.tpl');
 }
 catch(FormatException $fe)

@@ -48,27 +48,22 @@ try
 			$_SESSION['rempass'] = $message_pass;
 	}
 	$with_file = false;	// Сообщение с файлом.
-	if($thread['with_files'] || ($thread['with_files'] === null && $board['with_files']))
+	$link_type = null;	// Тип ссылки на файл.
+	if($thread['with_files']
+		|| ($thread['with_files'] === null && $board['with_files']))
 	{
 		if($_FILES['file']['error'] == UPLOAD_ERR_NO_FILE
-			&& (!isset($_POST['text']) || $_POST['text'] == ''))
+			&& (!isset($_POST['text']) || $_POST['text'] == '')
+			&& (!isset($_POST['macrochan_tag']) || $_POST['macrochan_tag'] == ''))
 		{
 			// Файл не был загружен и текст сообщения пуст.
 			throw new NodataException(NodataException::$messages['EMPTY_MESSAGE']);
 		}
 		if($_FILES['file']['error'] != UPLOAD_ERR_NO_FILE)
 		{
-			// По крайней мере была попытка загрузить файл.
 			$with_file = true;
-			try
-			{
-				check_upload_error($_FILES['file']['error']);
-			}
-			catch(UploadException $e)
-			{
-				if($e->getReason() != UploadException::$messages['UPLOAD_ERR_NO_FILE'])
-					throw $e;
-			}
+			$link_type = Config::LINK_TYPE_VIRTUAL;
+			check_upload_error($_FILES['file']['error']);
 			$uploaded_file_size = $_FILES['file']['size'];
 			$uploaded_file_path = $_FILES['file']['tmp_name'];
 			$uploaded_file_name = $_FILES['file']['name'];
@@ -87,6 +82,11 @@ try
 				throw new UploadException(UploadException::$messages['UPLOAD_FILETYPE_NOT_SUPPORTED']);
 			if($upload_type['is_image'])
 				uploads_check_image_size($uploaded_file_size);
+		}
+		elseif(isset($_POST['macrochan_tag']) && $_POST['macrochan_tag'] != '')
+		{
+			$with_file = true;
+			$link_type = Config::LINK_TYPE_URL;
 		}
 	}
 	posts_check_text_size($_POST['text']);
@@ -119,80 +119,100 @@ try
 		&& ($_POST['goto'] == 't' || $_POST['goto'] == 'b')
 		&& $_POST['goto'] != $_SESSION['goto'])
 			$_SESSION['goto'] = $_POST['goto'];
+// 2. Подготовка и сохранение файла.
 	if(($board['with_files'] || $thread['with_files']) && $with_file)
 	{
-// 2. Подготовка файла к сохранению.
-		$file_hash = calculate_file_hash($uploaded_file_path);
-		$file_already_posted = false;
-		$same_uploads = null;
-		switch($board['same_upload'])
+		if($link_type == Config::LINK_TYPE_VIRTUAL)
 		{
-			case 'no':
-				$same_uploads = uploads_get_same($board['id'], $file_hash,
-					$_SESSION['user']);
-				if(count($same_uploads) > 0)
-					// Terminate script!
-					show_same_uploads($smarty, $board['name'], $same_uploads);
-				break;
-			case 'once':
-				$same_uploads = uploads_get_same($board['id'], $file_hash,
-					$_SESSION['user']);
-				if(count($same_uploads) > 0)
-					$file_already_posted = true;
-				break;
-			case 'yes':
-			default:
-				break;
+			$file_hash = calculate_file_hash($uploaded_file_path);
+			$file_already_posted = false;
+			$same_uploads = null;
+			switch($board['same_upload'])
+			{
+				case 'no':
+					$same_uploads = uploads_get_same($board['id'], $file_hash,
+						$_SESSION['user']);
+					if(count($same_uploads) > 0)
+						// Terminate script!
+						show_same_uploads($smarty, $board['name'], $same_uploads);
+					break;
+				case 'once':
+					$same_uploads = uploads_get_same($board['id'], $file_hash,
+						$_SESSION['user']);
+					if(count($same_uploads) > 0)
+						$file_already_posted = true;
+					break;
+				case 'yes':
+				default:
+					break;
+			}
+			if(!$file_already_posted)
+			{
+				if($upload_type['is_image'])
+				{
+					$img_dimensions = image_get_dimensions($upload_type,
+						$uploaded_file_path);
+					if($img_dimensions['x'] < Config::MIN_IMGWIDTH
+						&& $img_dimensions['y'] < Config::MIN_IMGHEIGHT)
+						throw new LimitException(LimitException::$messages['MIN_IMG_DIMENTIONS']);
+				}
+				else
+				{
+					$img_dimensions['x'] = null;
+					$img_dimensions['y'] = null;
+				}
+				$file_names = create_filenames($upload_type['store_extension']);
+				// Directories of uploaded image and generated thumbnail.
+				$abs_img_dir = Config::ABS_PATH . "/{$board['name']}/img";
+				$virt_img_dir = Config::DIR_PATH . "/{$board['name']}/img";
+				$abs_thumb_dir = Config::ABS_PATH . "/{$board['name']}/thumb";
+				$virt_thumb_dir = Config::DIR_PATH . "/{$board['name']}/thumb";
+				// Full path of uploaded image and generated thumbnail.
+				$abs_img_path = "$abs_img_dir/{$file_names[0]}";
+				$virt_img_path = "$virt_img_dir/{$file_names[0]}";
+				if($upload_type['is_image'])
+				{
+					$abs_thumb_path = "$abs_thumb_dir/{$file_names[1]}";
+					$virt_thumb_path = "$virt_thumb_dir/{$file_names[1]}";
+				}
+				else
+					$virt_thumb_path = $upload_type['thumbnail_image'];
+// 3. Сохранение данных.
+				move_uploded_file($uploaded_file_path, $abs_img_path);
+				if($upload_type['is_image'])
+				{
+					$force = $upload_type['upload_handler_name'] === 'thumb_internal_png'
+						? true : false;	// TODO Unhardcode handler name.
+					$thumb_dimensions = create_thumbnail($abs_img_path,
+						$abs_thumb_path, $img_dimensions, $upload_type,
+						Config::THUMBNAIL_WIDTH, Config::THUMBNAIL_HEIGHT, $force);
+				}
+				else
+				{
+					$file_names[1] = $virt_thumb_path;
+					$thumb_dimensions['x'] = Config::THUMBNAIL_WIDTH;
+					$thumb_dimensions['y'] = Config::THUMBNAIL_HEIGHT;
+				}
+
+			}// Not already posted.
+		}// Virtual link type.
+		elseif($link_type == Config::LINK_TYPE_URL)
+		{
+			$file_hash = null;
+			$file_names[0] = 'http://12ch.ru/macro/index.php/image/3478.jpg';
+			$img_dimensions['x'] = '640';
+			$img_dimensions['y'] = '480';
+			$uploaded_file_size = 63290;
+			$file_names[1] = 'http://12ch.ru/macro/index.php/thumb/3478.jpg';
+			$thumb_dimensions['x'] = '192';
+			$thumb_dimensions['y'] = '144';
 		}
 		if(!$file_already_posted)
 		{
-			if($upload_type['is_image'])
-			{
-				$img_dimensions = image_get_dimensions($upload_type,
-					$uploaded_file_path);
-				if($img_dimensions['x'] < Config::MIN_IMGWIDTH
-					&& $img_dimensions['y'] < Config::MIN_IMGHEIGTH)
-					throw new LimitException(LimitException::$messages['MIN_IMG_DIMENTIONS']);
-			}
-			$file_names = create_filenames($upload_type['store_extension']);
-			// Directories of uploaded image and generated thumbnail.
-			$abs_img_dir = Config::ABS_PATH . "/{$board['name']}/img";
-			$virt_img_dir = Config::DIR_PATH . "/{$board['name']}/img";
-			$abs_thumb_dir = Config::ABS_PATH . "/{$board['name']}/thumb";
-			$virt_thumb_dir = Config::DIR_PATH . "/{$board['name']}/thumb";
-			// Full path of uploaded image and generated thumbnail.
-			$abs_img_path = "$abs_img_dir/{$file_names[0]}";
-			$virt_img_path = "$virt_img_dir/{$file_names[0]}";
-			if($upload_type['is_image'])
-			{
-				$abs_thumb_path = "$abs_thumb_dir/{$file_names[1]}";
-				$virt_thumb_path = "$virt_thumb_dir/{$file_names[1]}";
-			}
-			else
-				// TODO Сделать поддержку флага is_image. См. описание этого поля таблицы uploads в res/notes.txt.
-				$virt_thumb_path = $upload_type['thumbnail_image'];
-// 3. Сохранение данных.
-			move_uploded_file($uploaded_file_path, $abs_img_path);
-			if($upload_type['is_image'])
-			{
-				$force = $upload_type['upload_handler_name'] === 'thumb_internal_png'
-					? true : false;	// TODO Unhardcode handler name.
-				$thumb_dimensions = create_thumbnail($abs_img_path,
-					$abs_thumb_path, $img_dimensions, $upload_type,
-					Config::THUMBNAIL_WIDTH, Config::THUMBNAIL_HEIGHT, $force);
-				$upload_id = uploads_add($file_hash, $upload_type['is_image'],
-					Config::LINK_TYPE_VIRTUAL, $file_names[0],
-					$img_dimensions['x'], $img_dimensions['y'],
-					$uploaded_file_size, $file_names[1], $thumb_dimensions['x'],
-					$thumb_dimensions['y']);
-			}
-			else
-				// 200 x 200 is default thumb dimensions for non images.
-				$upload_id = uploads_add($file_hash, $upload_type['is_image'],
-					Config::LINK_TYPE_VIRTUAL, $file_names[0], null, null,
-					$uploaded_file_size, $virt_thumb_path,
-					Config::THUMBNAIL_WIDTH, Config::THUMBNAIL_HEIGHT);
-
+			$upload_id = uploads_add($file_hash, $upload_type['is_image'],
+				$link_type, $file_names[0], $img_dimensions['x'],
+				$img_dimensions['y'], $uploaded_file_size, $file_names[1],
+				$thumb_dimensions['x'], $thumb_dimensions['y']);
 		}
 		else
 			// Первый попавшийся из одинаковых файлов.

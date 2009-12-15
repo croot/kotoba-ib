@@ -71,6 +71,7 @@ try
 	$uploads = uploads_get_posts($posts);
 	$hidden_threads = hidden_threads_get_board($board['id'], $_SESSION['user']);
 	$upload_types = upload_types_get_board($board['id']);
+	$macrochan_tags = array('orgasm_face');
 // Формирование вывода.
 	$smarty->assign('board', $board);
 	$smarty->assign('boards', $boards);
@@ -79,7 +80,8 @@ try
 	$smarty->assign('is_admin', $is_admin);
 	$smarty->assign('rempass', $rempass);
 	$smarty->assign('upload_types', $upload_types);
-	$smarty->assign('goto', $_SESSION['goto']);var_dump($_SESSION['goto']);
+	$smarty->assign('goto', $_SESSION['goto']);
+	$smarty->assign('macrochan_tags', $macrochan_tags);
 	//event_daynight($smarty);	// EVENT HERE! (not default kotoba function)
 	$view_html = $smarty->fetch('threads_header.tpl');
 	$view_thread_html = '';
@@ -113,7 +115,10 @@ try
 								case Config::LINK_TYPE_VIRTUAL:
 									$u['file_link'] = Config::DIR_PATH . "/{$board['name']}/img/{$u['file']}";
 									$u['file_name'] = $u['file'];
-									$u['file_thumbnail_link'] = Config::DIR_PATH . "/{$board['name']}/thumb/{$u['thumbnail']}";
+									if($u['is_image'])
+										$u['file_thumbnail_link'] = Config::DIR_PATH . "/{$board['name']}/thumb/{$u['thumbnail']}";
+									else
+										$u['file_thumbnail_link'] = Config::DIR_PATH . "/res/{$u['thumbnail']}";
 									break;
 								case Config::LINK_TYPE_URL:
 									$u['file_link'] = $u['file'];
@@ -149,7 +154,10 @@ try
 								case Config::LINK_TYPE_VIRTUAL:
 									$u['file_link'] = Config::DIR_PATH . "/{$board['name']}/img/{$u['file']}";
 									$u['file_name'] = $u['file'];
-									$u['file_thumbnail_link'] = Config::DIR_PATH . "/{$board['name']}/thumb/{$u['thumbnail']}";
+									if($u['is_image'])
+										$u['file_thumbnail_link'] = Config::DIR_PATH . "/{$board['name']}/thumb/{$u['thumbnail']}";
+									else
+										$u['file_thumbnail_link'] = Config::DIR_PATH . "/img/{$u['thumbnail']}";
 									break;
 								case Config::LINK_TYPE_URL:
 									$u['file_link'] = $u['file'];

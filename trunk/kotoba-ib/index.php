@@ -28,10 +28,6 @@ try
 		$smarty->assign('boards_exist', true);
 		$smarty->assign('boards', $boards);
 	}
-	if(in_array(Config::MOD_GROUP_NAME, $_SESSION['groups']))
-		$smarty->assign('mod_panel', true);
-	elseif(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
-		$smarty->assign('adm_panel', true);
 	$smarty->assign('version', '$Revision$');
 	$smarty->assign('date', '$Date$');
 	$smarty->display('index.tpl');

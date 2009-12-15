@@ -215,7 +215,7 @@ CREATE TABLE `posts` (
   CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`),
   CONSTRAINT `posts_ibfk_2` FOREIGN KEY (`user`) REFERENCES `users` (`id`),
   CONSTRAINT `posts_ibfk_3` FOREIGN KEY (`thread`) REFERENCES `threads` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=800 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=806 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -269,7 +269,7 @@ CREATE TABLE `threads` (
   PRIMARY KEY (`id`),
   KEY `board` (`board`),
   CONSTRAINT `threads_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=817 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=818 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -304,7 +304,7 @@ CREATE TABLE `upload_types` (
   UNIQUE KEY `extension` (`extension`),
   KEY `upload_handler` (`upload_handler`),
   CONSTRAINT `upload_types_ibfk_1` FOREIGN KEY (`upload_handler`) REFERENCES `upload_handlers` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -319,15 +319,15 @@ CREATE TABLE `uploads` (
   `hash` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
   `is_image` bit(1) NOT NULL,
   `link_type` tinyint(4) NOT NULL,
-  `file` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
+  `file` varchar(2048) COLLATE utf8_unicode_ci NOT NULL,
   `file_w` int(11) DEFAULT NULL,
   `file_h` int(11) DEFAULT NULL,
   `size` int(11) NOT NULL,
-  `thumbnail` varchar(256) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `thumbnail` varchar(2048) COLLATE utf8_unicode_ci DEFAULT NULL,
   `thumbnail_w` int(11) DEFAULT NULL,
   `thumbnail_h` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=408 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=411 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -363,6 +363,7 @@ CREATE TABLE `users` (
   `language` int(11) NOT NULL,
   `stylesheet` int(11) NOT NULL,
   `rempass` varchar(12) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `goto` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `key` (`keyword`),
   KEY `language` (`language`),
@@ -4686,23 +4687,20 @@ DELIMITER ;;
 	_lines_per_post int,
 	_stylesheet int,
 	_language int,
-	_rempass varchar(12)
+	_rempass varchar(12),
+	_goto varchar(32)
 )
 begin
 	declare user_id int;
 	set @user_id = null;
 	select id into user_id from users where keyword = _keyword;
-	if(_rempass = '')
-	then
-		set _rempass = null;
-	end if;
 	if(user_id is null)
 	then
 		
 		insert into users (keyword, threads_per_page, posts_per_thread,
-			lines_per_post, stylesheet, `language`, rempass)
+			lines_per_post, stylesheet, `language`, rempass, `goto`)
 		values (_keyword, _threads_per_page, _posts_per_thread,
-			_lines_per_post, _stylesheet, _language, _rempass);
+			_lines_per_post, _stylesheet, _language, _rempass, _goto);
 		select last_insert_id() into user_id;
 		insert into user_groups (`user`, `group`) select user_id, id from groups
 			where name = 'Users';
@@ -4713,7 +4711,8 @@ begin
 			lines_per_post = _lines_per_post,
 			stylesheet = _stylesheet,
 			`language` = _language,
-			rempass = _rempass
+			rempass = _rempass,
+			`goto` = _goto
 		where id = user_id;
 	end if;
 end */;;
@@ -4759,7 +4758,7 @@ begin
 	select id into user_id from users where keyword = _keyword;
 
 	select u.id, u.posts_per_thread, u.threads_per_page, u.lines_per_post,
-		l.`name` as `language`, s.`name` as `stylesheet`, u.rempass
+		l.`name` as `language`, s.`name` as `stylesheet`, u.rempass, u.`goto`
 	from users u
 	join stylesheets s on u.stylesheet = s.id
 	join languages l on u.`language` = l.id
@@ -4943,4 +4942,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2009-12-15  1:48:43
+-- Dump completed on 2009-12-15 16:27:55

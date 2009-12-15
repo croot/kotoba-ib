@@ -498,12 +498,10 @@ end|
 -- Работа с пользователями. --
 ------------------------------
 
--- Получает настройки ползователя с ключевым словом $keyword.
+-- Получает настройки ползователя с ключевым заданным ключевым словом.
 --
 -- Аргументы:
 -- _keyword - хеш ключевого слова.
---
--- Возвращает запись соотвествующего пользователя и группы, в которые он входит.
 create procedure sp_users_get_settings
 (
 	_keyword varchar(32)
@@ -513,7 +511,7 @@ begin
 	select id into user_id from users where keyword = _keyword;
 
 	select u.id, u.posts_per_thread, u.threads_per_page, u.lines_per_post,
-		l.`name` as `language`, s.`name` as `stylesheet`, u.rempass
+		l.`name` as `language`, s.`name` as `stylesheet`, u.rempass, u.`goto`
 	from users u
 	join stylesheets s on u.stylesheet = s.id
 	join languages l on u.`language` = l.id
@@ -535,6 +533,7 @@ end|
 -- _stylesheet - стиль оформления
 -- _language - язык
 -- _rempass - пароль для удаления сообщений
+-- _goto - перенаправление при постинге
 create procedure sp_users_edit_bykeyword
 (
 	_keyword varchar(32),
@@ -543,23 +542,20 @@ create procedure sp_users_edit_bykeyword
 	_lines_per_post int,
 	_stylesheet int,
 	_language int,
-	_rempass varchar(12)
+	_rempass varchar(12),
+	_goto varchar(32)
 )
 begin
 	declare user_id int;
 	set @user_id = null;
 	select id into user_id from users where keyword = _keyword;
-	if(_rempass = '')
-	then
-		set _rempass = null;
-	end if;
 	if(user_id is null)
 	then
 		-- Создаём ногового пользователя
 		insert into users (keyword, threads_per_page, posts_per_thread,
-			lines_per_post, stylesheet, `language`, rempass)
+			lines_per_post, stylesheet, `language`, rempass, `goto`)
 		values (_keyword, _threads_per_page, _posts_per_thread,
-			_lines_per_post, _stylesheet, _language, _rempass);
+			_lines_per_post, _stylesheet, _language, _rempass, _goto);
 		select last_insert_id() into user_id;
 		insert into user_groups (`user`, `group`) select user_id, id from groups
 			where name = 'Users';
@@ -570,7 +566,8 @@ begin
 			lines_per_post = _lines_per_post,
 			stylesheet = _stylesheet,
 			`language` = _language,
-			rempass = _rempass
+			rempass = _rempass,
+			`goto` = _goto
 		where id = user_id;
 	end if;
 end|

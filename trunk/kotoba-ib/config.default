@@ -156,7 +156,7 @@ class Config
 	/*
 	 * Минимальная высота загружаемого изображения.
 	 */
-	const MIN_IMGHEIGTH = 32;
+	const MIN_IMGHEIGHT = 32;
 
 	// Минимальный размер загружаемого изображения в байтах.
 	const MIN_IMGSIZE = 1000;
