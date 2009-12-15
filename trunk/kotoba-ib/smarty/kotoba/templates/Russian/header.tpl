@@ -9,7 +9,7 @@
  * See license.txt for more info.*
  *********************************}
 {*
-Заголовок всех страниц Котобы.
+Код заголовка всех страниц Котобы.
 
 Описание переменных:
 	$DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
@@ -23,4 +23,4 @@
 	<link rel="stylesheet" type="text/css" href="{$DIR_PATH}/{$STYLESHEET}">
 </head>
 <body>
-
+<div class="adminbar">[<a href="{$DIR_PATH}/edit_settings.php">Настройки</a>] [<a href="{$DIR_PATH}/manage.php">Управление</a>]</div>

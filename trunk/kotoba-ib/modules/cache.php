@@ -1157,17 +1157,64 @@ function acl_get_all()
 {
 	return db_acl_get_all(DataExchange::getDBLink());
 }
+/**
+ * Редактирует запись в списке контроля доступа.
+ *
+ * Аргументы:
+ * $group_id - идентификатор группы или null для всех групп.
+ * $board_id - идентификатор доски или null для всех досок.
+ * $thread_id - идентификатор нити или null для всех нитей.
+ * $post_id - идентификатор сообщения или null для всех сообщений.
+ * $view - право на чтение.
+ * $change - право на изменение.
+ * $moderate - право на модерирование.
+ */
+function acl_edit($group_id, $board_id, $thread_num, $post_num, $view, $change,
+	$moderate)
+{
+	db_acl_edit(DataExchange::getDBLink(), $group_id, $board_id, $thread_num,
+		$post_num, $view, $change, $moderate);
+}
+/**
+ * Добавляет новую запись в список контроля доступа.
+ *
+ * Аргументы:
+ * $group_id - идентификатор группы или null для всех групп.
+ * $board_id - идентификатор доски или null для всех досок.
+ * $thread_id - идентификатор нити или null для всех нитей.
+ * $post_id - идентификатор сообщения или null для всех сообщений.
+ * $view - право на чтение. 0 или 1.
+ * $change - право на изменение. 0 или 1.
+ * $moderate - право на модерирование. 0 или 1.
+ */
+function acl_add($group_id, $board_id, $thread_id, $post_id, $view, $change, $moderate)
+{
+	db_acl_add(DataExchange::getDBLink(), $group_id, $board_id, $thread_id,
+		$post_id, $view, $change, $moderate);
+}
+/**
+ * Удаляет запись из списка контроля доступа.
+ *
+ * Аргументы:
+ * $group_id - идентификатор группы или null для всех групп.
+ * $board_id - идентификатор доски или null для всех досок.
+ * $thread_id - идентификатор нити или null для всех нитей.
+ * $post_id - идентификатор сообщения или null для всех сообщений.
+ */
+function acl_delete($group_id, $board_id, $thread_id, $post_id)
+{
+	db_acl_delete(DataExchange::getDBLink(), $group_id, $board_id, $thread_id,
+		$post_id);
+}
 
 /*************************
  * Работа с сообщениями. *
  *************************/
 
 /**
- * Проверяет корректность идентификатора $id сообщения.
- *
- * Аргументы:
- * $id - идентификатор сообщения.
- *
+ * Проверяет корректность идентификатора сообщения.
+ * @param id mixed <p>Идентификатор сообщения.</p>
+ * @return string
  * Возвращает безопасный для использования идентификатор сообщения.
  */
 function posts_check_id($id)
@@ -1229,59 +1276,8 @@ function posts_check_number($number)
 	return $number;
 }
 /**
- * Редактирует запись в списке контроля доступа.
- *
- * Аргументы:
- * $group_id - идентификатор группы или null для всех групп.
- * $board_id - идентификатор доски или null для всех досок.
- * $thread_id - идентификатор нити или null для всех нитей.
- * $post_id - идентификатор сообщения или null для всех сообщений.
- * $view - право на чтение.
- * $change - право на изменение.
- * $moderate - право на модерирование.
- */
-function acl_edit($group_id, $board_id, $thread_num, $post_num, $view, $change,
-	$moderate)
-{
-	db_acl_edit(DataExchange::getDBLink(), $group_id, $board_id, $thread_num,
-		$post_num, $view, $change, $moderate);
-}
-/**
- * Добавляет новую запись в список контроля доступа.
- *
- * Аргументы:
- * $group_id - идентификатор группы или null для всех групп.
- * $board_id - идентификатор доски или null для всех досок.
- * $thread_id - идентификатор нити или null для всех нитей.
- * $post_id - идентификатор сообщения или null для всех сообщений.
- * $view - право на чтение. 0 или 1.
- * $change - право на изменение. 0 или 1.
- * $moderate - право на модерирование. 0 или 1.
- */
-function acl_add($group_id, $board_id, $thread_id, $post_id, $view, $change, $moderate)
-{
-	db_acl_add(DataExchange::getDBLink(), $group_id, $board_id, $thread_id,
-		$post_id, $view, $change, $moderate);
-}
-/**
- * Удаляет запись из списка контроля доступа.
- *
- * Аргументы:
- * $group_id - идентификатор группы или null для всех групп.
- * $board_id - идентификатор доски или null для всех досок.
- * $thread_id - идентификатор нити или null для всех нитей.
- * $post_id - идентификатор сообщения или null для всех сообщений.
- */
-function acl_delete($group_id, $board_id, $thread_id, $post_id)
-{
-	db_acl_delete(DataExchange::getDBLink(), $group_id, $board_id, $thread_id,
-		$post_id);
-}
-/**
  * Проверяет, удовлетворяет ли текст сообщения ограничениям по размеру.
- *
- * Аргументы:
- * $text - текст сообщения.
+ * @param text string <p>Текст сообщения.</p>
  */
 function posts_check_text_size($text)
 {
@@ -1290,9 +1286,7 @@ function posts_check_text_size($text)
 }
 /**
  * Проверяет, удовлетворяет ли тема сообщения ограничениям по размеру.
- *
- * Аргументы:
- * $subject - тема сообщения.
+ * @param subject string <p>Тема сообщения.</p>
  */
 function posts_check_subject_size($subject)
 {
@@ -1307,6 +1301,135 @@ function posts_check_name_size($name)
 {
 	if(strlen($name) > Config::MAX_THEME_LENGTH)
 		throw new LimitException(LimitException::$messages['MAX_NAME_LENGTH']);
+}
+/**
+ * Получает $posts_per_thread сообщений и оригинальное сообщение для каждой
+ * нити из $threads, доступных для чтения пользователю с идентификатором
+ * $user_id.
+ * @param threads array <p>Нити.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param posts_per_thread mixed <p>Количество сообщений, которое необходимо вернуть.</p>
+ * @return array
+ * Возвращает сообщения:<p>
+ * 'id' - идентификатор.<br>
+ * 'thread' - идентификатор нити.<br>
+ * 'number' - номер.<br>
+ * 'password' - пароль для удаления.<br>
+ * 'name' - имя отправителя.<br>
+ * 'ip' - ip адрес отправителя.<br>
+ * 'subject' - тема.<br>
+ * 'date_time' - время сохранения.<br>
+ * 'text' - текст.<br>
+ * 'sage' - флаг поднятия нити.</p>
+ */
+function posts_get_threads_view($threads, $user_id, $posts_per_thread)
+{
+	return db_posts_get_threads_view(DataExchange::getDBLink(), $threads,
+		$user_id, $posts_per_thread);
+}
+/**
+ * Получает все сообщения заданной нити.
+ * @param thread_id array <p>Идентификатор нити.</p>
+ * @return array
+ * Возвращает сообщения:<p>
+ * 'id' - идентификатор.<br>
+ * 'thread' - идентификатор нити.<br>
+ * 'number' - номер.<br>
+ * 'password' - пароль для удаления.<br>
+ * 'name' - имя отправителя.<br>
+ * 'ip' - ip адрес отправителя.<br>
+ * 'subject' - тема.<br>
+ * 'date_time' - время сохранения.<br>
+ * 'text' - текст.<br>
+ * 'sage' - флаг поднятия нити.</p>
+ */
+function posts_get_thread($thread_id)
+{
+	return db_posts_get_thread(DataExchange::getDBLink(), $thread_id);
+}
+/**
+ * Получает сообщение по номеру.
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param post_num mixed <p>Номер сообщения.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает сообщение:<p>
+ * 'id' - идентификатор.<br>
+ * 'thread' - идентификатор нити.<br>
+ * 'number' - номер.<br>
+ * 'password' - пароль для удаления.<br>
+ * 'name' - имя отправителя.<br>
+ * 'ip' - ip адрес отправителя.<br>
+ * 'subject' - тема.<br>
+ * 'date_time' - время сохранения.<br>
+ * 'text' - текст.<br>
+ * 'sage' - флаг поднятия нити.</p>
+ */
+function posts_get_specifed_view_bynumber($board_id, $post_num, $user_id)
+{
+	return db_posts_get_specifed_view_bynumber(DataExchange::getDBLink(),
+		$board_id, $post_num, $user_id);
+}
+/**
+ * Добавляет сообщение.
+ * @param board_id mixed<p>Идентификатор доски.</p>
+ * @param thread_id mixed<p>Идентификатор нити.</p>
+ * @param user_id mixed<p>Идентификатор автора.</p>
+ * @param password string <p>Пароль на удаление сообщения.</p>
+ * @param name string <p>Имя автора.</p>
+ * @param tripcode string <p>Трипкод.</p>
+ * @param ip int <p>IP адрес автора.</p>
+ * @param subject string <p>Тема.</p>
+ * @param datetime string <p>Время получения сообщения.</p>
+ * @param text string <p>Текст.</p>
+ * @param sage mixed <p>Флаг поднятия нити.</p>
+ * @return array
+ * Возвращает сообщение.
+ */
+function posts_add($board_id, $thread_id, $user_id, $password, $name, $tripcode,
+	$ip, $subject, $datetime, $text, $sage)
+{
+	return db_posts_add(DataExchange::getDBLink(), $board_id, $thread_id,
+		$user_id, $password, $name, $tripcode, $ip, $subject, $datetime, $text,
+		$sage);
+}
+/**
+ * Урезает длинное сообщение.
+ * TODO: Урезание в длины.
+ * @param message string <p>Текст сообщения.</p>
+ * @param preview_lines mixed <p>Количество строк, которые нужно оставить.</p>
+ * @param is_cutted boolean <p>Ссылка на флаг урезанного сообщения.</p>
+ * @return string
+ * Возвращает урезанное сообщение.
+ */
+function posts_corp_text(&$message, $preview_lines, &$is_cutted)
+{
+	$lines = explode('<br>', $message);
+	if(count($lines) > $preview_lines) {
+		$is_cutted = 1;
+		return implode('<br>', array_slice($lines, 0, $preview_lines));
+	}
+	else {
+		$is_cutted = 0;
+		return $message;
+	}
+}
+/**
+ * Удаляет сообщение с заданным идентификатором.
+ * @param id mixed <p>Идентификатор сообщения.</p>
+ */
+function posts_delete($id)
+{
+	db_posts_delete(DataExchange::getDBLink(), $id);
+}
+/**
+ * Добавляет текст в конец текста заданного сообщения.
+ * @param id mixed <p>Идентификатор сообщения.</p>
+ * @param text string <p>Текст.</p>
+ */
+function posts_edit_specifed_addtext($id, $text)
+{
+	db_posts_edit_specifed_addtext(DataExchange::getDBLink(), $id, $text);
 }
 
 /**********************************************
@@ -1956,129 +2079,6 @@ function threads_get_specifed_change($thread_id, $user_id)
 {
 	return db_threads_get_specifed_change(DataExchange::getDBLink(), $thread_id,
 		$user_id);
-}
-
-/*************************
- * Работа с сообщениями. *
- *************************/
-
-/**
- * Получает $posts_per_thread сообщений и оригинальное сообщение для каждой
- * нити из $threads, доступных для чтения пользователю с идентификатором
- * $user_id.
- * @param threads array <p>Нити.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @param posts_per_thread mixed <p>Количество сообщений, которое необходимо вернуть.</p>
- * @return array
- * Возвращает сообщения:<p>
- * 'id' - идентификатор.<br>
- * 'thread' - идентификатор нити.<br>
- * 'number' - номер.<br>
- * 'password' - пароль для удаления.<br>
- * 'name' - имя отправителя.<br>
- * 'ip' - ip адрес отправителя.<br>
- * 'subject' - тема.<br>
- * 'date_time' - время сохранения.<br>
- * 'text' - текст.<br>
- * 'sage' - флаг поднятия нити.</p>
- */
-function posts_get_threads_view($threads, $user_id, $posts_per_thread)
-{
-	return db_posts_get_threads_view(DataExchange::getDBLink(), $threads,
-		$user_id, $posts_per_thread);
-}
-/**
- * Получает все сообщения заданной нити.
- * @param thread_id array <p>Идентификатор нити.</p>
- * @return array
- * Возвращает сообщения:<p>
- * 'id' - идентификатор.<br>
- * 'thread' - идентификатор нити.<br>
- * 'number' - номер.<br>
- * 'password' - пароль для удаления.<br>
- * 'name' - имя отправителя.<br>
- * 'ip' - ip адрес отправителя.<br>
- * 'subject' - тема.<br>
- * 'date_time' - время сохранения.<br>
- * 'text' - текст.<br>
- * 'sage' - флаг поднятия нити.</p>
- */
-function posts_get_thread($thread_id)
-{
-	return db_posts_get_thread(DataExchange::getDBLink(), $thread_id);
-}
-/**
- * Получает сообщение по номеру.
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param post_num mixed <p>Номер сообщения.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @return array
- * Возвращает сообщение:<p>
- * 'id' - идентификатор.<br>
- * 'thread' - идентификатор нити.<br>
- * 'number' - номер.<br>
- * 'password' - пароль для удаления.<br>
- * 'name' - имя отправителя.<br>
- * 'ip' - ip адрес отправителя.<br>
- * 'subject' - тема.<br>
- * 'date_time' - время сохранения.<br>
- * 'text' - текст.<br>
- * 'sage' - флаг поднятия нити.</p>
- */
-function posts_get_specifed_view_bynumber($board_id, $post_num, $user_id)
-{
-	return db_posts_get_specifed_view_bynumber(DataExchange::getDBLink(),
-		$board_id, $post_num, $user_id);
-}
-/**
- * Добавляет сообщение.
- * @param board_id mixed<p>Идентификатор доски.</p>
- * @param thread_id mixed<p>Идентификатор нити.</p>
- * @param user_id mixed<p>Идентификатор автора.</p>
- * @param password string <p>Пароль на удаление сообщения.</p>
- * @param name string <p>Имя автора.</p>
- * @param ip int <p>IP адрес автора.</p>
- * @param subject string <p>Тема.</p>
- * @param datetime string <p>Время получения сообщения.</p>
- * @param text string <p>Текст.</p>
- * @param sage mixed <p>Флаг поднятия нити.</p>
- * @return array
- * Возвращает сообщение.
- */
-function posts_add($board_id, $thread_id, $user_id, $password, $name,
-	$ip, $subject, $datetime, $text, $sage)
-{
-	return db_posts_add(DataExchange::getDBLink(), $board_id, $thread_id,
-		$user_id, $password, $name, $ip, $subject, $datetime, $text, $sage);
-}
-/**
- * Урезает длинное сообщение.
- * TODO: Урезание в длины.
- * @param message string <p>Текст сообщения.</p>
- * @param preview_lines mixed <p>Количество строк, которые нужно оставить.</p>
- * @param is_cutted boolean <p>Ссылка на флаг урезанного сообщения.</p>
- * @return string
- * Возвращает урезанное сообщение.
- */
-function posts_corp_text(&$message, $preview_lines, &$is_cutted)
-{
-	$lines = explode('<br>', $message);
-	if(count($lines) > $preview_lines) {
-		$is_cutted = 1;
-		return implode('<br>', array_slice($lines, 0, $preview_lines));
-	}
-	else {
-		$is_cutted = 0;
-		return $message;
-	}
-}
-/**
- * Удаляет сообщение с заданным идентификатором.
- * @param id mixed <p>Идентификатор сообщения.</p>
- */
-function posts_delete($id)
-{
-	db_posts_delete(DataExchange::getDBLink(), $id);
 }
 
 /******************************************************************

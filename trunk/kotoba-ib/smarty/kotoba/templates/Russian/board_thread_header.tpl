@@ -9,52 +9,39 @@
  * See license.txt for more info.*
  *********************************}
 {*
-Этот шаблон содержит код оригинального сообщения, используемый при
-предпросмотре доски.
+Код оригинального сообщения в просмотре доски.
+
 Описание переменных:
 	$DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-	$board_name - имя просматриваемой доски.
-    $thread_num - номер нити.
+	$board - просматриваемая доска.
+    $thread - нить.
+	$is_admin - флаг администратора.
 
-    $original_with_files - сообщение содержит прикреплённый файл.
-	$original_theme - тема сообщения.
-    $original_name - имя отправителя.
-    $original_time - время получения (время сервера).
-    $original_file_link - ссылка на файл, прикреплённый к сообщению.
-    $original_file_name - имя файла, прикреплённого к сообщению.
-    $original_file_size - размер файла (в байтах), прикреплённого к сообщению.
-    $original_file_width - ширина (для изображений).
-    $original_file_heigth - высота (для изображений).
-    $original_num - номер сообщения (он же номер нити).
-    $original_file_thumbnail_link - ссылка на уменьшенную копию изображения или
-        иконку для других типов файлов.
-    $original_file_thumbnail_width - ширина уменьшенной копии (для изображений).
-    $original_file_thumbnail_heigth - высота уменьшенной копии (для изображений).
-    $original_text - текст сообщения.
-	$original_hascode - ?
-	$original_tripcode - трипкод.
-	$original_text_cutted - сообщение было урезано.
-	$skipped - количество не показанных сообщений.
+	$original_post - оригинальное сообщение.
+	$original_uploads - файлы, прикрепленные к оригинальному сообщению.
 	$sticky - флаг закрепления.
+	$skipped - количество не показанных сообщений.
 *}
 <div>
-<span class="filetitle">{$original_theme}</span> <span class="postername">{$original_name}</span>{if $original_hascode == 1}<span class="postertrip">!{$original_tripcode}</span>{/if} {$original_time}
-{if $original_with_files == true}<span class="filesize">Файл: <a target="_blank" href="{$original_file_link}">{$original_file_name}</a> -(<em>{$original_file_size} Байт {$original_file_width}x{$original_file_heigth}</em>)</span>
+{if $original_post.with_files == true}
+<span class="filesize">Файл: <a target="_blank" href="{$original_uploads[0].file_link}">{$original_uploads[0].file_name}</a> -(<em>{$original_uploads[0].size} Байт {$original_uploads[0].file_w}x{$original_uploads[0].file_h}</em>)</span>
+<br><a target="_blank" href="{$original_uploads[0].file_link}"><img src="{$original_uploads[0].file_thumbnail_link}" class="thumb" width="{$original_uploads[0].thumbnail_w}" heigth="{$original_uploads[0].thumbnail_h}"></a>
 {/if}
+<span class="filetitle">{$original_post.subject}</span> <span class="postername">{$original_post.name}</span>{if $original_post.tripcode != null}<span class="postertrip">!{$original_post.tripcode}</span>{/if} {$original_post.date_time}
 <span class="reflink">
-	<span onclick="insert('>>{$original_num}');">#</span>
-	<a href="{$DIR_PATH}/{$board_name}/{$thread_num}#{$original_num}">{$original_num}</a>
-	[<a href="{$DIR_PATH}/{$board_name}/{$thread_num}">Ответить</a>]
+	<span onclick="insert('>>{$original_post.number}');">#</span>
+	<a href="{$DIR_PATH}/{$board.name}/{$thread.original_post}#{$original_post.number}">{$original_post.number}</a>
+	[<a href="{$DIR_PATH}/{$board.name}/{$thread.original_post}">Ответить</a>]
 </span>
-<span class="hidebtn">[<a href="{$DIR_PATH}/{$board_name}/h{$thread_num}" title="Скрыть">-</a>]</span>
-<span class="delbtn">[<a href="{$DIR_PATH}/{$board_name}/r{$original_num}" title="Удалить">×</a>]</span>
+<span class="hidebtn">[<a href="{$DIR_PATH}/{$board.name}/h{$thread.original_post}" title="Скрыть">-</a>]</span>
+<span class="delbtn">[<a href="{$DIR_PATH}/{$board.name}/r{$original_post.number}" title="Удалить">×</a>]</span>
 {if $sticky} Нить закреплена.{/if}
-<a name="{$original_id}"></a>
-{if $original_with_files == true}<br><a target="_blank" href="{$original_file_link}"><img src="{$original_file_thumbnail_link}" class="thumb" width="{$original_file_thumbnail_width}" heigth="{$original_file_thumbnail_heigth}"></a>
-{/if}
+{if $is_admin}{include file='mod_mini_panel.tpl' post_id=$original_post.id ip=$original_post.ip board_name=$board.name post_num=$original_post.number}{/if}
+<a name="{$original_post.number}"></a>
+<br>
 <blockquote>
-{$original_text}
+{$original_post.text}
 </blockquote>
-{if $original_text_cutted == 1}<br><span class="omittedposts">Нажмите "Ответ" для просмотра сообщения целиком.</span>{/if}
+{if $original_post.text_cutted == 1}<br><span class="omittedposts">Нажмите "Ответ" для просмотра сообщения целиком.</span>{/if}
 {if $skipped > 0}<br><span class="omittedposts">Сообщений пропущено: {$skipped}</span>
 <br><br>{/if}

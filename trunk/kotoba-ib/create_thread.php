@@ -26,9 +26,15 @@ try
 	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
 // 1 Проверка входных параметров.
-	$securimage = new Securimage();
-	if ($securimage->check($_POST['captcha_code']) == false)
-		throw new CommonException(CommonException::$messages['CAPTCHA']);
+	$is_admin = false;
+	if(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
+		$is_admin = true;
+	if(!$is_admin)
+	{
+		$securimage = new Securimage();
+		if ($securimage->check($_POST['captcha_code']) == false)
+			throw new CommonException(CommonException::$messages['CAPTCHA']);
+	}
 	$board = boards_get_specifed_change(boards_check_id($_POST['board']),
 		$_SESSION['user']);
 	if(isset($_POST['goto'])
@@ -57,34 +63,37 @@ try
 		if($upload_type['is_image'])
 			uploads_check_image_size($uploaded_file_size);
 	}
-	$message_pass = null;
-	if(isset($_POST['message_pass']) && $_POST['message_pass'] != '')
+	$pass = null;
+	if(isset($_POST['rempass']) && $_POST['rempass'] != '')
 	{
-		$message_pass = posts_check_password($_POST['message_pass']);
-		if(!isset($_SESSION['rempass']) || $_SESSION['rempass'] != $message_pass)
-			$_SESSION['rempass'] = $message_pass;
+		$pass = posts_check_password($_POST['rempass']);
+		if(!isset($_SESSION['rempass']) || $_SESSION['rempass'] != $pass)
+			$_SESSION['rempass'] = $pass;
 	}
-	posts_check_text_size($_POST['message_text']);
-	posts_check_subject_size($_POST['message_theme']);
-	$message_name = null;
+	posts_check_text_size($_POST['text']);
+	posts_check_subject_size($_POST['subject']);
+	$name = null;
+	$tripcode = null;
 	if(!$board['force_anonymous'])
 	{
-		posts_check_name_size($_POST['message_name']);
-		$message_name = htmlspecialchars($_POST['message_name'], ENT_QUOTES);
-		$message_name = stripslashes($message_name);
-		posts_check_name_size($message_name);
-		$message_name = calculate_tripcode($message_name);
-		posts_check_name_size($message_name);
+		posts_check_name_size($_POST['name']);
+		$name = htmlspecialchars($_POST['name'], ENT_QUOTES);
+		$name = stripslashes($name);
+		posts_check_name_size($name);
+		$name_tripcode = calculate_tripcode($name);
+		$name = $name_tripcode[0];
+		$tripcode = $name_tripcode[1];
+		posts_check_name_size($name);
 	}
 	else
 		// Подписывать сообщения запрещено на этой доске.
-		$message_name = '';
-	$message_text = htmlspecialchars($_POST['message_text'], ENT_QUOTES);
-	$message_subject = htmlspecialchars($_POST['message_theme'], ENT_QUOTES);
-	$message_text = stripslashes($message_text);
-	$message_subject = stripslashes($message_subject);
-	posts_check_text_size($message_text);
-	posts_check_subject_size($message_subject);
+		$name = '';
+	$text = htmlspecialchars($_POST['text'], ENT_QUOTES);
+	$subject = htmlspecialchars($_POST['subject'], ENT_QUOTES);
+	$text = stripslashes($text);
+	$subject = stripslashes($subject);
+	posts_check_text_size($text);
+	posts_check_subject_size($subject);
 	if($board['with_files'])
 	{
 // 2. Подготовка файла к сохранению.
@@ -168,9 +177,9 @@ try
 	// Создаём пустую нить.
 	$thread = threads_add($board['id'], null, null, 0, null);
 	date_default_timezone_set(Config::DEFAULT_TIMEZONE);
-	$post = posts_add($board['id'], $thread['id'], $_SESSION['user'],
-		$message_pass, $message_name, ip2long($_SERVER['REMOTE_ADDR']),
-		$message_subject, date(Config::DATETIME_FORMAT), $message_text, null);
+	$post = posts_add($board['id'], $thread['id'], $_SESSION['user'], $pass,
+		$name, $tripcode, ip2long($_SERVER['REMOTE_ADDR']), $subject,
+		date(Config::DATETIME_FORMAT), $text, null);
 	// Закрепляем сообщение как оригинальное сообщение созданной пустой нити.
 	threads_edit_originalpost($thread['id'], $post['number']);
 	if($board['with_files'])

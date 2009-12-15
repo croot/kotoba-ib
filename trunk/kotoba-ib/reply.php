@@ -26,26 +26,32 @@ try
 	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
 // 1. Проверка входных параметров.
-	$securimage = new Securimage();
-	if ($securimage->check($_POST['captcha_code']) == false)
-		throw new CommonException(CommonException::$messages['CAPTCHA']);
+	$is_admin = false;
+	if(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
+		$is_admin = true;
+	if(!$is_admin)
+	{
+		$securimage = new Securimage();
+		if ($securimage->check($_POST['captcha_code']) == false)
+			throw new CommonException(CommonException::$messages['CAPTCHA']);
+	}
 	$thread = threads_get_specifed_change(threads_check_id($_POST['t']),
 		$_SESSION['user']);
 	$board = boards_get_specifed($thread['board']);
 	if($thread['archived'])
 		throw new CommonException(CommonException::$messages['THREAD_ARCHIVED']);
 	$message_pass = null;
-	if(isset($_POST['message_pass']) && $_POST['message_pass'] != '')
+	if(isset($_POST['rempass']) && $_POST['rempass'] != '')
 	{
-		$message_pass = posts_check_password($_POST['message_pass']);
+		$message_pass = posts_check_password($_POST['rempass']);
 		if(!isset($_SESSION['rempass']) || $_SESSION['rempass'] != $message_pass)
 			$_SESSION['rempass'] = $message_pass;
 	}
 	$with_file = false;	// Сообщение с файлом.
-	if($board['with_files'] || $thread['with_files'])
+	if($thread['with_files'] || ($thread['with_files'] === null && $board['with_files']))
 	{
 		if($_FILES['file']['error'] == UPLOAD_ERR_NO_FILE
-			&& (!isset($_POST['message_text']) || $_POST['message_text'] == ''))
+			&& (!isset($_POST['text']) || $_POST['text'] == ''))
 		{
 			// Файл не был загружен и текст сообщения пуст.
 			throw new NodataException(NodataException::$messages['EMPTY_MESSAGE']);
@@ -83,23 +89,25 @@ try
 				uploads_check_image_size($uploaded_file_size);
 		}
 	}
-	posts_check_text_size($_POST['message_text']);
-	posts_check_subject_size($_POST['message_theme']);
-	$message_name = null;
+	posts_check_text_size($_POST['text']);
+	posts_check_subject_size($_POST['subject']);
+	$name = null;
 	if(!$board['force_anonymous'])
 	{
-		posts_check_name_size($_POST['message_name']);
-		$message_name = htmlspecialchars($_POST['message_name'], ENT_QUOTES);
-		$message_name = stripslashes($message_name);
-		posts_check_name_size($message_name);
-		$message_name = calculate_tripcode($message_name);
-		posts_check_name_size($message_name);
+		posts_check_name_size($_POST['name']);
+		$name = htmlspecialchars($_POST['name'], ENT_QUOTES);
+		$name = stripslashes($name);
+		posts_check_name_size($name);
+		$name_tripcode = calculate_tripcode($name);
+		$name = $name_tripcode[0];
+		$tripcode = $name_tripcode[1];
+		posts_check_name_size($name);
 	}
 	else
 		// Подписывать сообщения запрещено на этой доске.
-		$message_name = '';
-	$message_text = htmlspecialchars($_POST['message_text'], ENT_QUOTES);
-	$message_subject = htmlspecialchars($_POST['message_theme'], ENT_QUOTES);
+		$name = '';
+	$message_text = htmlspecialchars($_POST['text'], ENT_QUOTES);
+	$message_subject = htmlspecialchars($_POST['subject'], ENT_QUOTES);
 	$message_text = stripslashes($message_text);
 	$message_subject = stripslashes($message_subject);
 	posts_check_text_size($message_text);
@@ -192,7 +200,7 @@ try
 	}
 	date_default_timezone_set(Config::DEFAULT_TIMEZONE);
 	$post = posts_add($board['id'], $thread['id'], $_SESSION['user'],
-		$message_pass, $message_name, ip2long($_SERVER['REMOTE_ADDR']),
+		$message_pass, $name, $tripcode, ip2long($_SERVER['REMOTE_ADDR']),
 		$message_subject, date(Config::DATETIME_FORMAT), $message_text, $sage);
 	if(($board['with_files'] || $thread['with_files']) && $with_file)
 		posts_uploads_add($post['id'], $upload_id);

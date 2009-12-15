@@ -14,42 +14,35 @@
 
 Описание переменных:
 	$DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-	$board_name - имя просматриваемой доски.
-    $thread_num - номер нити.
+	$board - просматриваемая доска.
+    $thread - нить.
 
-    $simple_with_files - сообщение содержит прикреплённый файл.
-    $simple_theme - тема сообщения.
-    $simple_name - имя отправителя.
-    $simple_time - время получения (время сервера).
-    $simple_file_link - ссылка на файл, прикреплённый к сообщению.
-    $simple_file_name - имя файла, прикреплённого к сообщению.
-    $simple_file_size - размер файла (в байтах), прикреплённого к сообщению.
-    $simple_file_width - ширина (для изображений).
-    $simple_file_heigth - высота (для изображений).
-    $simple_num - номер (он же идентификатор) сообщения.
-    $simple_link - ссылка на сообщение.
-    $simple_remove_link - ссылка для удаления сообщения.
-    $simple_file_thumbnail_link - ссылка на уменьшенную копию изображения или
-        иконку для других типов файлов.
-    $simple_file_thumbnail_width - ширина уменьшенной копии (для изображений).
-    $simple_file_thumbnail_heigth - высота уменьшенной копии (для изображений).
-    $simple_text - текст сообщения.
+	$simple_post - сообщение.
+	$simple_uploads - файлы, прикрепленные к сообщению.
 *}
     <table>
+	<tbody>
     <tr>
+		<td class="doubledash">
+			&gt;&gt;
+		</td>
         <td class="reply">
-            <span class="filetitle">{$simple_theme}</span> <span class="postername">{$simple_name}</span> {$simple_time}
-{if $simple_with_files == true}            <span class="filesize">Файл: <a target="_blank" href="{$simple_file_link}">{$simple_file_name}</a> -(<em>{$simple_file_size} Байт {$simple_file_width}x{$simple_file_heigth}</em>)</span>
-{/if}
-            <span class="reflink"><span onclick="insert('>>{$simple_id}');">#</span> <a href="{$DIR_PATH}/{$board_name}/{$thread_num}#{$simple_num}">{$simple_num}</a></span>
-            <span class="delbtn">[<a href="{$DIR_PATH}/{$board_name}/r{$simple_num}" title="Удалить">×</a>]</span>
-            <a name="{$simple_num}"></a>
-{if $simple_with_files == true}            <br><a target="_blank" href="{$simple_file_link}"><img src="{$simple_file_thumbnail_link}" class="thumb" width="{$simple_file_thumbnail_width}" heigth="{$simple_file_thumbnail_heigth}"></a>
-{/if}
+            <span class="filetitle">{$simple_post.subject}</span> <span class="postername">{$simple_post.name}</span>{if $simple_post.tripcode != null}<span class="postertrip">!{$simple_post.tripcode}</span>{/if} {$simple_post.date_time}
+			{if $simple_post.with_files == true}
+			<span class="filesize">Файл: <a target="_blank" href="{$simple_uploads[0].file_link}">{$simple_uploads[0].file_name}</a> -(<em>{$simple_uploads[0].size} Байт {$simple_uploads[0].file_w}x{$simple_uploads[0].file_h}</em>)</span>
+			{/if}
+            <span class="reflink"><span onclick="insert('>>{$simple_post.number}');">#</span> <a href="{$DIR_PATH}/{$board.name}/{$thread.original_post}#{$simple_post.number}">{$simple_post.number}</a></span>
+            <span class="delbtn">[<a href="{$DIR_PATH}/{$board.name}/r{$simple_post.number}" title="Удалить">×</a>]</span>
+			{if $is_admin}{include file='mod_mini_panel.tpl' post_id=$simple_post.id ip=$simple_post.ip board_name=$board.name post_num=$simple_post.number}{/if}
+            <a name="{$simple_post.number}"></a>
+			{if $simple_post.with_files == true}
+			<br><a target="_blank" href="{$simple_uploads[0].file_link}"><img src="{$simple_uploads[0].file_thumbnail_link}" class="thumb" width="{$simple_uploads[0].thumbnail_w}" heigth="{$simple_uploads[0].thumbnail_h}"></a>
+			{/if}
             <blockquote>
-            {$simple_text}
+            {$simple_post.text}
             </blockquote>
-			{if $simple_text_cutted == 1}<br><span class="omittedposts">Нажмите "Ответ" для просмотра сообщения целиком.</span>{/if}
+			{if $simple_post.text_cutted == 1}<br><span class="omittedposts">Нажмите "Ответ" для просмотра сообщения целиком.</span>{/if}
         </td>
     </tr>
+	</tbody>
     </table>

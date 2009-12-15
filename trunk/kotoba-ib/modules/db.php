@@ -1822,6 +1822,7 @@ function db_threads_check_specifed_moderate($link, $thread_id, $user_id)
  * 'number' - номер.<br>
  * 'password' - пароль для удаления.<br>
  * 'name' - имя отправителя.<br>
+ * 'tripcode' - трипкод.<br>
  * 'ip' - ip адрес отправителя.<br>
  * 'subject' - тема.<br>
  * 'date_time' - время сохранения.<br>
@@ -1845,6 +1846,7 @@ function db_posts_get_threads_view($link, $threads, $user_id, $posts_per_thread)
 							'number' => $row['number'],
 							'password' => $row['password'],
 							'name' => $row['name'],
+							'tripcode' => $row['tripcode'],
 							'ip' => $row['ip'],
 							'subject' => $row['subject'],
 							'date_time' => $row['date_time'],
@@ -1866,6 +1868,7 @@ function db_posts_get_threads_view($link, $threads, $user_id, $posts_per_thread)
  * 'number' - номер.<br>
  * 'password' - пароль для удаления.<br>
  * 'name' - имя отправителя.<br>
+ * 'tripcode' - трипкод.<br>
  * 'ip' - ip адрес отправителя.<br>
  * 'subject' - тема.<br>
  * 'date_time' - время сохранения.<br>
@@ -1886,6 +1889,7 @@ function db_posts_get_thread($link, $thread_id)
 						'number' => $row['number'],
 						'password' => $row['password'],
 						'name' => $row['name'],
+						'tripcode' => $row['tripcode'],
 						'ip' => $row['ip'],
 						'subject' => $row['subject'],
 						'date_time' => $row['date_time'],
@@ -1907,6 +1911,7 @@ function db_posts_get_thread($link, $thread_id)
  * 'number' - номер.<br>
  * 'password' - пароль для удаления.<br>
  * 'name' - имя отправителя.<br>
+ * 'tripcode' - трипкод.<br>
  * 'ip' - ip адрес отправителя.<br>
  * 'subject' - тема.<br>
  * 'date_time' - время сохранения.<br>
@@ -1929,6 +1934,7 @@ function db_posts_get_specifed_view_bynumber($link, $board_id, $post_num,
 		$post['number'] = $row['number'];
 		$post['password'] = $row['password'];
 		$post['name'] = $row['name'];
+		$post['tripcode'] = $row['tripcode'];
 		$post['ip'] = $row['ip'];
 		$post['subject'] = $row['subject'];
 		$post['date_time'] = $row['date_time'];
@@ -1949,6 +1955,7 @@ function db_posts_get_specifed_view_bynumber($link, $board_id, $post_num,
  * @param user_id mixed<p>Идентификатор автора.</p>
  * @param password string <p>Пароль на удаление сообщения.</p>
  * @param name string <p>Имя автора.</p>
+ * @param tripcode string <p>Трипкод.</p>
  * @param ip int <p>IP адрес автора.</p>
  * @param subject string <p>Тема.</p>
  * @param datetime string <p>Время получения сообщения.</p>
@@ -1958,12 +1965,12 @@ function db_posts_get_specifed_view_bynumber($link, $board_id, $post_num,
  * Возвращает сообщение.
  */
 function db_posts_add($link, $board_id, $thread_id, $user_id, $password, $name,
-	$ip, $subject, $datetime, $text, $sage)
+	$tripcode, $ip, $subject, $datetime, $text, $sage)
 {
 	$sage = $sage === null ? 'null' : $sage;
 	$result = mysqli_query($link, "call sp_posts_add($board_id, $thread_id,
-		$user_id, '$password', '$name', $ip, '$subject', '$datetime', '$text',
-		$sage)");
+		$user_id, '$password', '$name', '$tripcode', $ip, '$subject',
+		'$datetime', '$text', $sage)");
 	if(!$result)
 		throw new CommonException(mysqli_error($link));
 	$row = mysqli_fetch_assoc($result);
@@ -1979,6 +1986,18 @@ function db_posts_add($link, $board_id, $thread_id, $user_id, $password, $name,
 function db_posts_delete($link, $id)
 {
 	if(!mysqli_query($link, "call sp_posts_delete($id)"))
+		throw new CommonException(mysqli_error($link));
+	db_cleanup_link($link);
+}
+/**
+ * Добавляет текст в конец текста заданного сообщения.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param id mixed <p>Идентификатор сообщения.</p>
+ * @param text string <p>Текст.</p>
+ */
+function db_posts_edit_specifed_addtext($link, $id, $text)
+{
+	if(!mysqli_query($link, "call sp_posts_edit_specifed_addtext($id, '$text')"))
 		throw new CommonException(mysqli_error($link));
 	db_cleanup_link($link);
 }

@@ -63,6 +63,12 @@ try
 			bans_add($new_range_beg, $new_range_end, $new_reason,
 				date('Y-m-d H:i:s', time() + $new_untill));
 			$reload_bans = true;
+			// Добавим сообщение о бане.
+			if(isset($_POST['add_text']) && isset($_POST['post']))
+			{
+				posts_edit_specifed_addtext(posts_check_id($_POST['post'])
+					, $smarty->fetch('uwb4tp.tpl'));
+			}
 		}
 		// Удаление банов.
 		foreach($bans as $ban)

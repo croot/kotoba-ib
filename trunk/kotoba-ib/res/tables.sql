@@ -193,6 +193,7 @@ create table posts
 	`user` int not null,
 	password varchar(128) default null,
 	`name` varchar(128) default null,
+	tripcode varchar(128) default null,
 	ip bigint default null,
 	subject varchar(128) default null,
 	date_time datetime default null,

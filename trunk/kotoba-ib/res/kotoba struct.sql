@@ -64,7 +64,7 @@ CREATE TABLE `bans` (
   `untill` datetime NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `ip_range` (`range_beg`,`range_end`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -201,6 +201,7 @@ CREATE TABLE `posts` (
   `user` int(11) NOT NULL,
   `password` varchar(128) COLLATE utf8_unicode_ci DEFAULT NULL,
   `name` varchar(128) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `tripcode` varchar(128) COLLATE utf8_unicode_ci DEFAULT NULL,
   `ip` bigint(20) DEFAULT NULL,
   `subject` varchar(128) COLLATE utf8_unicode_ci DEFAULT NULL,
   `date_time` datetime DEFAULT NULL,
@@ -214,7 +215,7 @@ CREATE TABLE `posts` (
   CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`),
   CONSTRAINT `posts_ibfk_2` FOREIGN KEY (`user`) REFERENCES `users` (`id`),
   CONSTRAINT `posts_ibfk_3` FOREIGN KEY (`thread`) REFERENCES `threads` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=791 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=800 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -268,7 +269,7 @@ CREATE TABLE `threads` (
   PRIMARY KEY (`id`),
   KEY `board` (`board`),
   CONSTRAINT `threads_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=814 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=817 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -326,7 +327,7 @@ CREATE TABLE `uploads` (
   `thumbnail_w` int(11) DEFAULT NULL,
   `thumbnail_h` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=405 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=408 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2292,6 +2293,7 @@ DELIMITER ;;
 	_user_id int,
 	_password varchar(128),
 	_name varchar(128),
+	_tripcode varchar(128),
 	_ip bigint,
 	_subject varchar(128),
 	_datetime datetime,
@@ -2326,10 +2328,10 @@ begin
 	then
 		set _datetime = now();
 	end if;
-	insert into posts (board, thread, `number`, `user`, password, `name`, ip,
-		subject, date_time, text, sage, deleted)
-	values (_board_id, _thread_id, post_number, _user_id, _password, _name, _ip,
-		_subject, _datetime, _text, _sage, 0);
+	insert into posts (board, thread, `number`, `user`, password, `name`,
+		tripcode, ip, subject, date_time, text, sage, deleted)
+	values (_board_id, _thread_id, post_number, _user_id, _password, _name,
+		_tripcode, _ip, _subject, _datetime, _text, _sage, 0);
 	select last_insert_id() into post_id;
 	select * from posts where id = post_id;
 end */;;
@@ -2426,6 +2428,28 @@ begin
 		update threads set deleted = 1 where id = thread_id;
 		update posts set deleted = 1 where thread = thread_id;
 	end if;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_posts_edit_specifed_addtext` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_edit_specifed_addtext`(
+	_id int,
+	_text text
+)
+begin
+	update posts set text = concat(text, _text) where id = _id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -2569,8 +2593,8 @@ DELIMITER ;;
 	user_id int
 )
 begin
-	select p.id, p.thread, p.`number`, p.password, p.`name`, p.ip, p.subject,
-		p.date_time, p.text, p.sage
+	select p.id, p.thread, p.`number`, p.password, p.`name`, p.tripcode, p.ip,
+		p.subject, p.date_time, p.text, p.sage
 	from posts p
 	join user_groups ug on ug.`user` = user_id
 	
@@ -2627,8 +2651,8 @@ DELIMITER ;;
 	thread_id int
 )
 begin
-	select id, thread, `number`, password, `name`, ip, subject, date_time, text,
-		sage
+	select id, thread, `number`, password, `name`, tripcode, ip, subject,
+		date_time, text, sage
 	from posts p
 	where thread = thread_id;
 end */;;
@@ -2728,10 +2752,10 @@ DELIMITER ;;
 )
 begin
 	prepare stmnt from
-		'select q.id, q.thread, q.number, q.password, q.name, q.ip, q.subject,
-			q.date_time, q.text, q.sage
-		from (select p.id, p.thread, p.number, p.password, p.name, p.ip, p.subject,
-			p.date_time, p.text, p.sage
+		'select q.id, q.thread, q.number, q.password, q.name, q.tripcode, q.ip,
+			q.subject, q.date_time, q.text, q.sage
+		from (select p.id, p.thread, p.number, p.password, p.name, p.tripcode,
+			p.ip, p.subject, p.date_time, p.text, p.sage
 		from posts p
 		join threads t on t.board = p.board and t.id = p.thread
 		join user_groups ug on ug.user = ?
@@ -2771,8 +2795,8 @@ begin
 		order by number desc
 		limit ?) q
 		union all
-		select p.id, p.thread, p.number, p.password, p.name, p.ip, p.subject,
-			p.date_time, p.text, p.sage
+		select p.id, p.thread, p.number, p.password, p.name, p.tripcode, p.ip,
+			p.subject, p.date_time, p.text, p.sage
 		from posts p
 		join threads t on t.board = p.board and t.id = p.thread
 		where p.number = t.original_post and p.thread = ?
@@ -4919,4 +4943,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2009-12-12  8:49:40
+-- Dump completed on 2009-12-15  1:48:43

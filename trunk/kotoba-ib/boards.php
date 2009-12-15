@@ -31,6 +31,10 @@ try
 		$page = check_page($_GET['page']);
 	$rempass = !isset($_SESSION['rempass']) || $_SESSION['rempass'] === null
 		? '' : $_SESSION['rempass'];
+	/*
+	 * Доски нужны для вывода списка досок, поэтому получим все и среди них
+	 * будем искать запрашиваемую.
+	 */
 	$boards = boards_get_all_view($_SESSION['user']);
 	$board = null;
 	$found = false;
@@ -44,6 +48,7 @@ try
 	if(!$found)
 		throw new NodataException(sprintf(NodataException::$messages['BOARD_NOT_FOUND'],
 				$board_name));
+// Получние нитей, сообщений и другой необходимой информации.
 	$threads_count = threads_get_view_threadscount($_SESSION['user'],
 		$board['id']);
 	$page_max = ($threads_count % $_SESSION['threads_per_page'] == 0
@@ -56,7 +61,6 @@ try
 	$is_admin = false;
 	if(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
 		$is_admin = true;
-// Получние нитей, сообщений и другой необходимой информации.
 	$threads = threads_get_board_view($board['id'], $page, $_SESSION['user'],
 		$_SESSION['threads_per_page']);
 	$posts = posts_get_threads_view($threads, $_SESSION['user'],
@@ -65,53 +69,47 @@ try
 	$uploads = uploads_get_posts($posts);
 	$hidden_threads = hidden_threads_get_board($board['id'], $_SESSION['user']);
 	$upload_types = upload_types_get_board($board['id']);
-	// Формирование вывода.
+// Формирование вывода.
+	$smarty->assign('board', $board);
 	$smarty->assign('boards', $boards);
+	$smarty->assign('is_admin', $is_admin);
 	$smarty->assign('rempass', $rempass);
-	$smarty->assign('board_name', $board['name']);
-	$smarty->assign('board_id', $board['id']);
-	$smarty->assign('board_title', $board['title']);
 	$smarty->assign('upload_types', $upload_types);
-	$smarty->assign('is_guest', $_SESSION['user'] == 1 ? true : false);
-	$smarty->assign('bump_limit', $board['bump_limit']);
 	$pages = array();
 	for($i = 1; $i <= $page_max; $i++)
 		array_push($pages, $i);
 	$smarty->assign('pages', $pages);
 	$smarty->assign('page', $page);
-	$smarty->assign('with_files', $board['with_files']);
-	$smarty->assign('force_anonymous', $board['force_anonymous']);
-	$smarty->assign('annotation', $board['annotation']);
 	$smarty->assign('goto', $_SESSION['goto']);
-	event_daynight($smarty);	// EVENT HERE! (not default kotoba function)
+	//event_daynight($smarty);	// EVENT HERE! (not default kotoba function)
 	$boards_html = $smarty->fetch('board_header.tpl');
-	$boards_thread_html = '';
-	$boards_posts_html = '';
-	$recived_posts_count = 0;
+	$boards_thread_html = '';		// Код предпросмотра нити.
+	$boards_posts_html = '';		// Код сообщений из препдпросмотра нитей.
+	$recived_posts_count = 0;		// Количество показанных сообщений в предпросмотре нити.
+	$original_post = null;			// Оригинальное сообщение с допольнительными полями.
+	$original_uploads = array();	// Массив файлов, прикрепленных к оригинальному сообщению.
+	$simple_uploads = array();		// Массив файлов, прикрепленных к сообщению.
 	foreach($threads as $t)
 	{
-		$smarty->assign('thread_num', $t['original_post']);
+		$smarty->assign('thread', $t);
 		foreach($posts as $p)
 			// Сообщение принадлежит текущей нити.
 			if($t['id'] == $p['thread'])
 			{
 				$recived_posts_count++;
-				// У некоторых старых сообщений нет имени отправителя.
+				// Имя отправителя по умолчанию.
 				if(!$board['force_anonymous'] && $board['default_name']
 					&& !$p['name'])
 				{
 					$p['name'] = $board['default_name'];
 				}
+				// Оригинальное сообщение.
 				if($t['original_post'] == $p['number'])
 				{
-					// Оригинальное сообщение.
-					$smarty->assign('original_with_files', false);
-					$smarty->assign('original_theme', $p['subject']);
-					$smarty->assign('original_name', $p['name']);
-					$smarty->assign('original_time', $p['date_time']);
-					$smarty->assign('original_num', $p['number']);
-					$smarty->assign('original_text', posts_corp_text($p['text'], $_SESSION['lines_per_post'], $is_cutted));
-					$smarty->assign('original_text_cutted', $is_cutted);
+					$p['with_files'] = false;
+					$p['text'] = posts_corp_text($p['text'],
+						$_SESSION['lines_per_post'], $is_cutted);
+					$p['text_cutted'] = $is_cutted;
 					// В данной версии 1 сообщение = 1 файл
 					foreach($posts_uploads as $pu)
 						if($p['id'] == $pu['post'])
@@ -120,101 +118,88 @@ try
 							foreach($uploads as $u)
 								if($pu['upload'] == $u['id'])
 								{
-									$smarty->assign('original_with_files', true);
+									$p['with_files'] = true;
 									switch($u['link_type'])
 									{
 										case Config::LINK_TYPE_VIRTUAL:
-											$smarty->assign('original_file_link', Config::DIR_PATH . "/{$board['name']}/img/{$u['file']}");
-											$smarty->assign('original_file_name', $u['file']);
-											$smarty->assign('original_file_thumbnail_link', Config::DIR_PATH . "/{$board['name']}/thumb/{$u['thumbnail']}");
+											$u['file_link'] = Config::DIR_PATH . "/{$board['name']}/img/{$u['file']}";
+											$u['file_name'] = $u['file'];
+											$u['file_thumbnail_link'] = Config::DIR_PATH . "/{$board['name']}/thumb/{$u['thumbnail']}";
 											break;
 										case Config::LINK_TYPE_URL:
-											$smarty->assign('original_file_link', $u['file']);
-											$smarty->assign('original_file_name', $u['file']);
-											$smarty->assign('original_file_thumbnail_link', $u['thumbnail']);
+											$u['file_link'] = $u['file'];
+											$u['file_name'] = $u['file'];
+											$u['file_thumbnail_link'] = $u['thumbnail'];
 											break;
 										case Config::LINK_TYPE_CODE:
 										default:
 											throw new CommonException('Not supported.');
 											break;
 									}
-									$smarty->assign('original_file_size', $u['size']);
-									$smarty->assign('original_file_width', $u['file_w']);
-									$smarty->assign('original_file_heigth', $u['file_h']);
-									$smarty->assign('original_file_thumbnail_width', $u['thumbnail_w']);
-									$smarty->assign('original_file_thumbnail_heigth', $u['thumbnail_h']);
+									array_push($original_uploads, $u);
 								}
 						}
-					$original_ip = long2ip($p['ip']);
-					$original_id = $p['id'];
-					$original_num = $p['number'];
+					$p['ip'] = long2ip($p['ip']);
+					/*
+					 * Код оригинального сообщения не может быть сформирован
+					 * сразу, потому что ещё не подсчитано число выведенных
+					 * сообщений.
+					 */
+					$original_post = $p;
 				}
 				else
 				{
-					$smarty->assign('simple_with_files', false);
-					$smarty->assign('simple_theme', $p['subject']);
-					$smarty->assign('simple_name', $p['name']);
-					$smarty->assign('simple_time', $p['date_time']);
-					$smarty->assign('simple_num', $p['number']);
-					$smarty->assign('simple_text', posts_corp_text($p['text'], $_SESSION['lines_per_post'], $is_cutted));
-					$smarty->assign('simple_text_cutted', $is_cutted);
+					$p['with_files'] = false;
+					$p['text'] = posts_corp_text($p['text'],
+						$_SESSION['lines_per_post'], $is_cutted);
+					$p['text_cutted'] = $is_cutted;
 					foreach($posts_uploads as $pu)
 						if($p['id'] == $pu['post'])
 						{
 							foreach($uploads as $u)
 								if($pu['upload'] == $u['id'])
 								{
-									$smarty->assign('simple_with_files', true);
+									$p['with_files'] = true;
 									switch($u['link_type'])
 									{
 										case Config::LINK_TYPE_VIRTUAL:
-											$smarty->assign('simple_file_link', Config::DIR_PATH . "/{$board['name']}/img/{$u['file']}");
-											$smarty->assign('simple_file_name', $u['file']);
-											$smarty->assign('simple_file_thumbnail_link', Config::DIR_PATH . "/{$board['name']}/thumb/{$u['thumbnail']}");
+											$u['file_link'] = Config::DIR_PATH . "/{$board['name']}/img/{$u['file']}";
+											$u['file_name'] = $u['file'];
+											$u['file_thumbnail_link'] = Config::DIR_PATH . "/{$board['name']}/thumb/{$u['thumbnail']}";
 											break;
 										case Config::LINK_TYPE_URL:
-											$smarty->assign('simple_file_link', $u['file']);
-											$smarty->assign('simple_file_name', $u['file']);
-											$smarty->assign('simple_file_thumbnail_link', $u['thumbnail']);
+											$u['file_link'] = $u['file'];
+											$u['file_name'] = $u['file'];
+											$u['file_thumbnail_link'] = $u['thumbnail'];
 											break;
 										case Config::LINK_TYPE_CODE:
 										default:
 											throw new CommonException('Not supported.');
 											break;
 									}
-									$smarty->assign('simple_file_size', $u['size']);
-									$smarty->assign('simple_file_width', $u['file_w']);
-									$smarty->assign('simple_file_heigth', $u['file_h']);
-									$smarty->assign('simple_file_thumbnail_width', $u['thumbnail_w']);
-									$smarty->assign('simple_file_thumbnail_heigth', $u['thumbnail_h']);
+									array_push($simple_uploads, $u);
 								}
 						}
+					$p['ip'] = long2ip($p['ip']);
+					$smarty->assign('simple_post', $p);
+					$smarty->assign('simple_uploads', $simple_uploads);
 					$boards_posts_html .= $smarty->fetch('post_simple.tpl');
-					if($is_admin)
-					{
-						$smarty->assign('post_id',  $p['id']);
-						$smarty->assign('ip', long2ip($p['ip']));
-						$smarty->assign('post_num', $p['number']);
-						$boards_posts_html .= $smarty->fetch('mod_mini_panel.tpl');
-					}
+					$simple_uploads = array();
 				}// Оригинальное или простое сообщение.
 			}// Сообщение принадлежит текущей нити.
 		$smarty->assign('sticky', $t['sticky']);
 		$smarty->assign('skipped', ($t['posts_count'] - $recived_posts_count));
+		$smarty->assign('original_post', $original_post);
+		$smarty->assign('original_uploads', $original_uploads);
 		$boards_thread_html .= $smarty->fetch('board_thread_header.tpl');
-		if($is_admin)
-		{
-			$smarty->assign('post_id',  $original_id);
-			$smarty->assign('ip', $original_ip);
-			$smarty->assign('post_num', $original_num);
-			$boards_thread_html .= $smarty->fetch('mod_mini_panel.tpl');
-		}
 		$boards_thread_html .= $boards_posts_html;
 		$boards_thread_html .= $smarty->fetch('board_thread_footer.tpl');
 		$boards_html .= $boards_thread_html;
 		$boards_thread_html = '';
 		$boards_posts_html = '';
 		$recived_posts_count = 0;
+		$original_post = null;
+		$original_uploads = array();
 	}
 	$smarty->assign('hidden_threads', $hidden_threads);
 	$boards_html .= $smarty->fetch('board_footer.tpl');
