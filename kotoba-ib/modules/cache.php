@@ -695,20 +695,20 @@ function users_check_keyword($keyword)
 	return $keyword;
 }
 /**
- * Получает настройки ползователя с ключевым словом $keyword.
- *
- * Аргументы:
- * $keyword - хеш ключевого слова.
- *
- * Возвращает настройки:
- * 'id' - идентификатор пользователя.
- * 'posts_per_thread' - количество последних сообщений в нити при просмотре доски.
- * 'threads_per_page' - количество нитей на странице при просмотре доски.
- * 'lines_per_post' - количество строк в урезанном сообщении при просмотре доски.
- * 'language' - язык.
- * 'stylesheet' - стиль оформления.
- * 'rempass' - пароль для удаления сообщений.
- * 'groups' - массив групп, в которые входит пользователь.
+ * Получает настройки ползователя с заданным ключевым словом.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param keyword string <p>Хеш ключевого слова.</p>
+ * @return array
+ * Возвращает настройки:<p>
+ * 'id' - идентификатор пользователя.<br>
+ * 'posts_per_thread' - количество последних сообщений в нити при просмотре доски.<br>
+ * 'threads_per_page' - количество нитей на странице при просмотре доски.<br>
+ * 'lines_per_post' - количество строк в урезанном сообщении при просмотре доски.<br>
+ * 'language' - язык.<br>
+ * 'stylesheet' - стиль оформления.<br>
+ * 'rempass' - пароль для удаления сообщений.<br>
+ * 'goto' - перенаправление при постинге.<br>
+ * 'groups' - массив групп, в которые входит пользователь.</p>
  */
 function users_get_settings($keyword)
 {
@@ -802,27 +802,43 @@ function users_check_lines_per_post($lines_per_post)
 	return $lines_per_post;
 }
 /**
- * Редактирует настройки пользователя с ключевым словом $keyword или добавляет
- * нового.
- *
- * Аргументы:
- * $keyword - хеш ключевого слова
- * $threads_per_page - количество нитей на странице предпросмотра доски
- * $posts_per_thread - количество сообщений в предпросмотре треда
- * $lines_per_post - максимальное количество строк в предпросмотре сообщения
- * $stylesheet - стиль оформления
- * $language - язык
- * $rempass - пароль для удаления сообщений
+ * Проверяет корректность перенаправления при постинге.
+ * @param goto string <p>Перенаправление при постинге.</p>
+ * Возвращает безопасное для использования перенаправление при постинге.
  */
-function users_edit_bykeyword($keyword, $threads_per_page, $posts_per_thread, $lines_per_post, $stylesheet, $language, $rempass)
+function users_check_goto($goto)
 {
-	db_users_edit_bykeyword(DataExchange::getDBLink(), $keyword, $threads_per_page, $posts_per_thread, $lines_per_post, $stylesheet, $language, $rempass);
+	if($goto == 'b' || $goto == 't')
+		return $goto;
+	else
+		throw new FormatException(FormatException::$messages['GOTO']);
+}
+/**
+ * Редактирует настройки пользователя с заданным ключевым словом или добавляет
+ * нового.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param keyword string <p>Хеш ключевого слова.</p>
+ * @param threads_per_page mixed <p>Количество нитей на странице предпросмотра доски.</p>
+ * @param posts_per_thread mixed <p>Количество сообщений в предпросмотре треда.</p>
+ * @param lines_per_post mixed <p>Максимальное количество строк в предпросмотре сообщения.</p>
+ * @param stylesheet mixed <p>Стиль оформления.</p>
+ * @param language mixed <p>Язык.</p>
+ * @param rempass mixed <p>Пароль для удаления сообщений.</p>
+ * @param goto string <p>Перенаправление при постинге.</p>
+ */
+function users_edit_bykeyword($keyword, $threads_per_page, $posts_per_thread,
+	$lines_per_post, $stylesheet, $language, $rempass, $goto)
+{
+	db_users_edit_bykeyword(DataExchange::getDBLink(), $keyword,
+		$threads_per_page, $posts_per_thread, $lines_per_post, $stylesheet,
+		$language, $rempass, $goto);
 }
 /**
  * Получает всех пользователей.
- *
- * Возвращает пользователей:
- * 'id' - идентификатор пользователя.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @return array
+ * Возвращает идентификаторы пользователей:<p>
+ * 'id' - идентификатор пользователя.</p>
  */
 function users_get_all()
 {

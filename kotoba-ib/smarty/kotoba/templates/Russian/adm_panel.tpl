@@ -27,4 +27,5 @@
 <a href="{$DIR_PATH}/admin/edit_boards.php">Редактирование досок.</a><br>
 <a href="{$DIR_PATH}/admin/edit_boards_annotation.php">Редактирование аннотаций досок.</a><br>
 <a href="{$DIR_PATH}/admin/edit_bans.php">Редактирование банов.</a><br>
-<a href="{$DIR_PATH}/admin/edit_threads.php">Редактирование настроек нитей.</a>
+<a href="{$DIR_PATH}/admin/edit_threads.php">Редактирование настроек нитей.</a><br>
+<a href="{$DIR_PATH}/admin/archive.php">Произвести архивирование.</a>

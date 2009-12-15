@@ -20,6 +20,7 @@
 	$languages - массив имен языков.
 	$language -	язык.
 	$stylesheets - массив имен стилей оформления.
+	$goto - перенаправление при постинге.
 *}
 {include file='header.tpl' page_title='Мои настройки' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
 <form action="{$DIR_PATH}/edit_settings.php" method="post">
@@ -34,6 +35,12 @@
         <tr valign="top"><td>Количество нитей на странице: </td><td><input type="text" name="threads_per_page" size="10" value="{$threads_per_page}"></td></tr>
         <tr valign="top"><td>Количество сообщений в нити: </td><td><input type="text" name="posts_per_thread" size="10" value="{$posts_per_thread}"></td></tr>
         <tr valign="top"><td>Количество строк в сообщении: </td><td><input type="text" name="lines_per_post" size="10" value="{$lines_per_post}"></td></tr>
+		<tr valign="top"><td>Перенаправление при постинге: </td><td>
+			<select name="goto">
+				<option value="t"{if $goto == 't'} selected{/if}>К нити</option>
+				<option value="b"{if $goto == 'b'} selected{/if}>К доске</option>
+			</select>
+		</td></tr>
     </table>
 <b>Другое:</b>
     <table border="0">
@@ -45,5 +52,5 @@
     <input type="text" name="keyword_save" size="32">
     <input type="submit" value="Сохранить">
 </form>
-<a href="{$DIR_PATH}/">На главную</a>
+<br><a href="{$DIR_PATH}/">На главную</a>
 {include file='footer.tpl'}

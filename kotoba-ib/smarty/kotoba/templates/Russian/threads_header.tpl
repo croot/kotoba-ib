@@ -48,6 +48,16 @@
 <tr valign="top"><td class="postblock">Сообщение: </td><td><textarea name="text" rows="7" cols="50"></textarea></td></tr>
 {if $thread.with_files || ($thread.with_files === null && $board.with_files)}
 <tr valign="top"><td class="postblock">Файл: </td><td><input type="file" name="file" size="54"></td></tr>
+<tr valign="top"><td class="postblock">Макрос: </td>
+<td>
+	<select name="macrochan_tag">
+	<option value="" selected></option>
+	{section name=i loop=$macrochan_tags}
+		<option value="{$macrochan_tags[i]}">{$macrochan_tags[i]}</option>
+	{/section}
+	</select>
+</td>
+</tr>
 {/if}
 {if !$is_admin}<tr valign="top"><td class="postblock">Капча: </td><td><a href="#" onclick="document.getElementById('captcha').src = '{$DIR_PATH}/securimage/securimage_show.php?' + Math.random(); return false"><img id="captcha" src="{$DIR_PATH}/securimage/securimage_show.php" alt="CAPTCHA Image" /></a> <input type="text" name="captcha_code" size="10" maxlength="6" /></tr>{/if}
 <tr valign="top"><td class="postblock">Пароль: </td><td><input type="password" name="message_pass" size="30" value="{$rempass}"></td></tr>

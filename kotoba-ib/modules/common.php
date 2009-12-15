@@ -107,7 +107,7 @@ function load_user_settings($keyword)
 		require "modules/lang/{$_SESSION['language']}/errors.php";
 	$_SESSION['language'] = $user_settings['language'];
 	$_SESSION['rempass'] = $user_settings['rempass'];
-	$_SESSION['goto'] = 'b';	// TODO Сделать сохранение и редактирование этого параметра.
+	$_SESSION['goto'] = $user_settings['goto'];
 }
 /**
  * Проверяет корректность номера страницы в постраничной разбивке просмотра
@@ -171,7 +171,7 @@ function create_filenames($stored_ext)
  * для создания трипкода.</p>
  * @return array
  * Возвращает имя отправителя со сгенерированным трипкодом, если было задано
- * ключевое слово или просто имя отправителя, если ключевое слово задано небыло.
+ * ключевое слово или просто имя отправителя, если ключевое слово задано не было.
  */
 function calculate_tripcode($name)
 {
@@ -239,9 +239,9 @@ function check_upload_error($error)
 		case UPLOAD_ERR_PARTIAL:
 			throw new UploadException::$messages['UPLOAD_ERR_PARTIAL'];
 			break;
-		case UPLOAD_ERR_NO_FILE:
-			throw new UploadException::$messages['UPLOAD_ERR_NO_FILE'];
-			break;
+//		case UPLOAD_ERR_NO_FILE:
+//			throw new UploadException::$messages['UPLOAD_ERR_NO_FILE'];
+//			break;
 		case UPLOAD_ERR_NO_TMP_DIR:
 			throw new UploadException::$messages['UPLOAD_ERR_NO_TMP_DIR'];
 			break;

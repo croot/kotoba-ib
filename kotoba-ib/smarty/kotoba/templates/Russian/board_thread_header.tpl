@@ -25,7 +25,7 @@
 <div>
 {if $original_post.with_files == true}
 <span class="filesize">Файл: <a target="_blank" href="{$original_uploads[0].file_link}">{$original_uploads[0].file_name}</a> -(<em>{$original_uploads[0].size} Байт {$original_uploads[0].file_w}x{$original_uploads[0].file_h}</em>)</span>
-<br><a target="_blank" href="{$original_uploads[0].file_link}"><img src="{$original_uploads[0].file_thumbnail_link}" class="thumb" width="{$original_uploads[0].thumbnail_w}" heigth="{$original_uploads[0].thumbnail_h}"></a>
+<br><a target="_blank" href="{$original_uploads[0].file_link}"><img src="{$original_uploads[0].file_thumbnail_link}" class="thumb" width="{$original_uploads[0].thumbnail_w}" height="{$original_uploads[0].thumbnail_h}"></a>
 {/if}
 <span class="filetitle">{$original_post.subject}</span> <span class="postername">{$original_post.name}</span>{if $original_post.tripcode != null}<span class="postertrip">!{$original_post.tripcode}</span>{/if} {$original_post.date_time}
 <span class="reflink">

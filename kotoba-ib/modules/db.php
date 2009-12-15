@@ -9,7 +9,6 @@
  * See license.txt for more info.*
  *********************************/
 // Интерфейс работы с БД.
-// TODO Закрепление нитей.
 
 /***********
  * Разное. *
@@ -605,21 +604,20 @@ function db_categories_delete($link, $id)
  ****************************/
 
 /**
- * Получает настройки ползователя с ключевым словом $keyword.
- *
- * Аргументы:
- * $link - связь с базой данных.
- * $keyword - хеш ключевого слова.
- *
- * Возвращает настройки:
- * 'id' - идентификатор пользователя.
- * 'posts_per_thread' - количество последних сообщений в нити при просмотре доски.
- * 'threads_per_page' - количество нитей на странице при просмотре доски.
- * 'lines_per_post' - количество строк в урезанном сообщении при просмотре доски.
- * 'language' - язык.
- * 'stylesheet' - стиль оформления.
- * 'rempass' - пароль для удаления сообщений.
- * 'groups' - массив групп, в которые входит пользователь.
+ * Получает настройки ползователя с заданным ключевым словом.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param keyword string <p>Хеш ключевого слова.</p>
+ * @return array
+ * Возвращает настройки:<p>
+ * 'id' - идентификатор пользователя.<br>
+ * 'posts_per_thread' - количество последних сообщений в нити при просмотре доски.<br>
+ * 'threads_per_page' - количество нитей на странице при просмотре доски.<br>
+ * 'lines_per_post' - количество строк в урезанном сообщении при просмотре доски.<br>
+ * 'language' - язык.<br>
+ * 'stylesheet' - стиль оформления.<br>
+ * 'rempass' - пароль для удаления сообщений.<br>
+ * 'goto' - перенаправление при постинге.<br>
+ * 'groups' - массив групп, в которые входит пользователь.</p>
  */
 function db_users_get_settings($link, $keyword)
 {
@@ -637,6 +635,7 @@ function db_users_get_settings($link, $keyword)
 		$user_settings['language'] = $row['language'];
 		$user_settings['stylesheet'] = $row['stylesheet'];
 		$user_settings['rempass'] = $row['rempass'];
+		$user_settings['goto'] = $row['goto'];
 	}
 	else
 		throw new PremissionException(sprintf(PremissionException::$messages['USER_NOT_EXIST']), $keyword);
@@ -660,40 +659,37 @@ function db_users_get_settings($link, $keyword)
 	return $user_settings;
 }
 /**
- * Редактирует настройки пользователя с ключевым словом $keyword или добавляет
+ * Редактирует настройки пользователя с заданным ключевым словом или добавляет
  * нового.
- *
- * Аргументы:
- * $link - связь с базой данных
- * $keyword - хеш ключевого слова
- * $threads_per_page - количество нитей на странице предпросмотра доски
- * $posts_per_thread - количество сообщений в предпросмотре треда
- * $lines_per_post - максимальное количество строк в предпросмотре сообщения
- * $stylesheet - стиль оформления
- * $language - язык
- * $rempass - пароль для удаления сообщений
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param keyword string <p>Хеш ключевого слова.</p>
+ * @param threads_per_page mixed <p>Количество нитей на странице предпросмотра доски.</p>
+ * @param posts_per_thread mixed <p>Количество сообщений в предпросмотре треда.</p>
+ * @param lines_per_post mixed <p>Максимальное количество строк в предпросмотре сообщения.</p>
+ * @param stylesheet mixed <p>Стиль оформления.</p>
+ * @param language mixed <p>Язык.</p>
+ * @param rempass mixed <p>Пароль для удаления сообщений.</p>
+ * @param goto string <p>Перенаправление при постинге.</p>
  */
 function db_users_edit_bykeyword($link, $keyword, $threads_per_page,
-	$posts_per_thread, $lines_per_post, $stylesheet, $language, $rempass)
+	$posts_per_thread, $lines_per_post, $stylesheet, $language, $rempass, $goto)
 {
-	$result = mysqli_query($link, "call sp_users_edit_bykeyword('$keyword',
-		$threads_per_page, $posts_per_thread, $lines_per_post, $stylesheet,
-		$language, '$rempass')");
-	if(!$result)
+	$rempass = $rempass === null? 'null' : "'$rempass'";
+	$goto = $goto === null? 'null' : "'$goto'";
+	if(!mysqli_query($link, "call sp_users_edit_bykeyword('$keyword',
+			$threads_per_page, $posts_per_thread, $lines_per_post, $stylesheet,
+			$language, $rempass, $goto)"))
 		throw new CommonException(mysqli_error($link));
 	if(mysqli_affected_rows($link) <= 0)
 		throw new DataExchangeException(DataExchangeException::$messages['SAVE_USER_SETTINGS']);
-	@mysql_free_result($result);
 	db_cleanup_link($link);
 }
 /**
  * Получает всех пользователей.
- *
- * Аргументы:
- * $link - связь с базой данных.
- *
- * Возвращает пользователей:
- * 'id' - идентификатор пользователя.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @return array
+ * Возвращает идентификаторы пользователей:<p>
+ * 'id' - идентификатор пользователя.</p>
  */
 function db_users_get_all($link)
 {
