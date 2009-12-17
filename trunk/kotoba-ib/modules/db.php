@@ -1997,6 +1997,30 @@ function db_posts_edit_specifed_addtext($link, $id, $text)
 		throw new CommonException(mysqli_error($link));
 	db_cleanup_link($link);
 }
+/**
+ * Получает все сообщения с номерами нитей и именами досок.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @return array
+ * Возвращает сообщения:<p>
+ * 'post' - номер сообщения.<br>
+ * 'thread' - номер нити.<br>
+ * 'board' - номер доски.</p>
+ */
+function db_posts_get_all_numbers($link)
+{
+	$result = mysqli_query($link, 'call sp_posts_get_all_numbers()');
+	if(!$result)
+		throw new CommonException(mysqli_error($link));
+	$data = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($data, array('post' => $row['post'],
+									'thread' => $row['thread'],
+									'board' => $row['board']));
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $data;
+}
 
 /******************************************************************
  * Работа со связями сообщений и информации о загруженных файлах. *

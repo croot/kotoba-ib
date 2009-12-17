@@ -17,6 +17,7 @@ require 'modules/cache.php';
 require 'modules/common.php';
 require 'modules/popdown_handlers.php';
 require 'modules/upload_handlers.php';
+require 'modules/mark.php';
 include 'securimage/securimage.php';
 try
 {
@@ -95,23 +96,30 @@ try
 	if(!$board['force_anonymous'])
 	{
 		posts_check_name_size($_POST['name']);
-		$name = htmlspecialchars($_POST['name'], ENT_QUOTES);
-		$name = stripslashes($name);
+		$name = htmlentities($_POST['name'], ENT_QUOTES, Config::MB_ENCODING);
+		$name = str_replace('\\', '\\\\', $name);
+		$name = str_replace("\n", '', $name);
+		$name = str_replace("\r", '', $name);
 		posts_check_name_size($name);
 		$name_tripcode = calculate_tripcode($name);
 		$name = $name_tripcode[0];
 		$tripcode = $name_tripcode[1];
-		posts_check_name_size($name);
 	}
 	else
 		// Подписывать сообщения запрещено на этой доске.
 		$name = '';
-	$message_text = htmlspecialchars($_POST['text'], ENT_QUOTES);
-	$message_subject = htmlspecialchars($_POST['subject'], ENT_QUOTES);
-	$message_text = stripslashes($message_text);
-	$message_subject = stripslashes($message_subject);
-	posts_check_text_size($message_text);
-	posts_check_subject_size($message_subject);
+	$text = htmlentities($_POST['text'], ENT_QUOTES, Config::MB_ENCODING);
+	$text = str_replace('\\', '\\\\', $text);
+	$subject = htmlentities($_POST['subject'], ENT_QUOTES, Config::MB_ENCODING);
+	$subject = str_replace('\\', '\\\\', $subject);
+	posts_check_text_size($text);
+	posts_check_subject_size($subject);
+	kotoba_mark($text, $board);
+	$text = preg_replace("/\n/", '<br>', $text);
+	$text = preg_replace('/(<br>){3,}/', '<br><br>', $text);
+	posts_check_text_size($text);
+	$subject = str_replace("\n", '', $subject);
+	$subject = str_replace("\r", '', $subject);
 	$sage = null;	// Наследует от нити.
 	if(isset($_POST['sage']) && $_POST['sage'] == 'sage')
 		$sage = '1';
@@ -133,8 +141,11 @@ try
 					$same_uploads = uploads_get_same($board['id'], $file_hash,
 						$_SESSION['user']);
 					if(count($same_uploads) > 0)
-						// Terminate script!
+					{
 						show_same_uploads($smarty, $board['name'], $same_uploads);
+						DataExchange::releaseResources();
+						exit;
+					}
 					break;
 				case 'once':
 					$same_uploads = uploads_get_same($board['id'], $file_hash,
@@ -221,7 +232,7 @@ try
 	date_default_timezone_set(Config::DEFAULT_TIMEZONE);
 	$post = posts_add($board['id'], $thread['id'], $_SESSION['user'],
 		$message_pass, $name, $tripcode, ip2long($_SERVER['REMOTE_ADDR']),
-		$message_subject, date(Config::DATETIME_FORMAT), $message_text, $sage);
+		$subject, date(Config::DATETIME_FORMAT), $text, $sage);
 	if(($board['with_files'] || $thread['with_files']) && $with_file)
 		posts_uploads_add($post['id'], $upload_id);
 // 4. Запуск обработчика автоматического удаления нитей.

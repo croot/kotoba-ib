@@ -64,7 +64,7 @@ CREATE TABLE `bans` (
   `untill` datetime NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `ip_range` (`range_beg`,`range_end`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -215,7 +215,7 @@ CREATE TABLE `posts` (
   CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`),
   CONSTRAINT `posts_ibfk_2` FOREIGN KEY (`user`) REFERENCES `users` (`id`),
   CONSTRAINT `posts_ibfk_3` FOREIGN KEY (`thread`) REFERENCES `threads` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=806 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=846 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -269,7 +269,7 @@ CREATE TABLE `threads` (
   PRIMARY KEY (`id`),
   KEY `board` (`board`),
   CONSTRAINT `threads_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=818 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=819 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -327,7 +327,7 @@ CREATE TABLE `uploads` (
   `thumbnail_w` int(11) DEFAULT NULL,
   `thumbnail_h` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=411 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=415 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2528,6 +2528,30 @@ begin
 	select id, thread, `number`, `user`, password, `name`, ip, subject, date_time, text from temp_posts;
 	deallocate prepare saving_posts;
 	drop temporary table if exists temp_posts;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_posts_get_all_numbers` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_get_all_numbers`()
+begin
+	select p.`number` as post, t.`original_post` as thread, b.`name` as board
+	from posts p
+	join threads t on t.id = p.thread
+	join boards b on b.id = p.board
+	where p.deleted = 0 and t.deleted = 0 and t.archived = 0
+	order by p.`number`, t.`original_post`, b.`name` asc;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -4942,4 +4966,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2009-12-15 16:27:55
+-- Dump completed on 2009-12-17 16:06:54

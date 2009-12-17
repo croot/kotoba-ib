@@ -32,7 +32,7 @@
 {* Начало кода эвента времени суток (не входит в котобу). *}
 {if isset($event_daynight_active) && $event_daynight_active}{$event_daynight_code}{/if}
 {* Конец кода эвента времени суток. *}
-
+<script src="{$DIR_PATH}/kusaba.js"></script>
 <div class="navbar">{include file='board_list.tpl' boards=$boards DIR_PATH=$DIR_PATH} [<a href="{$DIR_PATH}/">Главная</a>]</div>
 
 <div class="logo">✿Kotoba — /{$board.name}/ {$board.title}</div>
