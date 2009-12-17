@@ -74,6 +74,7 @@ drop procedure if exists sp_posts_uploads_get_post|
 drop procedure if exists sp_posts_uploads_add|
 drop procedure if exists sp_posts_delete|
 drop procedure if exists sp_posts_edit_specifed_addtext|
+drop procedure if exists sp_posts_get_all_numbers|
 drop procedure if exists sp_uploads_get_post|
 drop procedure if exists sp_uploads_get_same|
 drop procedure if exists sp_uploads_add|
@@ -1905,6 +1906,17 @@ create procedure sp_posts_uploads_add
 )
 begin
 	insert into posts_uploads (post, upload) values (_post_id, _upload_id);
+end|
+
+-- Выбирает все сообщения с номерами нитей и именами досок.
+create procedure sp_posts_get_all_numbers ()
+begin
+	select p.`number` as post, t.`original_post` as thread, b.`name` as board
+	from posts p
+	join threads t on t.id = p.thread
+	join boards b on b.id = p.board
+	where p.deleted = 0 and t.deleted = 0 and t.archived = 0
+	order by p.`number`, t.`original_post`, b.`name` asc;
 end|
 
 ---------------------------------------

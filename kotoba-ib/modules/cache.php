@@ -1447,6 +1447,18 @@ function posts_edit_specifed_addtext($id, $text)
 {
 	db_posts_edit_specifed_addtext(DataExchange::getDBLink(), $id, $text);
 }
+/**
+ * Получает все сообщения с номерами нитей и именем доски.
+ * @return array
+ * Возвращает сообщения:<p>
+ * 'post' - номер сообщения.<br>
+ * 'thread' - номер нити.<br>
+ * 'board' - номер доски.</p>
+ */
+function posts_get_all_numbers()
+{
+	return db_posts_get_all_numbers(DataExchange::getDBLink());
+}
 
 /**********************************************
  * Работа с обработчиками загружаемых файлов. *

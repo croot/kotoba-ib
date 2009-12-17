@@ -191,7 +191,9 @@ try
 					$p['ip'] = long2ip($p['ip']);
 					$smarty->assign('simple_post', $p);
 					$smarty->assign('simple_uploads', $simple_uploads);
+					$smarty->assign('thread', array($t));	// TODO !
 					$boards_posts_html .= $smarty->fetch('post_simple.tpl');
+					$smarty->assign('thread', $t);
 					$simple_uploads = array();
 				}// Оригинальное или простое сообщение.
 			}// Сообщение принадлежит текущей нити.
