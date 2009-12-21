@@ -2228,6 +2228,34 @@ function uploads_add($hash, $is_image, $link_type, $file, $file_w, $file_h,
 		$link_type, $file, $file_w, $file_h, $size, $thumbnail, $thumbnail_w,
 		$thumbnail_h);
 }
+/**
+ * Получает информацию о висячих загрузках (не связанных с сообщениями).
+ * @return array
+ * Возвращает информацию о висячих загрузках:<p>
+ * 'id' - идентификатор.<br>
+ * 'hash' - хеш файла.<br>
+ * 'is_image' - флаг картинки.<br>
+ * 'upload_type' - тип загрузки.<br>
+ * 'link' - имя файла, ссылка или код видео.<br>
+ * 'image_w' - ширина изображения.<br>
+ * 'image_h' - высота изображения.<br>
+ * 'size' - размер файла в байтах.<br>
+ * 'thumbnail' - имя уменьшенной копии.<br>
+ * 'thumbnail_w' - ширина уменьшенной копии.<br>
+ * 'thumbnail_h' - высота уменьшенной копии.</p>
+ */
+function uploads_get_all_dangling()
+{
+	return db_uploads_get_all_dangling(DataExchange::getDBLink());
+}
+/**
+ * Удаляет заданную информацию о загрузке.
+ * @param id string <p>Идентификатор информации о загрузке.</p>
+ */
+function uploads_delete_specifed($id)
+{
+	db_uploads_delete_specifed(DataExchange::getDBLink(), $id);
+}
 
 /******************************
  * Работа со скрытыми нитями. *
