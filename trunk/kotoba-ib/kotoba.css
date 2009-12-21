@@ -251,3 +251,9 @@ form {display: inline;
 {
 	color: red;
 }
+
+.postarea table
+{
+	margin: 0px 0px 0px 31%;
+	text-align: left;
+}

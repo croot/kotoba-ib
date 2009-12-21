@@ -254,6 +254,19 @@ function check_upload_error($error)
 	}
 }
 /**
+ * Проверяет корректность кода видео.
+ * @param code string <p>Код видео.</p>
+ * @return string
+ * Возвращает безопасный для использования код видео.
+ */
+function check_youtube_video_code($code)
+{
+	$code = RawURLEncode($code);
+	if(strlen($code) > Config::MAX_FILE_LINK)
+		throw new LimitException(LimitException::$messages['MAX_FILE_LINK']);
+	return RawURLEncode($code);
+}
+/**
  * Выделяет расширение файла из его имени.
  *
  * Аргументы:

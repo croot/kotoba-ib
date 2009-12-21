@@ -73,6 +73,7 @@ drop procedure if exists sp_posts_add|
 drop procedure if exists sp_posts_uploads_get_post|
 drop procedure if exists sp_posts_uploads_add|
 drop procedure if exists sp_posts_delete|
+drop procedure if exists sp_posts_delete_all_marked|
 drop procedure if exists sp_posts_edit_specifed_addtext|
 drop procedure if exists sp_posts_get_all_numbers|
 drop procedure if exists sp_uploads_get_post|
@@ -1864,6 +1865,26 @@ begin
 		update threads set deleted = 1 where id = thread_id;
 		update posts set deleted = 1 where thread = thread_id;
 	end if;
+end|
+
+-- Удаляет сообщения, помеченные на удаление.
+create procedure sp_posts_delete_all_marked ()
+begin
+	delete pu from posts_uploads pu
+	join posts p on p.id = pu.post
+	where p.deleted = 1;
+
+	delete a from acl a
+	join posts p on p.id = a.post
+	where p.deleted = 1;
+
+	delete from posts where deleted = 1;
+
+	delete ht from hidden_threads ht
+	join threads t on t.id = ht.thread
+	where t.deleted = 1;
+
+	delete from threads where deleted = 1;
 end|
 
 -- Добавляет текст в конец текста заданного сообщения.

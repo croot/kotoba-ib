@@ -1986,6 +1986,15 @@ function db_posts_delete($link, $id)
 	db_cleanup_link($link);
 }
 /**
+ * Удаляет сообщения, помеченные на удаление.
+ */
+function db_posts_delete_all_marked($link)
+{
+	if(!mysqli_query($link, 'call sp_posts_delete_all_marked()'))
+		throw new CommonException(mysqli_error($link));
+	db_cleanup_link($link);
+}
+/**
  * Добавляет текст в конец текста заданного сообщения.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param id mixed <p>Идентификатор сообщения.</p>

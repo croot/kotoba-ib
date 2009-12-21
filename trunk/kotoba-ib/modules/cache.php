@@ -1439,6 +1439,13 @@ function posts_delete($id)
 	db_posts_delete(DataExchange::getDBLink(), $id);
 }
 /**
+ * Удаляет сообщения, помеченные на удаление.
+ */
+function posts_delete_all_marked()
+{
+	db_posts_delete_all_marked(DataExchange::getDBLink());
+}
+/**
  * Добавляет текст в конец текста заданного сообщения.
  * @param id mixed <p>Идентификатор сообщения.</p>
  * @param text string <p>Текст.</p>

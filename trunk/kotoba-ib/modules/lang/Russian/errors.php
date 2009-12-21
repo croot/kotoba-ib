@@ -168,4 +168,5 @@ LimitException::$messages['MIN_IMG_DIMENTIONS'] = 'Размеры изображ
 LimitException::$messages['MAX_SMALL_IMG_SIZE'] = 'Слишком большой размер в байтах для такого маленького изображения.';
 LimitException::$messages['MAX_PAGE'] = 'Номер страницы слишком большой. Такой страницы не существует.';
 LimitException::$messages['MAX_ANNOTATION'] = 'Аннотация слишком длинная.';
+LimitException::$messages['MAX_FILE_LINK'] = 'Слишком длинная сслыка на файл, имя загружаемого файла или код видео.';
 ?>
