@@ -27,15 +27,19 @@
 		</td>
         <td class="reply">
             <span class="filetitle">{$simple_post.subject}</span> <span class="postername">{$simple_post.name}</span>{if $simple_post.tripcode != null}<span class="postertrip">!{$simple_post.tripcode}</span>{/if} {$simple_post.date_time}
-			{if $simple_post.with_files == true}
-			<span class="filesize">Файл: <a target="_blank" href="{$simple_uploads[0].file_link}">{$simple_uploads[0].file_name}</a> -(<em>{$simple_uploads[0].size} Байт {$simple_uploads[0].file_w}x{$simple_uploads[0].file_h}</em>)</span>
+			{if $simple_post.with_files and !$simple_uploads[0].is_embed}
+				<span class="filesize">Файл: <a target="_blank" href="{$simple_uploads[0].file_link}">{$simple_uploads[0].file_name}</a> -(<em>{$simple_uploads[0].size} Байт {$simple_uploads[0].file_w}x{$simple_uploads[0].file_h}</em>)</span>
 			{/if}
             <span class="reflink"><span onclick="insert('>>{$simple_post.number}');">#</span> <a href="{$DIR_PATH}/{$board.name}/{$thread[0].original_post}#{$simple_post.number}">{$simple_post.number}</a></span>
             <span class="delbtn">[<a href="{$DIR_PATH}/{$board.name}/r{$simple_post.number}" title="Удалить">×</a>]</span>
 			{if $is_admin}{include file='mod_mini_panel.tpl' post_id=$simple_post.id ip=$simple_post.ip board_name=$board.name post_num=$simple_post.number}{/if}
             <a name="{$simple_post.number}"></a>
-			{if $simple_post.with_files == true}
-			<br><a target="_blank" href="{$simple_uploads[0].file_link}"><img src="{$simple_uploads[0].file_thumbnail_link}" class="thumb" width="{$simple_uploads[0].thumbnail_w}" height="{$simple_uploads[0].thumbnail_h}"></a>
+			{if $simple_post.with_files}
+				{if $simple_uploads[0].is_embed}
+					<br><br>{$simple_uploads[0].file_link}
+				{else}
+					<br><a target="_blank" href="{$simple_uploads[0].file_link}"><img src="{$simple_uploads[0].file_thumbnail_link}" class="thumb" width="{$simple_uploads[0].thumbnail_w}" height="{$simple_uploads[0].thumbnail_h}"></a>
+				{/if}
 			{/if}
             <blockquote>
             {$simple_post.text}

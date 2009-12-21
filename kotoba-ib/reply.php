@@ -55,7 +55,8 @@ try
 	{
 		if($_FILES['file']['error'] == UPLOAD_ERR_NO_FILE
 			&& (!isset($_POST['text']) || $_POST['text'] == '')
-			&& (!isset($_POST['macrochan_tag']) || $_POST['macrochan_tag'] == ''))
+			&& (!isset($_POST['macrochan_tag']) || $_POST['macrochan_tag'] == '')
+			&& (!isset($_POST['youtube_video_code']) || $_POST['youtube_video_code'] == ''))
 		{
 			// Файл не был загружен и текст сообщения пуст.
 			throw new NodataException(NodataException::$messages['EMPTY_MESSAGE']);
@@ -88,6 +89,13 @@ try
 		{
 			$with_file = true;
 			$link_type = Config::LINK_TYPE_URL;
+		}
+		elseif(isset($_POST['youtube_video_code'])
+			&& $_POST['youtube_video_code'] != '')
+		{
+			$youtube_video_code = check_youtube_video_code($_POST['youtube_video_code']);
+			$with_file = true;
+			$link_type = Config::LINK_TYPE_CODE;
 		}
 	}
 	posts_check_text_size($_POST['text']);
@@ -217,6 +225,17 @@ try
 			$file_names[1] = 'http://12ch.ru/macro/index.php/thumb/3478.jpg';
 			$thumb_dimensions['x'] = '192';
 			$thumb_dimensions['y'] = '144';
+		}
+		elseif($link_type == Config::LINK_TYPE_CODE)
+		{
+			$file_hash = null;
+			$file_names[0] = $youtube_video_code;
+			$img_dimensions['x'] = null;
+			$img_dimensions['y'] = null;
+			$uploaded_file_size = 0;
+			$file_names[1] = null;
+			$thumb_dimensions['x'] = null;
+			$thumb_dimensions['y'] = null;
 		}
 		if(!$file_already_posted)
 		{

@@ -121,6 +121,7 @@ try
 								if($pu['upload'] == $u['id'])
 								{
 									$p['with_files'] = true;
+									$u['is_embed'] = false;
 									switch($u['link_type'])
 									{
 										case Config::LINK_TYPE_VIRTUAL:
@@ -137,6 +138,10 @@ try
 											$u['file_thumbnail_link'] = $u['thumbnail'];
 											break;
 										case Config::LINK_TYPE_CODE:
+											$u['is_embed'] = true;
+											$smarty->assign('code', $u['file']);
+											$u['file_link'] = $smarty->fetch('youtube.tpl');
+											break;
 										default:
 											throw new CommonException('Not supported.');
 											break;
@@ -165,6 +170,7 @@ try
 								if($pu['upload'] == $u['id'])
 								{
 									$p['with_files'] = true;
+									$u['is_embed'] = false;
 									switch($u['link_type'])
 									{
 										case Config::LINK_TYPE_VIRTUAL:
@@ -181,6 +187,10 @@ try
 											$u['file_thumbnail_link'] = $u['thumbnail'];
 											break;
 										case Config::LINK_TYPE_CODE:
+											$u['is_embed'] = true;
+											$smarty->assign('code', $u['file']);
+											$u['file_link'] = $smarty->fetch('youtube.tpl');
+											break;
 										default:
 											throw new CommonException('Not supported.');
 											break;
@@ -191,7 +201,7 @@ try
 					$p['ip'] = long2ip($p['ip']);
 					$smarty->assign('simple_post', $p);
 					$smarty->assign('simple_uploads', $simple_uploads);
-					$smarty->assign('thread', array($t));	// TODO !
+					$smarty->assign('thread', array($t));	// TODO post_simple.tpl требует нити завёрнутой в массив, хотя на самом деле можно и просто нить.
 					$boards_posts_html .= $smarty->fetch('post_simple.tpl');
 					$smarty->assign('thread', $t);
 					$simple_uploads = array();
