@@ -106,7 +106,8 @@ function load_user_settings($keyword)
 	if($_SESSION['language'] != $user_settings['language'])
 		require "modules/lang/{$_SESSION['language']}/errors.php";
 	$_SESSION['language'] = $user_settings['language'];
-	$_SESSION['rempass'] = $user_settings['rempass'];
+	$_SESSION['rempass'] = $user_settings['rempass'] == ''
+		? null : $user_settings['rempass'];
 	$_SESSION['goto'] = $user_settings['goto'];
 }
 /**

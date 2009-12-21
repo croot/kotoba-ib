@@ -30,7 +30,7 @@ try
 		$board = boards_get_specifed_byname(boards_check_name($_GET['board']));
 		$post = posts_get_specifed_view_bynumber($board['id'],
 			posts_check_number($_GET['post']), $_SESSION['user']);
-		$password = $_SESSION['rempass'];
+		$password = posts_check_password($_SESSION['rempass']);
 	}
 	elseif(isset($_POST['board']) && isset($_POST['post'])
 		&& isset($_POST['message_pass']))

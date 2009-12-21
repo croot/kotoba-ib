@@ -79,6 +79,8 @@ drop procedure if exists sp_posts_get_all_numbers|
 drop procedure if exists sp_uploads_get_post|
 drop procedure if exists sp_uploads_get_same|
 drop procedure if exists sp_uploads_add|
+drop procedure if exists sp_uploads_get_all_dangling|
+drop procedure if exists sp_uploads_delete_specifed|
 drop procedure if exists sp_hidden_threads_get_board|
 drop procedure if exists sp_hidden_threads_add|
 drop procedure if exists sp_hidden_threads_delete|
@@ -1944,7 +1946,7 @@ end|
 -- Работа с информацией о загрузках. --
 ---------------------------------------
 
--- Выбирает для сообщения информацию о загрузках.
+-- Выбирает информацию о загрузках для заданного сообщения.
 --
 -- Аргументы:
 -- post_id - идентификатор сообщения.
@@ -1959,7 +1961,7 @@ begin
 	join posts_uploads pu on pu.upload = u.id and pu.post = post_id;
 end|
 
--- Выбирает одинаковые файлы, загруженные на заданную доску.
+-- Выбирает информацию об одинаковых загрузках для заданной доски.
 --
 -- Аргументы:
 -- board_id - Идентификатор доски.
@@ -2007,7 +2009,7 @@ begin
 	group by u.id, p.id;
 end|
 
--- Сохраняет данные о загрузке.
+-- Добавляет информацию о загрузке.
 --
 -- Аргументы:
 -- _hash - хеш файла.
@@ -2040,6 +2042,28 @@ begin
 	(_hash, _is_image, _link_type, _file, _file_w, _file_h,
 		_size, _thumbnail, _thumbnail_w, _thumbnail_h);
 	select last_insert_id() as id;
+end|
+
+-- Выбирает информацию о висячих загрузках (не связанных с сообщениями).
+create procedure sp_uploads_get_all_dangling ()
+begin
+	select u.id, u.`hash`, u.is_image, u.link_type, u.`file`, u.file_w,
+		u.file_h, u.`size`, u.thumbnail, u.thumbnail_w, u.thumbnail_h
+	from uploads u
+	left join posts_uploads pu on pu.upload = u.id
+	where pu.upload is null;
+end|
+
+-- Удаляет заданную информацию о загрузке.
+--
+-- Аргументы:
+-- _id - Идентификатор информации о загрузке.
+create procedure sp_uploads_delete_specifed
+(
+	_id int
+)
+begin
+	delete from uploads where id = _id;
 end|
 
 --------------------------------

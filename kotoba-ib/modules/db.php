@@ -2215,6 +2215,59 @@ function db_uploads_add($link, $hash, $is_image, $link_type, $file, $file_w,
 	db_cleanup_link($link);
 	return $row['id'];
 }
+/**
+ * Получает информацию о висячих загрузках (не связанных с сообщениями).
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @return array
+ * Возвращает информация о висячих загрузках:<p>
+ * 'id' - идентификатор.<br>
+ * 'hash' - хеш файла.<br>
+ * 'is_image' - флаг картинки.<br>
+ * 'upload_type' - тип загрузки.<br>
+ * 'link' - имя файла, ссылка или код видео.<br>
+ * 'image_w' - ширина изображения.<br>
+ * 'image_h' - высота изображения.<br>
+ * 'size' - размер файла в байтах.<br>
+ * 'thumbnail' - имя уменьшенной копии.<br>
+ * 'thumbnail_w' - ширина уменьшенной копии.<br>
+ * 'thumbnail_h' - высота уменьшенной копии.</p>
+ */
+// TODO Продолжить работу по переименованию полей таблицы.
+function db_uploads_get_all_dangling($link)
+{
+	$result = mysqli_query($link, 'call sp_uploads_get_all_dangling()');
+	if(!$result)
+		throw new CommonException(mysqli_error($link));
+	$uploads = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) !== null)
+			array_push($uploads,
+				array('id' => $row['id'],
+						'hash' => $row['hash'],
+						'is_image' => $row['is_image'],
+						'upload_type' => $row['link_type'],
+						'link' => $row['file'],
+						'image_w' => $row['file_w'],
+						'image_h' => $row['file_h'],
+						'size' => $row['size'],
+						'thumbnail' => $row['thumbnail'],
+						'thumbnail_w' => $row['thumbnail_w'],
+						'thumbnail_h' => $row['thumbnail_h']));
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $uploads;
+}
+/**
+ * Удаляет заданную информацию о загрузке.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param id string <p>Идентификатор информации о загрузке.</p>
+ */
+function db_uploads_delete_specifed($link, $id)
+{
+	if(!mysqli_query($link, "call sp_uploads_delete_specifed($id)"))
+		throw new CommonException(mysqli_error($link));
+	db_cleanup_link($link);
+}
 
 /******************************
  * Работа со скрытыми нитями. *

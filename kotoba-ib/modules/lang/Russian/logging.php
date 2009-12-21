@@ -48,6 +48,8 @@ Logging::$messages['MOD_FUNCTIONS_EDIT_BANS'] = 'Задействовано ре
 Logging::$messages['ADMIN_FUNCTIONS_ARCHIVE'] = 'Задействовано архивирование нитей. Модератор %s IP %s';
 // Параметры: id пользователя, ip адрес.
 Logging::$messages['ADMIN_FUNCTIONS_DELETE_MARKED_POSTS'] = 'Задействовано удаление отмеченных на удаление сообщений. Модератор %s IP %s';
+// Параметры: id пользователя, ip адрес.
+Logging::$messages['ADMIN_FUNCTIONS_DELETE_DANGLING_FILES'] = 'Задействовано удаление висячих файлов. Модератор %s IP %s';
 
 /***********
  * Разное. *

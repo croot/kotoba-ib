@@ -29,4 +29,5 @@
 <a href="{$DIR_PATH}/admin/edit_bans.php">Редактирование банов.</a><br>
 <a href="{$DIR_PATH}/admin/edit_threads.php">Редактирование настроек нитей.</a><br>
 <a href="{$DIR_PATH}/admin/archive.php">Произвести архивирование.</a><br>
-<a href="{$DIR_PATH}/admin/delete_marked_posts.php">Удалить помеченные на удаление сообщения и нити.</a>
+<a href="{$DIR_PATH}/admin/delete_marked_posts.php">Удалить помеченные на удаление сообщения и нити.</a><br>
+<a href="{$DIR_PATH}/admin/delete_dangling_files.php">Удалить висячие загрузки.</a>

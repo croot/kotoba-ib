@@ -8,7 +8,7 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
-// Скприпт архивирования нитей.
+// Скприпт удаления помеченных на удаление сообщений и нитей.
 require '../config.php';
 require Config::ABS_PATH . '/modules/errors.php';
 require Config::ABS_PATH . '/modules/lang/' . Config::LANGUAGE . '/errors.php';
