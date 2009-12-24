@@ -29,8 +29,8 @@ try
 	$page = 1;
 	if(isset($_GET['page']))
 		$page = check_page($_GET['page']);
-	$rempass = !isset($_SESSION['rempass']) || $_SESSION['rempass'] === null
-		? '' : $_SESSION['rempass'];
+	$password = !isset($_SESSION['password']) || $_SESSION['password'] === null
+		? '' : $_SESSION['password'];
 	/*
 	 * Доски нужны для вывода списка досок, поэтому получим все и среди них
 	 * будем искать запрашиваемую.
@@ -74,7 +74,7 @@ try
 	$smarty->assign('board', $board);
 	$smarty->assign('boards', $boards);
 	$smarty->assign('is_admin', $is_admin);
-	$smarty->assign('rempass', $rempass);
+	$smarty->assign('password', $password);
 	$smarty->assign('upload_types', $upload_types);
 	$pages = array();
 	for($i = 1; $i <= $page_max; $i++)

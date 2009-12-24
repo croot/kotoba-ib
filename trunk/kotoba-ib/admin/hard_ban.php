@@ -34,7 +34,7 @@ try
 	else
 		throw new PremissionException(PremissionException::$messages['NOT_ADMIN']
 		 . PremissionException::$messages['NOT_MOD']);
-	
+	throw new CommonException('Not implemented.');
 	DataExchange::releaseResources();
 	exit;
 }

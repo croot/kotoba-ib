@@ -92,7 +92,7 @@ create table users
 	lines_per_post int default null,
 	`language` int not null,
 	stylesheet int not null,
-	rempass varchar(12) default null,
+	password varchar(12) default null,
 	`goto` varchar(32) default null,
 	primary key (id),
 	unique key (keyword),

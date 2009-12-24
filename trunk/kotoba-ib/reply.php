@@ -41,12 +41,16 @@ try
 	$board = boards_get_specifed($thread['board']);
 	if($thread['archived'])
 		throw new CommonException(CommonException::$messages['THREAD_ARCHIVED']);
-	$message_pass = null;
-	if(isset($_POST['rempass']) && $_POST['rempass'] != '')
+	$password = null;
+	$update_password = false;
+	if(isset($_POST['password']) && $_POST['password'] != '')
 	{
-		$message_pass = posts_check_password($_POST['rempass']);
-		if(!isset($_SESSION['rempass']) || $_SESSION['rempass'] != $message_pass)
-			$_SESSION['rempass'] = $message_pass;
+		$password = posts_check_password($_POST['password']);
+		if(!isset($_SESSION['password']) || $_SESSION['password'] != $password)
+		{
+			$_SESSION['password'] = $password;
+			$update_password = true;
+		}
 	}
 	$with_file = false;	// Сообщение с файлом.
 	$link_type = null;	// Тип ссылки на файл.
@@ -250,10 +254,16 @@ try
 	}
 	date_default_timezone_set(Config::DEFAULT_TIMEZONE);
 	$post = posts_add($board['id'], $thread['id'], $_SESSION['user'],
-		$message_pass, $name, $tripcode, ip2long($_SERVER['REMOTE_ADDR']),
+		$password, $name, $tripcode, ip2long($_SERVER['REMOTE_ADDR']),
 		$subject, date(Config::DATETIME_FORMAT), $text, $sage);
 	if(($board['with_files'] || $thread['with_files']) && $with_file)
+	{
 		posts_uploads_add($post['id'], $upload_id);
+	}
+	if($_SESSION['user'] != Config::GUEST_ID && $update_password)
+	{
+		users_set_password($_SESSION['user'], $password);
+	}
 // 4. Запуск обработчика автоматического удаления нитей.
 	foreach(popdown_handlers_get_all() as $popdown_handler)
 		if($board['popdown_handler'] == $popdown_handler['id'])

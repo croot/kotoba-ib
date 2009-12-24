@@ -26,18 +26,15 @@ try
 	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
 	if(in_array(Config::GST_GROUP_NAME, $_SESSION['groups']))
 		throw new PremissionException(PremissionException::$messages['GUEST']);
-// Проверка входных параметров.
-	if(isset($_GET['board']) && isset($_GET['thread']))
+// Проверка входных параметров и скрытие нити.
+	if(isset($_POST['thread']))
 	{
-		$board = boards_get_specifed_byname(boards_check_name($_GET['board']));
-		$thread = threads_get_specifed_view($board['id'],
-			threads_check_number($_GET['thread']), $_SESSION['user']);
-// Скрытие нити.
-		hidden_threads_add($thread['id'], $_SESSION['user']);
+		hidden_threads_add(threads_check_id($_POST['thread']),
+			$_SESSION['user']);
 	}
 // Перенаправление.
 	DataExchange::releaseResources();
-	header('Location: ' . Config::DIR_PATH . "/{$board['name']}/");
+	header('Location: ' . Config::DIR_PATH . "/");
 	exit;
 }
 catch(Exception $e)

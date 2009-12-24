@@ -52,5 +52,5 @@
     <input type="text" name="keyword_save" size="32">
     <input type="submit" value="Сохранить">
 </form>
-<br><a href="{$DIR_PATH}/">На главную</a>
+<br><br><a href="{$DIR_PATH}/">На главную</a>
 {include file='footer.tpl'}

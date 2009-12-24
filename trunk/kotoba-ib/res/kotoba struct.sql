@@ -64,7 +64,7 @@ CREATE TABLE `bans` (
   `untill` datetime NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `ip_range` (`range_beg`,`range_end`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -215,7 +215,7 @@ CREATE TABLE `posts` (
   CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`),
   CONSTRAINT `posts_ibfk_2` FOREIGN KEY (`user`) REFERENCES `users` (`id`),
   CONSTRAINT `posts_ibfk_3` FOREIGN KEY (`thread`) REFERENCES `threads` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=852 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=884 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -269,7 +269,7 @@ CREATE TABLE `threads` (
   PRIMARY KEY (`id`),
   KEY `board` (`board`),
   CONSTRAINT `threads_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=820 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=829 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -327,7 +327,7 @@ CREATE TABLE `uploads` (
   `thumbnail_w` int(11) DEFAULT NULL,
   `thumbnail_h` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=421 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=428 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -362,7 +362,7 @@ CREATE TABLE `users` (
   `lines_per_post` int(11) DEFAULT NULL,
   `language` int(11) NOT NULL,
   `stylesheet` int(11) NOT NULL,
-  `rempass` varchar(12) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `password` varchar(12) COLLATE utf8_unicode_ci DEFAULT NULL,
   `goto` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `key` (`keyword`),
@@ -2468,6 +2468,49 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_posts_delete_last` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_delete_last`(
+	_id int,
+	_date_time datetime
+)
+begin
+	declare _ip bigint;
+	declare done int default 0;
+	declare thread_id int;
+	declare `c` cursor for
+		select t.id
+		from posts p
+		join (select ip from posts where id = _id) q on q.ip = p.ip
+		join threads t on t.id = p.thread and p.`date_time` > _date_time
+			and p.`number` = t.original_post;
+	declare continue handler for not found set done = 1;
+	open `c`;
+	repeat
+	fetch `c` into thread_id;
+	if(not done) then
+		call sp_threads_delete_specifed(thread_id);
+	end if;
+	until done end repeat;
+	close `c`;
+	select ip into _ip from posts where id = _id;
+	if(_ip is not null) then
+		update posts set deleted = 1 where ip = _ip and `date_time` > _date_time;
+	end if;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_posts_edit_specifed_addtext` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -2629,6 +2672,64 @@ begin
 	set @limit = posts_per_thread;
 	execute stmnt using @user_id, @thread_id, @limit, @thread_id;
 	deallocate prepare stmnt;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_posts_get_specifed_view_byid` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_get_specifed_view_byid`(
+	post_id int,
+	user_id int
+)
+begin
+	select p.id, p.thread, p.`number`, p.password, p.`name`, p.tripcode, p.ip,
+		p.subject, p.date_time, p.text, p.sage
+	from posts p
+	join user_groups ug on ug.`user` = user_id
+	
+	left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+	
+	left join acl a2 on a2.`group` is null and a2.post = p.id
+	
+	left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+	
+	left join acl a4 on a4.`group` is null and a4.thread = p.thread
+	
+	left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+	
+	left join acl a6 on a6.`group` is null and a6.board = p.board
+	
+	left join acl a7 on a7.`group` = ug.`group` and a7.board is null and
+		a7.thread is null and a7.post is null
+	where p.id = post_id
+		and p.deleted = 0
+		
+			
+		and ((a1.`view` = 1 or a1.`view` is null)
+			
+			and (a2.`view` = 1 or a2.`view` is null)
+			
+			and (a3.`view` = 1 or a3.`view` is null)
+			
+			and (a4.`view` = 1 or a4.`view` is null)
+			
+			and (a5.`view` = 1 or a5.`view` is null)
+			
+			and (a6.`view` = 1 or a6.`view` is null)
+			
+			and a7.`view` = 1)
+	group by p.id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -2813,45 +2914,46 @@ begin
 		'select q.id, q.thread, q.number, q.password, q.name, q.tripcode, q.ip,
 			q.subject, q.date_time, q.text, q.sage
 		from (select p.id, p.thread, p.number, p.password, p.name, p.tripcode,
-			p.ip, p.subject, p.date_time, p.text, p.sage
-		from posts p
-		join threads t on t.board = p.board and t.id = p.thread
-		join user_groups ug on ug.user = ?
-		-- Правило для конкретной группы и сообщения.
-		left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
-		-- Правило для всех групп и конкретного сообщения.
-		left join acl a2 on a2.`group` is null and a2.post = p.id
-		-- Правила для конкретной группы и нити.
-		left join acl a3 on a3.`group` = ug.`group` and a3.thread = t.id
-		-- Правило для всех групп и конкретной нити.
-		left join acl a4 on a4.`group` is null and a4.thread = t.id
-		-- Правила для конкретной группы и доски.
-		left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
-		-- Правило для всех групп и конкретной доски.
-		left join acl a6 on a6.`group` is null and a6.board = p.board
-		-- Правило для конкретной групы.
-		left join acl a7 on a7.`group` = ug.`group` and a7.board is null and a7.thread is null and a7.post is null
-		where p.thread = ?
-			and p.number != t.original_post
-			and (p.deleted = 0 or p.deleted is null)
-			-- Сообщение должно быть доступно для просмотра, чтобы правильно подсчитать их количество в нити.
-				-- Просмотр сообщения не запрещен конкретной группе и
-			and ((a1.`view` = 1 or a1.`view` is null)
-				-- просмотр сообщения не запрещен всем группам и
-				and (a2.`view` = 1 or a2.`view` is null)
-				-- просмотр нити не запрещен конкретной группе и
-				and (a3.`view` = 1 or a3.`view` is null)
-				-- просмотр нити не запрещен всем группам и
-				and (a4.`view` = 1 or a4.`view` is null)
-				-- просмотр доски не запрещен конкретной группе и
-				and (a5.`view` = 1 or a5.`view` is null)
-				-- просмотр доски не запрещен всем группам и
-				and (a6.`view` = 1 or a6.`view` is null)
-				-- просмотр разрешен конкретной группе.
-				and a7.`view` = 1)
-		group by p.id
-		order by number desc
-		limit ?) q
+				p.ip, p.subject, p.date_time, p.text, p.sage
+			from posts p
+			join threads t on t.board = p.board and t.id = p.thread
+			join user_groups ug on ug.user = ?
+			-- Правило для конкретной группы и сообщения.
+			left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+			-- Правило для всех групп и конкретного сообщения.
+			left join acl a2 on a2.`group` is null and a2.post = p.id
+			-- Правила для конкретной группы и нити.
+			left join acl a3 on a3.`group` = ug.`group` and a3.thread = t.id
+			-- Правило для всех групп и конкретной нити.
+			left join acl a4 on a4.`group` is null and a4.thread = t.id
+			-- Правила для конкретной группы и доски.
+			left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+			-- Правило для всех групп и конкретной доски.
+			left join acl a6 on a6.`group` is null and a6.board = p.board
+			-- Правило для конкретной групы.
+			left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+				and a7.thread is null and a7.post is null
+			where p.thread = ?
+				and p.number != t.original_post
+				and p.deleted = 0
+				-- Сообщение должно быть доступно для просмотра, чтобы правильно подсчитать их количество в нити.
+					-- Просмотр сообщения не запрещен конкретной группе и
+				and ((a1.`view` = 1 or a1.`view` is null)
+					-- просмотр сообщения не запрещен всем группам и
+					and (a2.`view` = 1 or a2.`view` is null)
+					-- просмотр нити не запрещен конкретной группе и
+					and (a3.`view` = 1 or a3.`view` is null)
+					-- просмотр нити не запрещен всем группам и
+					and (a4.`view` = 1 or a4.`view` is null)
+					-- просмотр доски не запрещен конкретной группе и
+					and (a5.`view` = 1 or a5.`view` is null)
+					-- просмотр доски не запрещен всем группам и
+					and (a6.`view` = 1 or a6.`view` is null)
+					-- просмотр разрешен конкретной группе.
+					and a7.`view` = 1)
+			group by p.id
+			order by number desc
+			limit ?) q
 		union all
 		select p.id, p.thread, p.number, p.password, p.name, p.tripcode, p.ip,
 			p.subject, p.date_time, p.text, p.sage
@@ -2930,6 +3032,27 @@ DELIMITER ;;
 )
 begin
 	insert into posts_uploads (post, upload) values (_post_id, _upload_id);
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_posts_uploads_delete_post` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_uploads_delete_post`(
+	_post_id int
+)
+begin
+	delete from posts_uploads where post = _post_id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -3309,6 +3432,28 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_threads_delete_specifed` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_threads_delete_specifed`(
+	_id int
+)
+begin
+	update threads set deleted = 1 where id = _id;
+	update posts set deleted = 1 where thread = _id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_threads_edit` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -3619,93 +3764,75 @@ DELIMITER ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_threads_get_board_view`(
 	board_id int,
-	page int,
-	user_id int,
-	threads_per_page int,
-	sticky bit
+	user_id int
 )
 begin
-	
-	prepare stmnt from
-		'-- Выберем нити, отсортированные по последнему сообщению без сажи.
-		select q1.id, q1.original_post, q1.bump_limit, q1.sticky, q1.sage, q1.with_files,
-			q1.posts_count, q1.last_post_num
-		from (
-			-- Без учёта постов с сажей вычислим последнее сообщение в нити.
-			select q.id, q.original_post, q.bump_limit, q.sticky, q.sage, q.with_files,
-				q.posts_count, max(p.`number`) as last_post_num
+	select q1.id, q1.original_post, q1.bump_limit, q1.sticky, q1.sage,
+		q1.with_files, q1.posts_count, q1.last_post_num
+	from (
+		
+		select q.id, q.original_post, q.bump_limit, q.sticky, q.sage,
+			q.with_files, q.posts_count, max(p.`number`) as last_post_num
+		from posts p
+		join (
+			
+			select t.id, t.original_post, t.bump_limit, t.sticky, t.sage,
+				t.with_files, count(distinct p.id) as posts_count
 			from posts p
-			join (
-				-- Выберем видимые нити и подсчитаем количество видимых сообщений.
-				select t.id, t.original_post, t.bump_limit, t.sticky, t.sage, t.with_files,
-					count(distinct p.id) as posts_count
-				from posts p
-				join threads t on t.id = p.thread and t.board = ?
-				join user_groups ug on ug.`user` = ?
-				left join hidden_threads ht on ht.thread = t.id and ht.`user` = ug.`user`
-				-- Правило для конкретной группы и сообщения.
-				left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
-				-- Правило для всех групп и конкретного сообщения.
-				left join acl a2 on a2.`group` is null and a2.post = p.id
-				-- Правила для конкретной группы и нити.
-				left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
-				-- Правило для всех групп и конкретной нити.
-				left join acl a4 on a4.`group` is null and a4.thread = p.thread
-				-- Правила для конкретной группы и доски.
-				left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
-				-- Правило для всех групп и конкретной доски.
-				left join acl a6 on a6.`group` is null and a6.board = p.board
-				-- Правило для конкретной групы.
-				left join acl a7 on a7.`group` = ug.`group` and a7.board is null
-					and a7.thread is null and a7.post is null
-				where t.deleted = 0
-					and t.archived = 0
-					and t.sticky = ?
-					and ht.thread is null
-					and p.deleted = 0
-					-- Нить должна быть доступна для просмотра.
-						-- Просмотр нити не запрещен конкретной группе и
-					and ((a3.`view` = 1 or a3.`view` is null)
-						-- просмотр нити не запрещен всем группам и
-						and (a4.`view` = 1 or a4.`view` is null)
-						-- просмотр доски не запрещен конкретной группе и
-						and (a5.`view` = 1 or a5.`view` is null)
-						-- просмотр доски не запрещен всем группам и
-						and (a6.`view` = 1 or a6.`view` is null)
-						-- просмотр разрешен конкретной группе.
-						and a7.`view` = 1)
-					-- Сообщение должно быть доступно для просмотра, чтобы правильно
-					-- подсчитать их количество в нити.
-						-- Просмотр сообщения не запрещен конкретной группе и
-					and ((a1.`view` = 1 or a1.`view` is null)
-						-- просмотр сообщения не запрещен всем группам и
-						and (a2.`view` = 1 or a2.`view` is null)
-						-- просмотр нити не запрещен конкретной группе и
-						and (a3.`view` = 1 or a3.`view` is null)
-						-- просмотр нити не запрещен всем группам и
-						and (a4.`view` = 1 or a4.`view` is null)
-						-- просмотр доски не запрещен конкретной группе и
-						and (a5.`view` = 1 or a5.`view` is null)
-						-- просмотр доски не запрещен всем группам и
-						and (a6.`view` = 1 or a6.`view` is null)
-						-- просмотр разрешен конкретной группе.
-						and a7.`view` = 1)
-				group by t.id) q on q.id = p.thread and (p.sage = 0 or p.sage is null)
-			group by q.id) q1
-		order by q1.last_post_num desc
-		limit ? offset ?';
+			join threads t on t.id = p.thread and t.board = board_id
+			join user_groups ug on ug.`user` = user_id
+			left join hidden_threads ht on ht.thread = t.id
+				and ht.`user` = ug.`user`
+			
+			left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+			
+			left join acl a2 on a2.`group` is null and a2.post = p.id
+			
+			left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+			
+			left join acl a4 on a4.`group` is null and a4.thread = p.thread
+			
+			left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+			
+			left join acl a6 on a6.`group` is null and a6.board = p.board
+			
+			left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+				and a7.thread is null and a7.post is null
+			where t.deleted = 0 and t.archived = 0 and ht.thread is null
+				and p.deleted = 0
+				
+					
+				and ((a3.`view` = 1 or a3.`view` is null)
+					
+					and (a4.`view` = 1 or a4.`view` is null)
+					
+					and (a5.`view` = 1 or a5.`view` is null)
+					
+					and (a6.`view` = 1 or a6.`view` is null)
+					
+					and a7.`view` = 1)
+				
+				
+					
+				and ((a1.`view` = 1 or a1.`view` is null)
+					
+					and (a2.`view` = 1 or a2.`view` is null)
+					
+					and (a3.`view` = 1 or a3.`view` is null)
+					
+					and (a4.`view` = 1 or a4.`view` is null)
+					
+					and (a5.`view` = 1 or a5.`view` is null)
+					
+					and (a6.`view` = 1 or a6.`view` is null)
+					
+					and a7.`view` = 1)
+			group by t.id) q on q.id = p.thread
+				and (p.sage = 0 or p.sage is null) and p.deleted = 0
+		group by q.id) q1
+	order by q1.last_post_num desc;
+
 	
-	set @board_id = board_id;
-	set @user_id = user_id;
-	set @limit = threads_per_page;
-	set @sticky = sticky;
-	if(page = 1) then
-		set @offset = 0;
-	else
-		set @offset = threads_per_page * (page - 1);
-	end if;
-	execute stmnt using @board_id, @user_id, @sticky, @limit, @offset;
-	deallocate prepare stmnt;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -4841,6 +4968,40 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_users_get_by_keyword` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_users_get_by_keyword`(
+	_keyword varchar(32)
+)
+begin
+	declare user_id int;
+
+	select id into user_id from users where keyword = _keyword;
+
+	select u.id, u.posts_per_thread, u.threads_per_page, u.lines_per_post,
+		l.`name` as `language`, s.`name` as `stylesheet`, u.password, u.`goto`
+	from users u
+	join stylesheets s on u.stylesheet = s.id
+	join languages l on u.`language` = l.id
+	where u.keyword = _keyword;
+
+	select g.`name` from user_groups ug
+	join users u on ug.`user` = u.id and u.id = user_id
+	join groups g on ug.`group` = g.id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_users_get_settings` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -4868,6 +5029,28 @@ begin
 	select g.`name` from user_groups ug
 	join users u on ug.`user` = u.id and u.id = user_id
 	join groups g on ug.`group` = g.id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_users_set_password` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_users_set_password`(
+	_id int,
+	_password varchar(12)
+)
+begin
+	update users set `password` = _password where id = _id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -5043,4 +5226,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2009-12-21 17:53:15
+-- Dump completed on 2009-12-24 19:47:55

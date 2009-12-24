@@ -8,7 +8,8 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
-// Скрипт удаления сообщений и нитей.
+// Скрипт удаления сообщений.
+// TODO Капча на странице ввода пароля для удаления сообщения.
 require 'config.php';
 require 'modules/errors.php';
 require 'modules/lang/' . Config::LANGUAGE . '/errors.php';
@@ -22,44 +23,44 @@ try
 	kotoba_session_start();
 	locale_setup();
 	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
-	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
-	header("Cache-Control: private");						// Fix for Firefox.
+	// Возможно завершение работы скрипта.
+	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));
 // Проверка входных параметров.
-	if(isset($_GET['board']) && isset($_GET['post']))
+	if(isset($_GET['post']))
 	{
-		$board = boards_get_specifed_byname(boards_check_name($_GET['board']));
-		$post = posts_get_specifed_view_bynumber($board['id'],
-			posts_check_number($_GET['post']), $_SESSION['user']);
-		$password = posts_check_password($_SESSION['rempass']);
+		$post = posts_get_specifed_view_byid(posts_check_number($_GET['post']),
+			$_SESSION['user']);
+		$password = isset($_GET['password'])
+			? posts_check_password($_GET['password']) : $_SESSION['rempass'];
 	}
-	elseif(isset($_POST['board']) && isset($_POST['post'])
-		&& isset($_POST['message_pass']))
+	elseif(isset($_POST['post']))
 	{
-		$board = boards_get_specifed_byname(boards_check_name($_POST['board']));
-		$post = posts_get_specifed_view_bynumber($board['id'],
-			posts_check_number($_POST['post']), $_SESSION['user']);
-		$password = posts_check_password($_POST['message_pass']);
+		$post = posts_get_specifed_view_byid(posts_check_number($_POST['post']),
+			$_SESSION['user']);
+		$password = isset($_POST['password'])
+			? posts_check_password($_POST['password']) : $_SESSION['rempass'];
 	}
 	else
 	{
-		// Вы троллите нас, мы троллим вас :3
-		header('Location: http://z0r.de/?id=114');
+		header('Location: http://z0r.de/?id=114');	// Это шутка.
 		DataExchange::releaseResources();
 		exit;
 	}
-	if($post['password'] !== null && $post['password'] === $password)
+// Удаление.
+	if(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups'])
+		|| ($post['password'] !== null && $post['password'] === $password))
 	{
 		posts_delete($post['id']);
-		header('Location: ' . Config::DIR_PATH . "/{$board['name']}/");
-		DataExchange::releaseResources();
-		exit;
+		header('Location: ' . Config::DIR_PATH . "/");
 	}
+	else
+	{
 // Вывод формы ввода пароля.
+		$smarty->assign('id', $post['id']);
+		$smarty->assign('password', $password);
+		$smarty->display('remove_post.tpl');
+	}
 	DataExchange::releaseResources();
-	$smarty->assign('board_name', $board['name']);
-	$smarty->assign('post_num', $post['number']);
-	$smarty->assign('password', $password);
-	$smarty->display('remove_post.tpl');
 	exit;
 }
 catch(Exception $e)

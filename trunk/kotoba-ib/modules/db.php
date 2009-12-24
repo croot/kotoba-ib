@@ -604,7 +604,7 @@ function db_categories_delete($link, $id)
  ****************************/
 
 /**
- * Получает настройки ползователя с заданным ключевым словом.
+ * Получает настройки ползователя по заданному ключевому слову.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param keyword string <p>Хеш ключевого слова.</p>
  * @return array
@@ -615,18 +615,23 @@ function db_categories_delete($link, $id)
  * 'lines_per_post' - количество строк в урезанном сообщении при просмотре доски.<br>
  * 'language' - язык.<br>
  * 'stylesheet' - стиль оформления.<br>
- * 'rempass' - пароль для удаления сообщений.<br>
+ * 'password' - пароль для удаления сообщений.<br>
  * 'goto' - перенаправление при постинге.<br>
- * 'groups' - массив групп, в которые входит пользователь.</p>
+ * 'groups' - группы, в которые входит пользователь.</p>
  */
-function db_users_get_settings($link, $keyword)
+function db_users_get_by_keyword($link, $keyword)
 {
-	if(mysqli_multi_query($link, "call sp_users_get_settings('$keyword')") == false)
+	if(mysqli_multi_query($link,
+			"call sp_users_get_by_keyword('$keyword')") == false)
+	{
 		throw new CommonException(mysqli_error($link));
-	/* Настройки пользователя */
+	}
+// Настройки пользователя.
 	if(($result = mysqli_store_result($link)) == false)
+	{
 		throw new CommonException(mysqli_error($link));
-	if(($row = mysqli_fetch_assoc($result)) != null)
+	}
+	if(($row = mysqli_fetch_assoc($result)) !== null)
 	{
 		$user_settings['id'] = $row['id'];
 		$user_settings['posts_per_thread'] = $row['posts_per_thread'];
@@ -634,27 +639,35 @@ function db_users_get_settings($link, $keyword)
 		$user_settings['lines_per_post'] = $row['lines_per_post'];
 		$user_settings['language'] = $row['language'];
 		$user_settings['stylesheet'] = $row['stylesheet'];
-		$user_settings['rempass'] = $row['rempass'];
+		$user_settings['password'] = $row['password'];
 		$user_settings['goto'] = $row['goto'];
 	}
 	else
-		throw new PremissionException(sprintf(PremissionException::$messages['USER_NOT_EXIST']), $keyword);
-	@mysql_free_result($result);
-	/*
-	 * Если данные о группе пользователя не были получены,
-	 * значит что-то пошло не так.
-	 */
-	if(! mysqli_next_result($link))
+	{
+		throw new PremissionException(sprintf(PremissionException::$messages['USER_NOT_EXIST']),
+			$keyword);
+	}
+	mysqli_free_result($result);
+	if(!mysqli_next_result($link))
+	{
 		throw new CommonException(mysqli_error($link));
-	/* Группы пользователя */
+	}
+// Группы пользователя.
 	if(($result = mysqli_store_result($link)) == false)
+	{
 		throw new CommonException(mysqli_error($link));
+	}
 	$user_settings['groups'] = array();
-	while(($row = mysqli_fetch_assoc($result)) != null)
+	while(($row = mysqli_fetch_assoc($result)) !== null)
+	{
 		array_push($user_settings['groups'], $row['name']);
+	}
 	if(count($user_settings['groups']) <= 0)
-		throw new NodataException(sprintf(NodataException::$messages['USER_WITHOUT_GROUP']), $keyword);
-	@mysql_free_result($result);
+	{
+		throw new NodataException(sprintf(NodataException::$messages['USER_WITHOUT_GROUP']),
+			$keyword);
+	}
+	mysqli_free_result($result);
 	db_cleanup_link($link);
 	return $user_settings;
 }
@@ -668,20 +681,39 @@ function db_users_get_settings($link, $keyword)
  * @param lines_per_post mixed <p>Максимальное количество строк в предпросмотре сообщения.</p>
  * @param stylesheet mixed <p>Стиль оформления.</p>
  * @param language mixed <p>Язык.</p>
- * @param rempass mixed <p>Пароль для удаления сообщений.</p>
+ * @param password mixed <p>Пароль для удаления сообщений.</p>
  * @param goto string <p>Перенаправление при постинге.</p>
  */
 function db_users_edit_bykeyword($link, $keyword, $threads_per_page,
-	$posts_per_thread, $lines_per_post, $stylesheet, $language, $rempass, $goto)
+	$posts_per_thread, $lines_per_post, $stylesheet, $language, $password, $goto)
 {
-	$rempass = $rempass === null? 'null' : "'$rempass'";
+	$password = $password === null? 'null' : "'$password'";
 	$goto = $goto === null? 'null' : "'$goto'";
 	if(!mysqli_query($link, "call sp_users_edit_bykeyword('$keyword',
 			$threads_per_page, $posts_per_thread, $lines_per_post, $stylesheet,
-			$language, $rempass, $goto)"))
+			$language, $password, $goto)"))
+	{
 		throw new CommonException(mysqli_error($link));
+	}
 	if(mysqli_affected_rows($link) <= 0)
+	{
 		throw new DataExchangeException(DataExchangeException::$messages['SAVE_USER_SETTINGS']);
+	}
+	db_cleanup_link($link);
+}
+/**
+ * Устанавливает пароль для удаления сообщений заданному пользователю.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param id mixed <p>Идентификатор пользователя.</p>
+ * @param password mixed <p>Пароль для удаления сообщений.</p>
+ */
+function db_users_set_password($link, $id, $password)
+{
+	$password = ($password === null? 'null' : "'$password'");
+	if(!mysqli_query($link, "call sp_users_set_password($id, $password)"))
+	{
+		throw new CommonException(mysqli_error($link));
+	}
 	db_cleanup_link($link);
 }
 /**
@@ -1558,15 +1590,40 @@ function db_threads_get_board_view($link, $board_id, $page, $user_id,
 	$threads_per_page)
 {
 	$threads = array();
-	if($page == 1)
-	{
-		$result = mysqli_query($link,
-			"call sp_threads_get_board_view($board_id, $page, $user_id,
-				$threads_per_page, 1)");
-		if(!$result)
-			throw new CommonException(mysqli_error($link));
-		if(mysqli_affected_rows($link) > 0)
-			while(($row = mysqli_fetch_assoc($result)) != null)
+	$sticky_threads = array();
+	/*
+	 * Количество нитей, которое нужно пропустить, чтобы выбирать нити только
+	 * для нужной страницы.
+	 */
+	$skip = $threads_per_page * ($page - 1);
+	$number = 0;	// Номер записи с не закреплённой нитью. Начинается с 1.
+	$received = 0;	// Число выбранных не закреплённых нитей.
+	$result = mysqli_query($link,
+		"call sp_threads_get_board_view($board_id, $user_id)");
+	if(!$result)
+		throw new CommonException(mysqli_error($link));
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+		{
+			if($row['sticky'])
+			{
+				if($page == 1)
+				{
+					// Закреплённые нити будут показаны только на 1 странице.
+					array_push($sticky_threads,
+						array('id' => $row['id'],
+								'original_post' => $row['original_post'],
+								'bump_limit' => $row['bump_limit'],
+								'sticky' => $row['sticky'],
+								'sage' => $row['sage'],
+								'with_files' => $row['with_files'],
+								'posts_count' => $row['posts_count']));
+				}
+				continue;
+			}
+			$number++;
+			if($number > $skip && $received < $threads_per_page)
+			{
 				array_push($threads,
 					array('id' => $row['id'],
 							'original_post' => $row['original_post'],
@@ -1575,24 +1632,13 @@ function db_threads_get_board_view($link, $board_id, $page, $user_id,
 							'sage' => $row['sage'],
 							'with_files' => $row['with_files'],
 							'posts_count' => $row['posts_count']));
-		mysqli_free_result($result);
-		db_cleanup_link($link);
+				$received++;
+			}
+		}
+	if($page == 1)
+	{
+		$threads = array_merge($sticky_threads, $threads);
 	}
-	$result = mysqli_query($link,
-		"call sp_threads_get_board_view($board_id, $page, $user_id,
-			$threads_per_page, 0)");
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) != null)
-			array_push($threads,
-				array('id' => $row['id'],
-						'original_post' => $row['original_post'],
-						'bump_limit' => $row['bump_limit'],
-						'sticky' => $row['sticky'],
-						'sage' => $row['sage'],
-						'with_files' => $row['with_files'],
-						'posts_count' => $row['posts_count']));
 	mysqli_free_result($result);
 	db_cleanup_link($link);
 	return $threads;
@@ -1897,6 +1943,7 @@ function db_posts_get_thread($link, $thread_id)
 }
 /**
  * Получает сообщение по номеру.
+ * @param link MySQLi <p>Связь с базой данных.</p>
  * @param board_id mixed <p>Идентификатор доски.</p>
  * @param post_num mixed <p>Номер сообщения.</p>
  * @param user_id mixed <p>Идентификатор пользователя.</p>
@@ -1944,6 +1991,53 @@ function db_posts_get_specifed_view_bynumber($link, $board_id, $post_num,
 	return $post;
 }
 /**
+ * Получает сообщение по идентификатору.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param post_id mixed <p>Идентификатор сообщения.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает сообщение:<p>
+ * 'id' - идентификатор.<br>
+ * 'thread' - идентификатор нити.<br>
+ * 'number' - номер.<br>
+ * 'password' - пароль для удаления.<br>
+ * 'name' - имя отправителя.<br>
+ * 'ip' - ip адрес отправителя.<br>
+ * 'subject' - тема.<br>
+ * 'date_time' - время сохранения.<br>
+ * 'text' - текст.<br>
+ * 'sage' - флаг поднятия нити.</p>
+ */
+function db_posts_get_specifed_view_byid($link, $post_id, $user_id)
+{
+	// TODO Проверка на помеченный на архивирование тред.
+	$result = mysqli_query($link, "call sp_posts_get_specifed_view_byid($post_id,
+		$user_id)");
+	if(!$result)
+		throw new CommonException(mysqli_error($link));
+	$post = null;
+	if(mysqli_affected_rows($link) > 0
+		&& ($row = mysqli_fetch_assoc($result)) != null)
+	{
+		$post['id'] = $row['id'];
+		$post['thread'] = $row['thread'];
+		$post['number'] = $row['number'];
+		$post['password'] = $row['password'];
+		$post['name'] = $row['name'];
+		$post['tripcode'] = $row['tripcode'];
+		$post['ip'] = $row['ip'];
+		$post['subject'] = $row['subject'];
+		$post['date_time'] = $row['date_time'];
+		$post['text'] = $row['text'];
+		$post['sage'] = $row['sage'];
+	}
+	if($post === null)
+		throw new NodataException(NodataException::$messages['POST_ID_NOT_FOUND']);
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $post;
+}
+/**
  * Добавляет сообщение.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param board_id mixed<p>Идентификатор доски.</p>
@@ -1964,8 +2058,9 @@ function db_posts_add($link, $board_id, $thread_id, $user_id, $password, $name,
 	$tripcode, $ip, $subject, $datetime, $text, $sage)
 {
 	$sage = $sage === null ? 'null' : $sage;
+	$password = $password == null ? 'null' : "'$password'";
 	$result = mysqli_query($link, "call sp_posts_add($board_id, $thread_id,
-		$user_id, '$password', '$name', '$tripcode', $ip, '$subject',
+		$user_id, $password, '$name', '$tripcode', $ip, '$subject',
 		'$datetime', '$text', $sage)");
 	if(!$result)
 		throw new CommonException(mysqli_error($link));
@@ -1982,6 +2077,19 @@ function db_posts_add($link, $board_id, $thread_id, $user_id, $password, $name,
 function db_posts_delete($link, $id)
 {
 	if(!mysqli_query($link, "call sp_posts_delete($id)"))
+		throw new CommonException(mysqli_error($link));
+	db_cleanup_link($link);
+}
+/**
+ * Удаляет сообщение с заданным идентификатором и все сообщения с ip адреса
+ * отправителя, оставленные с заданного момента.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param id mixed <p>Идентификатор сообщения.</p>
+ * @param date_time mixed <p>Момент времени.</p>
+ */
+function db_posts_delete_last($link, $id, $date_time)
+{
+	if(!mysqli_query($link, "call sp_posts_delete_last($id, '$date_time')"))
 		throw new CommonException(mysqli_error($link));
 	db_cleanup_link($link);
 }
@@ -2031,21 +2139,18 @@ function db_posts_get_all_numbers($link)
 	return $data;
 }
 
-/******************************************************************
- * Работа со связями сообщений и информации о загруженных файлах. *
- ******************************************************************/
+/**********************************************************
+ * Работа со связями сообщений с информацией о загрузках. *
+ **********************************************************/
 
 /**
- * Получает для каждого сообщения из $posts его связь с информацией о
- * загруженных файлах.
- *
- * Аргументы:
- * $link - связь с базой данных.
- * $posts - сообщения.
- *
- * Возвращает связи:
- * 'post' - идентификатор сообщения.
- * 'upload' - идентификатор загруженного файла.
+ * Получает для сообщений их связи с информацией о загрузках.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param posts array <p>Сообщения.</p>
+ * @return array
+ * Возвращает связи:<p>
+ * 'post' - идентификатор сообщения.<br>
+ * 'upload' - идентификатор записи с информацией о загрузке.</p>
  */
 function db_posts_uploads_get_posts($link, $posts)
 {
@@ -2067,17 +2172,28 @@ function db_posts_uploads_get_posts($link, $posts)
 	return $posts_uploads;
 }
 /**
- * Связывает сообщение с загруженным файлом.
+ * Связывает сообщение с информацией о загрузке.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param post_id mixed <p>идентификатор сообщения.</p>
- * @param upload_id mixed <p>идентификатор сообщения.</p>
+ * @param upload_id mixed <p>идентификатор записи с информацией о загрузке.</p>
  */
- function db_posts_uploads_add($link, $post_id, $upload_id)
- {
+function db_posts_uploads_add($link, $post_id, $upload_id)
+{
 	if(!mysqli_query($link, "call sp_posts_uploads_add($post_id, $upload_id)"))
 		throw new CommonException(mysqli_error($link));
 	db_cleanup_link($link);
- }
+}
+/**
+ * Удаляет все связи сообщения с информацией о загрузках.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param post_id mixed <p>Идентификатор сообщения.</p>
+ */
+function db_posts_uploads_delete_post($link, $post_id)
+{
+	if(!mysqli_query($link, "call sp_posts_uploads_delete_post($post_id)"))
+		throw new CommonException(mysqli_error($link));
+	db_cleanup_link($link);
+}
 
 /*************************************
  * Работа с информацией о загрузках. *

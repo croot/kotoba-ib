@@ -8,8 +8,7 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
-//Скрипт, показывающий id пользователя.
-
+//Скрипт, показывающий id пользователя и группы, в которые он входит.
 require '../config.php';
 require Config::ABS_PATH. '/modules/errors.php';
 require Config::ABS_PATH . '/modules/lang/' . Config::LANGUAGE . '/errors.php';
@@ -23,6 +22,7 @@ try
 	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
 	$smarty->assign('id', $_SESSION['user']);
+	$smarty->assign('groups', $_SESSION['groups']);
 	$smarty->display('my_id.tpl');
 	if(isset($_GET['kuga']) && $_GET['kuga'] === '1')
 		echo take_it_easy();

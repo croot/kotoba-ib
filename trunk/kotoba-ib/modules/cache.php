@@ -695,8 +695,7 @@ function users_check_keyword($keyword)
 	return $keyword;
 }
 /**
- * Получает настройки ползователя с заданным ключевым словом.
- * @param link MySQLi <p>Связь с базой данных.</p>
+ * Получает настройки ползователя по заданному ключевому слову.
  * @param keyword string <p>Хеш ключевого слова.</p>
  * @return array
  * Возвращает настройки:<p>
@@ -706,13 +705,13 @@ function users_check_keyword($keyword)
  * 'lines_per_post' - количество строк в урезанном сообщении при просмотре доски.<br>
  * 'language' - язык.<br>
  * 'stylesheet' - стиль оформления.<br>
- * 'rempass' - пароль для удаления сообщений.<br>
+ * 'password' - пароль для удаления сообщений.<br>
  * 'goto' - перенаправление при постинге.<br>
- * 'groups' - массив групп, в которые входит пользователь.</p>
+ * 'groups' - группы, в которые входит пользователь.</p>
  */
-function users_get_settings($keyword)
+function users_get_by_keyword($keyword)
 {
-	return db_users_get_settings(DataExchange::getDBLink(), $keyword);
+	return db_users_get_by_keyword(DataExchange::getDBLink(), $keyword);
 }
 /**
  * Проверяет корректность количества нитей $threads_per_page на странице
@@ -809,33 +808,44 @@ function users_check_lines_per_post($lines_per_post)
 function users_check_goto($goto)
 {
 	if($goto == 'b' || $goto == 't')
+	{
 		return $goto;
+	}
 	else
+	{
 		throw new FormatException(FormatException::$messages['GOTO']);
+	}
 }
 /**
  * Редактирует настройки пользователя с заданным ключевым словом или добавляет
  * нового.
- * @param link MySQLi <p>Связь с базой данных.</p>
  * @param keyword string <p>Хеш ключевого слова.</p>
  * @param threads_per_page mixed <p>Количество нитей на странице предпросмотра доски.</p>
  * @param posts_per_thread mixed <p>Количество сообщений в предпросмотре треда.</p>
  * @param lines_per_post mixed <p>Максимальное количество строк в предпросмотре сообщения.</p>
  * @param stylesheet mixed <p>Стиль оформления.</p>
  * @param language mixed <p>Язык.</p>
- * @param rempass mixed <p>Пароль для удаления сообщений.</p>
+ * @param password mixed <p>Пароль для удаления сообщений.</p>
  * @param goto string <p>Перенаправление при постинге.</p>
  */
 function users_edit_bykeyword($keyword, $threads_per_page, $posts_per_thread,
-	$lines_per_post, $stylesheet, $language, $rempass, $goto)
+	$lines_per_post, $stylesheet, $language, $password, $goto)
 {
 	db_users_edit_bykeyword(DataExchange::getDBLink(), $keyword,
 		$threads_per_page, $posts_per_thread, $lines_per_post, $stylesheet,
-		$language, $rempass, $goto);
+		$language, $password, $goto);
+}
+/**
+ * Устанавливает пароль для удаления сообщений заданному пользователю.
+ * @param id mixed <p>Идентификатор пользователя.</p>
+ * @param password mixed <p>Пароль для удаления сообщений.</p>
+ */
+function users_set_password($id, $password)
+{
+	db_users_set_password(DataExchange::getDBLink(), $id, $password);
 }
 /**
  * Получает всех пользователей.
- * @param link MySQLi <p>Связь с базой данных.</p>
  * @return array
  * Возвращает идентификаторы пользователей:<p>
  * 'id' - идентификатор пользователя.</p>
@@ -1251,11 +1261,12 @@ function posts_check_id($id)
 	return $id;
 }
 /**
- * Проверяет корректность пароля для удаления сообщения.
+ * Проверяет корректность пароля для удаления сообщений.
  * @param password string <p>Пароль.</p>
  * @return string
- * Возвращает безопасный для использования пароль для удаления сообщения.
+ * Возвращает безопасный для использования пароль для удаления сообщений.
  */
+// TODO Согласовать длину пароля в таблице пользователей и сообщений.
 function posts_check_password($password)
 {
 	$length = strlen($password);
@@ -1264,10 +1275,14 @@ function posts_check_password($password)
 		$password = RawUrlEncode($password);
 		$length = strlen($password);
 		if($length > 12 || (strpos($password, '%') !== false) || $length < 1)
+		{
 			throw new FormatException(FormatException::$messages['POST_PASSWORD']);
+		}
 	}
 	else
+	{
 		throw new FormatException(FormatException::$messages['POST_PASSWORD']);
+	}
 	return $password;
 }
 /**
@@ -1387,6 +1402,28 @@ function posts_get_specifed_view_bynumber($board_id, $post_num, $user_id)
 		$board_id, $post_num, $user_id);
 }
 /**
+ * Получает сообщение по идентификатору.
+ * @param post_id mixed <p>Идентификатор сообщения.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает сообщение:<p>
+ * 'id' - идентификатор.<br>
+ * 'thread' - идентификатор нити.<br>
+ * 'number' - номер.<br>
+ * 'password' - пароль для удаления.<br>
+ * 'name' - имя отправителя.<br>
+ * 'ip' - ip адрес отправителя.<br>
+ * 'subject' - тема.<br>
+ * 'date_time' - время сохранения.<br>
+ * 'text' - текст.<br>
+ * 'sage' - флаг поднятия нити.</p>
+ */
+function posts_get_specifed_view_byid($post_id, $user_id)
+{
+	return db_posts_get_specifed_view_byid(DataExchange::getDBLink(), $post_id,
+		$user_id);
+}
+/**
  * Добавляет сообщение.
  * @param board_id mixed<p>Идентификатор доски.</p>
  * @param thread_id mixed<p>Идентификатор нити.</p>
@@ -1437,6 +1474,16 @@ function posts_corp_text(&$message, $preview_lines, &$is_cutted)
 function posts_delete($id)
 {
 	db_posts_delete(DataExchange::getDBLink(), $id);
+}
+/**
+ * Удаляет сообщение с заданным идентификатором и все сообщения с ip адреса
+ * отправителя, оставленные с заданного момента.
+ * @param id mixed <p>Идентификатор сообщения.</p>
+ * @param date_time mixed <p>Момент времени.</p>
+ */
+function posts_delete_last($id, $date_time)
+{
+	db_posts_delete_last(DataExchange::getDBLink(), $id, $date_time);
 }
 /**
  * Удаляет сообщения, помеченные на удаление.
@@ -2116,34 +2163,39 @@ function threads_get_specifed_change($thread_id, $user_id)
 		$user_id);
 }
 
-/******************************************************************
- * Работа со связями сообщений и информации о загруженных файлах. *
- ******************************************************************/
+/**********************************************************
+ * Работа со связями сообщений с информацией о загрузках. *
+ **********************************************************/
 
 /**
- * Получает для каждого сообщения из $posts его связь с информацией о
- * загруженных файлах.
- *
- * Аргументы:
- * $posts - сообщения.
- *
- * Возвращает связи:
- * 'post' - идентификатор сообщения.
- * 'upload' - идентификатор загруженного файла.
+ * Получает для сообщений их связи с информацией о загрузках.
+ * @param posts array <p>Сообщения.</p>
+ * @return array
+ * Возвращает связи:<p>
+ * 'post' - идентификатор сообщения.<br>
+ * 'upload' - идентификатор записи с информацией о загрузке.</p>
  */
 function posts_uploads_get_posts($posts)
 {
 	return db_posts_uploads_get_posts(DataExchange::getDBLink(), $posts);
 }
 /**
- * Связывает сообщение с загруженным файлом.
+ * Связывает сообщение с информацией о загрузке.
  * @param post_id mixed <p>идентификатор сообщения.</p>
- * @param upload_id mixed <p>идентификатор сообщения.</p>
+ * @param upload_id mixed <p>идентификатор записи с информацией о загрузке.</p>
  */
- function posts_uploads_add($post_id, $upload_id)
- {
+function posts_uploads_add($post_id, $upload_id)
+{
 	db_posts_uploads_add(DataExchange::getDBLink(), $post_id, $upload_id);
- }
+}
+/**
+ * Удаляет все связи сообщения с информацией о загрузках.
+ * @param post_id mixed <p>Идентификатор сообщения.</p>
+ */
+function posts_uploads_delete_post($post_id)
+{
+	db_posts_uploads_delete_post(DataExchange::getDBLink(), $post_id);
+}
 
 /*************************************
  * Работа с информацией о загрузках. *

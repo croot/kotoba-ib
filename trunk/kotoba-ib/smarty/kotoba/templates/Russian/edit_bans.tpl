@@ -54,8 +54,7 @@
 </tr>
 </table><br>
 Разбанить заданный ip: <input type="text" name="unban"><br><br>
-<input type="hidden" name= "submited" value="1">
-<input type="reset" value="Сброс"> <input type="submit" value="Сохранить">
+<input type="reset" value="Сброс"> <input type="submit" name="submit" value="Сохранить">
 </form>
-<a href="{$DIR_PATH}/">На главную</a>
+<br><br><a href="{$DIR_PATH}/">На главную</a>
 {include file='footer.tpl'}
