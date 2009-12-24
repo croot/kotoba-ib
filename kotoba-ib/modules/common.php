@@ -68,7 +68,7 @@ function kotoba_session_start()
 		$_SESSION['lines_per_post'] = Config::LINES_PER_POST;
 		$_SESSION['stylesheet'] = Config::STYLESHEET;
 		$_SESSION['language'] = Config::LANGUAGE;
-		$_SESSION['rempass'] = null;
+		$_SESSION['password'] = null;
 		$_SESSION['goto'] = 'b';	// Переход к доске.
 	}
 	/* Язык мог измениться на язык пользователя. */
@@ -91,23 +91,24 @@ function locale_setup()
  ***********/
 
 /**
- * Загружает настройки пользователя с ключевым словом $keyword.
+ * Загружает настройки пользователя по заданному ключевому слову.
+ * @param keyword string <p>Хеш ключевого слова.</p>
  */
 function load_user_settings($keyword)
 {
-	$user_settings = users_get_settings($keyword);
+	$user_settings = users_get_by_keyword($keyword);
 	$_SESSION['user'] = $user_settings['id'];
 	$_SESSION['groups'] = $user_settings['groups'];
 	$_SESSION['threads_per_page'] = $user_settings['threads_per_page'];
 	$_SESSION['posts_per_thread'] = $user_settings['posts_per_thread'];
 	$_SESSION['lines_per_post'] = $user_settings['lines_per_post'];
 	$_SESSION['stylesheet'] = $user_settings['stylesheet'];
-	/* Язык мог измениться на язык пользователя. */
+	// Язык мог измениться на язык пользователя.
 	if($_SESSION['language'] != $user_settings['language'])
 		require "modules/lang/{$_SESSION['language']}/errors.php";
 	$_SESSION['language'] = $user_settings['language'];
-	$_SESSION['rempass'] = $user_settings['rempass'] == ''
-		? null : $user_settings['rempass'];
+	$_SESSION['password'] = $user_settings['password'] == ''
+		? null : $user_settings['password'];
 	$_SESSION['goto'] = $user_settings['goto'];
 }
 /**

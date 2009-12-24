@@ -44,7 +44,7 @@ try
 				'reason' => $ban['reason'],
 				'untill' => $ban['untill']));
 	$reload_bans = false;	// Были ли произведены изменения.
-	if(isset($_POST['submited']))
+	if(isset($_POST['submit']))
 	{
 		// Добавление нового бана.
 		if(isset($_POST['new_range_beg']) && isset($_POST['new_range_end'])
@@ -63,11 +63,23 @@ try
 			bans_add($new_range_beg, $new_range_end, $new_reason,
 				date('Y-m-d H:i:s', time() + $new_untill));
 			$reload_bans = true;
-			// Добавим сообщение о бане.
-			if(isset($_POST['add_text']) && isset($_POST['post']))
+			if(isset($_POST['post']))
 			{
-				posts_edit_specifed_addtext(posts_check_id($_POST['post'])
-					, $smarty->fetch('uwb4tp.tpl'));
+				if(isset($_POST['add_text']))
+				{
+					posts_edit_specifed_addtext(posts_check_id($_POST['post'])
+						, $smarty->fetch('uwb4tp.tpl'));
+				}
+				elseif(isset($_POST['del_post']))
+				{
+					posts_delete(posts_check_id($_POST['post']));
+				}
+				elseif(isset($_POST['del_all']))
+				{
+					date_default_timezone_set(Config::DEFAULT_TIMEZONE);
+					posts_delete_last(posts_check_id($_POST['post']),
+						date(Config::DATETIME_FORMAT, time() - (60 * 60)));
+				}
 			}
 		}
 		// Удаление банов.

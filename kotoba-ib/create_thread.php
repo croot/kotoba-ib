@@ -79,12 +79,16 @@ try
 			$link_type = Config::LINK_TYPE_CODE;
 		}
 	}
-	$pass = null;
-	if(isset($_POST['rempass']) && $_POST['rempass'] != '')
+	$password = null;
+	$update_password = false;
+	if(isset($_POST['password']) && $_POST['password'] != '')
 	{
-		$pass = posts_check_password($_POST['rempass']);
-		if(!isset($_SESSION['rempass']) || $_SESSION['rempass'] != $pass)
-			$_SESSION['rempass'] = $pass;
+		$password = posts_check_password($_POST['password']);
+		if(!isset($_SESSION['password']) || $_SESSION['password'] != $password)
+		{
+			$_SESSION['password'] = $password;
+			$update_password = true;
+		}
 	}
 	posts_check_text_size($_POST['text']);
 	posts_check_subject_size($_POST['subject']);
@@ -141,7 +145,9 @@ try
 					$same_uploads = uploads_get_same($board['id'], $file_hash,
 						$_SESSION['user']);
 					if(count($same_uploads) > 0)
+					{
 						$file_already_posted = true;
+					}
 					break;
 				case 'yes':
 				default:
@@ -233,13 +239,19 @@ try
 	// Create empty thread.
 	$thread = threads_add($board['id'], null, null, 0, null);
 	date_default_timezone_set(Config::DEFAULT_TIMEZONE);
-	$post = posts_add($board['id'], $thread['id'], $_SESSION['user'], $pass,
+	$post = posts_add($board['id'], $thread['id'], $_SESSION['user'], $password,
 		$name, $tripcode, ip2long($_SERVER['REMOTE_ADDR']), $subject,
 		date(Config::DATETIME_FORMAT), $text, null);
 	// Закрепляем сообщение как оригинальное сообщение созданной пустой нити.
 	threads_edit_originalpost($thread['id'], $post['number']);
 	if($board['with_files'])
+	{
 		posts_uploads_add($post['id'], $upload_id);
+	}
+	if($_SESSION['user'] != Config::GUEST_ID && $update_password)
+	{
+		users_set_password($_SESSION['user'], $password);
+	}
 // 4. Запуск обработчика автоматического удаления нитей.
 	foreach(popdown_handlers_get_all() as $popdown_handler)
 		if($board['popdown_handler'] == $popdown_handler['id'])

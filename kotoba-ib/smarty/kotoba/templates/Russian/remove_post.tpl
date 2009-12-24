@@ -14,19 +14,18 @@
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
 	$STYLESHEET - стиль оформления.
-	$board_name - имя доски.
-	$post_num - номер сообщения.
+	$id - идентификатор сообщения.
 	$password - паролья для удаления сообщения.
 *}
 {include file='header.tpl' page_title='Ввод пароля для удаления сообщения' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
-<h2>Вы удаляете сообщение {$board_name}/{$post_num}</h2>
+<h2>Вы удаляете сообщение {$id}</h2>
 <form action="{$DIR_PATH}/remove_post.php" method="post">
-<input type="hidden" name="board" value="{$board_name}">
-<input type="hidden" name="post" value="{$post_num}">
+<input type="hidden" name="post" value="{$id}">
 <table align="center" border="0">
 <tr valign="top">
-	<td>Password:</td>
-	<td><input type="password" name="rempass" size="30" value="{$password}"> <input type="submit" value="Удалить"></td>
+	<td>Пароль:</td>
+	<td><input type="password" name="password" size="30" value="{$password}"> <input type="submit" value="Удалить"></td>
 </tr>
 </table>
+<br><br><a href="{$DIR_PATH}/">На главную</a>
 {include file="footer.tpl"}

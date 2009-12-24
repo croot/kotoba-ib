@@ -31,8 +31,24 @@
 	<span onclick="insert('>>{$original_post.number}');">#</span>
 	<a href="{$DIR_PATH}/{$board.name}/{$thread[0].original_post}#{$original_post.number}">{$original_post.number}</a>
 </span>
-<span class="hidebtn">[<a href="{$DIR_PATH}/{$board.name}/h{$thread[0].original_post}" title="Скрыть">-</a>]</span>
-<span class="delbtn">[<a href="{$DIR_PATH}/{$board.name}/r{$original_post.number}" title="Удалить">×</a>]</span>
+<form action="{$DIR_PATH}/hide_thread.php" method="post">
+	<input type="submit" name="submit" value="С" title="Скрыть нить">
+	<input type="hidden" name="thread" value="{$thread[0].id}">
+</form>
+<form action="{$DIR_PATH}/remove_post.php" method="post">
+	<input type="submit" name="submit" value="У" title="Удалить сообщение">
+	<input type="hidden" name="post" value="{$original_post.id}">
+</form>
+{if $original_post.with_files}
+	<form action="{$DIR_PATH}/remove_upload.php" method="post">
+		<input type="submit" name="submit" value="УФ" title="Удалить файл">
+		<input type="hidden" name="post" value="{$original_post.id}">
+	</form>
+{/if}
+<form action="{$DIR_PATH}/report.php" method="post">
+	<input type="submit" name="submit" value="Ж" title="Пожаловатся на сообщение">
+	<input type="hidden" name="post" value="{$original_post.id}">
+</form>
 {if $sticky} Нить закреплена.{/if}
 {if $is_admin}{include file='mod_mini_panel.tpl' post_id=$original_post.id ip=$original_post.ip board_name=$board.name post_num=$original_post.number}{/if}
 <a name="{$original_post.number}"></a>

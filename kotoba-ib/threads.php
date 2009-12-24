@@ -27,8 +27,8 @@ try
 // Проверка входных параметров.
 	$board_name = boards_check_name($_GET['board']);
 	$thread_num = threads_check_number($_GET['thread']);
-	$rempass = !isset($_SESSION['rempass']) || $_SESSION['rempass'] == null
-		? '' : $_SESSION['rempass'];
+	$password = !isset($_SESSION['password']) || $_SESSION['password'] == null
+		? '' : $_SESSION['password'];
 	/*
 	 * Доски нужны для вывода списка досок, поэтому получим все и среди них
 	 * будем искать запрашиваемую.
@@ -78,7 +78,7 @@ try
 	$smarty->assign('thread', array($thread));
 	$smarty->assign('is_moderatable', $is_moderatable);
 	$smarty->assign('is_admin', $is_admin);
-	$smarty->assign('rempass', $rempass);
+	$smarty->assign('password', $password);
 	$smarty->assign('upload_types', $upload_types);
 	$smarty->assign('goto', $_SESSION['goto']);
 	$smarty->assign('macrochan_tags', $macrochan_tags);

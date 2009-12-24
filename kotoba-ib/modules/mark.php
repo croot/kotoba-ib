@@ -500,33 +500,28 @@ function kotoba_mark(&$text, $board)
 	}
 	if(isset($code_blocks) && count($code_blocks) > 0)	// Восстановление кода.
 		for($i = 0; $i < count($code_blocks); $i++)
-			$output = preg_replace("/(code:$i)/", "<pre>$code_blocks[$i]</pre>",
+			$output = str_replace("code:$i", "<pre>$code_blocks[$i]</pre>",
 				$output);
-
 	if(isset($lists) && count($lists) > 0)	// Восстановление списоков.
 		for($i = 0; $i < count($lists); $i++)
-			$output = preg_replace("/(list:$i)/", $lists[$i], $output);
-
+			$output = str_replace("list:$i", $lists[$i], $output);
 	if(isset($quotes) && count($quotes) > 0)	// Восстановление цитат.
 		for($i = 0; $i < count($quotes); $i++)
-			$output = preg_replace("/(quote:$i)/",
+			$output = str_replace("quote:$i",
 				"<blockquote class=\"unkfunc\">$quotes[$i]</blockquote>",
 				$output);
-
 	if(isset($links) && count($links) > 0)	// Восстановление ссылок.
 		for($i = 0; $i < count($links); $i++)
-			$output = preg_replace("/(link:$i)/", $links[$i], $output);
-
+			$output = str_replace("link:$i", $links[$i], $output);
 	if(isset($spoilers) && count($spoilers) > 0)	// Восстановление спойлеров.
 		for($i = 0; $i < count($spoilers); $i++)
-			$output = preg_replace("/(spoiler:$i)/",
+			$output = str_replace("spoiler:$i",
 				"<span class=\"spoiler\">$spoilers[$i]</span>",
 				$output);
 	// Удаление лишних переносов.
-	$output = preg_replace("/<\/blockquote>\n/", '</blockquote>', $output);
+	$output = str_replace("<\/blockquote>\n", '</blockquote>', $output);
 	$text = $output;
 }
-
 /**
  * Расставляет теги в строке по заданному разделителю.
  * @param line string <p>Строка для расстановки тегов.</p>

@@ -14,20 +14,21 @@
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
 *}
-<a href="{$DIR_PATH}/admin/edit_groups.php">Редактирование групп пользователей.</a><br>
-<a href="{$DIR_PATH}/admin/edit_user_groups.php">Редактирование закреплений пользователей за группами.</a><br>
-<a href="{$DIR_PATH}/admin/edit_acl.php">Редактирование списка контроля доступа.</a><br>
-<a href="{$DIR_PATH}/admin/edit_languages.php">Редактирование языков.</a><br>
-<a href="{$DIR_PATH}/admin/edit_stylesheets.php">Редактирование стилей оформления.</a><br>
-<a href="{$DIR_PATH}/admin/edit_categories.php">Редактирование категорий досок.</a><br>
-<a href="{$DIR_PATH}/admin/edit_upload_handlers.php">Редактирование обработчиков загружаемых файлов.</a><br>
-<a href="{$DIR_PATH}/admin/edit_popdown_handlers.php">Редактирование обработчиков удаления нитей.</a><br>
-<a href="{$DIR_PATH}/admin/edit_upload_types.php">Редактирование типов загружаемых файлов.</a><br>
-<a href="{$DIR_PATH}/admin/edit_board_upload_types.php">Редактирование типов загружаемых файлов для досок.</a><br>
-<a href="{$DIR_PATH}/admin/edit_boards.php">Редактирование досок.</a><br>
-<a href="{$DIR_PATH}/admin/edit_boards_annotation.php">Редактирование аннотаций досок.</a><br>
-<a href="{$DIR_PATH}/admin/edit_bans.php">Редактирование банов.</a><br>
-<a href="{$DIR_PATH}/admin/edit_threads.php">Редактирование настроек нитей.</a><br>
+<a href="{$DIR_PATH}/admin/edit_boards_annotation.php">Аннотации досок.</a><br>
+<a href="{$DIR_PATH}/admin/edit_bans.php">Баны.</a><br>
+<a href="{$DIR_PATH}/admin/edit_groups.php">Группы пользователей.</a><br>
+<a href="{$DIR_PATH}/admin/edit_boards.php">Доски.</a><br>
+<a href="{$DIR_PATH}/admin/edit_user_groups.php">Закрепления пользователей за группами.</a><br>
+<a href="{$DIR_PATH}/admin/edit_categories.php">Категории досок.</a><br>
+<a href="{$DIR_PATH}/admin/edit_threads.php">Настройки нитей.</a><br>
+<a href="{$DIR_PATH}/admin/edit_upload_handlers.php">Обработчики загружаемых файлов.</a><br>
+<a href="{$DIR_PATH}/admin/edit_popdown_handlers.php">Обработчики удаления нитей.</a><br>
+<a href="{$DIR_PATH}/admin/edit_acl.php">Список контроля доступа.</a><br>
+<a href="{$DIR_PATH}/admin/edit_stylesheets.php">Стили оформления.</a><br>
+<a href="{$DIR_PATH}/admin/edit_upload_types.php">Типы загружаемых файлов.</a><br>
+<a href="{$DIR_PATH}/admin/edit_board_upload_types.php">Типов загружаемых файлов для досок.</a><br>
+<a href="{$DIR_PATH}/admin/edit_languages.php">Языки.</a><br><br>
 <a href="{$DIR_PATH}/admin/archive.php">Произвести архивирование.</a><br>
 <a href="{$DIR_PATH}/admin/delete_marked_posts.php">Удалить помеченные на удаление сообщения и нити.</a><br>
 <a href="{$DIR_PATH}/admin/delete_dangling_files.php">Удалить висячие загрузки.</a>
+<br><br><a href="{$DIR_PATH}/">На главную</a>
