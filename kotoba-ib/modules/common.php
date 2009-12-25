@@ -56,8 +56,10 @@ function kotoba_session_start()
 	ini_set('session.save_path', Config::ABS_PATH . '/sessions/');
 	ini_set('session.gc_maxlifetime', Config::SESSION_LIFETIME);
 	ini_set('session.cookie_lifetime', Config::SESSION_LIFETIME);
-	if(! session_start())
+	if(!session_start())
+	{
 		throw new CommonException(CommonException::$messages['SESSION_START']);
+	}
 	// По умолчанию пользователь является Гостем.
 	if(!isset($_SESSION['user']) || $_SESSION['user'] == Config::GUEST_ID)
 	{
@@ -71,8 +73,9 @@ function kotoba_session_start()
 		$_SESSION['password'] = null;
 		$_SESSION['goto'] = 'b';	// Переход к доске.
 	}
-	/* Язык мог измениться на язык пользователя. */
-	require Config::ABS_PATH . "/modules/lang/{$_SESSION['language']}/errors.php";
+	// Язык мог измениться на язык пользователя.
+	require Config::ABS_PATH
+		. "/modules/lang/{$_SESSION['language']}/errors.php";
 }
 /**
  * Устанавливает язык и кодировку для фукнций работы с многобайтовыми
@@ -83,7 +86,9 @@ function locale_setup()
 	mb_language(Config::MB_LANGUAGE);
 	mb_internal_encoding(Config::MB_ENCODING);
 	if(!setlocale(LC_ALL, Config::$LOCALE_NAMES))
+	{
 		throw new CommonException(CommonException::$messages['SETLOCALE']);
+	}
 }
 
 /***********

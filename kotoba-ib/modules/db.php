@@ -432,6 +432,7 @@ function db_boards_get_specifed($link, $board_id)
 }
 /**
  * Получает доску по заданному имени.
+ * @param link MySQLi <p>Связь с базой данных.</p>
  * @param board_name string <p>Имя доски.</p>
  * @return array
  * Возвращает доску:<p>
@@ -468,6 +469,53 @@ function db_boards_get_specifed_byname($link, $board_name)
 	}
 	if($board === null)
 		throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']);
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $board;
+}
+/**
+ * Получает доску по заданному идентификатору.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param id string <p>Идентификатор доски.</p>
+ * @return array
+ * Возвращает доску:<p>
+ * 'id' - идентификатор.<br>
+ * 'name' - имя.<br>
+ * 'title' - заголовок.<br>
+ * 'bump_limit' - спецефиный для доски бамплимит.<br>
+ * 'force_anonymous' - флаг отображения имя отправителя.<br>
+ * 'default_name' - имя отправителя по умолчанию.<br>
+ * 'with_files' - флаг загрузки файлов.<br>
+ * 'same_upload' - политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
+ * 'category' - категория.</p>
+ */
+function db_boards_get_by_id($link, $id)
+{
+	$result = mysqli_query($link, "call sp_boards_get_by_id($id)");
+	if(!$result)
+	{
+		throw new CommonException(mysqli_error($link));
+	}
+	$board = null;
+	if(mysqli_affected_rows($link) > 0
+		&& ($row = mysqli_fetch_assoc($result)) !== null)
+	{
+		$board['id'] = $row['id'];
+		$board['name'] = $row['name'];
+		$board['title'] = $row['title'];
+		$board['bump_limit'] = $row['bump_limit'];
+		$board['force_anonymous'] = $row['force_anonymous'];
+		$board['default_name'] = $row['default_name'];
+		$board['with_files'] = $row['with_files'];
+		$board['same_upload'] = $row['same_upload'];
+		$board['popdown_handler'] = $row['popdown_handler'];
+		$board['category'] = $row['category'];
+	}
+	if($board === null)
+	{
+		throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']);
+	}
 	mysqli_free_result($result);
 	db_cleanup_link($link);
 	return $board;
@@ -1991,7 +2039,8 @@ function db_posts_get_specifed_view_bynumber($link, $board_id, $post_num,
 	return $post;
 }
 /**
- * Получает сообщение по идентификатору.
+ * Получает сообщение, доступное для чтения заданному пользоватею, по
+ * идентификатору.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param post_id mixed <p>Идентификатор сообщения.</p>
  * @param user_id mixed <p>Идентификатор пользователя.</p>
@@ -1999,6 +2048,7 @@ function db_posts_get_specifed_view_bynumber($link, $board_id, $post_num,
  * Возвращает сообщение:<p>
  * 'id' - идентификатор.<br>
  * 'thread' - идентификатор нити.<br>
+ * 'board' - идентификатор доски.<br>
  * 'number' - номер.<br>
  * 'password' - пароль для удаления.<br>
  * 'name' - имя отправителя.<br>
@@ -2008,19 +2058,22 @@ function db_posts_get_specifed_view_bynumber($link, $board_id, $post_num,
  * 'text' - текст.<br>
  * 'sage' - флаг поднятия нити.</p>
  */
-function db_posts_get_specifed_view_byid($link, $post_id, $user_id)
+function db_posts_get_by_id_view($link, $post_id, $user_id)
 {
 	// TODO Проверка на помеченный на архивирование тред.
-	$result = mysqli_query($link, "call sp_posts_get_specifed_view_byid($post_id,
+	$result = mysqli_query($link, "call sp_posts_get_by_id_view($post_id,
 		$user_id)");
 	if(!$result)
+	{
 		throw new CommonException(mysqli_error($link));
+	}
 	$post = null;
 	if(mysqli_affected_rows($link) > 0
 		&& ($row = mysqli_fetch_assoc($result)) != null)
 	{
 		$post['id'] = $row['id'];
 		$post['thread'] = $row['thread'];
+		$post['board'] = $row['board'];
 		$post['number'] = $row['number'];
 		$post['password'] = $row['password'];
 		$post['name'] = $row['name'];
@@ -2032,7 +2085,9 @@ function db_posts_get_specifed_view_byid($link, $post_id, $user_id)
 		$post['sage'] = $row['sage'];
 	}
 	if($post === null)
+	{
 		throw new NodataException(NodataException::$messages['POST_ID_NOT_FOUND']);
+	}
 	mysqli_free_result($result);
 	db_cleanup_link($link);
 	return $post;

@@ -70,8 +70,7 @@ NodataException::$messages['UPLOAD_TYPE_ID_NOT_SPECIFED'] = 'Не задан и�
 NodataException::$messages['BOARD_TITLE_NOT_SPECIFED'] = 'Не задан заголовок доски.';
 NodataException::$messages['BOARD_BUMP_LIMIT_NOT_SPECIFED'] = 'Не задан бампилимит.';
 NodataException::$messages['THREADS_EDIT'] = 'Нет нитей для редактирования настроек';
-// Параметры: имя доски.
-NodataException::$messages['BOARD_NOT_FOUND'] = 'Доски с именем %s не существует.';
+NodataException::$messages['BOARD_NOT_FOUND'] = 'Доска не найдена.';
 NodataException::$messages['POST_NUMBER_NOT_FOUND'] = 'Сообщения с заданным номером не существует.';
 NodataException::$messages['POST_ID_NOT_FOUND'] = 'Сообщения с заданным идентификатором не существует.';
 // Параметры: номер нити, идентификатор доски.
