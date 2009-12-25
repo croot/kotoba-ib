@@ -22,23 +22,26 @@ try
 {
 	kotoba_session_start();
 	locale_setup();
-	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+	$smarty = new SmartyKotobaSetup($_SESSION['language'],
+		$_SESSION['stylesheet']);
 	// Возможно завершение работы скрипта.
 	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));
 // Проверка входных параметров.
 	if(isset($_GET['post']))
 	{
-		$post = posts_get_specifed_view_byid(posts_check_number($_GET['post']),
-			$_SESSION['user']);
-		$password = isset($_GET['password'])
-			? posts_check_password($_GET['password']) : $_SESSION['rempass'];
+		$post_id = $_GET['post'];
+		if(isset($_GET['password']))
+		{
+			$password = $_GET['password'];
+		}
 	}
 	elseif(isset($_POST['post']))
 	{
-		$post = posts_get_specifed_view_byid(posts_check_number($_POST['post']),
-			$_SESSION['user']);
-		$password = isset($_POST['password'])
-			? posts_check_password($_POST['password']) : $_SESSION['rempass'];
+		$post_id = $_POST['post'];
+		if(isset($_POST['password']))
+		{
+			$password = $_POST['password'];
+		}
 	}
 	else
 	{
@@ -46,12 +49,17 @@ try
 		DataExchange::releaseResources();
 		exit;
 	}
+	$post = posts_get_by_id_view(posts_check_number($post_id),
+		$_SESSION['user']);
+	$password = isset($password)
+		? posts_check_password($password) : $_SESSION['password'];
 // Удаление.
 	if(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups'])
 		|| ($post['password'] !== null && $post['password'] === $password))
 	{
 		posts_delete($post['id']);
-		header('Location: ' . Config::DIR_PATH . "/");
+		$board = boards_get_by_id($post['board']);
+		header('Location: ' . Config::DIR_PATH . "/{$board['name']}/");
 	}
 	else
 	{

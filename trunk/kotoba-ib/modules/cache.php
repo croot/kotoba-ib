@@ -335,6 +335,26 @@ function boards_get_specifed_byname($board_name)
 	return db_boards_get_specifed_byname(DataExchange::getDBLink(), $board_name);
 }
 /**
+ * Получает доску по заданному идентификатору.
+ * @param id string <p>Идентификатор доски.</p>
+ * @return array
+ * Возвращает доску:<p>
+ * 'id' - идентификатор.<br>
+ * 'name' - имя.<br>
+ * 'title' - заголовок.<br>
+ * 'bump_limit' - спецефиный для доски бамплимит.<br>
+ * 'force_anonymous' - флаг отображения имя отправителя.<br>
+ * 'default_name' - имя отправителя по умолчанию.<br>
+ * 'with_files' - флаг загрузки файлов.<br>
+ * 'same_upload' - политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
+ * 'category' - категория.</p>
+ */
+function boards_get_by_id($id)
+{
+	return db_boards_get_by_id(DataExchange::getDBLink(), $id);
+}
+/**
  * Получает доску по заданному имени, доступную для редактирования пользователю.
  * @param board_name string <p>Имя доски.</p>
  * @param user_id mixed <p>Идентификатор пользователя.</p>
@@ -1402,13 +1422,15 @@ function posts_get_specifed_view_bynumber($board_id, $post_num, $user_id)
 		$board_id, $post_num, $user_id);
 }
 /**
- * Получает сообщение по идентификатору.
+ * Получает сообщение, доступное для чтения заданному пользоватею, по
+ * идентификатору.
  * @param post_id mixed <p>Идентификатор сообщения.</p>
  * @param user_id mixed <p>Идентификатор пользователя.</p>
  * @return array
  * Возвращает сообщение:<p>
  * 'id' - идентификатор.<br>
  * 'thread' - идентификатор нити.<br>
+ * 'board' - идентификатор доски.<br>
  * 'number' - номер.<br>
  * 'password' - пароль для удаления.<br>
  * 'name' - имя отправителя.<br>
@@ -1418,9 +1440,9 @@ function posts_get_specifed_view_bynumber($board_id, $post_num, $user_id)
  * 'text' - текст.<br>
  * 'sage' - флаг поднятия нити.</p>
  */
-function posts_get_specifed_view_byid($post_id, $user_id)
+function posts_get_by_id_view($post_id, $user_id)
 {
-	return db_posts_get_specifed_view_byid(DataExchange::getDBLink(), $post_id,
+	return db_posts_get_by_id_view(DataExchange::getDBLink(), $post_id,
 		$user_id);
 }
 /**

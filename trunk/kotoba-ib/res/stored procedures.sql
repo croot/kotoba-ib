@@ -10,6 +10,7 @@ drop procedure if exists sp_boards_get_all_view|
 drop procedure if exists sp_boards_get_all_change|
 drop procedure if exists sp_boards_get_specifed|
 drop procedure if exists sp_boards_get_specifed_byname|
+drop procedure if exists sp_boards_get_by_id|
 drop procedure if exists sp_boards_get_specifed_change_byname|
 drop procedure if exists sp_boards_get_specifed_change|
 drop procedure if exists sp_boards_edit|
@@ -71,7 +72,7 @@ drop procedure if exists sp_threads_delete_specifed|
 drop procedure if exists sp_posts_get_thread_view|
 drop procedure if exists sp_posts_get_thread|
 drop procedure if exists sp_posts_get_specifed_view_bynumber|
-drop procedure if exists sp_posts_get_specifed_view_byid|
+drop procedure if exists sp_posts_get_by_id_view|
 drop procedure if exists sp_posts_add|
 drop procedure if exists sp_posts_uploads_get_post|
 drop procedure if exists sp_posts_uploads_add|
@@ -355,7 +356,7 @@ begin
 	from boards;
 end|
 
--- Получает доску по заданному идентификатору.
+-- Выбирает доску по заданному идентификатору.
 --
 -- Аргументы:
 -- board_id - Идентификатор доски.
@@ -369,7 +370,7 @@ begin
 	from boards where id = board_id;
 end|
 
--- Получает доску по заданному имени.
+-- Выбирает доску по заданному имени.
 --
 -- Аргументы:
 -- board_name - Имя доски.
@@ -381,6 +382,20 @@ begin
 	select id, `name`, title, bump_limit, force_anonymous, default_name,
 		with_files, same_upload, popdown_handler, category
 	from boards where `name` = board_name;
+end|
+
+-- Выбирает доску по заданному идентификатору.
+--
+-- Аргументы:
+-- board_name - Имя доски.
+create procedure sp_boards_get_by_id
+(
+	_id int
+)
+begin
+	select id, `name`, title, bump_limit, force_anonymous, default_name,
+		with_files, same_upload, popdown_handler, category
+	from boards where id = _id;
 end|
 
 -- Добавляет доску.
@@ -1874,20 +1889,22 @@ begin
 	group by p.id;
 end|
 
--- Выбирает сообщение по идентификатору.
+-- Выбирает сообщение, доступное для чтения заданному пользоватею, по
+-- идентификатору.
 --
 -- Аргументы:
 -- post_id - Идентификатор сообщения.
 -- user_id - Идентификатор пользователя.
-create procedure sp_posts_get_specifed_view_byid
+create procedure sp_posts_get_by_id_view
 (
 	post_id int,
 	user_id int
 )
 begin
-	select p.id, p.thread, p.`number`, p.password, p.`name`, p.tripcode, p.ip,
-		p.subject, p.date_time, p.text, p.sage
+	select p.id, p.thread, p.board, p.`number`, p.password, p.`name`,
+		p.tripcode, p.ip, p.subject, p.date_time, p.text, p.sage
 	from posts p
+	left join threads t on t.id = p.thread
 	join user_groups ug on ug.`user` = user_id
 	-- Правило для конкретной группы и сообщения.
 	left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
@@ -1904,8 +1921,7 @@ begin
 	-- Правило для конкретной групы.
 	left join acl a7 on a7.`group` = ug.`group` and a7.board is null and
 		a7.thread is null and a7.post is null
-	where p.id = post_id
-		and p.deleted = 0
+	where p.id = post_id and p.deleted = 0 and t.deleted = 0 and t.archived = 0
 		-- Сообщение должно быть доступно для просмотра.
 			-- Просмотр сообщения не запрещен конкретной группе и
 		and ((a1.`view` = 1 or a1.`view` is null)
