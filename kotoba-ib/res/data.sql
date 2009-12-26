@@ -1,15 +1,15 @@
-delimiter|
+delimiter |
 insert into languages (`id`, `name`) values (1, 'Russian')|
 insert into languages (`name`) values ('English')|
 insert into categories (`name`) values ('default')|
 -- insert into categories (`name`) values ('rule 34')|
-insert into popdown_handlers (`name`) values ('default_handler')|
+insert into popdown_handlers (`name`) values ('popdown_default_handler')|
 insert into stylesheets (`id`, `name`) values (1, 'kotoba.css')|
 insert into groups (`id`, `name`) values (1, 'Guests')|
 insert into groups (`id`, `name`) values (2, 'Users')|
 insert into groups (`id`, `name`) values (3, 'Moderators')|
 insert into groups (`id`, `name`) values (4, 'Administrators')|
-insert into upload_handlers (`name`) values ('default_handler')|
+insert into upload_handlers (`name`) values ('thumb_default_handler')|
 -- insert into boards (`name`, `bump_limit`, `same_upload`, `popdown_handler`, `category`) values ('b', 30, 'no', 1, 1)|
 -- insert into boards (`name`, `bump_limit`, `same_upload`, `popdown_handler`, `category`) values ('azu',  30, 'once', 1, 1)|
 -- insert into boards (`name`, `bump_limit`, `same_upload`, `popdown_handler`, `category`) values ('azu34',  30, 'yes', 1, 2)|

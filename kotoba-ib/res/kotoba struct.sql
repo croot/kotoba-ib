@@ -215,7 +215,7 @@ CREATE TABLE `posts` (
   CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`),
   CONSTRAINT `posts_ibfk_2` FOREIGN KEY (`user`) REFERENCES `users` (`id`),
   CONSTRAINT `posts_ibfk_3` FOREIGN KEY (`thread`) REFERENCES `threads` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=884 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=887 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1149,6 +1149,29 @@ begin
 		and a3.`view` = 1
 	group by b.id
 	order by b.category, b.`name`;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_boards_get_by_id` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_boards_get_by_id`(
+	_id int
+)
+begin
+	select id, `name`, title, bump_limit, force_anonymous, default_name,
+		with_files, same_upload, popdown_handler, category
+	from boards where id = _id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -2628,6 +2651,64 @@ begin
 	join boards b on b.id = p.board
 	where p.deleted = 0 and t.deleted = 0 and t.archived = 0
 	order by p.`number`, t.`original_post`, b.`name` asc;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_posts_get_by_id_view` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_get_by_id_view`(
+	post_id int,
+	user_id int
+)
+begin
+	select p.id, p.thread, p.board, p.`number`, p.password, p.`name`,
+		p.tripcode, p.ip, p.subject, p.date_time, p.text, p.sage
+	from posts p
+	left join threads t on t.id = p.thread
+	join user_groups ug on ug.`user` = user_id
+	
+	left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+	
+	left join acl a2 on a2.`group` is null and a2.post = p.id
+	
+	left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+	
+	left join acl a4 on a4.`group` is null and a4.thread = p.thread
+	
+	left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+	
+	left join acl a6 on a6.`group` is null and a6.board = p.board
+	
+	left join acl a7 on a7.`group` = ug.`group` and a7.board is null and
+		a7.thread is null and a7.post is null
+	where p.id = post_id and p.deleted = 0 and t.deleted = 0 and t.archived = 0
+		
+			
+		and ((a1.`view` = 1 or a1.`view` is null)
+			
+			and (a2.`view` = 1 or a2.`view` is null)
+			
+			and (a3.`view` = 1 or a3.`view` is null)
+			
+			and (a4.`view` = 1 or a4.`view` is null)
+			
+			and (a5.`view` = 1 or a5.`view` is null)
+			
+			and (a6.`view` = 1 or a6.`view` is null)
+			
+			and a7.`view` = 1)
+	group by p.id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -5226,4 +5307,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2009-12-24 19:47:55
+-- Dump completed on 2009-12-26 10:36:31

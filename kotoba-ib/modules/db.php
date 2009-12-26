@@ -74,7 +74,9 @@ function db_bans_check($link, $ip)
 {
 	$result = mysqli_query($link, "call sp_bans_check($ip)");
 	if(!$result)
+	{
 		throw new CommonException(mysqli_error($link));
+	}
 	$row = false;
 	if(mysqli_affected_rows($link) > 0)
 	{
