@@ -164,9 +164,6 @@ create table hidden_threads
 )
 engine=InnoDB|
 
--- TODO Имя файла слишком коротко для ссылок и кода встроенных объектов.
--- TODO Хранить ссылку на стандартноую картинку для не картинок тут не желательно.
--- TODO Флаг is_image сейчас нигде не используется.
 create table uploads
 (
 	id int not null auto_increment,
@@ -180,8 +177,7 @@ create table uploads
 	`thumbnail` varchar(2048) default null,
 	thumbnail_w int default null,
 	thumbnail_h int default null,
-	primary key (id),
-	constraint foreign key (board) references boards (id) on delete restrict on update restrict
+	primary key (id)
 )
 engine=InnoDB|
 

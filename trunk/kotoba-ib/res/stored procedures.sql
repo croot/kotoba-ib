@@ -98,7 +98,7 @@ drop procedure if exists sp_hidden_threads_delete|
 -- Удаляет все истекшие блокировки.
 create procedure sp_bans_refresh ()
 begin
-delete from bans where untill <= now();
+	delete from bans where untill <= now();
 end|
 
 -- Проверяет, заблокирован ли адрес ip.

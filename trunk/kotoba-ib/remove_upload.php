@@ -21,7 +21,8 @@ try
 {
 	kotoba_session_start();
 	locale_setup();
-	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+	$smarty = new SmartyKotobaSetup($_SESSION['language'],
+		$_SESSION['stylesheet']);
 	// Возможно завершение работы скрипта.
 	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));
 // Проверка входных параметров.
