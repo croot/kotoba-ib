@@ -26,5 +26,5 @@
 {/section}
 {/if}<br>
 <div class="navbar">{include file='board_list.tpl' boards=$boards DIR_PATH=$DIR_PATH} [<a href="{$DIR_PATH}/">Главная</a>]</div>
-<div class="footer" style="clear: both;">- Kotoba 0.8 -</div>
+<div class="footer" style="clear: both;">- Kotoba 1.0 -</div>
 {include file='footer.tpl'}
