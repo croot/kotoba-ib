@@ -275,6 +275,26 @@ function boards_get_all_change($user_id)
 	return db_boards_get_all_change(DataExchange::getDBLink(), $user_id);
 }
 /**
+ * Получает доски, доступные для модерирования заданному пользователю.
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает доски:<p>
+ * 'id' - идентификатор.<br>
+ * 'name' - имя.<br>
+ * 'title' - заголовок.<br>
+ * 'bump_limit' - спецефиный для доски бамплимит.<br>
+ * 'force_anonymous' - флаг отображения имя отправителя.<br>
+ * 'default_name' - имя отправителя по умолчанию.<br>
+ * 'with_files' - флаг загрузки файлов.<br>
+ * 'same_upload' - политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
+ * 'category' - категория.</p>
+ */
+function boards_get_moderatable($user_id)
+{
+	return db_boards_get_moderatable(DataExchange::getDBLink(), $user_id);
+}
+/**
  * Получает все доски.
  * @return array
  * Возвращает доски:<p>
@@ -1444,6 +1464,72 @@ function posts_get_by_id_view($post_id, $user_id)
 {
 	return db_posts_get_by_id_view(DataExchange::getDBLink(), $post_id,
 		$user_id);
+}
+/**
+ * Получает отфильтрованные сообщения.
+ * @param fileter string <p>Фильтр (лямбда).</p>
+ * @param ... <p>Аргументы фильтра.</p>
+ * @return array
+ * Возвращает сообщеня:<p>
+ * 'id' - идентификатор.<br>
+ * 'thread' - идентификатор нити.<br>
+ * 'thread_number' - номер нити.<br>
+ * 'board' - идентификатор доски.<br>
+ * 'board_name' - имя доски.<br>
+ * 'number' - номер.<br>
+ * 'password' - пароль для удаления.<br>
+ * 'name' - имя отправителя.<br>
+ * 'tripcode' - трипкод.<br>
+ * 'ip' - ip адрес отправителя.<br>
+ * 'subject' - тема.<br>
+ * 'date_time' - время сохранения.<br>
+ * 'text' - текст.<br>
+ * 'sage' - флаг поднятия нити.</p>
+ */
+function posts_get_filtred($fileter)
+{
+	$numargs = func_num_args();
+	$args = array();
+	$i = 1;
+	for($i = 1; $i < $numargs; $i++)
+	{
+		array_push($args, func_get_arg($i));
+	}
+	$posts = db_posts_get_all(DataExchange::getDBLink());
+	$filtred_posts = array();
+	foreach($posts as $post)
+	{
+		$args[$i - 1] = $post;
+		if(call_user_func_array($fileter, $args))
+		{
+			array_push($filtred_posts, $post);
+		}
+	}
+	return $filtred_posts;
+}
+/**
+ * Возвращает сообщения с заданных досок.
+ * @param boards array <p>Доски.</p>
+ * @return array
+ * Возвращает сообщеня:<p>
+ * 'id' - идентификатор.<br>
+ * 'thread' - идентификатор нити.<br>
+ * 'thread_number' - номер нити.<br>
+ * 'board' - идентификатор доски.<br>
+ * 'board_name' - имя доски.<br>
+ * 'number' - номер.<br>
+ * 'password' - пароль для удаления.<br>
+ * 'name' - имя отправителя.<br>
+ * 'tripcode' - трипкод.<br>
+ * 'ip' - ip адрес отправителя.<br>
+ * 'subject' - тема.<br>
+ * 'date_time' - время сохранения.<br>
+ * 'text' - текст.<br>
+ * 'sage' - флаг поднятия нити.</p>
+ */
+function posts_get_by_boards($boards)
+{
+	return db_posts_get_by_boards(DataExchange::getDBLink(), $boards);
 }
 /**
  * Добавляет сообщение.

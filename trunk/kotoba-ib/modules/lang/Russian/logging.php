@@ -45,11 +45,13 @@ Logging::$messages['ADMIN_FUNCTIONS_EDIT_BANS'] = 'Задействовано р
 // Параметры: id пользователя, ip адрес.
 Logging::$messages['MOD_FUNCTIONS_EDIT_BANS'] = 'Задействовано редактирование банов. Модератор %s IP %s';
 // Параметры: id пользователя, ip адрес.
-Logging::$messages['ADMIN_FUNCTIONS_ARCHIVE'] = 'Задействовано архивирование нитей. Модератор %s IP %s';
+Logging::$messages['ADMIN_FUNCTIONS_ARCHIVE'] = 'Задействовано архивирование нитей. Администратор %s IP %s';
 // Параметры: id пользователя, ip адрес.
-Logging::$messages['ADMIN_FUNCTIONS_DELETE_MARKED_POSTS'] = 'Задействовано удаление отмеченных на удаление сообщений. Модератор %s IP %s';
+Logging::$messages['ADMIN_FUNCTIONS_DELETE_MARKED_POSTS'] = 'Задействовано удаление отмеченных на удаление сообщений. Администратор %s IP %s';
 // Параметры: id пользователя, ip адрес.
-Logging::$messages['ADMIN_FUNCTIONS_DELETE_DANGLING_FILES'] = 'Задействовано удаление висячих файлов. Модератор %s IP %s';
+Logging::$messages['ADMIN_FUNCTIONS_DELETE_DANGLING_FILES'] = 'Задействовано удаление висячих файлов. Администратор %s IP %s';
+// Параметры: id пользователя, ip адрес.
+Logging::$messages['MOD_FUNCTIONS_MODERATE'] = 'Использован основной скрипт модератора. Модератор %s IP %s';
 
 /***********
  * Разное. *

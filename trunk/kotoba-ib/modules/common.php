@@ -246,9 +246,6 @@ function check_upload_error($error)
 		case UPLOAD_ERR_PARTIAL:
 			throw new UploadException::$messages['UPLOAD_ERR_PARTIAL'];
 			break;
-//		case UPLOAD_ERR_NO_FILE:
-//			throw new UploadException::$messages['UPLOAD_ERR_NO_FILE'];
-//			break;
 		case UPLOAD_ERR_NO_TMP_DIR:
 			throw new UploadException::$messages['UPLOAD_ERR_NO_TMP_DIR'];
 			break;
@@ -302,6 +299,48 @@ function link_file($source, $dest)
 	else
 		if(!copy($source, $dest))
 			throw new CommonException(CommonException::$messages['COPY_FAILED']);
+}
+/**
+ * Проверяет, является ли пользователь администратором.
+ * @return boolean
+ * Возвращает true, если пользователь является администратором и false в
+ * противном случае.
+ */
+function is_admin()
+{
+	if(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
+	{
+		if(count(Config::$ADMIN_IPS) > 0)
+		{
+			if(in_array($_SERVER['REMOTE_ADDR'], Config::$ADMIN_IPS))
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+	return false;
+}
+/**
+ * Проверяет, является ли пользователь модератором.
+ * @return boolean
+ * Возвращает true, если пользователь является модератором и false в противном
+ * случае.
+ */
+function is_mod()
+{
+	foreach($_SESSION['groups'] as $group_name)
+	{
+		if(in_array($group_name, Config::$MOD_GROUPS))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 /***************************
