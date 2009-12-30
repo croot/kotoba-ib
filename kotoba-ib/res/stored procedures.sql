@@ -13,6 +13,8 @@ drop procedure if exists sp_boards_get_specifed_byname|
 drop procedure if exists sp_boards_get_by_id|
 drop procedure if exists sp_boards_get_specifed_change_byname|
 drop procedure if exists sp_boards_get_specifed_change|
+drop procedure if exists sp_boards_get_moderatable|
+drop procedure if exists sp_posts_get_by_board|
 drop procedure if exists sp_boards_edit|
 drop procedure if exists sp_boards_edit_annotation|
 drop procedure if exists sp_boards_delete|
@@ -73,6 +75,7 @@ drop procedure if exists sp_posts_get_thread_view|
 drop procedure if exists sp_posts_get_thread|
 drop procedure if exists sp_posts_get_specifed_view_bynumber|
 drop procedure if exists sp_posts_get_by_id_view|
+drop procedure if exists sp_posts_get_all|
 drop procedure if exists sp_posts_add|
 drop procedure if exists sp_posts_uploads_get_post|
 drop procedure if exists sp_posts_uploads_add|
@@ -244,6 +247,47 @@ begin
 			or (a1.change is null and a2.change is null and a3.change = 1))
 	group by b.id
 	order by b.category, b.`name`;
+end|
+
+-- Выбирает доски, доступные для модерирования заданному пользователю.
+--
+-- Аргументы:
+-- user_id - идентификатор пользователя.
+create procedure sp_boards_get_moderatable
+(
+	user_id int
+)
+begin
+	select b.id, b.`name`, b.title, b.bump_limit, b.force_anonymous,
+		b.default_name, b.with_files, b.same_upload, b.popdown_handler,
+		b.category
+	from boards b
+	join user_groups ug on ug.user = user_id
+	-- Правила для конкретной группы и доски.
+	left join acl a1 on ug.`group` = a1.`group` and b.id = a1.board
+	-- Правило для конкретной доски.
+	left join acl a2 on a2.`group` is null and b.id = a2.board
+	-- Правила для конкретной группы.
+	left join acl a3 on ug.`group` = a3.`group` and a3.board is null
+		and a3.thread is null and a3.post is null
+	where
+			-- Доска не запрещена для просмотра группе и
+		((a1.`view` = 1 or a1.`view` is null)
+			-- доска не запрещена для просмотра всем и
+			and (a2.`view` = 1 or a2.`view` is null)
+			-- группе разрешен просмотр.
+			and a3.`view` = 1)
+			-- Модерирование доски разрешено конкретной группе
+		and (a1.moderate = 1
+			-- или модерирование доски не запрещено конкретной группе и
+			-- разрешено всем группам
+			or (a1.moderate is null and a2.moderate = 1)
+			-- или модерирование доски не запрещено ни конкретной группе ни
+			-- всем, и конкретной группе модерирование разрешено.
+			or (a1.moderate is null and a2.moderate is null
+				and a3.moderate = 1))
+	group by b.id
+	order by b.`name`;
 end|
 
 -- Выбирает доску по заданному имени, доступную для редактирования пользователю.
@@ -1938,6 +1982,39 @@ begin
 			-- просмотр разрешен конкретной группе.
 			and a7.`view` = 1)
 	group by p.id;
+end|
+
+-- Выбирает все сообщения.
+create procedure sp_posts_get_all ()
+begin
+	select p.id, p.thread, t.original_post as thread_number, p.board,
+		b.name as board_name, p.`number`, p.password, p.`name`, p.tripcode,
+		p.ip, p.subject, p.date_time, p.text, p.sage
+	from posts p
+	join threads t on t.id = p.thread
+	join boards b on b.id = p.board
+	where p.deleted = 0 and t.deleted = 0 and t.archived = 0
+	order by p.date_time desc;
+end|
+
+-- Выбирает сообщения с заданной доски.
+--
+-- Аргументы:
+-- board_id - Идентификатор доски.
+create procedure sp_posts_get_by_board
+(
+	board_id int
+)
+begin
+	select p.id, p.thread, t.original_post as thread_number, p.board,
+		b.name as board_name, p.`number`, p.password, p.`name`, p.tripcode,
+		p.ip, p.subject, p.date_time, p.text, p.sage
+	from posts p
+	join threads t on t.id = p.thread
+	join boards b on b.id = p.board
+	where p.deleted = 0 and t.deleted = 0 and t.archived = 0
+		and p.board = board_id
+	order by p.date_time desc;
 end|
 
 -- Добавляет сообщение в сущестующую нить.

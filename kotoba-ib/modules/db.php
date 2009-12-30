@@ -249,6 +249,51 @@ function db_boards_get_all_change($link, $user_id)
 	return $boards;
 }
 /**
+ * Получает доски, доступные для модерирования заданному пользователю.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает доски:<p>
+ * 'id' - идентификатор.<br>
+ * 'name' - имя.<br>
+ * 'title' - заголовок.<br>
+ * 'bump_limit' - спецефиный для доски бамплимит.<br>
+ * 'force_anonymous' - флаг отображения имя отправителя.<br>
+ * 'default_name' - имя отправителя по умолчанию.<br>
+ * 'with_files' - флаг загрузки файлов.<br>
+ * 'same_upload' - политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
+ * 'category' - категория.</p>
+ */
+function db_boards_get_moderatable($link, $user_id)
+{
+	$result = mysqli_query($link, "call sp_boards_get_moderatable($user_id)");
+	if(!$result)
+	{
+		throw new CommonException(mysqli_error($link));
+	}
+	$boards = array();
+	if(mysqli_affected_rows($link) > 0)
+	{
+		while(($row = mysqli_fetch_assoc($result)) !== null)
+		{
+			array_push($boards, array('id' => $row['id'],
+					'name' => $row['name'],
+					'title' => $row['title'],
+					'bump_limit' => $row['bump_limit'],
+					'force_anonymous' => $row['force_anonymous'],
+					'default_name' => $row['default_name'],
+					'with_files' => $row['with_files'],
+					'same_upload' => $row['same_upload'],
+					'popdown_handler' => $row['popdown_handler'],
+					'category' => $row['category']));
+		}
+	}
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $boards;
+}
+/**
  * Получает доску по заданному имени, доступную для редактирования пользователю.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param board_name string <p>Имя доски.</p>
@@ -2093,6 +2138,110 @@ function db_posts_get_by_id_view($link, $post_id, $user_id)
 	mysqli_free_result($result);
 	db_cleanup_link($link);
 	return $post;
+}
+/**
+ * Получает все сообщения.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @return array
+ * Возвращает сообщеня:<p>
+ * 'id' - идентификатор.<br>
+ * 'thread' - идентификатор нити.<br>
+ * 'thread_number' - номер нити.<br>
+ * 'board' - идентификатор доски.<br>
+ * 'board_name' - имя доски.<br>
+ * 'number' - номер.<br>
+ * 'password' - пароль для удаления.<br>
+ * 'name' - имя отправителя.<br>
+ * 'tripcode' - трипкод.<br>
+ * 'ip' - ip адрес отправителя.<br>
+ * 'subject' - тема.<br>
+ * 'date_time' - время сохранения.<br>
+ * 'text' - текст.<br>
+ * 'sage' - флаг поднятия нити.</p>
+ */
+function db_posts_get_all($link)
+{
+	$result = mysqli_query($link, 'call sp_posts_get_all()');
+	if(!$result)
+	{
+		throw new CommonException(mysqli_error($link));
+	}
+	$posts = array();
+	if(mysqli_affected_rows($link) > 0)
+	{
+		while(($row = mysqli_fetch_assoc($result)) !== null)
+		{
+			array_push($posts,
+				array('id' => $row['id'],
+						'thread' => $row['thread'],
+						'thread_number' => $row['thread_number'],
+						'board' => $row['board'],
+						'board_name' => $row['board_name'],
+						'number' => $row['number'],
+						'password' => $row['password'],
+						'name' => $row['name'],
+						'tripcode' => $row['tripcode'],
+						'ip' => $row['ip'],
+						'subject' => $row['subject'],
+						'date_time' => $row['date_time'],
+						'text' => $row['text'],
+						'sage' => $row['sage']));
+		}
+	}
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $posts;
+}
+/**
+ * Получает сообщения с заданных досок.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param boards array <p>Доски.</p>
+ * @return array
+ * Возвращает сообщеня:<p>
+ * 'id' - идентификатор.<br>
+ * 'thread' - идентификатор нити.<br>
+ * 'thread_number' - номер нити.<br>
+ * 'board' - идентификатор доски.<br>
+ * 'board_name' - имя доски.<br>
+ * 'number' - номер.<br>
+ * 'password' - пароль для удаления.<br>
+ * 'name' - имя отправителя.<br>
+ * 'tripcode' - трипкод.<br>
+ * 'ip' - ip адрес отправителя.<br>
+ * 'subject' - тема.<br>
+ * 'date_time' - время сохранения.<br>
+ * 'text' - текст.<br>
+ * 'sage' - флаг поднятия нити.</p>
+ */
+function db_posts_get_by_boards($link, $boards)
+{
+	$posts = array();
+	foreach($boards as $b)
+	{
+		$result = mysqli_query($link, "call sp_posts_get_by_board({$b['id']})");
+		if(!$result)
+			throw new CommonException(mysqli_error($link));
+		if(mysqli_affected_rows($link) > 0)
+			while(($row = mysqli_fetch_assoc($result)) !== null)
+				array_push($posts,
+					array('id' => $row['id'],
+							'thread' => $row['thread'],
+							'thread_number' => $row['thread_number'],
+							'board' => $row['board'],
+							'board_name' => $row['board_name'],
+							'number' => $row['number'],
+							'password' => $row['password'],
+							'name' => $row['name'],
+							'tripcode' => $row['tripcode'],
+							'ip' => $row['ip'],
+							'subject' => $row['subject'],
+							'date_time' => $row['date_time'],
+							'text' => $row['text'],
+							'sage' => $row['sage']));
+		mysqli_free_result($result);
+		db_cleanup_link($link);
+	}
+	return $posts;
 }
 /**
  * Добавляет сообщение.

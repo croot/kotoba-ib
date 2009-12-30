@@ -33,7 +33,7 @@ try
 				Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log');
 	else
 		throw new PremissionException(PremissionException::$messages['NOT_ADMIN']
-		 . PremissionException::$messages['NOT_MOD']);
+		 . ' ' . PremissionException::$messages['NOT_MOD']);
 	if(in_array(Config::MOD_GROUP_NAME, $_SESSION['groups']))
 		$smarty->assign('mod_panel', true);
 	elseif(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
