@@ -14,6 +14,7 @@
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
 	$STYLESHEET - стиль оформления (см. config.default).
+	$ib_name - название имейджборды  (см. config.default).
 	$board - просматриваемая доска.
 	$boards - доски.
 	$is_admin - флаг администратора.
@@ -28,14 +29,14 @@
 	$event_daynight_active - запущен ли эвент времени суток.
 	$event_daynight_code - код, добавляемый к html коду страницы, эвентом.
 *}
-{include file='header.tpl' page_title="✿Kotoba — /`$board.name`/ `$board.title`. Просмотр, страница $page" DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
+{include file='header.tpl' page_title="`$ib_name` — /`$board.name`/ `$board.title`. Просмотр, страница $page" DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
 {* Начало кода эвента времени суток (не входит в котобу). *}
 {if isset($event_daynight_active) && $event_daynight_active}{$event_daynight_code}{/if}
 {* Конец кода эвента времени суток. *}
 <script src="{$DIR_PATH}/kotoba.js"></script>
 <div class="navbar">{include file='board_list.tpl' boards=$boards DIR_PATH=$DIR_PATH} [<a href="{$DIR_PATH}/">Главная</a>]</div>
 
-<div class="logo">✿Kotoba — /{$board.name}/ {$board.title}</div>
+<div class="logo">{$ib_name} — /{$board.name}/ {$board.title}</div>
 {include file='pages_list.tpl' board_name=$board.name pages=$pages page=$page}
 <hr>
 

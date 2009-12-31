@@ -83,6 +83,7 @@ try
 	$smarty->assign('page', $page);
 	$smarty->assign('goto', $_SESSION['goto']);
 	$smarty->assign('macrochan_tags', $macrochan_tags);
+	$smarty->assign('ib_name', Config::IB_NAME);
 	//event_daynight($smarty);	// EVENT HERE! (not default kotoba function)
 	$boards_html = $smarty->fetch('board_header.tpl');
 	$boards_thread_html = '';		// Код предпросмотра нити.

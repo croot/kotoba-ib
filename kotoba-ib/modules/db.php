@@ -739,8 +739,8 @@ function db_users_get_by_keyword($link, $keyword)
 	}
 	else
 	{
-		throw new PremissionException(sprintf(PremissionException::$messages['USER_NOT_EXIST']),
-			$keyword);
+		throw new PremissionException(sprintf(PremissionException::$messages['USER_NOT_EXIST'],
+			$keyword));
 	}
 	mysqli_free_result($result);
 	if(!mysqli_next_result($link))

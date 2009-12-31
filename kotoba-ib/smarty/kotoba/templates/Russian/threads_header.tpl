@@ -14,6 +14,7 @@
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
 	$STYLESHEET - стиль оформления (см. config.default).
+	$ib_name - название имейджборды  (см. config.default).
 	$board - доска, на которой расположена просматриваемая нить.
 	$boards - доски.
 	$thread - просматриваемая нить.
@@ -34,7 +35,7 @@
 <script src="{$DIR_PATH}/kotoba.js"></script>
 <div class="navbar">{include file='board_list.tpl' boards=$boards DIR_PATH=$DIR_PATH} [<a href="{$DIR_PATH}/">Главная</a>]</div>
 
-<div class="logo">✿Kotoba — /{$board.name}/{$thread[0].original_post}</div>
+<div class="logo">{$ib_name} — /{$board.name}/{$thread[0].original_post}</div>
 <hr>
 
 <div class="postarea">
