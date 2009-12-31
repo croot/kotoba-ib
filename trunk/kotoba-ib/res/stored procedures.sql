@@ -622,7 +622,7 @@ begin
 	then
 		-- Создаём ногового пользователя
 		insert into users (keyword, threads_per_page, posts_per_thread,
-			lines_per_post, stylesheet, `language`, rempass, `goto`)
+			lines_per_post, stylesheet, `language`, password, `goto`)
 		values (_keyword, _threads_per_page, _posts_per_thread,
 			_lines_per_post, _stylesheet, _language, _rempass, _goto);
 		select last_insert_id() into user_id;

@@ -82,6 +82,7 @@ try
 	$smarty->assign('upload_types', $upload_types);
 	$smarty->assign('goto', $_SESSION['goto']);
 	$smarty->assign('macrochan_tags', $macrochan_tags);
+	$smarty->assign('ib_name', Config::IB_NAME);
 	//event_daynight($smarty);	// EVENT HERE! (not default kotoba function)
 	$view_html = $smarty->fetch('threads_header.tpl');
 	$view_thread_html = '';
