@@ -1451,6 +1451,7 @@ function posts_get_specifed_view_bynumber($board_id, $post_num, $user_id)
  * 'id' - идентификатор.<br>
  * 'thread' - идентификатор нити.<br>
  * 'board' - идентификатор доски.<br>
+ * 'board_name' - имя доски.<br>
  * 'number' - номер.<br>
  * 'password' - пароль для удаления.<br>
  * 'name' - имя отправителя.<br>
@@ -1460,9 +1461,9 @@ function posts_get_specifed_view_bynumber($board_id, $post_num, $user_id)
  * 'text' - текст.<br>
  * 'sage' - флаг поднятия нити.</p>
  */
-function posts_get_by_id_view($post_id, $user_id)
+function posts_get_visible_by_id($post_id, $user_id)
 {
-	return db_posts_get_by_id_view(DataExchange::getDBLink(), $post_id,
+	return db_posts_get_visible_by_id(DataExchange::getDBLink(), $post_id,
 		$user_id);
 }
 /**
@@ -2297,38 +2298,39 @@ function posts_uploads_add($post_id, $upload_id)
 	db_posts_uploads_add(DataExchange::getDBLink(), $post_id, $upload_id);
 }
 /**
- * Удаляет все связи сообщения с информацией о загрузках.
+ * Удаляет закрепления загрузок за заданным сообщением.
  * @param post_id mixed <p>Идентификатор сообщения.</p>
  */
-function posts_uploads_delete_post($post_id)
+function posts_uploads_delete_by_post($post_id)
 {
-	db_posts_uploads_delete_post(DataExchange::getDBLink(), $post_id);
+	db_posts_uploads_delete_by_post(DataExchange::getDBLink(), $post_id);
 }
 
-/*************************************
- * Работа с информацией о загрузках. *
- *************************************/
+/************************
+ * Работа с загрузками. *
+ ************************/
 
 /**
- * Получает для каждого сообщения из массива сообщений информацию о загрузках.
- * @param posts array <p>Массив сообщений.</p>
- * @return array
- * Возвращает информацию о загруженных файлах:<p>
- * 'id' - идентификатор.<br>
- * 'hash' - хеш файла.<br>
- * 'is_image' - флаг картинки.<br>
- * 'link_type' - тип ссылки на файл.<br>
- * 'file' - файл.<br>
- * 'file_w' - ширина файла (для изображений).<br>
- * 'file_h' - высота файла (для изображений).<br>
- * 'size' - размер файла в байтах.<br>
- * 'thumbnail' - имя уменьшенной копии.<br>
- * 'thumbnail_w' - ширина уменьшенной копии.<br>
- * 'thumbnail_h' - высота уменьшенной копии.</p>
+ * Сохраняет данные о загрузке.
+ * @param hash string <p>Хеш файла.</p>
+ * @param is_image mixed <p>Флаг изображения.</p>
+ * @param upload_type mixed <p>Тип загрузки.</p>
+ * @param file string <p>Имя файла, URL, код видео.</p>
+ * @param image_w mixed <p>Ширина изображения.</p>
+ * @param image_h mixed <p>Высота изображения.</p>
+ * @param size string <p>Размер файла в байтах.</p>
+ * @param thumbnail string <p>Имя уменьшенной копии.</p>
+ * @param thumbnail_w mixed <p>Ширина уменьшенной копии.</p>
+ * @param thumbnail_h mixed <p>Высота уменьшенной копии.</p>
+ * @return string
+ * Возвращает идентификатор загрузки.
  */
-function uploads_get_posts($posts)
+function uploads_add($hash, $is_image, $upload_type, $file, $image_w, $image_h,
+	$size, $thumbnail, $thumbnail_w, $thumbnail_h)
 {
-	return db_uploads_get_posts(DataExchange::getDBLink(), $posts);
+	return db_uploads_add(DataExchange::getDBLink(), $hash, $is_image,
+		$upload_type, $file, $image_w, $image_h, $size, $thumbnail,
+		$thumbnail_w, $thumbnail_h);
 }
 /**
  * Проверяет, удовлетворяет ли загружаемое изображение ограничениям по размеру.
@@ -2340,53 +2342,33 @@ function uploads_check_image_size($img_size)
 		throw new LimitException(LimitException::$messages['MIN_IMG_SIZE']);
 }
 /**
- * Получает одинаковые файлы, загруженные на заданную доску.
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param hash string <p>Хеш файла.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * Удаляет заданную загрузку.
+ * @param id string <p>Идентификатор загрузки.</p>
+ */
+function uploads_delete_by_id($id)
+{
+	db_uploads_delete_by_id(DataExchange::getDBLink(), $id);
+}
+/**
+ * Получает загрузки для заданных сообщений.
+ * @param posts array <p>Массив сообщений.</p>
  * @return array
- * Возвращает массив загруженных файлов:<p>
+ * Возвращает загрузки:<p>
  * 'id' - идентификатор.<br>
  * 'hash' - хеш файла.<br>
  * 'is_image' - флаг картинки.<br>
- * 'link_type' - тип ссылки на файл.<br>
- * 'file' - файл.<br>
- * 'file_w' - ширина файла (для изображений).<br>
- * 'file_h' - высота файла (для изображений).<br>
+ * 'upload_type' - тип загрузки.<br>
+ * 'file' - имя файла, URL, код видео.<br>
+ * 'image_w' - ширина изображения.<br>
+ * 'image_h' - высота изображения.<br>
  * 'size' - размер файла в байтах.<br>
  * 'thumbnail' - имя уменьшенной копии.<br>
  * 'thumbnail_w' - ширина уменьшенной копии.<br>
- * 'thumbnail_h' - высота уменьшенной копии.<br>
- * 'post_number' - номер сообщения, к которому прикреплен файл.<br>
- * 'thread_number' - номер нити с сообщением, к которому прикреплен файл.<br>
- * 'view' - видно ли сообщение пользователю.</p>
+ * 'thumbnail_h' - высота уменьшенной копии.</p>
  */
-function uploads_get_same($board_id, $hash, $user_id)
+function uploads_get_by_posts($posts)
 {
-	return db_uploads_get_same(DataExchange::getDBLink(), $board_id, $hash,
-		$user_id);
-}
-/**
- * Сохраняет данные о загрузке.
- * @param hash string <p>Хеш файла.</p>
- * @param is_image mixed <p>Флаг изображения.</p>
- * @param link_type mixed <p>Тип ссылки на файл.</p>
- * @param file string <p>Файл.</p>
- * @param file_w mixed <p>Ширина изображения (для изображений).</p>
- * @param file_h mixed <p>Высота изображения (для изображений).</p>
- * @param size string <p>Размер файла в байтах.</p>
- * @param thumbnail string <p>Уменьшенная копия.</p>
- * @param thumbnail_w mixed <p>Ширина уменьшенной копии.</p>
- * @param thumbnail_h mixed <p>Высота уменьшенной копии.</p>
- * @return string
- * Возвращает идентификатор поля с сохранёнными данными.
- */
-function uploads_add($hash, $is_image, $link_type, $file, $file_w, $file_h,
-	$size, $thumbnail, $thumbnail_w, $thumbnail_h)
-{
-	return db_uploads_add(DataExchange::getDBLink(), $hash, $is_image,
-		$link_type, $file, $file_w, $file_h, $size, $thumbnail, $thumbnail_w,
-		$thumbnail_h);
+	return db_uploads_get_by_posts(DataExchange::getDBLink(), $posts);
 }
 /**
  * Получает информацию о висячих загрузках (не связанных с сообщениями).
@@ -2396,7 +2378,7 @@ function uploads_add($hash, $is_image, $link_type, $file, $file_w, $file_h,
  * 'hash' - хеш файла.<br>
  * 'is_image' - флаг картинки.<br>
  * 'upload_type' - тип загрузки.<br>
- * 'link' - имя файла, ссылка или код видео.<br>
+ * 'file' - имя файла, ссылка или код видео.<br>
  * 'image_w' - ширина изображения.<br>
  * 'image_h' - высота изображения.<br>
  * 'size' - размер файла в байтах.<br>
@@ -2404,17 +2386,37 @@ function uploads_add($hash, $is_image, $link_type, $file, $file_w, $file_h,
  * 'thumbnail_w' - ширина уменьшенной копии.<br>
  * 'thumbnail_h' - высота уменьшенной копии.</p>
  */
-function uploads_get_all_dangling()
+function uploads_get_dangling()
 {
-	return db_uploads_get_all_dangling(DataExchange::getDBLink());
+	return db_uploads_get_dangling(DataExchange::getDBLink());
 }
 /**
- * Удаляет заданную информацию о загрузке.
- * @param id string <p>Идентификатор информации о загрузке.</p>
+ * Получает одинаковые загрузки для заданной доски.
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param hash string <p>Хеш файла.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает загрузки:<p>
+ * 'id' - идентификатор.<br>
+ * 'hash' - хеш файла.<br>
+ * 'is_image' - флаг картинки.<br>
+ * 'upload_type' - тип загрузки.<br>
+ * 'file' - имя файла, URL, код видео.<br>
+ * 'image_w' - ширина изображения.<br>
+ * 'image_h' - высота изображения.<br>
+ * 'size' - размер файла в байтах.<br>
+ * 'thumbnail' - имя уменьшенной копии.<br>
+ * 'thumbnail_w' - ширина уменьшенной копии.<br>
+ * 'thumbnail_h' - высота уменьшенной копии.</p>
+ * 'post_number' - номер сообщения, за которым закреплена загрузка.<br>
+ * 'thread_number' - номер нити с сообщением, за которым закреплена
+ *		загрузка.<br>
+ * 'view' - видно ли сообщение пользователю.</p>
  */
-function uploads_delete_specifed($id)
+function uploads_get_same($board_id, $hash, $user_id)
 {
-	db_uploads_delete_specifed(DataExchange::getDBLink(), $id);
+	return db_uploads_get_same(DataExchange::getDBLink(), $board_id, $hash,
+		$user_id);
 }
 
 /******************************

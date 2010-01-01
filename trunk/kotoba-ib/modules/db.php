@@ -530,7 +530,7 @@ function db_boards_get_specifed_byname($link, $board_name)
  * 'name' - имя.<br>
  * 'title' - заголовок.<br>
  * 'bump_limit' - спецефиный для доски бамплимит.<br>
- * 'force_anonymous' - флаг отображения имя отправителя.<br>
+ * 'force_anonymous' - флаг отображения имени отправителя.<br>
  * 'default_name' - имя отправителя по умолчанию.<br>
  * 'with_files' - флаг загрузки файлов.<br>
  * 'same_upload' - политика загрузки одинаковых файлов.<br>
@@ -541,9 +541,7 @@ function db_boards_get_by_id($link, $id)
 {
 	$result = mysqli_query($link, "call sp_boards_get_by_id($id)");
 	if(!$result)
-	{
 		throw new CommonException(mysqli_error($link));
-	}
 	$board = null;
 	if(mysqli_affected_rows($link) > 0
 		&& ($row = mysqli_fetch_assoc($result)) !== null)
@@ -560,9 +558,7 @@ function db_boards_get_by_id($link, $id)
 		$board['category'] = $row['category'];
 	}
 	if($board === null)
-	{
 		throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']);
-	}
 	mysqli_free_result($result);
 	db_cleanup_link($link);
 	return $board;
@@ -2096,6 +2092,7 @@ function db_posts_get_specifed_view_bynumber($link, $board_id, $post_num,
  * 'id' - идентификатор.<br>
  * 'thread' - идентификатор нити.<br>
  * 'board' - идентификатор доски.<br>
+ * 'board_name' - имя доски.<br>
  * 'number' - номер.<br>
  * 'password' - пароль для удаления.<br>
  * 'name' - имя отправителя.<br>
@@ -2105,15 +2102,12 @@ function db_posts_get_specifed_view_bynumber($link, $board_id, $post_num,
  * 'text' - текст.<br>
  * 'sage' - флаг поднятия нити.</p>
  */
-function db_posts_get_by_id_view($link, $post_id, $user_id)
+function db_posts_get_visible_by_id($link, $post_id, $user_id)
 {
-	// TODO Проверка на помеченный на архивирование тред.
-	$result = mysqli_query($link, "call sp_posts_get_by_id_view($post_id,
+	$result = mysqli_query($link, "call sp_posts_get_visible_by_id($post_id,
 		$user_id)");
 	if(!$result)
-	{
 		throw new CommonException(mysqli_error($link));
-	}
 	$post = null;
 	if(mysqli_affected_rows($link) > 0
 		&& ($row = mysqli_fetch_assoc($result)) != null)
@@ -2132,11 +2126,11 @@ function db_posts_get_by_id_view($link, $post_id, $user_id)
 		$post['sage'] = $row['sage'];
 	}
 	if($post === null)
-	{
-		throw new NodataException(NodataException::$messages['POST_ID_NOT_FOUND']);
-	}
+		throw new NodataException(NodataException::$messages['POST_NOT_FOUND']);
 	mysqli_free_result($result);
 	db_cleanup_link($link);
+	$board = db_boards_get_by_id($link, $post['board']);
+	$post['board_name'] = $board['name'];
 	return $post;
 }
 /**
@@ -2390,45 +2384,92 @@ function db_posts_uploads_add($link, $post_id, $upload_id)
 	db_cleanup_link($link);
 }
 /**
- * Удаляет все связи сообщения с информацией о загрузках.
+ * Удаляет закрепления загрузок за заданным сообщением.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param post_id mixed <p>Идентификатор сообщения.</p>
  */
-function db_posts_uploads_delete_post($link, $post_id)
+function db_posts_uploads_delete_by_post($link, $post_id)
 {
-	if(!mysqli_query($link, "call sp_posts_uploads_delete_post($post_id)"))
+	if(!mysqli_query($link, "call sp_posts_uploads_delete_by_post($post_id)"))
 		throw new CommonException(mysqli_error($link));
 	db_cleanup_link($link);
 }
 
-/*************************************
- * Работа с информацией о загрузках. *
- *************************************/
+/************************
+ * Работа с загрузками. *
+ ************************/
 
 /**
- * Получает для каждого сообщения из массива сообщений информацию о загрузках.
+ * Сохраняет загрузку.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param hash string <p>Хеш файла.</p>
+ * @param is_image mixed <p>Флаг изображения.</p>
+ * @param upload_type mixed <p>Тип загрузки.</p>
+ * @param file string <p>Имя файла, URL, код видео.</p>
+ * @param image_w mixed <p>Ширина изображения.</p>
+ * @param image_h mixed <p>Высота изображения.</p>
+ * @param size string <p>Размер файла в байтах.</p>
+ * @param thumbnail string <p>Имя уменьшенной копии.</p>
+ * @param thumbnail_w mixed <p>Ширина уменьшенной копии.</p>
+ * @param thumbnail_h mixed <p>Высота уменьшенной копии.</p>
+ * @return string
+ * Возвращает идентификатор загрузки.
+ */
+function db_uploads_add($link, $hash, $is_image, $upload_type, $file, $image_w,
+	$image_h, $size, $thumbnail, $thumbnail_w, $thumbnail_h)
+{
+	$is_image = $is_image ? '1' : '0';
+	$hash = $hash ? "'$hash'" : 'null';
+	$image_w = $image_w ? $image_w : 'null';
+	$image_h = $image_h ? $image_h : 'null';
+	$thumbnail = $thumbnail ? "'$thumbnail'" : 'null';
+	$thumbnail_w = $thumbnail_w ? $thumbnail_w : 'null';
+	$thumbnail_h = $thumbnail_h ? $thumbnail_h : 'null';
+	$result = mysqli_query($link, "call sp_uploads_add($hash, $is_image,
+		$upload_type, '$file', $image_w, $image_h, $size, $thumbnail,
+		$thumbnail_w, $thumbnail_h)");
+	if(!$result)
+		throw new CommonException(mysqli_error($link));
+	$row = mysqli_fetch_assoc($result);
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $row['id'];
+}
+/**
+ * Удаляет заданную загрузку.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param id string <p>Идентификатор загрузки.</p>
+ */
+function db_uploads_delete_by_id($link, $id)
+{
+	if(!mysqli_query($link, "call sp_uploads_delete_by_id($id)"))
+		throw new CommonException(mysqli_error($link));
+	db_cleanup_link($link);
+}
+/**
+ * Получает загрузки для заданных сообщений.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param posts array <p>Массив сообщений.</p>
  * @return array
- * Возвращает информацию о загруженных файлах:<p>
+ * Возвращает загрузки:<p>
  * 'id' - идентификатор.<br>
  * 'hash' - хеш файла.<br>
  * 'is_image' - флаг картинки.<br>
- * 'link_type' - тип ссылки на файл.<br>
- * 'file' - файл.<br>
- * 'file_w' - ширина файла (для изображений).<br>
- * 'file_h' - высота файла (для изображений).<br>
+ * 'upload_type' - тип загрузки.<br>
+ * 'file' - имя файла, URL, код видео.<br>
+ * 'image_w' - ширина изображения.<br>
+ * 'image_h' - высота изображения.<br>
  * 'size' - размер файла в байтах.<br>
  * 'thumbnail' - имя уменьшенной копии.<br>
  * 'thumbnail_w' - ширина уменьшенной копии.<br>
  * 'thumbnail_h' - высота уменьшенной копии.</p>
  */
-function db_uploads_get_posts($link, $posts)
+function db_uploads_get_by_posts($link, $posts)
 {
 	$uploads = array();
 	foreach($posts as $p)
 	{
-		$result = mysqli_query($link, "call sp_uploads_get_post({$p['id']})");
+		$result = mysqli_query($link, "call sp_uploads_get_by_post({$p['id']})");
 		if(!$result)
 			throw new CommonException(mysqli_error($link));
 		if(mysqli_affected_rows($link) > 0)
@@ -2437,10 +2478,10 @@ function db_uploads_get_posts($link, $posts)
 					array('id' => $row['id'],
 							'hash' => $row['hash'],
 							'is_image' => $row['is_image'],
-							'link_type' => $row['link_type'],
+							'upload_type' => $row['upload_type'],
 							'file' => $row['file'],
-							'file_w' => $row['file_w'],
-							'file_h' => $row['file_h'],
+							'image_w' => $row['image_w'],
+							'image_h' => $row['image_h'],
 							'size' => $row['size'],
 							'thumbnail' => $row['thumbnail'],
 							'thumbnail_w' => $row['thumbnail_w'],
@@ -2451,93 +2492,6 @@ function db_uploads_get_posts($link, $posts)
 	return $uploads;
 }
 /**
- * Получает одинаковые файлы, загруженные на заданную доску.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param hash string <p>Хеш файла.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @return array
- * Возвращает массив загруженных файлов:<p>
- * 'id' - идентификатор.<br>
- * 'hash' - хеш файла.<br>
- * 'is_image' - флаг картинки.<br>
- * 'link_type' - тип ссылки на файл.<br>
- * 'file' - файл.<br>
- * 'file_w' - ширина файла (для изображений).<br>
- * 'file_h' - высота файла (для изображений).<br>
- * 'size' - размер файла в байтах.<br>
- * 'thumbnail' - имя уменьшенной копии.<br>
- * 'thumbnail_w' - ширина уменьшенной копии.<br>
- * 'thumbnail_h' - высота уменьшенной копии.<br>
- * 'post_number' - номер сообщения, к которому прикреплен файл.<br>
- * 'thread_number' - номер нити с сообщением, к которому прикреплен файл.<br>
- * 'view' - видно ли сообщение пользователю.</p>
- */
-function db_uploads_get_same($link, $board_id, $hash, $user_id)
-{
-	$result = mysqli_query($link,
-		"call sp_uploads_get_same($board_id, '$hash', $user_id)");
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$uploads = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) !== null)
-			array_push($uploads,
-				array('id' => $row['id'],
-						'hash' => $row['hash'],
-						'is_image' => $row['is_image'],
-						'link_type' => $row['link_type'],
-						'file' => $row['file'],
-						'file_w' => $row['file_w'],
-						'file_h' => $row['file_h'],
-						'size' => $row['size'],
-						'thumbnail' => $row['thumbnail'],
-						'thumbnail_w' => $row['thumbnail_w'],
-						'thumbnail_h' => $row['thumbnail_h'],
-						'post_number' => $row['number'],
-						'thread_number' => $row['original_post'],
-						'view' => $row['view']));
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $uploads;
-}
-/**
- * Сохраняет данные о загрузке.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param hash string <p>Хеш файла.</p>
- * @param is_image mixed <p>Флаг изображения.</p>
- * @param link_type mixed <p>Тип ссылки на файл.</p>
- * @param file string <p>Файл.</p>
- * @param file_w mixed <p>Ширина изображения (для изображений).</p>
- * @param file_h mixed <p>Высота изображения (для изображений).</p>
- * @param size string <p>Размер файла в байтах.</p>
- * @param thumbnail string <p>Уменьшенная копия.</p>
- * @param thumbnail_w mixed <p>Ширина уменьшенной копии.</p>
- * @param thumbnail_h mixed <p>Высота уменьшенной копии.</p>
- * @return string
- * Возвращает идентификатор поля с сохранёнными данными.
- */
-function db_uploads_add($link, $hash, $is_image, $link_type, $file, $file_w,
-	$file_h, $size, $thumbnail, $thumbnail_w, $thumbnail_h)
-{
-	$is_image = $is_image ? '1' : '0';
-	$hash = $hash ? "'$hash'" : 'null';
-	$file_w = $file_w ? $file_w : 'null';
-	$file_h = $file_h ? $file_h : 'null';
-	$thumbnail = $thumbnail ? "'$thumbnail'" : 'null';
-	$thumbnail_w = $thumbnail_w ? $thumbnail_w : 'null';
-	$thumbnail_h = $thumbnail_h ? $thumbnail_h : 'null';
-	$result = mysqli_query($link, "call sp_uploads_add($hash, $is_image,
-		$link_type, '$file', $file_w, $file_h, $size, $thumbnail, $thumbnail_w,
-		$thumbnail_h)");
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$row = mysqli_fetch_assoc($result);
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $row['id'];
-}
-/**
  * Получает информацию о висячих загрузках (не связанных с сообщениями).
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @return array
@@ -2546,7 +2500,7 @@ function db_uploads_add($link, $hash, $is_image, $link_type, $file, $file_w,
  * 'hash' - хеш файла.<br>
  * 'is_image' - флаг картинки.<br>
  * 'upload_type' - тип загрузки.<br>
- * 'link' - имя файла, ссылка или код видео.<br>
+ * 'file' - имя файла, ссылка или код видео.<br>
  * 'image_w' - ширина изображения.<br>
  * 'image_h' - высота изображения.<br>
  * 'size' - размер файла в байтах.<br>
@@ -2554,10 +2508,9 @@ function db_uploads_add($link, $hash, $is_image, $link_type, $file, $file_w,
  * 'thumbnail_w' - ширина уменьшенной копии.<br>
  * 'thumbnail_h' - высота уменьшенной копии.</p>
  */
-// TODO Продолжить работу по переименованию полей таблицы.
-function db_uploads_get_all_dangling($link)
+function db_uploads_get_dangling($link)
 {
-	$result = mysqli_query($link, 'call sp_uploads_get_all_dangling()');
+	$result = mysqli_query($link, 'call sp_uploads_get_dangling()');
 	if(!$result)
 		throw new CommonException(mysqli_error($link));
 	$uploads = array();
@@ -2580,15 +2533,56 @@ function db_uploads_get_all_dangling($link)
 	return $uploads;
 }
 /**
- * Удаляет заданную информацию о загрузке.
+ * Получает одинаковые загрузки для заданной доски.
  * @param link MySQLi <p>Связь с базой данных.</p>
- * @param id string <p>Идентификатор информации о загрузке.</p>
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param hash string <p>Хеш файла.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает загрузки:<p>
+ * 'id' - идентификатор.<br>
+ * 'hash' - хеш файла.<br>
+ * 'is_image' - флаг картинки.<br>
+ * 'upload_type' - тип загрузки.<br>
+ * 'file' - имя файла, URL, код видео.<br>
+ * 'image_w' - ширина изображения.<br>
+ * 'image_h' - высота изображения.<br>
+ * 'size' - размер файла в байтах.<br>
+ * 'thumbnail' - имя уменьшенной копии.<br>
+ * 'thumbnail_w' - ширина уменьшенной копии.<br>
+ * 'thumbnail_h' - высота уменьшенной копии.</p>
+ * 'post_number' - номер сообщения, за которым закреплена загрузка.<br>
+ * 'thread_number' - номер нити с сообщением, за которым закреплена
+ *		загрузка.<br>
+ * 'view' - видно ли сообщение пользователю.</p>
  */
-function db_uploads_delete_specifed($link, $id)
+function db_uploads_get_same($link, $board_id, $hash, $user_id)
 {
-	if(!mysqli_query($link, "call sp_uploads_delete_specifed($id)"))
+	$result = mysqli_query($link,
+		"call sp_uploads_get_same($board_id, '$hash', $user_id)");
+	if(!$result)
 		throw new CommonException(mysqli_error($link));
+	$uploads = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) !== null)
+			array_push($uploads,
+				array('id' => $row['id'],
+						'hash' => $row['hash'],
+						'is_image' => $row['is_image'],
+						'upload_type' => $row['upload_type'],
+						'file' => $row['file'],
+						'image_w' => $row['image_w'],
+						'image_h' => $row['image_h'],
+						'size' => $row['size'],
+						'thumbnail' => $row['thumbnail'],
+						'thumbnail_w' => $row['thumbnail_w'],
+						'thumbnail_h' => $row['thumbnail_h'],
+						'post_number' => $row['number'],
+						'thread_number' => $row['original_post'],
+						'view' => $row['view']));
+	mysqli_free_result($result);
 	db_cleanup_link($link);
+	return $uploads;
 }
 
 /******************************
