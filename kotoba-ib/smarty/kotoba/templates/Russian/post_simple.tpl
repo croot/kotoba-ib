@@ -28,7 +28,7 @@
         <td class="reply">
             <span class="filetitle">{$simple_post.subject}</span> <span class="postername">{$simple_post.name}</span>{if $simple_post.tripcode != null}<span class="postertrip">!{$simple_post.tripcode}</span>{/if} {$simple_post.date_time}
 			{if $simple_post.with_files and !$simple_uploads[0].is_embed}
-				<span class="filesize">Файл: <a target="_blank" href="{$simple_uploads[0].file_link}">{$simple_uploads[0].file_name}</a> -(<em>{$simple_uploads[0].size} Байт {$simple_uploads[0].file_w}x{$simple_uploads[0].file_h}</em>)</span>
+				<span class="filesize">Файл: <a target="_blank" href="{$simple_uploads[0].file_link}">{$simple_uploads[0].file_name}</a> -(<em>{$simple_uploads[0].size} Байт {$simple_uploads[0].image_w}x{$simple_uploads[0].image_h}</em>)</span>
 			{/if}
             <span class="reflink"><span onclick="insert('>>{$simple_post.number}');">#</span> <a href="{$DIR_PATH}/{$board.name}/{$thread[0].original_post}#{$simple_post.number}">{$simple_post.number}</a></span>
             <form action="{$DIR_PATH}/remove_post.php" method="post">

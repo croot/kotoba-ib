@@ -25,20 +25,18 @@ try
 		$_SESSION['stylesheet']);
 	// Возможно завершение работы скрипта.
 	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));
-// Проверка входных параметров.
+// Проверка входных параметров и получение данных.
 	if(isset($_GET['post']))
 	{
-		$post = posts_get_specifed_view_byid(posts_check_number($_GET['post']),
-			$_SESSION['user']);
+		$post_id = posts_check_id($_GET['post']);
 		$password = isset($_GET['password'])
-			? posts_check_password($_GET['password']) : $_SESSION['rempass'];
+			? posts_check_password($_GET['password']) : $_SESSION['password'];
 	}
 	elseif(isset($_POST['post']))
 	{
-		$post = posts_get_specifed_view_byid(posts_check_number($_POST['post']),
-			$_SESSION['user']);
+		$post_id = posts_check_id($_POST['post']);
 		$password = isset($_POST['password'])
-			? posts_check_password($_POST['password']) : $_SESSION['rempass'];
+			? posts_check_password($_POST['password']) : $_SESSION['password'];
 	}
 	else
 	{
@@ -46,13 +44,14 @@ try
 		DataExchange::releaseResources();
 		exit;
 	}
+	$post = posts_get_visible_by_id($post_id, $_SESSION['user']);
 // Удаление.
-	if(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups'])
+	if(is_admin()
 		|| ($post['password'] !== null && $post['password'] === $password))
 	{
-		posts_uploads_delete_post($post['id']);
+		posts_uploads_delete_by_post($post['id']);
 	}
-	header('Location: ' . Config::DIR_PATH . "/");
+	header('Location: ' . Config::DIR_PATH . "/{$post['board_name']}/");
 	DataExchange::releaseResources();
 	exit;
 }

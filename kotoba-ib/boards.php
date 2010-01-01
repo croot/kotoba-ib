@@ -66,7 +66,7 @@ try
 	$posts = posts_get_threads_view($threads, $_SESSION['user'],
 		$_SESSION['posts_per_thread']);
 	$posts_uploads = posts_uploads_get_posts($posts);
-	$uploads = uploads_get_posts($posts);
+	$uploads = uploads_get_by_posts($posts);
 	$hidden_threads = hidden_threads_get_board($board['id'], $_SESSION['user']);
 	$upload_types = upload_types_get_board($board['id']);
 	$macrochan_tags = array('orgasm_face');
@@ -123,7 +123,7 @@ try
 								{
 									$p['with_files'] = true;
 									$u['is_embed'] = false;
-									switch($u['link_type'])
+									switch($u['upload_type'])
 									{
 										case Config::LINK_TYPE_VIRTUAL:
 											$u['file_link'] = Config::DIR_PATH . "/{$board['name']}/img/{$u['file']}";
@@ -172,7 +172,7 @@ try
 								{
 									$p['with_files'] = true;
 									$u['is_embed'] = false;
-									switch($u['link_type'])
+									switch($u['upload_type'])
 									{
 										case Config::LINK_TYPE_VIRTUAL:
 											$u['file_link'] = Config::DIR_PATH . "/{$board['name']}/img/{$u['file']}";

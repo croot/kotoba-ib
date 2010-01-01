@@ -74,22 +74,22 @@ drop procedure if exists sp_threads_delete_specifed|
 drop procedure if exists sp_posts_get_thread_view|
 drop procedure if exists sp_posts_get_thread|
 drop procedure if exists sp_posts_get_specifed_view_bynumber|
-drop procedure if exists sp_posts_get_by_id_view|
+drop procedure if exists sp_posts_get_visible_by_id|
 drop procedure if exists sp_posts_get_all|
 drop procedure if exists sp_posts_add|
 drop procedure if exists sp_posts_uploads_get_post|
 drop procedure if exists sp_posts_uploads_add|
-drop procedure if exists sp_posts_uploads_delete_post|
+drop procedure if exists sp_posts_uploads_delete_by_post|
 drop procedure if exists sp_posts_delete|
 drop procedure if exists sp_posts_delete_last|
 drop procedure if exists sp_posts_delete_all_marked|
 drop procedure if exists sp_posts_edit_specifed_addtext|
 drop procedure if exists sp_posts_get_all_numbers|
-drop procedure if exists sp_uploads_get_post|
+drop procedure if exists sp_uploads_get_by_post|
 drop procedure if exists sp_uploads_get_same|
 drop procedure if exists sp_uploads_add|
-drop procedure if exists sp_uploads_get_all_dangling|
-drop procedure if exists sp_uploads_delete_specifed|
+drop procedure if exists sp_uploads_get_dangling|
+drop procedure if exists sp_uploads_delete_by_id|
 drop procedure if exists sp_hidden_threads_get_board|
 drop procedure if exists sp_hidden_threads_add|
 drop procedure if exists sp_hidden_threads_delete|
@@ -1939,7 +1939,7 @@ end|
 -- Аргументы:
 -- post_id - Идентификатор сообщения.
 -- user_id - Идентификатор пользователя.
-create procedure sp_posts_get_by_id_view
+create procedure sp_posts_get_visible_by_id
 (
 	post_id int,
 	user_id int
@@ -2213,11 +2213,11 @@ begin
 	insert into posts_uploads (post, upload) values (_post_id, _upload_id);
 end|
 
--- Удаляет все связи сообщения с информацией о загрузках.
+-- Удаляет закрепления загрузок за заданным сообщением.
 --
 -- Аргументы:
 -- _post_id - идентификатор сообщения.
-create procedure sp_posts_uploads_delete_post
+create procedure sp_posts_uploads_delete_by_post
 (
 	_post_id int
 )
@@ -2225,26 +2225,83 @@ begin
 	delete from posts_uploads where post = _post_id;
 end|
 
----------------------------------------
--- Работа с информацией о загрузках. --
----------------------------------------
+--------------------------
+-- Работа с загрузками. --
+--------------------------
 
--- Выбирает информацию о загрузках для заданного сообщения.
+-- Добавляет информацию о загрузке.
+--
+-- Аргументы:
+-- _hash - Хеш файла.
+-- _is_image - Флаг изображения.
+-- _upload_type - Тип загрузки.
+-- _file - Имя файла, URL, код видео.
+-- _image_w - Ширина изображения.
+-- _image_h - Высота изображения.
+-- _size - Размер файла в байтах.
+-- _thumbnail - Имя уменьшенной копии.
+-- _thumbnail_w - Ширина уменьшенной копии.
+-- _thumbnail_h - Высота уменьшенной копии.
+create procedure sp_uploads_add
+(
+	_hash varchar(32),
+	_is_image bit,
+	_upload_type int,
+	_file varchar(256),
+	_image_w int,
+	_image_h int,
+	_size int,
+	_thumbnail varchar(256),
+	_thumbnail_w int,
+	_thumbnail_h int
+)
+begin
+	insert into uploads (`hash`, is_image, upload_type, `file`, image_w,
+		image_h, `size`, thumbnail, thumbnail_w, thumbnail_h)
+	values
+	(_hash, _is_image, _upload_type, _file, _image_w,
+		_image_h, _size, _thumbnail, _thumbnail_w, _thumbnail_h);
+	select last_insert_id() as id;
+end|
+
+-- Удаляет заданную загрузку.
+--
+-- Аргументы:
+-- _id - Идентификатор загрузки.
+create procedure sp_uploads_delete_by_id
+(
+	_id int
+)
+begin
+	delete from uploads where id = _id;
+end|
+
+-- Выбирает загрузки для заданного сообщения.
 --
 -- Аргументы:
 -- post_id - идентификатор сообщения.
-create procedure sp_uploads_get_post
+create procedure sp_uploads_get_by_post
 (
 	post_id int
 )
 begin
-	select id, `hash`, is_image, link_type, `file`, file_w, file_h, `size`,
+	select id, `hash`, is_image, upload_type, `file`, image_w, image_h, `size`,
 		thumbnail, thumbnail_w, thumbnail_h
 	from uploads u
 	join posts_uploads pu on pu.upload = u.id and pu.post = post_id;
 end|
 
--- Выбирает информацию об одинаковых загрузках для заданной доски.
+-- Выбирает информацию о висячих загрузках (не связанных с сообщениями).
+create procedure sp_uploads_get_dangling ()
+begin
+	select u.id, u.`hash`, u.is_image, u.link_type, u.`file`, u.file_w,
+		u.file_h, u.`size`, u.thumbnail, u.thumbnail_w, u.thumbnail_h
+	from uploads u
+	left join posts_uploads pu on pu.upload = u.id
+	where pu.upload is null;
+end|
+
+-- Выбирает одинаковые загрузки для заданной доски.
 --
 -- Аргументы:
 -- board_id - Идентификатор доски.
@@ -2257,8 +2314,8 @@ create procedure sp_uploads_get_same
 	_user_id int
 )
 begin
-	select u.id, u.`hash`, u.is_image, u.link_type, u.`file`, u.file_w,
-		u.file_h, u.`size`, u.thumbnail, u.thumbnail_w, u.thumbnail_h,
+	select u.id, u.`hash`, u.is_image, u.upload_type, u.`file`, u.image_w,
+		u.image_h, u.`size`, u.thumbnail, u.thumbnail_w, u.thumbnail_h,
 		p.`number`, t.original_post, max(case
 		when a1.`view` = 0 then 0
 		when a2.`view` = 0 then 0
@@ -2290,63 +2347,6 @@ begin
 		and a7.thread is null and a7.post is null
 	where u.`hash` = _hash
 	group by u.id, p.id;
-end|
-
--- Добавляет информацию о загрузке.
---
--- Аргументы:
--- _hash - хеш файла.
--- _is_image - флаг картинки.
--- _link_type - тип ссылки на файл.
--- _file - файл.
--- _file_w - ширина изображения (для изображений).
--- _file_h - высота изображения (для изображений).
--- _size - размер файла в байтах.
--- _thumbnail - уменьшенная копия.
--- _thumbnail_w - ширина уменьшенной копии.
--- _thumbnail_h - высота уменьшенной копии.
-create procedure sp_uploads_add
-(
-	_hash varchar(32),
-	_is_image bit,
-	_link_type int,
-	_file varchar(256),
-	_file_w int,
-	_file_h int,
-	_size int,
-	_thumbnail varchar(256),
-	_thumbnail_w int,
-	_thumbnail_h int
-)
-begin
-	insert into uploads (`hash`, is_image, link_type, `file`, file_w, file_h,
-		`size`, thumbnail, thumbnail_w, thumbnail_h)
-	values
-	(_hash, _is_image, _link_type, _file, _file_w, _file_h,
-		_size, _thumbnail, _thumbnail_w, _thumbnail_h);
-	select last_insert_id() as id;
-end|
-
--- Выбирает информацию о висячих загрузках (не связанных с сообщениями).
-create procedure sp_uploads_get_all_dangling ()
-begin
-	select u.id, u.`hash`, u.is_image, u.link_type, u.`file`, u.file_w,
-		u.file_h, u.`size`, u.thumbnail, u.thumbnail_w, u.thumbnail_h
-	from uploads u
-	left join posts_uploads pu on pu.upload = u.id
-	where pu.upload is null;
-end|
-
--- Удаляет заданную информацию о загрузке.
---
--- Аргументы:
--- _id - Идентификатор информации о загрузке.
-create procedure sp_uploads_delete_specifed
-(
-	_id int
-)
-begin
-	delete from uploads where id = _id;
 end|
 
 --------------------------------

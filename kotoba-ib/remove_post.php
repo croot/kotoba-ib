@@ -9,7 +9,6 @@
  * See license.txt for more info.*
  *********************************/
 // Скрипт удаления сообщений.
-// TODO Капча на странице ввода пароля для удаления сообщения.
 require 'config.php';
 require 'modules/errors.php';
 require 'modules/lang/' . Config::LANGUAGE . '/errors.php';
@@ -18,6 +17,7 @@ require 'modules/cache.php';
 require 'modules/common.php';
 require 'modules/popdown_handlers.php';
 require 'modules/events.php';
+require 'securimage/securimage.php';
 try
 {
 	kotoba_session_start();
@@ -29,19 +29,15 @@ try
 // Проверка входных параметров.
 	if(isset($_GET['post']))
 	{
-		$post_id = $_GET['post'];
+		$post_id = posts_check_id($_GET['post']);
 		if(isset($_GET['password']))
-		{
 			$password = $_GET['password'];
-		}
 	}
 	elseif(isset($_POST['post']))
 	{
-		$post_id = $_POST['post'];
+		$post_id = posts_check_id($_POST['post']);
 		if(isset($_POST['password']))
-		{
 			$password = $_POST['password'];
-		}
 	}
 	else
 	{
@@ -49,22 +45,28 @@ try
 		DataExchange::releaseResources();
 		exit;
 	}
-	$post = posts_get_by_id_view(posts_check_number($post_id),
-		$_SESSION['user']);
+	$post = posts_get_visible_by_id($post_id, $_SESSION['user']);
 	$password = isset($password)
 		? posts_check_password($password) : $_SESSION['password'];
 // Удаление.
-	if(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups'])
-		|| ($post['password'] !== null && $post['password'] === $password))
+	if(is_admin())
 	{
 		posts_delete($post['id']);
-		$board = boards_get_by_id($post['board']);
-		header('Location: ' . Config::DIR_PATH . "/{$board['name']}/");
+		header('Location: ' . Config::DIR_PATH . "/{$post['board_name']}/");
+	}
+	elseif(($post['password'] !== null && $post['password'] === $password))
+	{
+		$securimage = new Securimage();
+		if ($securimage->check($_POST['captcha_code']) == false)
+			throw new CommonException(CommonException::$messages['CAPTCHA']);
+		posts_delete($post['id']);
+		header('Location: ' . Config::DIR_PATH . "/{$post['board_name']}/");
 	}
 	else
 	{
 // Вывод формы ввода пароля.
 		$smarty->assign('id', $post['id']);
+		$smarty->assign('is_admin', is_admin());
 		$smarty->assign('password', $password);
 		$smarty->display('remove_post.tpl');
 	}

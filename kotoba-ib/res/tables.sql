@@ -64,7 +64,7 @@ engine = InnoDB|
 create table boards
 (
 	id int not null auto_increment,
-	name varchar(16) not null,
+	`name` varchar(16) not null,
 	title varchar(50) default null,
 	annotation text default null,
 	bump_limit int not null,
@@ -169,10 +169,10 @@ create table uploads
 	id int not null auto_increment,
 	`hash` varchar(32) default null,
 	is_image bit not null,
-	link_type tinyint not null,
+	upload_type tinyint not null,
 	`file` varchar(2048) not null,
-	file_w int default null,
-	file_h int default null,
+	image_w int default null,
+	image_h int default null,
 	`size` int not null,
 	`thumbnail` varchar(2048) default null,
 	thumbnail_w int default null,
