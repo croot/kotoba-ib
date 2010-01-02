@@ -61,11 +61,21 @@ try
 	$is_admin = false;
 	if(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
 		$is_admin = true;
-	$threads = threads_get_board_view($board['id'], $page, $_SESSION['user'],
+	$threads = threads_get_visible_by_board($board['id'], $page, $_SESSION['user'],
 		$_SESSION['threads_per_page']);
-	$posts = posts_get_threads_view($threads, $_SESSION['user'],
-		$_SESSION['posts_per_thread']);
-	$posts_uploads = posts_uploads_get_posts($posts);
+	$filter = function($posts_per_thread, $thread, $post)
+	{
+		static $recived = 0;
+		if($thread['original_post'] == $post['number'])
+			return true;
+		$recived++;
+		if($recived > $thread['posts_count'] - $posts_per_thread)
+			return true;
+		return false;
+	};
+	$posts = posts_get_visible_filtred_by_threads($threads, $_SESSION['user'],
+		$filter, $_SESSION['posts_per_thread']);
+	$posts_uploads = posts_uploads_get_by_posts($posts);
 	$uploads = uploads_get_by_posts($posts);
 	$hidden_threads = hidden_threads_get_board($board['id'], $_SESSION['user']);
 	$upload_types = upload_types_get_board($board['id']);

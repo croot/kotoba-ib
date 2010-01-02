@@ -140,7 +140,7 @@ create table threads
 	id int not null auto_increment,
 	board int not null,
 	original_post int default null,
-	bump_limit int,
+	bump_limit int default null,
 	deleted bit not null,
 	archived bit not null,
 	-- Этот флаг не может быть null, так как для него нет родительского
