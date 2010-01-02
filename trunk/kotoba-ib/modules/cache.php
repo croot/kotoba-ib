@@ -2442,7 +2442,7 @@ function hidden_threads_get_board($board_id, $user_id)
 }
 /**
  * Скрывает нить.
- * @param thread_id mixed <p>Идентификатор доски.</p>
+ * @param thread_id mixed <p>Идентификатор нити.</p>
  * @param user_id mixed <p>Идентификатор пользователя.</p>
  */
 function hidden_threads_add($thread_id, $user_id)

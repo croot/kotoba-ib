@@ -2623,7 +2623,7 @@ function db_hidden_threads_get_board($link, $board_id, $user_id)
 /**
  * Скрывает нить.
  * @param link MySQLi <p>Связь с базой данных.</p>
- * @param thread_id mixed <p>Идентификатор доски.</p>
+ * @param thread_id mixed <p>Идентификатор нити.</p>
  * @param user_id mixed <p>Идентификатор пользователя.</p>
  */
 function db_hidden_threads_add($link, $thread_id, $user_id)
@@ -2635,7 +2635,7 @@ function db_hidden_threads_add($link, $thread_id, $user_id)
 /**
  * Отменяет скрытие нити.
  * @param link MySQLi <p>Связь с базой данных.</p>
- * @param thread_id mixed <p>Идентификатор доски.</p>
+ * @param thread_id mixed <p>Идентификатор нити.</p>
  * @param user_id mixed <p>Идентификатор пользователя.</p>
  */
 function db_hidden_threads_delete($link, $thread_id, $user_id)
