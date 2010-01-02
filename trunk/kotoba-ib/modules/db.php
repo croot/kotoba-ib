@@ -1660,8 +1660,8 @@ function db_threads_get_all_moderate($link, $user_id)
 	return $threads;
 }
 /**
- * Получает доступные для просмотра пользователю нити и количество сообщений в
- * них, с заданной страницы доски.
+ * Получает с заданной страницы доски доступные для просмотра пользователю нити
+ * и количество сообщений в них.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param board_id mixed <p>Идентификатор доски.</p>
  * @param page mixed <p>Номер страницы.</p>
@@ -1670,14 +1670,14 @@ function db_threads_get_all_moderate($link, $user_id)
  * @return array
  * Возвращает нити:<p>
  * 'id' - идентификатор.<br>
- * 'original_post' - оригинальное сообщение.<br>
+ * 'original_post' - номер оригинального сообщения.<br>
  * 'bump_limit' - специфичный для нити бамплимит.<br>
- * 'sticky' - флаг закрепления.<br>
  * 'sage' - флаг поднятия нити при ответе.<br>
+ * 'sticky' - флаг закрепления.<br>
  * 'with_files' - флаг загрузки файлов.<br>
- * 'posts_count' - число доступных для просмотра сообщений в нити.</p>
+ * 'posts_count' - число доступных для просмотра сообщений.</p>
  */
-function db_threads_get_board_view($link, $board_id, $page, $user_id,
+function db_threads_get_visible_by_board($link, $board_id, $page, $user_id,
 	$threads_per_page)
 {
 	$threads = array();
@@ -1690,7 +1690,7 @@ function db_threads_get_board_view($link, $board_id, $page, $user_id,
 	$number = 0;	// Номер записи с не закреплённой нитью. Начинается с 1.
 	$received = 0;	// Число выбранных не закреплённых нитей.
 	$result = mysqli_query($link,
-		"call sp_threads_get_board_view($board_id, $user_id)");
+		"call sp_threads_get_visible_by_board($board_id, $user_id)");
 	if(!$result)
 		throw new CommonException(mysqli_error($link));
 	if(mysqli_affected_rows($link) > 0)
@@ -1699,7 +1699,6 @@ function db_threads_get_board_view($link, $board_id, $page, $user_id,
 			if($row['sticky'])
 			{
 				if($page == 1)
-				{
 					// Закреплённые нити будут показаны только на 1 странице.
 					array_push($sticky_threads,
 						array('id' => $row['id'],
@@ -1709,7 +1708,6 @@ function db_threads_get_board_view($link, $board_id, $page, $user_id,
 								'sage' => $row['sage'],
 								'with_files' => $row['with_files'],
 								'posts_count' => $row['posts_count']));
-				}
 				continue;
 			}
 			$number++;
@@ -1727,9 +1725,7 @@ function db_threads_get_board_view($link, $board_id, $page, $user_id,
 			}
 		}
 	if($page == 1)
-	{
 		$threads = array_merge($sticky_threads, $threads);
-	}
 	mysqli_free_result($result);
 	db_cleanup_link($link);
 	return $threads;
@@ -1941,17 +1937,17 @@ function db_threads_check_specifed_moderate($link, $thread_id, $user_id)
  *************************/
 
 /**
- * Получает $posts_per_thread сообщений и оригинальное сообщение для каждой
- * нити из $threads, доступных для чтения пользователю с идентификатором
- * $user_id.
+ * Для каждой нити получает отфильтрованные сообщения, доступные для чтения
+ * заданному пользователю.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param threads array <p>Нити.</p>
  * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @param posts_per_thread mixed <p>Количество сообщений, которое необходимо вернуть.</p>
+ * @param filter mixed <p>Фильтр (лямбда).</p>
+ * @param args array <p>Аргументы для фильтра.</p>
  * @return array
  * Возвращает сообщения:<p>
  * 'id' - идентификатор.<br>
- * 'thread' - идентификатор нити.<br>
+ * 'thread' - нить.<br>
  * 'number' - номер.<br>
  * 'password' - пароль для удаления.<br>
  * 'name' - имя отправителя.<br>
@@ -1962,29 +1958,38 @@ function db_threads_check_specifed_moderate($link, $thread_id, $user_id)
  * 'text' - текст.<br>
  * 'sage' - флаг поднятия нити.</p>
  */
-function db_posts_get_threads_view($link, $threads, $user_id, $posts_per_thread)
+function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id,
+	$filter, $args)
 {
 	$posts = array();
+	$arg = count($args);
 	foreach($threads as $t)
 	{
-		$result = mysqli_query($link, "call sp_posts_get_thread_view({$t['id']},
-			$user_id, $posts_per_thread)");
+		$result = mysqli_query($link, "call sp_posts_get_visible_by_thread({$t['id']},
+			$user_id)");
 		if(!$result)
 			throw new CommonException(mysqli_error($link));
 		if(mysqli_affected_rows($link) > 0)
+		{
+			$args[$arg + 1] = $t;
 			while(($row = mysqli_fetch_assoc($result)) != null)
-				array_push($posts,
-					array('id' => $row['id'],
-							'thread' => $row['thread'],
-							'number' => $row['number'],
-							'password' => $row['password'],
-							'name' => $row['name'],
-							'tripcode' => $row['tripcode'],
-							'ip' => $row['ip'],
-							'subject' => $row['subject'],
-							'date_time' => $row['date_time'],
-							'text' => $row['text'],
-							'sage' => $row['sage']));
+			{
+				$args[$arg + 2] = $row;
+				if(call_user_func_array($filter, $args))
+					array_push($posts,
+						array('id' => $row['id'],
+								'thread' => $row['thread'],
+								'number' => $row['number'],
+								'password' => $row['password'],
+								'name' => $row['name'],
+								'tripcode' => $row['tripcode'],
+								'ip' => $row['ip'],
+								'subject' => $row['subject'],
+								'date_time' => $row['date_time'],
+								'text' => $row['text'],
+								'sage' => $row['sage']));
+			}
+		}
 		mysqli_free_result($result);
 		db_cleanup_link($link);
 	}
@@ -2339,26 +2344,26 @@ function db_posts_get_all_numbers($link)
 	return $data;
 }
 
-/**********************************************************
- * Работа со связями сообщений с информацией о загрузках. *
- **********************************************************/
+/***************************************************
+ * Работа с закреплениями загрузок за сообщениями. *
+ ***************************************************/
 
 /**
- * Получает для сообщений их связи с информацией о загрузках.
+ * Получает закрепления загрузок за заданными сообщениями.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param posts array <p>Сообщения.</p>
  * @return array
- * Возвращает связи:<p>
+ * Возвращает закрепления:<p>
  * 'post' - идентификатор сообщения.<br>
- * 'upload' - идентификатор записи с информацией о загрузке.</p>
+ * 'upload' - идентификатор загрузки.</p>
  */
-function db_posts_uploads_get_posts($link, $posts)
+function db_posts_uploads_get_by_posts($link, $posts)
 {
 	$posts_uploads = array();
 	foreach($posts as $p)
 	{
 		$result = mysqli_query($link,
-			"call sp_posts_uploads_get_post({$p['id']})");
+			"call sp_posts_uploads_get_by_post({$p['id']})");
 		if(!$result)
 			throw new CommonException(mysqli_error($link));
 		if(mysqli_affected_rows($link) > 0)

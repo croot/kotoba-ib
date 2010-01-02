@@ -1374,29 +1374,34 @@ function posts_check_name_size($name)
 		throw new LimitException(LimitException::$messages['MAX_NAME_LENGTH']);
 }
 /**
- * Получает $posts_per_thread сообщений и оригинальное сообщение для каждой
- * нити из $threads, доступных для чтения пользователю с идентификатором
- * $user_id.
+ * Для каждой нити получает отфильтрованные сообщения, доступные для чтения
+ * заданному пользователю.
  * @param threads array <p>Нити.</p>
  * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @param posts_per_thread mixed <p>Количество сообщений, которое необходимо вернуть.</p>
+ * @param filter mixed <p>Фильтр (лямбда).</p>
  * @return array
  * Возвращает сообщения:<p>
  * 'id' - идентификатор.<br>
- * 'thread' - идентификатор нити.<br>
+ * 'thread' - нить.<br>
  * 'number' - номер.<br>
  * 'password' - пароль для удаления.<br>
  * 'name' - имя отправителя.<br>
+ * 'tripcode' - трипкод.<br>
  * 'ip' - ip адрес отправителя.<br>
  * 'subject' - тема.<br>
  * 'date_time' - время сохранения.<br>
  * 'text' - текст.<br>
  * 'sage' - флаг поднятия нити.</p>
  */
-function posts_get_threads_view($threads, $user_id, $posts_per_thread)
+function posts_get_visible_filtred_by_threads($threads, $user_id, $filter)
 {
-	return db_posts_get_threads_view(DataExchange::getDBLink(), $threads,
-		$user_id, $posts_per_thread);
+
+	$numargs = func_num_args();
+	$args = array();			// Аргументы для лямбды.
+	for($i = 3; $i < $numargs; $i++)	// Пропустим первые 3 аргумента фукнции.
+		array_push($args, func_get_arg($i));
+	return db_posts_get_visible_filtred_by_threads(DataExchange::getDBLink(), $threads,
+		$user_id, $filter, $args);
 }
 /**
  * Получает все сообщения заданной нити.
@@ -1468,7 +1473,7 @@ function posts_get_visible_by_id($post_id, $user_id)
 }
 /**
  * Получает отфильтрованные сообщения.
- * @param fileter string <p>Фильтр (лямбда).</p>
+ * @param filter string <p>Фильтр (лямбда).</p>
  * @param ... <p>Аргументы фильтра.</p>
  * @return array
  * Возвращает сообщеня:<p>
@@ -1487,21 +1492,19 @@ function posts_get_visible_by_id($post_id, $user_id)
  * 'text' - текст.<br>
  * 'sage' - флаг поднятия нити.</p>
  */
-function posts_get_filtred($fileter)
+function posts_get_filtred($filter)
 {
 	$numargs = func_num_args();
 	$args = array();
 	$i = 1;
-	for($i = 1; $i < $numargs; $i++)
-	{
+	for(; $i < $numargs; $i++)
 		array_push($args, func_get_arg($i));
-	}
 	$posts = db_posts_get_all(DataExchange::getDBLink());
 	$filtred_posts = array();
 	foreach($posts as $post)
 	{
 		$args[$i - 1] = $post;
-		if(call_user_func_array($fileter, $args))
+		if(call_user_func_array($filter, $args))
 		{
 			array_push($filtred_posts, $post);
 		}
@@ -2157,8 +2160,8 @@ function threads_get_all_moderate($user_id)
 	return db_threads_get_all_moderate(DataExchange::getDBLink(), $user_id);
 }
 /**
- * Получает доступные для просмотра пользователю нити и количество сообщений в
- * них, с заданной страницы доски.
+ * Получает с заданной страницы доски доступные для просмотра пользователю нити
+ * и количество сообщений в них.
  * @param board_id mixed <p>Идентификатор доски.</p>
  * @param page mixed <p>Номер страницы.</p>
  * @param user_id mixed <p>Идентификатор пользователя.</p>
@@ -2166,17 +2169,17 @@ function threads_get_all_moderate($user_id)
  * @return array
  * Возвращает нити:<p>
  * 'id' - идентификатор.<br>
- * 'original_post' - оригинальное сообщение.<br>
+ * 'original_post' - номер оригинального сообщения.<br>
  * 'bump_limit' - специфичный для нити бамплимит.<br>
- * 'sticky' - флаг закрепления.<br>
  * 'sage' - флаг поднятия нити при ответе.<br>
+ * 'sticky' - флаг закрепления.<br>
  * 'with_files' - флаг загрузки файлов.<br>
- * 'posts_count' - число доступных для просмотра сообщений в нити.</p>
+ * 'posts_count' - число доступных для просмотра сообщений.</p>
  */
-function threads_get_board_view($board_id, $page, $user_id,
+function threads_get_visible_by_board($board_id, $page, $user_id,
 	$threads_per_page)
 {
-	return db_threads_get_board_view(DataExchange::getDBLink(), $board_id,
+	return db_threads_get_visible_by_board(DataExchange::getDBLink(), $board_id,
 		$page, $user_id, $threads_per_page);
 }
 /**
@@ -2272,21 +2275,21 @@ function threads_get_specifed_change($thread_id, $user_id)
 		$user_id);
 }
 
-/**********************************************************
- * Работа со связями сообщений с информацией о загрузках. *
- **********************************************************/
+/***************************************************
+ * Работа с закреплениями загрузок за сообщениями. *
+ ***************************************************/
 
 /**
- * Получает для сообщений их связи с информацией о загрузках.
+ * Получает закрепления загрузок за заданными сообщениями.
  * @param posts array <p>Сообщения.</p>
  * @return array
- * Возвращает связи:<p>
+ * Возвращает закрепления:<p>
  * 'post' - идентификатор сообщения.<br>
- * 'upload' - идентификатор записи с информацией о загрузке.</p>
+ * 'upload' - идентификатор загрузки.</p>
  */
-function posts_uploads_get_posts($posts)
+function posts_uploads_get_by_posts($posts)
 {
-	return db_posts_uploads_get_posts(DataExchange::getDBLink(), $posts);
+	return db_posts_uploads_get_by_posts(DataExchange::getDBLink(), $posts);
 }
 /**
  * Связывает сообщение с информацией о загрузке.

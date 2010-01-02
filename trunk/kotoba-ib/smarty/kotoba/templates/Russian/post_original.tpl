@@ -26,29 +26,17 @@
 	<span class="filesize">Файл: <a target="_blank" href="{$original_uploads[0].file_link}">{$original_uploads[0].file_name}</a> -(<em>{$original_uploads[0].size} Байт {$original_uploads[0].image_w}x{$original_uploads[0].image_h}</em>)</span>
 	<br><a target="_blank" href="{$original_uploads[0].file_link}"><img src="{$original_uploads[0].file_thumbnail_link}" class="thumb" width="{$original_uploads[0].thumbnail_w}" height="{$original_uploads[0].thumbnail_h}"></a>
 {/if}
+<a href="{$DIR_PATH}/hide_thread.php?thread={$thread[0].id}&submit=1"><img src="{$DIR_PATH}/css/hide.png" alt="[Скрыть]" title="Скрыть нить" border="0"/></a>
+<a href="{$DIR_PATH}/remove_post.php?post={$original_post.id}&submit=1"><img src="{$DIR_PATH}/css/delete.png" alt="[Удалить]" title="Удалить нить" border="0"/></a>
+{if $original_post.with_files}
+	<a href="{$DIR_PATH}/remove_upload.php?post={$original_post.id}&submit=1"><img src="{$DIR_PATH}/css/delfile.png" alt="[Удалить файл]" title="Удалить файл" border="0"/></a>
+{/if}
+<a href="{$DIR_PATH}/report.php?post={$original_post.id}&submit=1"><img src="{$DIR_PATH}/css/report.png" alt="[Пожаловаться]" title="Пожаловаться на сообщение" border="0"/></a>
 <span class="filetitle">{$original_post.subject}</span> <span class="postername">{$original_post.name}</span>{if $original_post.tripcode != null}<span class="postertrip">!{$original_post.tripcode}</span>{/if} {$original_post.date_time}
 <span class="reflink">
 	<span onclick="insert('>>{$original_post.number}');">#</span>
 	<a href="{$DIR_PATH}/{$board.name}/{$thread[0].original_post}#{$original_post.number}">{$original_post.number}</a>
 </span>
-<form action="{$DIR_PATH}/hide_thread.php" method="post">
-	<input type="submit" name="submit" value="С" title="Скрыть нить">
-	<input type="hidden" name="thread" value="{$thread[0].id}">
-</form>
-<form action="{$DIR_PATH}/remove_post.php" method="post">
-	<input type="submit" name="submit" value="У" title="Удалить сообщение">
-	<input type="hidden" name="post" value="{$original_post.id}">
-</form>
-{if $original_post.with_files}
-	<form action="{$DIR_PATH}/remove_upload.php" method="post">
-		<input type="submit" name="submit" value="УФ" title="Удалить файл">
-		<input type="hidden" name="post" value="{$original_post.id}">
-	</form>
-{/if}
-<form action="{$DIR_PATH}/report.php" method="post">
-	<input type="submit" name="submit" value="Ж" title="Пожаловатся на сообщение">
-	<input type="hidden" name="post" value="{$original_post.id}">
-</form>
 {if $sticky} Нить закреплена.{/if}
 {if $is_admin}{include file='mod_mini_panel.tpl' post_id=$original_post.id ip=$original_post.ip board_name=$board.name post_num=$original_post.number}{/if}
 <a name="{$original_post.number}"></a>
