@@ -3260,6 +3260,66 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_posts_get_visible_by_thread` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_get_visible_by_thread`(
+	thread_id int,
+	user_id int
+)
+begin
+	select p.id, p.thread, p.`number`, p.password, p.`name`, p.tripcode,
+			p.ip, p.subject, p.date_time, p.text, p.sage
+	from posts p
+	join threads t on t.board = p.board and t.id = p.thread
+	join user_groups ug on ug.user = user_id
+	
+	left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+	
+	left join acl a2 on a2.`group` is null and a2.post = p.id
+	
+	left join acl a3 on a3.`group` = ug.`group` and a3.thread = t.id
+	
+	left join acl a4 on a4.`group` is null and a4.thread = t.id
+	
+	left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+	
+	left join acl a6 on a6.`group` is null and a6.board = p.board
+	
+	left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+		and a7.thread is null and a7.post is null
+	where p.thread = thread_id
+		and p.deleted = 0 and t.deleted = 0 and t.archived = 0
+		
+			
+		and ((a1.`view` = 1 or a1.`view` is null)
+			
+			and (a2.`view` = 1 or a2.`view` is null)
+			
+			and (a3.`view` = 1 or a3.`view` is null)
+			
+			and (a4.`view` = 1 or a4.`view` is null)
+			
+			and (a5.`view` = 1 or a5.`view` is null)
+			
+			and (a6.`view` = 1 or a6.`view` is null)
+			
+			and a7.`view` = 1)
+	group by p.id
+	order by p.`number` asc;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_posts_uploads_add` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -3335,6 +3395,27 @@ DELIMITER ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_uploads_get_all`(
+	post_id int
+)
+begin
+	select post, upload from posts_uploads where post = post_id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_posts_uploads_get_by_post` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_uploads_get_by_post`(
 	post_id int
 )
 begin
@@ -4651,6 +4732,91 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_threads_get_visible_by_board` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_threads_get_visible_by_board`(
+	board_id int,
+	user_id int
+)
+begin
+	select q1.id, q1.original_post, q1.bump_limit, q1.sticky, q1.sage,
+		q1.with_files, q1.posts_count, q1.last_post_num
+	from (
+		
+		select q.id, q.original_post, q.bump_limit, q.sticky, q.sage,
+			q.with_files, q.posts_count, max(p.`number`) as last_post_num
+		from posts p
+		join (
+			
+			select t.id, t.original_post, t.bump_limit, t.sticky, t.sage,
+				t.with_files, count(distinct p.id) as posts_count
+			from posts p
+			join threads t on t.id = p.thread and t.board = board_id
+			join user_groups ug on ug.`user` = user_id
+			left join hidden_threads ht on ht.thread = t.id
+				and ht.`user` = ug.`user`
+			
+			left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+			
+			left join acl a2 on a2.`group` is null and a2.post = p.id
+			
+			left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+			
+			left join acl a4 on a4.`group` is null and a4.thread = p.thread
+			
+			left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+			
+			left join acl a6 on a6.`group` is null and a6.board = p.board
+			
+			left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+				and a7.thread is null and a7.post is null
+			where t.deleted = 0 and t.archived = 0 and ht.thread is null
+				and p.deleted = 0
+				
+					
+				and ((a3.`view` = 1 or a3.`view` is null)
+					
+					and (a4.`view` = 1 or a4.`view` is null)
+					
+					and (a5.`view` = 1 or a5.`view` is null)
+					
+					and (a6.`view` = 1 or a6.`view` is null)
+					
+					and a7.`view` = 1)
+				
+				
+					
+				and ((a1.`view` = 1 or a1.`view` is null)
+					
+					and (a2.`view` = 1 or a2.`view` is null)
+					
+					and (a3.`view` = 1 or a3.`view` is null)
+					
+					and (a4.`view` = 1 or a4.`view` is null)
+					
+					and (a5.`view` = 1 or a5.`view` is null)
+					
+					and (a6.`view` = 1 or a6.`view` is null)
+					
+					and a7.`view` = 1)
+			group by t.id) q on q.id = p.thread
+				and (p.sage = 0 or p.sage is null) and p.deleted = 0
+		group by q.id) q1
+	order by q1.last_post_num desc;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_upload` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -5248,7 +5414,7 @@ DELIMITER ;;
 	_lines_per_post int,
 	_stylesheet int,
 	_language int,
-	_rempass varchar(12),
+	_password varchar(12),
 	_goto varchar(32)
 )
 begin
@@ -5261,7 +5427,7 @@ begin
 		insert into users (keyword, threads_per_page, posts_per_thread,
 			lines_per_post, stylesheet, `language`, password, `goto`)
 		values (_keyword, _threads_per_page, _posts_per_thread,
-			_lines_per_post, _stylesheet, _language, _rempass, _goto);
+			_lines_per_post, _stylesheet, _language, _password, _goto);
 		select last_insert_id() into user_id;
 		insert into user_groups (`user`, `group`) select user_id, id from groups
 			where name = 'Users';
@@ -5272,7 +5438,7 @@ begin
 			lines_per_post = _lines_per_post,
 			stylesheet = _stylesheet,
 			`language` = _language,
-			rempass = _rempass,
+			password = _password,
 			`goto` = _goto
 		where id = user_id;
 	end if;
@@ -5559,4 +5725,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2010-01-01 22:12:31
+-- Dump completed on 2010-01-02 20:19:55

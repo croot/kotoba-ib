@@ -326,6 +326,30 @@ function is_admin()
 	return false;
 }
 /**
+ * Проверяет, является ли пользователь гостем.
+ * @return boolean
+ * Возвращает true, если пользователь является гостем и false в противном
+ * случае.
+ */
+function is_guest()
+{
+	if(isset($_SESSION['user']))
+	{
+		if($_SESSION['user'] == Config::GUEST_ID)
+			return true;
+	}
+	else
+		throw new CommonException('');
+	if(isset($_SESSION['groups']))
+	{
+		if(in_array(Config::GST_GROUP_NAME, $_SESSION['groups']))
+			return true;
+	}
+	else
+		throw new CommonException('');
+	return false;
+}
+/**
  * Проверяет, является ли пользователь модератором.
  * @return boolean
  * Возвращает true, если пользователь является модератором и false в противном

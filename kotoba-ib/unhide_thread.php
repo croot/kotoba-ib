@@ -23,21 +23,31 @@ try
 	locale_setup();
 	$smarty = new SmartyKotobaSetup($_SESSION['language'],
 		$_SESSION['stylesheet']);
-	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
-	if(in_array(Config::GST_GROUP_NAME, $_SESSION['groups']))
+	// Возможно завершение работы скрипта.
+	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));
+	if(is_guest())
 		throw new PremissionException(PremissionException::$messages['GUEST']);
-// Проверка входных параметров.
-	if(isset($_GET['board']) && isset($_GET['thread']))
+// Проверка входных параметров и отмена скрытия нити.
+	if(isset($_POST['thread']) && isset($_POST['board_name']))
 	{
-		$board = boards_get_specifed_byname(boards_check_name($_GET['board']));
-		$thread = threads_get_specifed_view_hiden($board['id'],
-			threads_check_number($_GET['thread']), $_SESSION['user']);
-// Отмена скрытия нити.
-		hidden_threads_delete($thread['id'], $_SESSION['user']);
+		$thread_id = threads_check_id($_POST['thread']);
+		$board_name = boards_check_name($_POST['board_name']);
 	}
+	elseif(isset($_GET['thread']) && isset($_GET['board_name']))
+	{
+		$thread_id = threads_check_id($_GET['thread']);
+		$board_name = boards_check_name($_GET['board_name']);
+	}
+	else
+	{
+		header('Location: http://z0r.de/?id=114');
+		DataExchange::releaseResources();
+		exit;
+	}
+	hidden_threads_delete($thread_id, $_SESSION['user']);
 // Перенаправление.
 	DataExchange::releaseResources();
-	header('Location: ' . Config::DIR_PATH . "/{$board['name']}/");
+	header('Location: ' . Config::DIR_PATH . "/$board_name/");
 	exit;
 }
 catch(Exception $e)

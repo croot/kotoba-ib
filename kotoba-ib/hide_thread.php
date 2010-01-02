@@ -23,18 +23,31 @@ try
 	locale_setup();
 	$smarty = new SmartyKotobaSetup($_SESSION['language'],
 		$_SESSION['stylesheet']);
-	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
-	if(in_array(Config::GST_GROUP_NAME, $_SESSION['groups']))
+	// Возможно завершение работы скрипта.
+	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));
+	if(is_guest())
 		throw new PremissionException(PremissionException::$messages['GUEST']);
 // Проверка входных параметров и скрытие нити.
-	if(isset($_POST['thread']))
+	if(isset($_POST['thread']) && isset($_POST['board_name']))
 	{
-		hidden_threads_add(threads_check_id($_POST['thread']),
-			$_SESSION['user']);
+		$thread_id = threads_check_id($_POST['thread']);
+		$board_name = boards_check_name($_POST['board_name']);
 	}
+	elseif(isset($_GET['thread']) && isset($_GET['board_name']))
+	{
+		$thread_id = threads_check_id($_GET['thread']);
+		$board_name = boards_check_name($_GET['board_name']);
+	}
+	else
+	{
+		header('Location: http://z0r.de/?id=114');
+		DataExchange::releaseResources();
+		exit;
+	}
+	hidden_threads_add($thread_id, $_SESSION['user']);
 // Перенаправление.
 	DataExchange::releaseResources();
-	header('Location: ' . Config::DIR_PATH . "/");
+	header('Location: ' . Config::DIR_PATH . "/$board_name/");
 	exit;
 }
 catch(Exception $e)
