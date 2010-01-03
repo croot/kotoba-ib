@@ -1472,9 +1472,9 @@ function posts_get_visible_by_id($post_id, $user_id)
 		$user_id);
 }
 /**
- * Получает отфильтрованные сообщения.
- * @param filter string <p>Фильтр (лямбда).</p>
- * @param ... <p>Аргументы фильтра.</p>
+ * Получает отфильтрованные сообщения с заданных досок.
+ * @param boards array <p>Доски.</p>
+ * @param filter object <p>Фильтр (лямбда).</p>
  * @return array
  * Возвращает сообщеня:<p>
  * 'id' - идентификатор.<br>
@@ -1492,22 +1492,20 @@ function posts_get_visible_by_id($post_id, $user_id)
  * 'text' - текст.<br>
  * 'sage' - флаг поднятия нити.</p>
  */
-function posts_get_filtred($filter)
+function posts_get_filtred_by_boards($boards, $filter)
 {
-	$numargs = func_num_args();
-	$args = array();
-	$i = 1;
-	for(; $i < $numargs; $i++)
-		array_push($args, func_get_arg($i));
-	$posts = db_posts_get_all(DataExchange::getDBLink());
+	$posts = db_posts_get_by_boards(DataExchange::getDBLink(), $boards);
 	$filtred_posts = array();
+	$filter_args = array();
+	$filter_argn = 0;
+	$n = func_num_args();
+	for($i = 2; $i < $n; $i++)	// Пропустим первые два аргумента фукнции.
+		$filter_args[$filter_argn++] = func_get_arg($i);
 	foreach($posts as $post)
 	{
-		$args[$i - 1] = $post;
-		if(call_user_func_array($filter, $args))
-		{
+		$filter_args[$filter_argn] = $post;
+		if(call_user_func_array($filter, $filter_args))
 			array_push($filtred_posts, $post);
-		}
 	}
 	return $filtred_posts;
 }
@@ -2427,18 +2425,32 @@ function uploads_get_same($board_id, $hash, $user_id)
  ******************************/
 
 /**
- * Получает нити, скрыте пользователем на заданной доске.
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * Возвращает отфильтрованные скрытые нити на заданных досках.
+ * @param boards array <p>Доски.</p>
+ * @param filter object <p>Фильтр (лямбда).</p>
  * @return array
  * Возвращает скрытые нити:<p>
- * 'number' - номер оригинального сообщения.<br>
- * 'id' - идентификатор нити.</p>
+ * 'thread' - идентификатор нити.<br>
+ * 'thread_number' - номер оригинального сообщения.<br>
+ * 'user' - идентификатор пользователя.</p>
  */
-function hidden_threads_get_board($board_id, $user_id)
+function hidden_threads_get_filtred_by_boards($boards, $filter)
 {
-	return db_hidden_threads_get_board(DataExchange::getDBLink(), $board_id,
-		$user_id);
+	$threads = db_hidden_threads_get_by_boards(DataExchange::getDBLink(),
+		$boards);
+	$filtred_threads = array();
+	$filter_args = array();
+	$filter_argn = 0;
+	$n = func_num_args();
+	for($i = 2; $i < $n; $i++)	// Пропустим первые два аргумента фукнции.
+		$filter_args[$filter_argn++] = func_get_arg($i);
+	foreach($threads as $t)
+	{
+		$filter_args[$filter_argn] = $t;
+		if(call_user_func_array($filter, $filter_args))
+			array_push($filtred_threads, $t);
+	}
+	return $filtred_threads;
 }
 /**
  * Скрывает нить.

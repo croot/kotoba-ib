@@ -79,7 +79,14 @@ try
 		$_SESSION['user'], $filter, $thread['posts_count']);
 	$posts_uploads = posts_uploads_get_by_posts($posts);
 	$uploads = uploads_get_by_posts($posts);
-	$hidden_threads = hidden_threads_get_board($board['id'], $_SESSION['user']);
+	$ht_filter = function($user, $hidden_thread)
+	{
+		if($hidden_thread['user'] == $user)
+			return true;
+		return false;
+	};
+	$hidden_threads = hidden_threads_get_filtred_by_boards(array($board),
+		$ht_filter, $_SESSION['user']);
 	$upload_types = upload_types_get_board($board['id']);
 	$macrochan_tags = array('orgasm_face');
 // Формирование вывода.

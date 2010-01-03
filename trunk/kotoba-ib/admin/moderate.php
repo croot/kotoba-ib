@@ -73,38 +73,30 @@ try
 		{
 			$filter_date_time = date_format(date_create($_POST['filter_date_time']),
 				'U');
-			$fileter = function($boards, $filter_date_time, $post)
+			$fileter = function($filter_date_time, $post)
 			{
 				date_default_timezone_set(Config::DEFAULT_TIMEZONE);
-				foreach($boards as $board)
-					if($post['board'] == $board['id']
-						&& (date_format(date_create($post['date_time']), 'U') >= $filter_date_time))
-					{
-						return true;
-					}
+				if(date_format(date_create($post['date_time']), 'U') >= $filter_date_time)
+					return true;
 				return false;
 			};
-			$posts = posts_get_filtred($fileter, $filter_boards,
+			$posts = posts_get_filtred_by_boards($filter_boards, $fileter,
 				$filter_date_time);
 		}
 		elseif($_POST['filter_number'] != '')
 		{
 			$filter_number = posts_check_number($_POST['filter_number']);
-			$fileter = function($boards, $filter_number, $post)
+			$fileter = function($filter_number, $post)
 			{
-				foreach($boards as $board)
-					if($post['board'] == $board['id']
-						&& $post['number'] >= $filter_number)
-					{
-						return true;
-					}
+				if($post['number'] >= $filter_number)
+					return true;
 				return false;
 			};
-			$posts = posts_get_filtred($fileter, $filter_boards,
+			$posts = posts_get_filtred_by_boards($filter_boards, $fileter,
 				$filter_number);
 		}
-		$posts_uploads = posts_uploads_get_posts($posts);
-		$uploads = uploads_get_posts($posts);
+		$posts_uploads = posts_uploads_get_by_posts($posts);
+		$uploads = uploads_get_by_posts($posts);
 		foreach($posts as $post)
 		{
 			$post['with_files'] = false;
@@ -117,7 +109,7 @@ try
 						{
 							$post['with_files'] = true;
 							$upload['is_embed'] = false;
-							switch($upload['link_type'])
+							switch($upload['upload_type'])
 							{
 								case Config::LINK_TYPE_VIRTUAL:
 									$upload['file_link'] = Config::DIR_PATH . "/{$post['board_name']}/img/{$upload['file']}";
