@@ -2595,30 +2595,34 @@ function db_uploads_get_same($link, $board_id, $hash, $user_id)
  ******************************/
 
 /**
- * Получает нити, скрыте пользователем на заданной доске.
+ * Возвращает отфильтрованные скрытые нити на заданных досках.
  * @param link MySQLi <p>Связь с базой данных.</p>
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param boards array <p>Доски.</p>
  * @return array
  * Возвращает скрытые нити:<p>
- * 'number' - номер оригинального сообщения.<br>
- * 'id' - идентификатор нити.</p>
+ * 'thread' - идентификатор нити.<br>
+ * 'thread_number' - номер оригинального сообщения.<br>
+ * 'user' - идентификатор пользователя.</p>
  */
-function db_hidden_threads_get_board($link, $board_id, $user_id)
+function db_hidden_threads_get_by_boards($link, $boards)
 {
-	$result = mysqli_query($link,
-		"call sp_hidden_threads_get_board($board_id, $user_id)");
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$hidden_threads = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) != null)
-			array_push($hidden_threads,
-				array('number' => $row['original_post'],
-						'id' => $row['id']));
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $hidden_threads;
+	$threads = array();
+	foreach($boards as $b)
+	{
+		$result = mysqli_query($link,
+			"call sp_hidden_threads_get_by_board({$b['id']})");
+		if(!$result)
+			throw new CommonException(mysqli_error($link));
+		if(mysqli_affected_rows($link) > 0)
+			while(($row = mysqli_fetch_assoc($result)) != null)
+				array_push($threads,
+					array('thread' => $row['thread'],
+							'thread_number' => $row['original_post'],
+							'user' => $row['user']));
+		mysqli_free_result($result);
+		db_cleanup_link($link);
+	}
+	return $threads;
 }
 /**
  * Скрывает нить.

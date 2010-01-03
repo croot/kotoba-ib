@@ -63,7 +63,7 @@ try
 		$is_admin = true;
 	$threads = threads_get_visible_by_board($board['id'], $page, $_SESSION['user'],
 		$_SESSION['threads_per_page']);
-	$filter = function($posts_per_thread, $thread, $post)
+	$p_filter = function($posts_per_thread, $thread, $post)
 	{
 		static $recived = 0;
 		if($thread['original_post'] == $post['number'])
@@ -74,10 +74,17 @@ try
 		return false;
 	};
 	$posts = posts_get_visible_filtred_by_threads($threads, $_SESSION['user'],
-		$filter, $_SESSION['posts_per_thread']);
+		$p_filter, $_SESSION['posts_per_thread']);
 	$posts_uploads = posts_uploads_get_by_posts($posts);
 	$uploads = uploads_get_by_posts($posts);
-	$hidden_threads = hidden_threads_get_board($board['id'], $_SESSION['user']);
+	$ht_filter = function($user, $hidden_thread)
+	{
+		if($hidden_thread['user'] == $user)
+			return true;
+		return false;
+	};
+	$hidden_threads = hidden_threads_get_filtred_by_boards(array($board),
+		$ht_filter, $_SESSION['user']);
 	$upload_types = upload_types_get_board($board['id']);
 	$macrochan_tags = array('orgasm_face');
 // Формирование вывода.

@@ -308,11 +308,13 @@ function link_file($source, $dest)
  */
 function is_admin()
 {
-	if(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
+	if(isset($_SESSION['groups']) && is_array($_SESSION['groups'])
+		&& in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
 	{
 		if(count(Config::$ADMIN_IPS) > 0)
 		{
-			if(in_array($_SERVER['REMOTE_ADDR'], Config::$ADMIN_IPS))
+			if(isset($_SERVER['REMOTE_ADDR'])
+				&& in_array($_SERVER['REMOTE_ADDR'], Config::$ADMIN_IPS))
 			{
 				return true;
 			}
@@ -340,7 +342,7 @@ function is_guest()
 	}
 	else
 		throw new CommonException('');
-	if(isset($_SESSION['groups']))
+	if(isset($_SESSION['groups']) && is_array($_SESSION['groups']))
 	{
 		if(in_array(Config::GST_GROUP_NAME, $_SESSION['groups']))
 			return true;
@@ -357,13 +359,10 @@ function is_guest()
  */
 function is_mod()
 {
-	foreach($_SESSION['groups'] as $group_name)
-	{
-		if(in_array($group_name, Config::$MOD_GROUPS))
-		{
-			return true;
-		}
-	}
+	if(isset($_SESSION['groups']) && is_array($_SESSION['groups']))
+		foreach($_SESSION['groups'] as $group_name)
+			if(in_array($group_name, Config::$MOD_GROUPS))
+				return true;
 	return false;
 }
 

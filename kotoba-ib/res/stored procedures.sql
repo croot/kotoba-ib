@@ -90,7 +90,7 @@ drop procedure if exists sp_uploads_get_same|
 drop procedure if exists sp_uploads_add|
 drop procedure if exists sp_uploads_get_dangling|
 drop procedure if exists sp_uploads_delete_by_id|
-drop procedure if exists sp_hidden_threads_get_board|
+drop procedure if exists sp_hidden_threads_get_by_board|
 drop procedure if exists sp_hidden_threads_add|
 drop procedure if exists sp_hidden_threads_delete|
 
@@ -2247,22 +2247,18 @@ end|
 --  Работа со скрытыми нитями. --
 -- ------------------------------
 
--- Выбирает нити, скрыте пользователем с идентификатором user_id на
--- доске с идентификатором board_id.
+-- Выбирает скрыте нити на заданной доске.
 --
 -- Аргументы:
 -- board_id - идентификатор доски.
--- user_id - идентификатор пользователя.
-create procedure sp_hidden_threads_get_board
+create procedure sp_hidden_threads_get_by_board
 (
-	board_id int,
-	user_id int
+	board_id int
 )
 begin
-	select t.id, t.original_post
+	select ht.thread, t.original_post, ht.`user`
 	from hidden_threads ht
-	join threads t on ht.thread = t.id and t.board = board_id
-	where ht.user = user_id;
+	join threads t on t.id = ht.thread and t.board = board_id;
 end|
 
 -- Скрывает нить.
