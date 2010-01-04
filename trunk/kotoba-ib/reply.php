@@ -27,10 +27,7 @@ try
 	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
 // 1. Проверка входных параметров.
-	$is_admin = false;
-	if(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
-		$is_admin = true;
-	if(!$is_admin)
+	if(!is_admin())
 	{
 		$securimage = new Securimage();
 		if ($securimage->check($_POST['captcha_code']) == false)
@@ -53,7 +50,7 @@ try
 		}
 	}
 	$with_file = false;	// Сообщение с файлом.
-	$link_type = null;	// Тип ссылки на файл.
+	$upload_type = null;	// Тип ссылки на файл.
 	if($thread['with_files']
 		|| ($thread['with_files'] === null && $board['with_files']))
 	{
@@ -68,7 +65,7 @@ try
 		if($_FILES['file']['error'] != UPLOAD_ERR_NO_FILE)
 		{
 			$with_file = true;
-			$link_type = Config::LINK_TYPE_VIRTUAL;
+			$upload_type = Config::LINK_TYPE_VIRTUAL;
 			check_upload_error($_FILES['file']['error']);
 			$uploaded_file_size = $_FILES['file']['size'];
 			$uploaded_file_path = $_FILES['file']['tmp_name'];
@@ -92,14 +89,14 @@ try
 		elseif(isset($_POST['macrochan_tag']) && $_POST['macrochan_tag'] != '')
 		{
 			$with_file = true;
-			$link_type = Config::LINK_TYPE_URL;
+			$upload_type = Config::LINK_TYPE_URL;
 		}
 		elseif(isset($_POST['youtube_video_code'])
 			&& $_POST['youtube_video_code'] != '')
 		{
 			$youtube_video_code = check_youtube_video_code($_POST['youtube_video_code']);
 			$with_file = true;
-			$link_type = Config::LINK_TYPE_CODE;
+			$upload_type = Config::LINK_TYPE_CODE;
 		}
 	}
 	posts_check_text_size($_POST['text']);
@@ -140,9 +137,9 @@ try
 		&& $_POST['goto'] != $_SESSION['goto'])
 			$_SESSION['goto'] = $_POST['goto'];
 // 2. Подготовка и сохранение файла.
-	if(($board['with_files'] || $thread['with_files']) && $with_file)
+	if($with_file)
 	{
-		if($link_type == Config::LINK_TYPE_VIRTUAL)
+		if($upload_type == Config::LINK_TYPE_VIRTUAL)
 		{
 			$file_hash = calculate_file_hash($uploaded_file_path);
 			$file_already_posted = false;
@@ -185,18 +182,14 @@ try
 					$img_dimensions['y'] = null;
 				}
 				$file_names = create_filenames($upload_type['store_extension']);
-				// Directories of uploaded image and generated thumbnail.
-				$abs_img_dir = Config::ABS_PATH . "/{$board['name']}/img";
-				$virt_img_dir = Config::DIR_PATH . "/{$board['name']}/img";
-				$abs_thumb_dir = Config::ABS_PATH . "/{$board['name']}/thumb";
-				$virt_thumb_dir = Config::DIR_PATH . "/{$board['name']}/thumb";
-				// Full path of uploaded image and generated thumbnail.
-				$abs_img_path = "$abs_img_dir/{$file_names[0]}";
-				$virt_img_path = "$virt_img_dir/{$file_names[0]}";
+				$abs_img_path = Config::ABS_PATH
+					. "/{$board['name']}/img/{$file_names[0]}";
 				if($upload_type['is_image'])
 				{
-					$abs_thumb_path = "$abs_thumb_dir/{$file_names[1]}";
-					$virt_thumb_path = "$virt_thumb_dir/{$file_names[1]}";
+					$abs_thumb_path = Config::ABS_PATH
+						. "/{$board['name']}/thumb/{$file_names[1]}";
+					$virt_thumb_path = Config::DIR_PATH
+						. "/{$board['name']}/thumb/{$file_names[1]}";
 				}
 				else
 					$virt_thumb_path = $upload_type['thumbnail_image'];
@@ -208,7 +201,8 @@ try
 						? true : false;	// TODO Unhardcode handler name.
 					$thumb_dimensions = create_thumbnail($abs_img_path,
 						$abs_thumb_path, $img_dimensions, $upload_type,
-						Config::THUMBNAIL_WIDTH, Config::THUMBNAIL_HEIGHT, $force);
+						Config::THUMBNAIL_WIDTH, Config::THUMBNAIL_HEIGHT,
+						$force);
 				}
 				else
 				{
@@ -219,7 +213,7 @@ try
 
 			}// Not already posted.
 		}// Virtual link type.
-		elseif($link_type == Config::LINK_TYPE_URL)
+		elseif($upload_type == Config::LINK_TYPE_URL)
 		{
 			$file_hash = null;
 			$file_names[0] = 'http://12ch.ru/macro/index.php/image/3478.jpg';
@@ -230,7 +224,7 @@ try
 			$thumb_dimensions['x'] = '192';
 			$thumb_dimensions['y'] = '144';
 		}
-		elseif($link_type == Config::LINK_TYPE_CODE)
+		elseif($upload_type == Config::LINK_TYPE_CODE)
 		{
 			$file_hash = null;
 			$file_names[0] = $youtube_video_code;
@@ -244,7 +238,7 @@ try
 		if(!$file_already_posted)
 		{
 			$upload_id = uploads_add($file_hash, $upload_type['is_image'],
-				$link_type, $file_names[0], $img_dimensions['x'],
+				$upload_type, $file_names[0], $img_dimensions['x'],
 				$img_dimensions['y'], $uploaded_file_size, $file_names[1],
 				$thumb_dimensions['x'], $thumb_dimensions['y']);
 		}

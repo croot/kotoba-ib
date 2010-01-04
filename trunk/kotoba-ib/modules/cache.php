@@ -1306,7 +1306,6 @@ function posts_check_id($id)
  * @return string
  * Возвращает безопасный для использования пароль для удаления сообщений.
  */
-// TODO Согласовать длину пароля в таблице пользователей и сообщений.
 function posts_check_password($password)
 {
 	$length = strlen($password);

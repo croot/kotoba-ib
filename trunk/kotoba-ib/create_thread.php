@@ -169,18 +169,14 @@ try
 					$img_dimensions['y'] = null;
 				}
 				$file_names = create_filenames($upload_type['store_extension']);
-				// Directories of uploaded image and generated thumbnail.
-				$abs_img_dir = Config::ABS_PATH . "/{$board['name']}/img";
-				$virt_img_dir = Config::DIR_PATH . "/{$board['name']}/img";
-				$abs_thumb_dir = Config::ABS_PATH . "/{$board['name']}/thumb";
-				$virt_thumb_dir = Config::DIR_PATH . "/{$board['name']}/thumb";
-				// Full path of uploaded image and generated thumbnail.
-				$abs_img_path = "$abs_img_dir/{$file_names[0]}";
-				$virt_img_path = "$virt_img_dir/{$file_names[0]}";
+				$abs_img_path = Config::ABS_PATH
+					. "/{$board['name']}/img/{$file_names[0]}";
 				if($upload_type['is_image'])
 				{
-					$abs_thumb_path = "$abs_thumb_dir/{$file_names[1]}";
-					$virt_thumb_path = "$virt_thumb_dir/{$file_names[1]}";
+					$abs_thumb_path = Config::ABS_PATH
+						. "/{$board['name']}/thumb/{$file_names[1]}";
+					$virt_thumb_path = Config::DIR_PATH
+						. "/{$board['name']}/thumb/{$file_names[1]}";
 				}
 				else
 					$virt_thumb_path = $upload_type['thumbnail_image'];

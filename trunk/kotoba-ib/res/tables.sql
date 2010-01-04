@@ -188,7 +188,7 @@ create table posts
 	thread int not null,
 	`number` int not null,
 	`user` int not null,
-	password varchar(128) default null,
+	password varchar(12) default null,
 	`name` varchar(128) default null,
 	tripcode varchar(128) default null,
 	ip bigint default null,

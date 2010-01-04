@@ -140,14 +140,52 @@ function check_page($page)
 }
 /**
  * Проверяет, загружено ли расширение php.
- * @param string
- * <p>Имя расширения</p>
+ * @param name string <p>Имя расширения</p>
  * @return bool
  * <p>Возвращает true, если расширение загружено и false в противном случае.</p>
  */
 function check_module($name)
 {
 	return extension_loaded($name);
+}
+/**
+ * Проверяет корректность юникода в UTF-8.
+ * Thanks to javalc6@gmail.com <a href="http://ru2.php.net/manual/en/function.mb-check-encoding.php#95289">http://ru2.php.net/manual/en/function.mb-check-encoding.php#95289</a>
+ * @param text string <p>Текст UTF-8</p>
+ * @return bool
+ * <p>Возвращает true, если текст корректный и false в противном случае.</p>
+ */
+function check_utf8($text)
+{
+	$len = strlen($str);
+    for($i = 0; $i < $len; $i++)
+	{
+        $c = ord($str[$i]);
+        if ($c > 128)
+		{
+            if (($c > 247))
+				return false;
+            elseif ($c > 239)
+				$bytes = 4;
+            elseif ($c > 223)
+				$bytes = 3;
+            elseif ($c > 191)
+				$bytes = 2;
+            else
+				return false;
+            if (($i + $bytes) > $len)
+				return false;
+            while ($bytes > 1)
+			{
+                $i++;
+                $b = ord($str[$i]);
+                if ($b < 128 || $b > 191)
+					return false;
+                $bytes--;
+            }
+        }
+    }
+    return true;
 }
 /**
  * Создаёт имена для загружаемого файла и уменьшенной копии (если это
@@ -204,6 +242,14 @@ function move_uploded_file($source, $dest)
 {
 	if(!@rename($source, $dest))
 		throw new UploadException(UploadException::$messages['UPLOAD_SAVE']);
+}
+/**
+ * Удаляет из UTF-8 не нужные котобе управляющие символы.
+ * @param text string <p>Текст UTF-8</p>
+ */
+function purify_utf8($text)
+{
+	return $text;
 }
 /**
  * Вычисляет md5 хеш файла.
