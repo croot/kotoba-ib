@@ -786,10 +786,6 @@ function db_users_edit_bykeyword($link, $keyword, $threads_per_page,
 	{
 		throw new CommonException(mysqli_error($link));
 	}
-	if(mysqli_affected_rows($link) <= 0)
-	{
-		throw new DataExchangeException(DataExchangeException::$messages['SAVE_USER_SETTINGS']);
-	}
 	db_cleanup_link($link);
 }
 /**

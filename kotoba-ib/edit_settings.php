@@ -61,8 +61,8 @@ try
 		$goto = users_check_goto($_POST['goto']);
 		users_edit_bykeyword($keyword_hash, $threads_per_page,
 			$posts_per_thread, $lines_per_post, $stylesheet_id, $language_id,
-			(!isset($_SESSION['rempass']) || $_SESSION['rempass'] == null ? '' : $_SESSION['rempass']),
-			$goto);
+			(!isset($_SESSION['password']) || $_SESSION['password'] == ''
+				? null : $_SESSION['password']), $goto);
 		load_user_settings($keyword_hash);	// Потому что нужно получить id пользователя.
 	}
 	DataExchange::releaseResources();

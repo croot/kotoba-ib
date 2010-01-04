@@ -219,7 +219,7 @@ try
 					$p['ip'] = long2ip($p['ip']);
 					$smarty->assign('simple_post', $p);
 					$smarty->assign('simple_uploads', $simple_uploads);
-					$smarty->assign('thread', array($t));	// TODO post_simple.tpl требует нити завёрнутой в массив, хотя на самом деле можно и просто нить.
+					$smarty->assign('thread', array($t));
 					$boards_posts_html .= $smarty->fetch('post_simple.tpl');
 					$smarty->assign('thread', $t);
 					$simple_uploads = array();
