@@ -123,9 +123,8 @@ try
 	$subject = str_replace('\\', '\\\\', $subject);
 	posts_check_text_size($text);
 	posts_check_subject_size($subject);
-	kotoba_mark($text, $board);
-	$text = preg_replace("/\n/", '<br>', $text);
-	$text = preg_replace('/(<br>){3,}/', '<br><br>', $text);
+	posts_check_text($text);
+	posts_prepare_text($text, $board);
 	posts_check_text_size($text);
 	$subject = str_replace("\n", '', $subject);
 	$subject = str_replace("\r", '', $subject);

@@ -1355,6 +1355,15 @@ function posts_check_text_size($text)
 		throw new LimitException(LimitException::$messages['MAX_TEXT_LENGTH']);
 }
 /**
+ * Проверяет корректность текста.
+ * @param text string <p>Текст сообщения.</p>
+ */
+function posts_check_text($text)
+{
+	if(!check_utf8($text))
+		throw new CommonException(CommonException::$messages['TEXT_UNICODE']);
+}
+/**
  * Проверяет, удовлетворяет ли тема сообщения ограничениям по размеру.
  * @param subject string <p>Тема сообщения.</p>
  */
@@ -1401,6 +1410,20 @@ function posts_get_visible_filtred_by_threads($threads, $user_id, $filter)
 		array_push($args, func_get_arg($i));
 	return db_posts_get_visible_filtred_by_threads(DataExchange::getDBLink(), $threads,
 		$user_id, $filter, $args);
+}
+/**
+ * Очищает и размечает текст сообщения заданной доски.
+ * @param text string <p>Текст сообщения.</p>
+ * @param board array <p>Доска.</p>
+ */
+function posts_prepare_text(&$text, $board)
+{
+	purify_ascii($text);
+	kotoba_mark($text, $board);
+	$text = str_replace("</blockquote>\n", '</blockquote>', $text);
+	$text = str_replace("\n<blockquote", '<blockquote', $text);
+	$text = preg_replace('/\n{3,}/', '\n', $text);
+	$text = preg_replace('/\n/', '<br>', $text);
 }
 /**
  * Получает все сообщения заданной нити.

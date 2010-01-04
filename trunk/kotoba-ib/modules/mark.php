@@ -24,9 +24,6 @@ function kotoba_mark(&$text, $board)
 	 * должны быть заменены на две косые \\.
 	 */
 	$output = '';
-	$text = str_replace("\r\n", "\n", $text);
-	$text = str_replace("\r", "\n", $text);
-	$text = str_replace("\f", '', $text);
 // Шаг 1. Выделение кода.
 	// Если в тексте есть ` перед которой не стоит \
 	if(preg_match('/(?<!\\\\)\`/', $text) == 1)
@@ -500,7 +497,8 @@ function kotoba_mark(&$text, $board)
 	}
 	if(isset($code_blocks) && count($code_blocks) > 0)	// Восстановление кода.
 		for($i = 0; $i < count($code_blocks); $i++)
-			$output = str_replace("code:$i", "<pre>$code_blocks[$i]</pre>",
+			$output = str_replace("code:$i",
+				'<pre>' . $code_blocks[$i] . '</pre>',
 				$output);
 	if(isset($lists) && count($lists) > 0)	// Восстановление списоков.
 		for($i = 0; $i < count($lists); $i++)
@@ -508,7 +506,7 @@ function kotoba_mark(&$text, $board)
 	if(isset($quotes) && count($quotes) > 0)	// Восстановление цитат.
 		for($i = 0; $i < count($quotes); $i++)
 			$output = str_replace("quote:$i",
-				"<blockquote class=\"unkfunc\">$quotes[$i]</blockquote>",
+				'<blockquote class="unkfunc">' . $quotes[$i] . '</blockquote>',
 				$output);
 	if(isset($links) && count($links) > 0)	// Восстановление ссылок.
 		for($i = 0; $i < count($links); $i++)
@@ -516,10 +514,8 @@ function kotoba_mark(&$text, $board)
 	if(isset($spoilers) && count($spoilers) > 0)	// Восстановление спойлеров.
 		for($i = 0; $i < count($spoilers); $i++)
 			$output = str_replace("spoiler:$i",
-				"<span class=\"spoiler\">$spoilers[$i]</span>",
+				'<span class="spoiler">' . $spoilers[$i] . '</span>',
 				$output);
-	// Удаление лишних переносов.
-	$output = str_replace("<\/blockquote>\n", '</blockquote>', $output);
 	$text = $output;
 }
 /**
