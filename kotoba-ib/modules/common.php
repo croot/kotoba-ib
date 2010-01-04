@@ -157,10 +157,10 @@ function check_module($name)
  */
 function check_utf8($text)
 {
-	$len = strlen($str);
+	$len = strlen($text);
     for($i = 0; $i < $len; $i++)
 	{
-        $c = ord($str[$i]);
+        $c = ord($text[$i]);
         if ($c > 128)
 		{
             if (($c > 247))
@@ -178,7 +178,7 @@ function check_utf8($text)
             while ($bytes > 1)
 			{
                 $i++;
-                $b = ord($str[$i]);
+                $b = ord($text[$i]);
                 if ($b < 128 || $b > 191)
 					return false;
                 $bytes--;
@@ -244,12 +244,17 @@ function move_uploded_file($source, $dest)
 		throw new UploadException(UploadException::$messages['UPLOAD_SAVE']);
 }
 /**
- * Удаляет из UTF-8 не нужные котобе управляющие символы.
- * @param text string <p>Текст UTF-8</p>
+ * Удаляет из текста не нужные котобе управляющие символы.
+ * @param text string <p>Текст.</p>
  */
-function purify_utf8($text)
+function purify_ascii(&$text)
 {
-	return $text;
+	// Remove any ASCII control sequences except \t and \n.
+	$text = str_replace(array("\0", "\x01", "\x02", "\x03", "\x04", "\x05",
+			"\x06", "\a", "\b", "\v", "\f", "\r", "\x0E", "\x0F", "\x10",
+			"\x11", "\x12", "\x13", "\x14", "\x15", "\x16", "\x17", "\x18",
+			"\x19", "\x1A", "\x1B", "\x1C", "\x1D", "\x1E", "\x1F", "\x7F"),
+		'', $text);
 }
 /**
  * Вычисляет md5 хеш файла.

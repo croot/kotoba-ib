@@ -30,6 +30,7 @@ CommonException::$messages['THREAD_ARCHIVED'] = 'Нить заархивиров
 CommonException::$messages['ACL_RULE_EXCESS'] = 'Получена избыточная информация. Доска, нить и сообщение определяются однозначно своими идентификаторами. Читайте в res/notes.txt раздел, посвященный правилам.';
 CommonException::$messages['ACL_RULE_CONFLICT'] = 'Конфликт разрешений для правила. Читайте в res/notes.txt раздел, посвященный правилам.';
 CommonException::$messages['CAPTCHA'] = 'Код подтвержения не верен.';
+CommonException::$messages['TEXT_UNICODE'] = 'В тексте обнаружены не юникод сиволы.';
 
 /*****************************
  * Ошибки отсутствия данных. *
