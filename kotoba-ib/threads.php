@@ -100,6 +100,8 @@ try
 	$smarty->assign('goto', $_SESSION['goto']);
 	$smarty->assign('macrochan_tags', $macrochan_tags);
 	$smarty->assign('ib_name', Config::IB_NAME);
+	$smarty->assign('enable_macro', Config::ENABLE_MACRO);
+	$smarty->assign('enable_youtube', Config::ENABLE_YOUTUBE);
 	//event_daynight($smarty);	// EVENT HERE! (not default kotoba function)
 	$view_html = $smarty->fetch('threads_header.tpl');
 	$view_thread_html = '';

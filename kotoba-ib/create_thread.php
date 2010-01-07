@@ -27,21 +27,23 @@ try
 	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
 // 1 Проверка входных параметров.
-	$is_admin = false;
-	if(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
-		$is_admin = true;
-	if(!$is_admin)
+	if(!is_admin())
 	{
 		$securimage = new Securimage();
-		if ($securimage->check($_POST['captcha_code']) == false)
+		if(!isset($_POST['captcha_code'])
+			|| $securimage->check($_POST['captcha_code']) == false)
+		{
 			throw new CommonException(CommonException::$messages['CAPTCHA']);
+		}
 	}
 	$board = boards_get_specifed_change(boards_check_id($_POST['board']),
 		$_SESSION['user']);
 	if(isset($_POST['goto'])
 		&& ($_POST['goto'] == 't' || $_POST['goto'] == 'b')
 		&& $_POST['goto'] != $_SESSION['goto'])
-			$_SESSION['goto'] = $_POST['goto'];
+	{
+		$_SESSION['goto'] = $_POST['goto'];
+	}
 	$link_type = null;	// Тип ссылки на файл.
 	if($board['with_files'])
 	{
@@ -68,15 +70,20 @@ try
 			if($upload_type['is_image'])
 				uploads_check_image_size($uploaded_file_size);
 		}
-		elseif(isset($_POST['macrochan_tag']) && $_POST['macrochan_tag'] != '')
+		elseif(Config::ENABLE_MACRO && isset($_POST['macrochan_tag'])
+			&& $_POST['macrochan_tag'] != '')
 		{
 			$link_type = Config::LINK_TYPE_URL;
 		}
-		elseif(isset($_POST['youtube_video_code'])
+		elseif(Config::ENABLE_YOUTUBE && isset($_POST['youtube_video_code'])
 			&& $_POST['youtube_video_code'] != '')
 		{
 			$youtube_video_code = check_youtube_video_code($_POST['youtube_video_code']);
 			$link_type = Config::LINK_TYPE_CODE;
+		}
+		else
+		{
+			throw new UploadException(UploadException::$messages['UNKNOWN']);
 		}
 	}
 	$password = null;
@@ -219,6 +226,10 @@ try
 			$file_names[1] = null;
 			$thumb_dimensions['x'] = null;
 			$thumb_dimensions['y'] = null;
+		}
+		else
+		{
+			throw new UploadException(UploadException::$messages['UNKNOWN']);
 		}
 		if(!$file_already_posted)
 		{

@@ -50,14 +50,16 @@ try
 		}
 	}
 	$with_file = false;	// Сообщение с файлом.
-	$upload_type = null;	// Тип ссылки на файл.
+	$link_type = null;	// Тип ссылки на файл.
 	if($thread['with_files']
 		|| ($thread['with_files'] === null && $board['with_files']))
 	{
 		if($_FILES['file']['error'] == UPLOAD_ERR_NO_FILE
 			&& (!isset($_POST['text']) || $_POST['text'] == '')
-			&& (!isset($_POST['macrochan_tag']) || $_POST['macrochan_tag'] == '')
-			&& (!isset($_POST['youtube_video_code']) || $_POST['youtube_video_code'] == ''))
+			&& (!Config::ENABLE_MACRO || !isset($_POST['macrochan_tag'])
+				|| $_POST['macrochan_tag'] == '')
+			&& (!Config::ENABLE_YOUTUBE || !isset($_POST['youtube_video_code'])
+				|| $_POST['youtube_video_code'] == ''))
 		{
 			// Файл не был загружен и текст сообщения пуст.
 			throw new NodataException(NodataException::$messages['EMPTY_MESSAGE']);
@@ -65,7 +67,7 @@ try
 		if($_FILES['file']['error'] != UPLOAD_ERR_NO_FILE)
 		{
 			$with_file = true;
-			$upload_type = Config::LINK_TYPE_VIRTUAL;
+			$link_type = Config::LINK_TYPE_VIRTUAL;
 			check_upload_error($_FILES['file']['error']);
 			$uploaded_file_size = $_FILES['file']['size'];
 			$uploaded_file_path = $_FILES['file']['tmp_name'];
@@ -86,17 +88,22 @@ try
 			if($upload_type['is_image'])
 				uploads_check_image_size($uploaded_file_size);
 		}
-		elseif(isset($_POST['macrochan_tag']) && $_POST['macrochan_tag'] != '')
+		elseif(Config::ENABLE_MACRO && isset($_POST['macrochan_tag'])
+			&& $_POST['macrochan_tag'] != '')
 		{
 			$with_file = true;
-			$upload_type = Config::LINK_TYPE_URL;
+			$link_type = Config::LINK_TYPE_URL;
 		}
-		elseif(isset($_POST['youtube_video_code'])
+		elseif(Config::ENABLE_YOUTUBE && isset($_POST['youtube_video_code'])
 			&& $_POST['youtube_video_code'] != '')
 		{
 			$youtube_video_code = check_youtube_video_code($_POST['youtube_video_code']);
 			$with_file = true;
-			$upload_type = Config::LINK_TYPE_CODE;
+			$link_type = Config::LINK_TYPE_CODE;
+		}
+		else
+		{
+			throw new UploadException(UploadException::$messages['UNKNOWN']);
 		}
 	}
 	posts_check_text_size($_POST['text']);
@@ -138,7 +145,7 @@ try
 // 2. Подготовка и сохранение файла.
 	if($with_file)
 	{
-		if($upload_type == Config::LINK_TYPE_VIRTUAL)
+		if($link_type == Config::LINK_TYPE_VIRTUAL)
 		{
 			$file_hash = calculate_file_hash($uploaded_file_path);
 			$file_already_posted = false;
@@ -212,7 +219,7 @@ try
 
 			}// Not already posted.
 		}// Virtual link type.
-		elseif($upload_type == Config::LINK_TYPE_URL)
+		elseif($link_type == Config::LINK_TYPE_URL)
 		{
 			$file_hash = null;
 			$file_names[0] = 'http://12ch.ru/macro/index.php/image/3478.jpg';
@@ -223,7 +230,7 @@ try
 			$thumb_dimensions['x'] = '192';
 			$thumb_dimensions['y'] = '144';
 		}
-		elseif($upload_type == Config::LINK_TYPE_CODE)
+		elseif($link_type == Config::LINK_TYPE_CODE)
 		{
 			$file_hash = null;
 			$file_names[0] = $youtube_video_code;
@@ -234,10 +241,14 @@ try
 			$thumb_dimensions['x'] = null;
 			$thumb_dimensions['y'] = null;
 		}
+		else
+		{
+			throw new UploadException(UploadException::$messages['UNKNOWN']);
+		}
 		if(!$file_already_posted)
 		{
 			$upload_id = uploads_add($file_hash, $upload_type['is_image'],
-				$upload_type, $file_names[0], $img_dimensions['x'],
+				$link_type, $file_names[0], $img_dimensions['x'],
 				$img_dimensions['y'], $uploaded_file_size, $file_names[1],
 				$thumb_dimensions['x'], $thumb_dimensions['y']);
 		}

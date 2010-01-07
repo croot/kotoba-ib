@@ -156,6 +156,7 @@ UploadException::$messages['UPLOAD_ERR_EXTENSION'] = 'Загрузка файл�
 UploadException::$messages['UPLOAD_SAVE'] = 'Файл не удалось сохранить.';
 UploadException::$messages['UPLOAD_HASH'] = 'Не удалось вычислить хеш файла.';
 UploadException::$messages['UPLOAD_FILETYPE_NOT_SUPPORTED'] = 'Тип файла не поодерживается.';
+UploadException::$messages['UNKNOWN'] = 'Неизвестное вложение.';
 
 /**************************
  * Нарушение ограничений. *
