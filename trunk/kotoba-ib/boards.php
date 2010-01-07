@@ -101,6 +101,8 @@ try
 	$smarty->assign('goto', $_SESSION['goto']);
 	$smarty->assign('macrochan_tags', $macrochan_tags);
 	$smarty->assign('ib_name', Config::IB_NAME);
+	$smarty->assign('enable_macro', Config::ENABLE_MACRO);
+	$smarty->assign('enable_youtube', Config::ENABLE_YOUTUBE);
 	//event_daynight($smarty);	// EVENT HERE! (not default kotoba function)
 	$boards_html = $smarty->fetch('board_header.tpl');
 	$boards_thread_html = '';		// Код предпросмотра нити.

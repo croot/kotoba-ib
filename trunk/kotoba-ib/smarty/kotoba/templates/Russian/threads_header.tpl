@@ -14,7 +14,9 @@
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
 	$STYLESHEET - стиль оформления (см. config.default).
-	$ib_name - название имейджборды  (см. config.default).
+	$ib_name - название имейджборды (см. config.default).
+	$enable_macro - Включение интеграции с макрочаном (см. config.default).
+	$enable_youtube - Включение постинга видео с ютуба (см. config.default).
 	$board - доска, на которой расположена просматриваемая нить.
 	$boards - доски.
 	$thread - просматриваемая нить.
@@ -49,18 +51,20 @@
 <tr valign="top"><td class="postblock">Тема: </td><td><input type="text" name="subject" size="56"> <input type="submit" value="Ответить"></td></tr>
 <tr valign="top"><td class="postblock">Сообщение: </td><td><textarea name="text" rows="7" cols="50"></textarea><img id="resizer" src="{$DIR_PATH}/flower.png"></td></tr>
 {if $thread.with_files || ($thread.with_files === null && $board.with_files)}
-<tr valign="top"><td class="postblock">Файл: </td><td><input type="file" name="file" size="54"></td></tr>
-<tr valign="top"><td class="postblock">Макрос: </td>
-<td>
-	<select name="macrochan_tag">
-	<option value="" selected></option>
-	{section name=i loop=$macrochan_tags}
-		<option value="{$macrochan_tags[i]}">{$macrochan_tags[i]}</option>
-	{/section}
-	</select>
-</td>
-</tr>
-<tr valign="top"><td class="postblock">Youtube: </td><td><input type="text" name="youtube_video_code" size="30"></td></tr>
+	<tr valign="top"><td class="postblock">Файл: </td><td><input type="file" name="file" size="54"></td></tr>
+	{if $enable_macro}
+		<tr valign="top"><td class="postblock">Макрос: </td>
+		<td>
+			<select name="macrochan_tag">
+			<option value="" selected></option>
+			{section name=i loop=$macrochan_tags}
+				<option value="{$macrochan_tags[i]}">{$macrochan_tags[i]}</option>
+			{/section}
+			</select>
+		</td>
+		</tr>
+	{/if}
+	{if $enable_youtube}<tr valign="top"><td class="postblock">Youtube: </td><td><input type="text" name="youtube_video_code" size="30"></td></tr>{/if}
 {/if}
 {if !$is_admin}<tr valign="top"><td class="postblock">Капча: </td><td><a href="#" onclick="document.getElementById('captcha').src = '{$DIR_PATH}/securimage/securimage_show.php?' + Math.random(); return false"><img id="captcha" src="{$DIR_PATH}/securimage/securimage_show.php" alt="CAPTCHA Image" /></a> <input type="text" name="captcha_code" size="10" maxlength="6" /></tr>{/if}
 <tr valign="top"><td class="postblock">Пароль: </td><td><input type="password" name="password" size="30" value="{$password}"></td></tr>
