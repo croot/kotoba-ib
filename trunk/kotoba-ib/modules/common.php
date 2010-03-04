@@ -31,6 +31,7 @@ class SmartyKotobaSetup extends Smarty
 
 	function SmartyKotobaSetup($language = Config::LANGUAGE, $stylesheet = Config::STYLESHEET)
 	{
+		date_default_timezone_set(Config::DEFAULT_TIMEZONE);	// Try to fix warning on strftime.
 		$this->Smarty();
 		$this->language = $language;
 		$this->stylesheet = $stylesheet;
