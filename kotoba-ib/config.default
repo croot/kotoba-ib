@@ -72,6 +72,9 @@ class Config
 	// Включение постинга видео с ютуба.
 	const ENABLE_YOUTUBE = false;
 
+	// Включение капчи.
+	const ENABLE_CAPTCHA = true;
+
 	/*********************************************************
 	 * Настройки пользователя Гость (настройки по умолчанию) *
 	 *********************************************************/
@@ -275,8 +278,13 @@ class Config
 	 * Разное *
 	 **********/
 
-	const LINK_TYPE_VIRTUAL = 1;
-	const LINK_TYPE_URL = 2;
-	const LINK_TYPE_CODE = 3;
+	/*
+	 * Типы вложений. (Не изменяте эти настройки, если вы на 100% не уверены в
+	 * том, что делаете.)
+	 */
+	const ATTACHMENT_TYPE_FILE = 1;
+	const ATTACHMENT_TYPE_LINK = 2;
+	const ATTACHMENT_TYPE_VIDEO = 3;
+	const ATTACHMENT_TYPE_IMAGE = 4;
 }
 ?>

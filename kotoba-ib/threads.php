@@ -33,7 +33,7 @@ try
 	 * Доски нужны для вывода списка досок, поэтому получим все и среди них
 	 * будем искать запрашиваемую.
 	 */
-	$boards = boards_get_all_view($_SESSION['user']);
+	$boards = boards_get_visible($_SESSION['user']);
 	$board = null;
 	$found = false;
 	foreach($boards as $b)
@@ -47,10 +47,7 @@ try
 		throw new NodataException(sprintf(NodataException::$messages['BOARD_NOT_FOUND'],
 				$board_name));
 // Получение данных.
-	$is_admin = false;
-	if(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
-		$is_admin = true;
-	$thread = threads_get_specifed_view($board['id'], $thread_num,
+	$thread = threads_get_visible_by_id($board['id'], $thread_num,
 		$_SESSION['user']);
 	if($thread['archived'])
 	{
@@ -60,11 +57,10 @@ try
 			. "{$thread['original_post']}.html");
 		exit;
 	}
-	$is_moderatable = threads_check_specifed_moderate($thread['id'],
-		$_SESSION['user']);
-	$is_admin = false;
-	if(in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
-		$is_admin = true;
+	if(threads_get_moderatable_by_id($thread['id'], $_SESSION['user']) === null)
+		$is_moderatable = false;
+	else
+		$is_moderatable = true;
 	$filter = function($posts_per_thread, $thread, $post)
 	{
 		static $recived = 0;
@@ -77,8 +73,8 @@ try
 	};
 	$posts = posts_get_visible_filtred_by_threads(array($thread),
 		$_SESSION['user'], $filter, $thread['posts_count']);
-	$posts_uploads = posts_uploads_get_by_posts($posts);
-	$uploads = uploads_get_by_posts($posts);
+	$posts_attachments = posts_attachments_get_by_posts($posts);
+	$attachments = attachments_get_by_posts($posts);
 	$ht_filter = function($user, $hidden_thread)
 	{
 		if($hidden_thread['user'] == $user)
@@ -94,7 +90,7 @@ try
 	$smarty->assign('boards', $boards);
 	$smarty->assign('thread', array($thread));
 	$smarty->assign('is_moderatable', $is_moderatable);
-	$smarty->assign('is_admin', $is_admin);
+	$smarty->assign('is_admin', is_admin());
 	$smarty->assign('password', $password);
 	$smarty->assign('upload_types', $upload_types);
 	$smarty->assign('goto', $_SESSION['goto']);
@@ -102,13 +98,17 @@ try
 	$smarty->assign('ib_name', Config::IB_NAME);
 	$smarty->assign('enable_macro', Config::ENABLE_MACRO);
 	$smarty->assign('enable_youtube', Config::ENABLE_YOUTUBE);
+	$smarty->assign('ATTACHMENT_TYPE_FILE', Config::ATTACHMENT_TYPE_FILE);
+	$smarty->assign('ATTACHMENT_TYPE_LINK', Config::ATTACHMENT_TYPE_LINK);
+	$smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
+	$smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
 	//event_daynight($smarty);	// EVENT HERE! (not default kotoba function)
 	$view_html = $smarty->fetch('threads_header.tpl');
 	$view_thread_html = '';
 	$view_posts_html = '';
-	$original_post = null;			// Оригинальное сообщение с допольнительными полями.
-	$original_uploads = array();	// Массив файлов, прикрепленных к оригинальному сообщению.
-	$simple_uploads = array();		// Массив файлов, прикрепленных к сообщению.
+	$original_post = null;				// Оригинальное сообщение с допольнительными полями.
+	$original_attachments = array();	// Массив вложений оригинального сообщения.
+	$simple_attachments = array();		// Массив вложений сообщения.
 	foreach($posts as $p)
 	{
 		// Имя отправителя по умолчанию.
@@ -120,93 +120,113 @@ try
 		// Оригинальное сообщение.
 		if($thread['original_post'] == $p['number'])
 		{
-			$p['with_files'] = false;
-			// В данной версии 1 сообщение = 1 файл.
-			foreach($posts_uploads as $pu)
-				if($p['id'] == $pu['post'])
-				{
-					// В данной версии 1 сообщение = 1 файл.
-					foreach($uploads as $u)
-						if($pu['upload'] == $u['id'])
+			$p['with_attachments'] = false;
+			foreach($posts_attachments as $pa)
+				if($pa['post'] == $p['id'])
+					foreach($attachments as $a)
+						if($a['attachment_type'] == $pa['attachment_type'])
 						{
-							$p['with_files'] = true;
-							$u['is_embed'] = false;
-							switch($u['upload_type'])
+							switch($a['attachment_type'])
 							{
-								case Config::LINK_TYPE_VIRTUAL:
-									$u['file_link'] = Config::DIR_PATH . "/{$board['name']}/img/{$u['file']}";
-									$u['file_name'] = $u['file'];
-									if($u['is_image'])
-										$u['file_thumbnail_link'] = Config::DIR_PATH . "/{$board['name']}/thumb/{$u['thumbnail']}";
-									else
-										$u['file_thumbnail_link'] = Config::DIR_PATH . "/res/{$u['thumbnail']}";
+								case Config::ATTACHMENT_TYPE_FILE:
+									if($a['id'] == $pa['file'])
+									{
+										$a['file_link'] = Config::DIR_PATH . "/{$board['name']}/other/{$a['name']}";
+										$a['thumbnail_link'] = Config::DIR_PATH . "/img/{$a['thumbnail']}";
+										$p['with_attachments'] = true;
+										array_push($original_attachments, $a);
+									}
 									break;
-								case Config::LINK_TYPE_URL:
-									$u['file_link'] = $u['file'];
-									$u['file_name'] = $u['file'];
-									$u['file_thumbnail_link'] = $u['thumbnail'];
+								case Config::ATTACHMENT_TYPE_IMAGE:
+									if($a['id'] == $pa['image'])
+									{
+										$a['image_link'] = Config::DIR_PATH . "/{$board['name']}/img/{$a['name']}";
+										$a['thumbnail_link'] = Config::DIR_PATH . "/{$board['name']}/thumb/{$a['thumbnail']}";
+										$p['with_attachments'] = true;
+										array_push($original_attachments, $a);
+									}
 									break;
-								case Config::LINK_TYPE_CODE:
-									$u['is_embed'] = true;
-									$smarty->assign('code', $u['file']);
-									$u['file_link'] = $smarty->fetch('youtube.tpl');
+								case Config::ATTACHMENT_TYPE_LINK:
+									if($a['id'] == $pa['link'])
+									{
+										$p['with_attachments'] = true;
+										array_push($original_attachments, $a);
+									}
+									break;
+								case Config::ATTACHMENT_TYPE_VIDEO:
+									if($a['id'] == $pa['video'])
+									{
+										$smarty->assign('code', $a['code']);
+										$a['video_link'] = $smarty->fetch('youtube.tpl');
+										$p['with_attachments'] = true;
+										array_push($original_attachments, $a);
+									}
 									break;
 								default:
 									throw new CommonException('Not supported.');
 									break;
 							}
-							array_push($original_uploads, $u);
 						}
-				}
 			$p['ip'] = long2ip($p['ip']);
 			$smarty->assign('original_post', $p);
-			$smarty->assign('original_uploads', $original_uploads);
+			$smarty->assign('original_attachments', $original_attachments);
 			$smarty->assign('sticky', $thread['sticky']);
 			$view_thread_html = $smarty->fetch('post_original.tpl');
 		}
 		else
 		{
-			$p['with_files'] = false;
-			foreach($posts_uploads as $pu)
-				if($p['id'] == $pu['post'])
-				{
-					foreach($uploads as $u)
-						if($pu['upload'] == $u['id'])
+			$p['with_attachments'] = false;
+			foreach($posts_attachments as $pa)
+				if($pa['post'] == $p['id'])
+					foreach($attachments as $a)
+						if($a['attachment_type'] == $pa['attachment_type'])
 						{
-							$p['with_files'] = true;
-							$u['is_embed'] = false;
-							switch($u['upload_type'])
+							switch($a['attachment_type'])
 							{
-								case Config::LINK_TYPE_VIRTUAL:
-									$u['file_link'] = Config::DIR_PATH . "/{$board['name']}/img/{$u['file']}";
-									$u['file_name'] = $u['file'];
-									if($u['is_image'])
-										$u['file_thumbnail_link'] = Config::DIR_PATH . "/{$board['name']}/thumb/{$u['thumbnail']}";
-									else
-										$u['file_thumbnail_link'] = Config::DIR_PATH . "/img/{$u['thumbnail']}";
+								case Config::ATTACHMENT_TYPE_FILE:
+									if($a['id'] == $pa['file'])
+									{
+										$a['file_link'] = Config::DIR_PATH . "/{$board['name']}/other/{$a['name']}";
+										$a['thumbnail_link'] = Config::DIR_PATH . "/img/{$a['thumbnail']}";
+										$p['with_attachments'] = true;
+										array_push($simple_attachments, $a);
+									}
 									break;
-								case Config::LINK_TYPE_URL:
-									$u['file_link'] = $u['file'];
-									$u['file_name'] = $u['file'];
-									$u['file_thumbnail_link'] = $u['thumbnail'];
+								case Config::ATTACHMENT_TYPE_IMAGE:
+									if($a['id'] == $pa['image'])
+									{
+										$a['image_link'] = Config::DIR_PATH . "/{$board['name']}/img/{$a['name']}";
+										$a['thumbnail_link'] = Config::DIR_PATH . "/{$board['name']}/thumb/{$a['thumbnail']}";
+										$p['with_attachments'] = true;
+										array_push($simple_attachments, $a);
+									}
 									break;
-								case Config::LINK_TYPE_CODE:
-									$u['is_embed'] = true;
-									$smarty->assign('code', $u['file']);
-									$u['file_link'] = $smarty->fetch('youtube.tpl');
+								case Config::ATTACHMENT_TYPE_LINK:
+									if($a['id'] == $pa['link'])
+									{
+										$p['with_attachments'] = true;
+										array_push($simple_attachments, $a);
+									}
+									break;
+								case Config::ATTACHMENT_TYPE_VIDEO:
+									if($a['id'] == $pa['video'])
+									{
+										$smarty->assign('code', $a['code']);
+										$a['video_link'] = $smarty->fetch('youtube.tpl');
+										$p['with_attachments'] = true;
+										array_push($simple_attachments, $a);
+									}
 									break;
 								default:
 									throw new CommonException('Not supported.');
 									break;
 							}
-							array_push($simple_uploads, $u);
 						}
-				}
 			$p['ip'] = long2ip($p['ip']);
 			$smarty->assign('simple_post', $p);
-			$smarty->assign('simple_uploads', $simple_uploads);
+			$smarty->assign('simple_attachments', $simple_attachments);
 			$view_posts_html .= $smarty->fetch('post_simple.tpl');
-			$simple_uploads = array();
+			$simple_attachments = array();
 		}
 	}
 	$view_html .= $view_thread_html . $view_posts_html;

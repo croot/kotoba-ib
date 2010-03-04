@@ -22,7 +22,7 @@ try
 	locale_setup();
 	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
-	$boards = boards_get_all_view($_SESSION['user']);
+	$boards = boards_get_visible($_SESSION['user']);
 	if(count($boards) > 0)
 	{
 		$smarty->assign('boards_exist', true);
@@ -30,6 +30,7 @@ try
 	}
 	$smarty->assign('version', '$Revision$');
 	$smarty->assign('date', '$Date$');
+	$smarty->assign('ib_name', Config::IB_NAME);
 	$smarty->display('index.tpl');
 	DataExchange::releaseResources();
 	exit;

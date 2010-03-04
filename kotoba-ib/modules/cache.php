@@ -78,14 +78,146 @@ function create_language_directories($name) {
 	chmod($dir, 0777);
 }
 
-/******************************
- * Блокировки адресов (баны). *
- ******************************/
+/***************************************
+ * Работа со списком контроля доступа. *
+ ***************************************/
 
 /**
- * Проверяет, заблокирован ли IP адрес. Если да, то зверашет работу скрипта.
+ * Добавляет новое правило в список контроля доступа.
+ * @param group_id mixed <p>Группа.</p>
+ * @param board_id mixed <p>Доска.</p>
+ * @param thread_id mixed <p>Нить.</p>
+ * @param post_id mixed <p>Сообщение.</p>
+ * @param view mixed <p>Право на просмотр.</p>
+ * @param change mixed <p>Право на изменение.</p>
+ * @param moderate mixed <p>Право на модерирование.</p>
+ */
+function acl_add($group_id, $board_id, $thread_id, $post_id, $view, $change,
+		$moderate)
+{
+	db_acl_add(DataExchange::getDBLink(), $group_id, $board_id, $thread_id,
+		$post_id, $view, $change, $moderate);
+}
+/**
+ * Удаляет правило из списка контроля доступа.
+ * @param group_id mixed <p>Группа.</p>
+ * @param board_id mixed <p>Доска.</p>
+ * @param thread_id mixed <p>Нить.</p>
+ * @param post_id mixed <p>Сообщение.</p>
+ */
+function acl_delete($group_id, $board_id, $thread_id, $post_id)
+{
+	db_acl_delete(DataExchange::getDBLink(), $group_id, $board_id, $thread_id,
+		$post_id);
+}
+/**
+ * Редактирует правило в списке контроля доступа.
+ * @param group_id mixed <p>Группа.</p>
+ * @param board_id mixed <p>Доска.</p>
+ * @param thread_id mixed <p>Нить.</p>
+ * @param post_id mixed <p>Сообщение.</p>
+ * @param view mixed <p>Право на просмотр.</p>
+ * @param change mixed <p>Право на изменение.</p>
+ * @param moderate mixed <p>Право на модерирование.</p>
+ */
+function acl_edit($group_id, $board_id, $thread_id, $post_id, $view, $change,
+	$moderate)
+{
+	db_acl_edit(DataExchange::getDBLink(), $group_id, $board_id, $thread_id,
+		$post_id, $view, $change, $moderate);
+}
+/**
+ * Получает список контроля доступа.
+ * @return array
+ * Возвращает список контроля доступа:<p>
+ * 'group' - Группа.<br>
+ * 'board' - Доска.<br>
+ * 'thread' - Нить.<br>
+ * 'post' - Сообщение.<br>
+ * 'view' - Право на просмотр.<br>
+ * 'change' - Право на изменение.<br>
+ * 'moderate' - Право на модерирование.</p>
+ */
+function acl_get_all()
+{
+	return db_acl_get_all(DataExchange::getDBLink());
+}
+
+/*********************************************************************
+ * Работа с вложениями (абстракция над конкретными типами вложений). *
+ *********************************************************************/
+
+/**
+ * Получает связи сообщений с их вложениями.
+ * @param posts array <p>Сообщения.</p>
+ * @return array
+ * Возвращает вложения:<p>
+ * 'post' - Идентификатор сообщения.<br>
+ * 'attachment_type' - Тип вложения.<br>
+ * ... - Идентификатор, зависящий от конкретного типа вложения.</p>
+ */
+function posts_attachments_get_by_posts($posts)
+{
+	$posts_attachments = array();
+	foreach($posts as $post)
+	{
+		foreach(db_posts_files_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_file)
+			array_push($posts_attachments, $post_file);
+		foreach(db_posts_images_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_image)
+			array_push($posts_attachments, $post_image);
+		foreach(db_posts_links_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_link)
+			array_push($posts_attachments, $post_link);
+		foreach(db_posts_videos_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_video)
+			array_push($posts_attachments, $post_video);
+	}
+	return $posts_attachments;
+}
+/**
+ * Получает вложения заданных сообщений.
+ * @param posts array <p>Сообщения.</p>
+ * @return array
+ * Возвращает вложения:<p>
+ * 'id' - Идентификатор.<br>
+ * 'attachment_type' - Тип вложения.<br>
+ * ... - Атрибуты, зависимые от конкретного типа вложения.</p>
+ */
+function attachments_get_by_posts($posts)
+{
+	$attachments = array();
+	foreach($posts as $post)
+	{
+		foreach(db_files_get_by_post(DataExchange::getDBLink(), $post['id']) as $file)
+			array_push($attachments, $file);
+		foreach(db_images_get_by_post(DataExchange::getDBLink(), $post['id']) as $image)
+			array_push($attachments, $image);
+		foreach(db_links_get_by_post(DataExchange::getDBLink(), $post['id']) as $link)
+			array_push($attachments, $link);
+		foreach(db_videos_get_by_post(DataExchange::getDBLink(), $post['id']) as $video)
+			array_push($attachments, $video);
+	}
+	return $attachments;
+}
+
+/**************************
+ * Работа с блокировками. *
+ **************************/
+
+/**
+ * Блокирует заданный диапазон IP-адресов.
+ * @param range_beg int <p>Начало диапазона IP-адресов.</p>
+ * @param range_end int <p>Конец диапазона IP-адресов.</p>
+ * @param reason string <p>Причина блокировки.</p>
+ * @param untill string <p>Время истечения блокировки.</p>
+ */
+function bans_add($range_beg, $range_end, $reason, $untill)
+{
+	db_bans_add(DataExchange::getDBLink(), $range_beg, $range_end, $reason,
+		$untill);
+}
+/**
+ * Проверяет, заблокирован ли IP-адрес. Если да, то завершает работу скрипта.
  * @param smarty SmartyKotobaSetup <p>Экземпляр шаблонизатора.</p>
- * @param ip string <p>IP адрес.</p>
+ * @param ip string <p>IP-адрес.</p>
  */
 function bans_check($smarty, $ip)
 {
@@ -99,12 +231,10 @@ function bans_check($smarty, $ip)
 	}
 }
 /**
- * Проверяет корректность начала диапазона ip адресов.
- *
- * Аргументы:
- * $range_beg - начало диапазона ip адресов.
- *
- * Возвращает безопасное для использования начало диапазона ip адресов.
+ * Проверяет корректность начала диапазона IP-адресов.
+ * @param range_beg string <p>Начало диапазона IP-адресов.</p>
+ * @return string
+ * Возвращает безопасное для использования начало диапазона IP-адресов.
  */
 function bans_check_range_beg($range_beg)
 {
@@ -113,12 +243,10 @@ function bans_check_range_beg($range_beg)
 	return $range_beg;
 }
 /**
- * Проверяет корректность конца диапазона ip адресов.
- *
- * Аргументы:
- * $range_end - конец диапазона ip адресов.
- *
- * Возвращает безопасный для использования конец диапазона ip адресов.
+ * Проверяет корректность конца диапазона IP-адресов.
+ * @param range_end string <p>Конец диапазона IP-адресов.</p>
+ * @return string
+ * Возвращает безопасный для использования конец диапазона IP-адресов.
  */
 function bans_check_range_end($range_end)
 {
@@ -127,12 +255,10 @@ function bans_check_range_end($range_end)
 	return $range_end;
 }
 /**
- * Проверяет корректность причины бана.
- *
- * Аргументы:
- * $reason - причина бана.
- *
- * Возвращает безопасную для использования причину бана.
+ * Проверяет корректность причины блокировки.
+ * @param reason string <p>Причина бана.</p>
+ * @return string
+ * Возвращает безопасную для использования причину блокировки.
  */
 function bans_check_reason($reason)
 {
@@ -149,12 +275,10 @@ function bans_check_reason($reason)
 	return $reason;
 }
 /**
- * Проверяет корректность времени истечения бана.
- *
- * Аргументы:
- * $untill - время истечения бана.
- *
- * Возвращает безопасное для использования время истечения бана.
+ * Проверяет корректность времени истечения блокировки.
+ * @param untill string <p>Время истечения блокировки.</p>
+ * @return string
+ * Возвращает безопасное для использования время истечения блокировки.
  */
 function bans_check_untill($untill)
 {
@@ -172,52 +296,69 @@ function bans_check_untill($untill)
 	return $untill;
 }
 /**
- * Удаляет бан с заданным идентификатором.
- *
- * Аргументы:
- * $id - идентификатор бана.
+ * Удаляет блокировку с заданным идентификатором.
+ * @param id miexd <p>Идентификатор блокировки.</p>
  */
-function bans_delete_byid($id)
+function bans_delete_by_id($id)
 {
-	db_bans_delete_byid(DataExchange::getDBLink(), $id);
+	db_bans_delete_by_id(DataExchange::getDBLink(), $id);
 }
 /**
- * Блокирует диапазон адресов.
- *
- * Аргументы:
- * $range_beg - начало диапазона адресов.
- * $range_end - конец диапазона адресов.
- * $reason - причина.
- * $untill - время истечения бана.
+ * Удаляет блокировки с заданным IP-адресом.
+ * @param ip int <p>IP-адрес.</p>
  */
-function bans_add($range_beg, $range_end, $reason, $untill)
+function bans_delete_by_ip($ip)
 {
-	db_bans_add(DataExchange::getDBLink(), $range_beg, $range_end, $reason,
-		$untill);
+	db_bans_delete_by_ip(DataExchange::getDBLink(), $ip);
 }
 /**
- * Удаляет баны с заданным IP адресом.
- *
- * Аргументы:
- * $ip - ip адрес.
- */
-function bans_delete_byip($ip)
-{
-	db_bans_delete_byip(DataExchange::getDBLink(), $ip);
-}
-/**
- * Получает все баны.
- * 
- * Возвращает баны:
- * 'id' - идентификатор бана.
- * 'range_beg' - начало диапазона блокированных IP адресов.
- * 'range_end' - конец диапазона блокированных IP адресов.
- * 'reason' - причина бана.
- * 'untill' - время истечения бана.
+ * Получает все блокировки.
+ * @return array
+ * Возвращает блокировки:<p>
+ * 'id' - Идентификатор.<br>
+ * 'range_beg' - Начало диапазона IP-адресов.<br>
+ * 'range_end' - Конец диапазона IP-адресов.<br>
+ * 'reason' - Причина блокировки.<br>
+ * 'untill' - Время истечения блокировки.</p>
  */
 function bans_get_all()
 {
 	return db_bans_get_all(DataExchange::getDBLink());
+}
+
+/*******************************************************
+ * Работа со связями досок и типов загружаемых файлов. *
+ *******************************************************/
+
+/**
+ * Добавляет связь доски с типом загружаемых файлов.
+ * @param board mixed <p>Доска.</p>
+ * @param upload_type mixed <p>Тип загружаемого файла.</p>
+ */
+function board_upload_types_add($board, $upload_type)
+{
+	db_board_upload_types_add(DataExchange::getDBLink(), $board, $upload_type);
+}
+/**
+ * Удаляет связь доски с типом загружаемых файлов.
+ * @param board mixed <p>Доска.</p>
+ * @param upload_type mixed <p>Тип загружаемого файла.</p>
+ */
+function board_upload_types_delete($board, $upload_type)
+{
+	db_board_upload_types_delete(DataExchange::getDBLink(), $board,
+			$upload_type);
+}
+/**
+ * Получает все связи досок с типами загружаемых файлов.
+ * @return array
+ * Возвращает связи:<p>
+ * 'board' - Доска.<br>
+ * 'upload_type' - Тип загружаемого файла.</p>
+ */
+function board_upload_types_get_all()
+{
+	return db_board_upload_types_get_all(DataExchange::getDBLink());
 }
 
 /*********************
@@ -225,211 +366,87 @@ function bans_get_all()
  *********************/
 
 /**
- * Редактирует аннотацию доски.
- * @param id mixed <p>Идентификатор.</p>
+ * Добавляет доску.
+ * @param name string <p>Имя.</p>
+ * @param title string <p>Заголовок.</p>
  * @param annotation string <p>Аннотация.</p>
+ * @param bump_limit mixed <p>Специфичный для доски бамплимит.</p>
+ * @param force_anonymous string <p>Флаг отображения имени отправителя.</p>
+ * @param default_name string <p>Имя отправителя по умолчанию.</p>
+ * @param with_attachments string <p>Флаг вложений.</p>
+ * @param enable_macro mixed <p>Включение интеграции с макрочаном.</p>
+ * @param enable_youtube mixed <p>Включение вложения видео с ютуба.</p>
+ * @param enable_captcha mixed <p>Включение капчи.</p>
+ * @param same_upload string <p>Политика загрузки одинаковых файлов.</p>
+ * @param popdown_handler mixed <p>Обработчик автоматического удаления нитей.</p>
+ * @param category mixed <p>Категория.</p>
  */
-function boards_edit_annotation($id, $annotation)
+function boards_add($name, $title, $annotation, $bump_limit, $force_anonymous,
+	$default_name, $with_attachments, $enable_macro, $enable_youtube,
+	$enable_captcha, $same_upload, $popdown_handler, $category)
 {
-	db_boards_edit_annotation(DataExchange::getDBLink(), $id, $annotation);
+	db_boards_add(DataExchange::getDBLink(), $name, $title, $annotation,
+		$bump_limit, $force_anonymous, $default_name, $with_attachments,
+		$enable_macro, $enable_youtube, $enable_captcha, $same_upload,
+		$popdown_handler, $category);
 }
 /**
- * Получает доски, доступные для чтения пользователю.
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @return array
- * Возвращает доски:<p>
- * 'id' - идентификатор доски.<br>
- * 'name' - имя доски.<br>
- * 'title' - заголовок доски.<br>
- * 'annotation' - аннотация.<br>
- * 'bump_limit' - спецефиный для доски бамплимит.<br>
- * 'force_anonymous' - флаг отображения имя отправителя.<br>
- * 'default_name' - имя отправителя по умолчанию.<br>
- * 'with_files' - флаг загрузки файлов.<br>
- * 'same_upload' - политика загрузки одинаковых изображений.<br>
- * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
- * 'category' - категория доски.</p>
+ * Проверяет корректность аннотации.
+ * @param annotation string <p>Аннотация.</p>
+ * @return string
+ * Возвращает аннотацию.
  */
-function boards_get_all_view($user_id)
+function boards_check_annotation($annotation)
 {
-	return db_boards_get_all_view(DataExchange::getDBLink(), $user_id);
+	if(strlen($annotation) > Config::MAX_ANNOTATION_LENGTH)
+		throw new LimitException(LimitException::$messages['MAX_ANNOTATION']);
+	return $annotation;
 }
 /**
- * Получает доски, доступные для редактирования пользователю.
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @return array
- * Возвращает доски:<p>
- * 'id' - идентификатор.<br>
- * 'name' - имя.<br>
- * 'title' - заголовок.<br>
- * 'bump_limit' - спецефиный для доски бамплимит.<br>
- * 'force_anonymous' - флаг отображения имя отправителя.<br>
- * 'default_name' - имя отправителя по умолчанию.<br>
- * 'with_files' - флаг загрузки файлов.<br>
- * 'same_upload' - политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
- * 'category' - категория.</p>
+ * Проверяет корректность специфичного для доски бамплимита.
+ * @param $bump_limit string <p>Специфичный для доски бамплимит.</p>
+ * @return string
+ * Возвращает безопасный для использования специфичный для доски бамплимит.
  */
-function boards_get_all_change($user_id)
+function boards_check_bump_limit($bump_limit)
 {
-	return db_boards_get_all_change(DataExchange::getDBLink(), $user_id);
+	$length = strlen($bump_limit);
+	$max_int_length = strlen('' . PHP_INT_MAX);
+	if($length <= $max_int_length && $length >= 1)
+	{
+		$bump_limit = RawUrlEncode($bump_limit);
+		$length = strlen($bump_limit);
+		if($length > $max_int_length || (ctype_digit($bump_limit) === false)
+			|| $length < 1)
+		{
+			throw new FormatException(FormatException::$messages['BOARD_BUMP_LIMIT']);
+		}
+	}
+	else
+		throw new FormatException(FormatException::$messages['BOARD_BUMP_LIMIT']);
+	return $bump_limit;
 }
 /**
- * Получает доски, доступные для модерирования заданному пользователю.
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @return array
- * Возвращает доски:<p>
- * 'id' - идентификатор.<br>
- * 'name' - имя.<br>
- * 'title' - заголовок.<br>
- * 'bump_limit' - спецефиный для доски бамплимит.<br>
- * 'force_anonymous' - флаг отображения имя отправителя.<br>
- * 'default_name' - имя отправителя по умолчанию.<br>
- * 'with_files' - флаг загрузки файлов.<br>
- * 'same_upload' - политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
- * 'category' - категория.</p>
+ * Проверяет корректность имени отправителя по умолчанию.
+ * @param name string <p>Имя отправителя по умолчанию.</p>
+ * @return string
+ * Возвращает безопасное для использования имя отправителя по умолчанию.
  */
-function boards_get_moderatable($user_id)
+function boards_check_default_name($name)
 {
-	return db_boards_get_moderatable(DataExchange::getDBLink(), $user_id);
+	posts_check_name_size($name);
+	$name = htmlentities($name, ENT_QUOTES, Config::MB_ENCODING);
+	posts_check_name_size($name);
+	return $name;
 }
 /**
- * Получает все доски.
- * @return array
- * Возвращает доски:<p>
- * 'id' - идентификатор.<br>
- * 'name' - имя.<br>
- * 'title' - заголовок.<br>
- * 'annotation' - аннотация.<br>
- * 'bump_limit' - спецефиный для доски бамплимит.<br>
- * 'force_anonymous' - флаг отображения имени отправителя.<br>
- * 'default_name' - имя отправителя по умолчанию.<br>
- * 'with_files' - флаг загрузки файлов.<br>
- * 'same_upload' - политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
- * 'category' - категория.</p>
- */
-function boards_get_all()
-{
-	return db_boards_get_all(DataExchange::getDBLink());
-}
-/**
- * Получает доску по заданному идентификатору.
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @return array
- * Возвращает доски:<p>
- * 'id' - идентификатор доски.<br>
- * 'name' - имя доски.<br>
- * 'title' - заголовок доски.<br>
- * 'bump_limit' - спецефиный для доски бамплимит.<br>
- * 'force_anonymous' - флаг отображения имя отправителя.<br>
- * 'default_name' - имя отправителя по умолчанию.<br>
- * 'with_files' - флаг загрузки файлов.<br>
- * 'same_upload' - политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
- * 'category' - категория.</p>
- */
-function boards_get_specifed($board_id)
-{
-	return db_boards_get_specifed(DataExchange::getDBLink(), $board_id);
-}
-/**
- * Получает доску по заданному имени.
- * @param board_name string <p>Имя доски.</p>
- * @return array
- * Возвращает доски:<p>
- * 'id' - идентификатор доски.<br>
- * 'name' - имя доски.<br>
- * 'title' - заголовок доски.<br>
- * 'bump_limit' - спецефиный для доски бамплимит.<br>
- * 'force_anonymous' - флаг отображения имя отправителя.<br>
- * 'default_name' - имя отправителя по умолчанию.<br>
- * 'with_files' - флаг загрузки файлов.<br>
- * 'same_upload' - политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
- * 'category' - категория.</p>
- */
-function boards_get_specifed_byname($board_name)
-{
-	return db_boards_get_specifed_byname(DataExchange::getDBLink(), $board_name);
-}
-/**
- * Получает доску по заданному идентификатору.
- * @param id string <p>Идентификатор доски.</p>
- * @return array
- * Возвращает доску:<p>
- * 'id' - идентификатор.<br>
- * 'name' - имя.<br>
- * 'title' - заголовок.<br>
- * 'bump_limit' - спецефиный для доски бамплимит.<br>
- * 'force_anonymous' - флаг отображения имя отправителя.<br>
- * 'default_name' - имя отправителя по умолчанию.<br>
- * 'with_files' - флаг загрузки файлов.<br>
- * 'same_upload' - политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
- * 'category' - категория.</p>
- */
-function boards_get_by_id($id)
-{
-	return db_boards_get_by_id(DataExchange::getDBLink(), $id);
-}
-/**
- * Получает доску по заданному имени, доступную для редактирования пользователю.
- * @param board_name string <p>Имя доски.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @return array
- * Возвращает доски:<p>
- * 'id' - идентификатор.<br>
- * 'name' - имя.<br>
- * 'title' - заголовок.<br>
- * 'bump_limit' - спецефиный для доски бамплимит.<br>
- * 'force_anonymous' - флаг отображения имя отправителя.<br>
- * 'default_name' - имя отправителя по умолчанию.<br>
- * 'with_files' - флаг загрузки файлов.<br>
- * 'same_upload' - политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
- * 'category' - категория.</p>
- */
-function boards_get_specifed_change_byname($board_name, $user_id)
-{
-	return db_boards_get_specifed_change_byname(DataExchange::getDBLink(),
-		$board_name, $user_id);
-}
-/**
- * Получает доску, доступную для редактирования пользователю.
- * @param board_id string <p>Идентификатор доски.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @return array
- * Возвращает доски:<p>
- * 'id' - идентификатор.<br>
- * 'name' - имя.<br>
- * 'title' - заголовок.<br>
- * 'bump_limit' - спецефиный для доски бамплимит.<br>
- * 'force_anonymous' - флаг отображения имя отправителя.<br>
- * 'default_name' - имя отправителя по умолчанию.<br>
- * 'with_files' - флаг загрузки файлов.<br>
- * 'same_upload' - политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
- * 'category' - категория.</p>
- */
-function boards_get_specifed_change($board_id, $user_id)
-{
-	return db_boards_get_specifed_change(DataExchange::getDBLink(), $board_id,
-		$user_id);
-}
-/**
- * Проверяет корректность идентификатора $id доски.
- *
- * Аргументы:
- * $id - идентификатор доски.
- *
+ * Проверяет корректность идентификатора доски.
+ * @param id mixed <p>Идентификатор доски.</p>
+ * @return string
  * Возвращает безопасный для использования идентификатор доски.
  */
 function boards_check_id($id)
 {
-	if(!isset($id))
-		throw new NodataException(NodataException::$messages['BOARD_ID_NOT_SPECIFED']);
 	$length = strlen($id);
 	$max_int_length = strlen('' . PHP_INT_MAX);
 	if($length <= $max_int_length && $length >= 1)
@@ -464,64 +481,6 @@ function boards_check_name($name)
 	return $name;
 }
 /**
- * Проверяет корректность заголовка доски.
- * @param title string <p>Заголовок доски.</p>
- * @return string
- * Возвращает безопасный для использования заголовок доски.
- */
-function boards_check_title($title)
-{
-	if(!isset($title))
-		throw new NodataException(NodataException::$messages['BOARD_TITLE_NOT_SPECIFED']);
-	$length = strlen($title);
-	if($length <= 50 && $length >= 1)
-	{
-		$title = htmlentities($title, ENT_QUOTES, Config::MB_ENCODING);
-		$length = strlen($title);
-		if($length > 50 || $length < 1)
-			throw new FormatException(FormatException::$messages['BOARD_TITLE']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['BOARD_TITLE']);
-	return $title;
-}
-/**
- * Проверяет корректность специфичного для доски бамплимита.
- * @param $bump_limit string <p>Сецифичный для доски бампилимит.</p>
- * @return string
- * Возвращает безопасный для использования сецифичный для доски бампилимит.
- */
-function boards_check_bump_limit($bump_limit)
-{
-	if(!isset($bump_limit))
-		throw new NodataException(NodataException::$messages['BOARD_BUMP_LIMIT_NOT_SPECIFED']);
-	$length = strlen($bump_limit);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$bump_limit = RawUrlEncode($bump_limit);
-		$length = strlen($bump_limit);
-		if($length > $max_int_length || (ctype_digit($bump_limit) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['BOARD_BUMP_LIMIT']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['BOARD_BUMP_LIMIT']);
-	return $bump_limit;
-}
-/**
- * Проверяет корректность имени по умолчанию.
- * @param name string <p>Имя по умолчанию.</p>
- * @return string
- * Возвращает безопасное для использования имя по умолчанию.
- */
-function boards_check_default_name($name)
-{
-	posts_check_name_size($name);
-	$name = htmlentities($name, ENT_QUOTES, Config::MB_ENCODING);
-	posts_check_name_size($name);
-	return $name;
-}
-/**
  * Проверяет корректность политики загрузки одинаковых файлов.
  * @param same_upload string <p>Политика загрузки одинаковых файлов.</p>
  * @return string
@@ -542,54 +501,24 @@ function boards_check_same_upload($same_upload)
 	return $same_upload;
 }
 /**
- * Проверяет корректность аннотации.
- * @param annotation string <p>Аннотация.</p>
+ * Проверяет корректность заголовка доски.
+ * @param title string <p>Заголовок доски.</p>
  * @return string
- * Возвращает аннотацию.
+ * Возвращает безопасный для использования заголовок доски.
  */
-function boards_check_annotation($annotation)
+function boards_check_title($title)
 {
-	if(strlen($annotation) > Config::MAX_ANNOTATION_LENGTH)
-		throw new LimitException(LimitException::$messages['MAX_ANNOTATION']);
-	return $annotation;
-}
-/**
- * Редактирует параметры доски.
- * @param id mixed <p>Идентификатор.</p>
- * @param title string <p>Заголовок.</p>
- * @param bump_limit mixed <p>Специфичный для доски бамплимит.</p>
- * @param force_anonymous string <p>Флаг отображения имени отправителя.</p>
- * @param default_name string <p>Имя отправителя по умолчанию.</p>
- * @param with_files string <p>Флаг загрузки файлов.</p>
- * @param same_upload string <p>Политика загрузки одинаковых файлов.</p>
- * @param popdown_handler mixed <p>Обработчик удаления нитей.</p>
- * @param category mixed <p>Категория.</p>
- */
-function boards_edit($id, $title, $bump_limit, $force_anonymous, $default_name,
-	$with_files, $same_upload, $popdown_handler, $category)
-{
-	db_boards_edit(DataExchange::getDBLink(), $id, $title, $bump_limit,
-		$force_anonymous, $default_name, $with_files, $same_upload,
-		$popdown_handler, $category);
-}
-/**
- * Добавляет доску.
- * @param name string <p>Имя доски.</p>
- * @param title string <p>Заголовок.</p>
- * @param bump_limit mixed <p>Специфичный для доски бамплимит.</p>
- * @param force_anonymous string <p>Флаг отображения имени отправителя.</p>
- * @param default_name string <p>Имя отправителя по умолчанию.</p>
- * @param with_files string <p>Флаг загрузки файлов.</p>
- * @param same_upload string <p>Политика загрузки одинаковых файлов.</p>
- * @param popdown_handler mixed <p>Обработчик удаления нитей.</p>
- * @param category mixed <p>Категория.</p>
- */
-function boards_add($name, $title, $bump_limit, $force_anonymous, $default_name,
-	$with_files, $same_upload, $popdown_handler, $category)
-{
-	db_boards_add(DataExchange::getDBLink(), $name, $title, $bump_limit,
-		$force_anonymous, $default_name, $with_files, $same_upload,
-		$popdown_handler, $category);
+	$length = strlen($title);
+	if($length <= 50 && $length >= 1)
+	{
+		$title = htmlentities($title, ENT_QUOTES, Config::MB_ENCODING);
+		$length = strlen($title);
+		if($length > 50 || $length < 1)
+			throw new FormatException(FormatException::$messages['BOARD_TITLE']);
+	}
+	else
+		throw new FormatException(FormatException::$messages['BOARD_TITLE']);
+	return $title;
 }
 /**
  * Удаляет заданную доску.
@@ -599,38 +528,248 @@ function boards_delete($id)
 {
 	db_boards_delete(DataExchange::getDBLink(), $id);
 }
+/**
+ * Редактирует доску.
+ * @param id mixed <p>Идентификатор.</p>
+ * @param title string <p>Заголовок.</p>
+ * @param annotation string <p>Аннотация.</p>
+ * @param bump_limit mixed <p>Специфичный для доски бамплимит.</p>
+ * @param force_anonymous string <p>Флаг отображения имени отправителя.</p>
+ * @param default_name string <p>Имя отправителя по умолчанию.</p>
+ * @param with_attachments string <p>Флаг вложений.</p>
+ * @param enable_macro mixed <p>Включение интеграции с макрочаном.</p>
+ * @param enable_youtube mixed <p>Включение вложения видео с ютуба.</p>
+ * @param enable_captcha mixed <p>Включение капчи.</p>
+ * @param same_upload string <p>Политика загрузки одинаковых файлов.</p>
+ * @param popdown_handler mixed <p>Обработчик автоматического удаления нитей.</p>
+ * @param category mixed <p>Категория.</p>
+ */
+function boards_edit($id, $title, $annotation, $bump_limit, $force_anonymous,
+	$default_name, $with_attachments, $enable_macro, $enable_youtube,
+	$enable_captcha, $same_upload, $popdown_handler, $category)
+{
+	db_boards_edit(DataExchange::getDBLink(), $id, $title, $annotation,
+		$bump_limit, $force_anonymous, $default_name, $with_attachments,
+		$enable_macro, $enable_youtube, $enable_captcha, $same_upload,
+		$popdown_handler, $category);
+}
+/**
+ * Получает все доски.
+ * @return array
+ * Возвращает доски:<p>
+ * 'id' - идентификатор.<br>
+ * 'name' - имя.<br>
+ * 'title' - заголовок.<br>
+ * 'annotation' - аннотация.<br>
+ * 'bump_limit' - специфичный для доски бамплимит.<br>
+ * 'force_anonymous' - флаг отображения имени отправителя.<br>
+ * 'default_name' - имя отправителя по умолчанию.<br>
+ * 'with_attachments' - флаг вложений.<br>
+ * 'enable_macro' - включение интеграции с макрочаном.<br>
+ * 'enable_youtube' - включение вложения видео с ютуба.<br>
+ * 'enable_captcha' - включение капчи.<br>
+ * 'same_upload' - политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
+ * 'category' - категория.</p>
+ */
+function boards_get_all()
+{
+	return db_boards_get_all(DataExchange::getDBLink());
+}
+/**
+ * Получает заданную доску.
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @return array
+ * Возвращает доску:<p>
+ * 'id' - идентификатор.<br>
+ * 'name' - имя.<br>
+ * 'title' - заголовок.<br>
+ * 'annotation' - аннотация.<br>
+ * 'bump_limit' - специфичный для доски бамплимит.<br>
+ * 'force_anonymous' - флаг отображения имени отправителя.<br>
+ * 'default_name' - имя отправителя по умолчанию.<br>
+ * 'with_attachments' - флаг вложений.<br>
+ * 'enable_macro' - включение интеграции с макрочаном.<br>
+ * 'enable_youtube' - включение вложения видео с ютуба.<br>
+ * 'enable_captcha' - включение капчи.<br>
+ * 'same_upload' - политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
+ * 'category' - категория.</p>
+ */
+function boards_get_by_id($board_id)
+{
+	return db_boards_get_by_id(DataExchange::getDBLink(), $board_id);
+}
+/**
+ * Получает заданную доску.
+ * @param board_name string <p>Имя доски.</p>
+ * @return array
+ * Возвращает доску:<p>
+ * 'id' - Идентификатор.<br>
+ * 'name' - Имя.<br>
+ * 'title' - Заголовок.<br>
+ * 'annotation' - Аннотация.<br>
+ * 'bump_limit' - Специфичный для доски бамплимит.<br>
+ * 'force_anonymous' - Флаг отображения имени отправителя.<br>
+ * 'default_name' - Имя отправителя по умолчанию.<br>
+ * 'with_attachments' - Флаг вложений.<br>
+ * 'enable_macro' - Включение интеграции с макрочаном.<br>
+ * 'enable_youtube' - Включение вложения видео с ютуба.<br>
+ * 'enable_captcha' - Включение капчи.<br>
+ * 'same_upload' - Политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - Обработчик автоматического удаления нитей.<br>
+ * 'category' - Категория.</p>
+ */
+function boards_get_by_name($board_name)
+{
+	return db_boards_get_by_name(DataExchange::getDBLink(), $board_name);
+}
+/**
+ * Получает доски, доступные для изменения заданному пользователю.
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает доски:<p>
+ * 'id' - Идентификатор.<br>
+ * 'name' - Имя.<br>
+ * 'title' - Заголовок.<br>
+ * 'annotation' - Аннотация.<br>
+ * 'bump_limit' - Специфичный для доски бамплимит.<br>
+ * 'force_anonymous' - Флаг отображения имени отправителя.<br>
+ * 'default_name' - Имя отправителя по умолчанию.<br>
+ * 'with_attachments' - Флаг вложений.<br>
+ * 'enable_macro' - Включение интеграции с макрочаном.<br>
+ * 'enable_youtube' - Включение вложения видео с ютуба.<br>
+ * 'enable_captcha' - Включение капчи.<br>
+ * 'same_upload' - Политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - Обработчик автоматического удаления нитей.<br>
+ * 'category' - Категория.<br>
+ * 'category_name' - Имя категории.</p>
+ */
+function boards_get_changeable($user_id)
+{
+	return db_boards_get_changeable(DataExchange::getDBLink(), $user_id);
+}
+/**
+ * Получает заданную доску, доступную для редактирования заданному
+ * пользователю.
+ * @param board_id string <p>Идентификатор доски.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает доску:<p>
+ * 'id' - Идентификатор.<br>
+ * 'name' - Имя.<br>
+ * 'title' - Заголовок.<br>
+ * 'annotation' - Аннотация.<br>
+ * 'bump_limit' - Специфичный для доски бамплимит.<br>
+ * 'force_anonymous' - Флаг отображения имени отправителя.<br>
+ * 'default_name' - Имя отправителя по умолчанию.<br>
+ * 'with_attachments' - Флаг вложений.<br>
+ * 'enable_macro' - Включение интеграции с макрочаном.<br>
+ * 'enable_youtube' - Включение вложения видео с ютуба.<br>
+ * 'enable_captcha' - Включение капчи.<br>
+ * 'same_upload' - Политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - Обработчик автоматического удаления нитей.<br>
+ * 'category' - Категория.<br>
+ * 'category_name' - Имя категории.</p>
+ */
+function boards_get_changeable_by_id($board_id, $user_id)
+{
+	return db_boards_get_changeable_by_id(DataExchange::getDBLink(), $board_id,
+		$user_id);
+}
+/**
+ * Получает заданную доску, доступную для редактирования заданному
+ * пользователю.
+ * @param board_name string <p>Имя доски.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает доску:<p>
+ * 'id' - Идентификатор.<br>
+ * 'name' - Имя.<br>
+ * 'title' - Заголовок.<br>
+ * 'annotation' - Аннотация.<br>
+ * 'bump_limit' - Специфичный для доски бамплимит.<br>
+ * 'force_anonymous' - Флаг отображения имени отправителя.<br>
+ * 'default_name' - Имя отправителя по умолчанию.<br>
+ * 'with_attachments' - Флаг вложений.<br>
+ * 'enable_macro' - Включение интеграции с макрочаном.<br>
+ * 'enable_youtube' - Включение вложения видео с ютуба.<br>
+ * 'enable_captcha' - Включение капчи.<br>
+ * 'same_upload' - Политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - Обработчик автоматического удаления нитей.<br>
+ * 'category' - Категория.<br>
+ * 'category_name' - Имя категории.</p>
+ */
+function boards_get_changeable_by_name($board_name, $user_id)
+{
+	return db_boards_get_changeable_by_name(DataExchange::getDBLink(),
+		$board_name, $user_id);
+}
+/**
+ * Получает доски, доступные для модерирования заданному пользователю.
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает доски:<p>
+ * 'id' - Идентификатор.<br>
+ * 'name' - Имя.<br>
+ * 'title' - Заголовок.<br>
+ * 'annotation' - Аннотация.<br>
+ * 'bump_limit' - Специфичный для доски бамплимит.<br>
+ * 'force_anonymous' - Флаг отображения имени отправителя.<br>
+ * 'default_name' - Имя отправителя по умолчанию.<br>
+ * 'with_attachments' - Флаг вложений.<br>
+ * 'enable_macro' - Включение интеграции с макрочаном.<br>
+ * 'enable_youtube' - Включение вложения видео с ютуба.<br>
+ * 'enable_captcha' - Включение капчи.<br>
+ * 'same_upload' - Политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - Обработчик автоматического удаления нитей.<br>
+ * 'category' - Категория.</p>
+ */
+function boards_get_moderatable($user_id)
+{
+	return db_boards_get_moderatable(DataExchange::getDBLink(), $user_id);
+}
+/**
+ * Получает доски, доступные для просмотра заданному пользователю.
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает доски:<p>
+ * 'id' - идентификатор.<br>
+ * 'name' - имя.<br>
+ * 'title' - заголовок.<br>
+ * 'annotation' - аннотация.<br>
+ * 'bump_limit' - специфичный для доски бамплимит.<br>
+ * 'force_anonymous' - флаг отображения имени отправителя.<br>
+ * 'default_name' - имя отправителя по умолчанию.<br>
+ * 'with_attachments' - флаг вложений.<br>
+ * 'enable_macro' - включение интеграции с макрочаном.<br>
+ * 'enable_youtube' - включение вложения видео с ютуба.<br>
+ * 'enable_captcha' - включение капчи.<br>
+ * 'same_upload' - политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
+ * 'category' - категория.<br>
+ * 'category_name' - Имя категории.</p>
+ */
+function boards_get_visible($user_id)
+{
+	return db_boards_get_visible(DataExchange::getDBLink(), $user_id);
+}
 
 /*************************
  * Работа с категориями. *
  *************************/
 
 /**
- * Проверяет корректность имени $name категории.
- *
- * Аргументы:
- * $name - имя категории.
- *
- * Возвращает безопасное для использования имя категории.
+ * Добавляет новую категорию с заданным именем.
+ * @param name string <p>Имя.</p>
  */
-function categories_check_name($name)
+function categories_add($name)
 {
-	if(!isset($name))
-		throw new NodataException(NodataException::$messages['CATEGORY_NAME_NOT_SPECIFED']);
-	$length = strlen($name);
-	if($length <= 50 && $length >= 1)
-	{
-		$name = RawUrlEncode($name);
-		$length = strlen($name);
-		if($length > 50 || (strpos($name, '%') !== false) || $length < 1)
-			throw new FormatException(FormatException::$messages['CATEGORY_NAME']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['CATEGORY_NAME']);
-	return $name;
+	db_categories_add(DataExchange::getDBLink(), $name);
 }
 /**
  * Проверяет корректность идентификатора категории.
- * @param id mixed <p>Идентификатор категории.</p>
+ * @param id mixed <p>Идентификатор.</p>
  * @return string
  * Возвращает безопасный для использования идентификатор категории.
  */
@@ -650,35 +789,224 @@ function categories_check_id($id)
 	return $id;
 }
 /**
+ * Проверяет корректность имени категории.
+ * @param name string <p>Имя.</p>
+ * @return string
+ * Возвращает безопасное для использования имя категории.
+ */
+function categories_check_name($name)
+{
+	$length = strlen($name);
+	if($length <= 50 && $length >= 1)
+	{
+		$name = RawUrlEncode($name);
+		$length = strlen($name);
+		if($length > 50 || (strpos($name, '%') !== false) || $length < 1)
+			throw new FormatException(FormatException::$messages['CATEGORY_NAME']);
+	}
+	else
+		throw new FormatException(FormatException::$messages['CATEGORY_NAME']);
+	return $name;
+}
+/**
+ * Удаляет заданную категорию.
+ * @param id mixed <p>Идентификатор.</p>
+ */
+function categories_delete($id)
+{
+	db_categories_delete(DataExchange::getDBLink(), $id);
+}
+/**
  * Получает все категории.
  * @return array
  * Возвращает категории:<p>
- * 'id' - идентификатор.<br>
- * 'name' - имя.</p>
+ * 'id' - Идентификатор.<br>
+ * 'name' - Имя.</p>
  */
 function categories_get_all()
 {
 	return db_categories_get_all(DataExchange::getDBLink());
 }
+
+/**********************
+ * Работа с группами. *
+ **********************/
+
 /**
- * Добавляет новую категорию с именем $name.
- *
- * Аргументы:
- * $name - имя новой категории.
+ * Добавляет группу с заданным именем.
+ * @param name string <p>Имя группы.</p>
+ * @return string
+ * Возвращает идентификатор добавленной группы.
  */
-function categories_add($name)
+function groups_add($name)
 {
-	db_categories_add(DataExchange::getDBLink(), $name);
+	db_groups_add(DataExchange::getDBLink(), $name);
 }
 /**
- * Удаляет категорию с идентификатором $id.
- *
- * Аргументы:
- * $id - идентификатор категории для удаления.
+ * Проверяет корректность идентификатора группы.
+ * @param id mixed <p>Идентификатор группы.</p>
+ * @return string
+ * Возвращает безопасный для использования идентификатор группы.
  */
-function categories_delete($id)
+function groups_check_id($id)
 {
-	db_categories_delete(DataExchange::getDBLink(), $id);
+	$length = strlen($id);
+	$max_int_length = strlen('' . PHP_INT_MAX);
+	if($length <= $max_int_length && $length >= 1)
+	{
+		$id = RawUrlEncode($id);
+		$length = strlen($id);
+		if($length > $max_int_length || (ctype_digit($id) === false) || $length < 1)
+			throw new FormatException(FormatException::$messages['GROUP_ID']);
+	}
+	else
+		throw new FormatException(FormatException::$messages['GROUP_ID']);
+	return $id;
+}
+/**
+ * Проверяет корректность имени группы.
+ * @param name string <p>Имя группы.</p>
+ * Возвращает безопасное для использования имя группы.
+ * @return string
+ */
+function groups_check_name($name)
+{
+	$length = strlen($name);
+	if($length <= 50 && $length >= 1)
+	{
+		$name = RawUrlEncode($name);
+		$length = strlen($name);
+		if($length > 50 || (strpos($name, '%') !== false) || $length < 1)
+			throw new FormatException(FormatException::$messages['GROUP_NAME']);
+	}
+	else
+		throw new FormatException(FormatException::$messages['GROUP_NAME']);
+	return $name;
+}
+/**
+ * Удаляет заданные группы, а так же всех пользователей, которые входят в эти
+ * группы и все правила в ACL, распространяющиеся на эти группы.
+ * @param groups array <p>Группы.</p>
+ */
+function groups_delete($groups)
+{
+	db_groups_delete(DataExchange::getDBLink(), $groups);
+}
+/**
+ * Получает все группы.
+ * @return array
+ * Возвращает группы:<p>
+ * 'id' - Идентификатор.<br>
+ * 'name' - Имя.</p>
+ */
+function groups_get_all()
+{
+	return db_groups_get_all(DataExchange::getDBLink());
+}
+
+/******************************
+ * Работа со скрытыми нитями. *
+ ******************************/
+
+/**
+ * Скрывает нить.
+ * @param thread_id mixed <p>Идентификатор нити.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ */
+function hidden_threads_add($thread_id, $user_id)
+{
+	return db_hidden_threads_add(DataExchange::getDBLink(), $thread_id,
+		$user_id);
+}
+/**
+ * Отменяет скрытие нити.
+ * @param thread_id mixed <p>Идентификатор нити.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ */
+function hidden_threads_delete($thread_id, $user_id)
+{
+	return db_hidden_threads_delete(DataExchange::getDBLink(), $thread_id,
+		$user_id);
+}
+/**
+ * Возвращает отфильтрованные скрытые нити на заданных досках.
+ * @param boards array <p>Доски.</p>
+ * @param filter object <p>Фильтр (лямбда).</p>
+ * @return array
+ * Возвращает скрытые нити:<p>
+ * 'user' - Пользователь.<br>
+ * 'thread' - Нить.<br>
+ * 'thread_number' - Номер оригинального сообщения.</p>
+ */
+function hidden_threads_get_filtred_by_boards($boards, $filter)
+{
+	$threads = db_hidden_threads_get_by_boards(DataExchange::getDBLink(),
+		$boards);
+	$filtred_threads = array();
+	$filter_args = array();
+	$filter_argn = 0;
+	$n = func_num_args();
+	for($i = 2; $i < $n; $i++)	// Пропустим первые два аргумента функции.
+		$filter_args[$filter_argn++] = func_get_arg($i);
+	foreach($threads as $t)
+	{
+		$filter_args[$filter_argn] = $t;
+		if(call_user_func_array($filter, $filter_args))
+			array_push($filtred_threads, $t);
+	}
+	return $filtred_threads;
+}
+/**
+ * Получает доступную для просмотра скрытую нить и количество сообщений в ней.
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param thread_num mixed <p>Номер нити.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает нить:<p>
+ * 'id' - Идентификатор.<br>
+ * 'board' - Доска.<br>
+ * 'original_post' - Номер оригинального сообщения.<br>
+ * 'bump_limit' - Специфичный для нити бамплимит.<br>
+ * 'archived' - Флаг архивирования.<br>
+ * 'sage' - Флаг поднятия нити при ответе.<br>
+ * 'sticky' - Флаг закрепления.<br>
+ * 'with_attachments' - Флаг вложений.<br>
+ * 'posts_count' - Число доступных для просмотра сообщений.</p>
+ */
+function hidden_threads_get_visible($board_id, $thread_num, $user_id)
+{
+	return db_hidden_threads_get_visible(DataExchange::getDBLink(), $board_id,
+			$thread_num, $user_id);
+}
+
+/**************************************
+ * Работа с вложенными изображениями. *
+ **************************************/
+
+/**
+ * Получает одинаковые вложенные изображения на заданной доски.
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param image_hash string <p>Хеш вложенного изображения.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает изображения:<p>
+ * 'id' - Идентификатор.
+ * 'hash' - Хеш.<br>
+ * 'name' - Имя.<br>
+ * 'widht' - Ширина.<br>
+ * 'height' - Высота.<br>
+ * 'size' - Размер в байтах.<br>
+ * 'thumbnail' - Уменьшенная копия.<br>
+ * 'thumbnail_w' - Ширина уменьшенной копии.<br>
+ * 'thumbnail_h' - Высота уменьшенной копии.</p>
+ * 'post_number' - Номер сообщения, в которое вложено изображение.<br>
+ * 'thread_number' - Номер нити с сообщением, в которое вложено	изображение.<br>
+ * 'view' - Право на просмотр сообщения, в которое вложено изображение.</p>
+ */
+function images_get_same($board_id, $image_hash, $user_id)
+{
+	return db_images_get_same(DataExchange::getDBLink(), $board_id, $image_hash,
+		$user_id);
 }
 
 /****************************
@@ -1061,94 +1389,6 @@ function languages_delete($id)
 	db_languages_delete(DataExchange::getDBLink(), $id);
 }
 
-/**********************
- * Работа с группами. *
- **********************/
-
-/**
- * Получает все группы.
- *
- * Возвращает группы:
- * 'id' - идентификатор группы.
- * 'name' - имя группы.
- */
-function groups_get_all()
-{
-	return db_groups_get_all(DataExchange::getDBLink());
-}
-/**
- * Проверяет корректность имени $name группы.
- *
- * Аргументы:
- * $name - имя группы.
- *
- * Возвращает безопасное для использования имя группы.
- */
-function groups_check_name($name)
-{
-	if(!isset($name))
-		throw new NodataException(NodataException::$messages['GROUP_NAME_NOT_SPECIFED']);
-	$length = strlen($name);
-	if($length <= 50 && $length >= 1)
-	{
-		$name = RawUrlEncode($name);
-		$length = strlen($name);
-		if($length > 50 || (strpos($name, '%') !== false) || $length < 1)
-			throw new FormatException(FormatException::$messages['GROUP_NAME']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['GROUP_NAME']);
-	return $name;
-}
-/**
- * Проверяет корректность идентификатора $id группы.
- *
- * Аргументы:
- * $id - идентификатор группы.
- *
- * Возвращает безопасный для использования идентификатор группы.
- */
-function groups_check_id($id)
-{
-	if(!isset($id))
-		throw new NodataException(NodataException::$messages['GROUP_ID_NOT_SPECIFED']);
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['GROUP_ID']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['GROUP_ID']);
-	return $id;
-}
-/**
- * Добавляет группу с именем $group_name, а так же стандартные разрешения на
- * чтение.
- *
- * Аргументы:
- * $group_name - имя группы.
- */
-function groups_add($group_name)
-{
-	db_groups_add(DataExchange::getDBLink(), $group_name);
-}
-/**
- * Удаляет группы, идентификаторы которых перечислены в массиве $group_ids, а
- * так же всех пользователей, которые входят в эти группы и все права, которые
- * заданы для этих групп.
- *
- * Аргументы:
- * $group_ids - массив идентификаторов групп для удаления.
- */
-function groups_delete($group_ids)
-{
-	db_groups_delete(DataExchange::getDBLink(), $group_ids);
-}
-
 /*****************************************************
  * Работа с закреплениями пользователей за группами. *
  *****************************************************/
@@ -1203,80 +1443,42 @@ function user_groups_delete($user_id, $group_id)
 	db_user_groups_delete(DataExchange::getDBLink(), $user_id, $group_id);
 }
 
-/***************************************
- * Работа со списком контроля доступа. *
- ***************************************/
-
-/**
- * Получает список контроля доступа.
- *
- * Возвращает список контроля доступа:
- * 'group' - идентификатор группы.
- * 'board' - идентификатор доски.
- * 'thread' - идентификатор нити.
- * 'post' - идентификатор сообщения.
- * 'view' - разрешение на просмотр.
- * 'change' - разрешение на редактирование.
- * 'moderate' - разрешение на модерирование.
- */
-function acl_get_all()
-{
-	return db_acl_get_all(DataExchange::getDBLink());
-}
-/**
- * Редактирует запись в списке контроля доступа.
- *
- * Аргументы:
- * $group_id - идентификатор группы или null для всех групп.
- * $board_id - идентификатор доски или null для всех досок.
- * $thread_id - идентификатор нити или null для всех нитей.
- * $post_id - идентификатор сообщения или null для всех сообщений.
- * $view - право на чтение.
- * $change - право на изменение.
- * $moderate - право на модерирование.
- */
-function acl_edit($group_id, $board_id, $thread_num, $post_num, $view, $change,
-	$moderate)
-{
-	db_acl_edit(DataExchange::getDBLink(), $group_id, $board_id, $thread_num,
-		$post_num, $view, $change, $moderate);
-}
-/**
- * Добавляет новую запись в список контроля доступа.
- *
- * Аргументы:
- * $group_id - идентификатор группы или null для всех групп.
- * $board_id - идентификатор доски или null для всех досок.
- * $thread_id - идентификатор нити или null для всех нитей.
- * $post_id - идентификатор сообщения или null для всех сообщений.
- * $view - право на чтение. 0 или 1.
- * $change - право на изменение. 0 или 1.
- * $moderate - право на модерирование. 0 или 1.
- */
-function acl_add($group_id, $board_id, $thread_id, $post_id, $view, $change, $moderate)
-{
-	db_acl_add(DataExchange::getDBLink(), $group_id, $board_id, $thread_id,
-		$post_id, $view, $change, $moderate);
-}
-/**
- * Удаляет запись из списка контроля доступа.
- *
- * Аргументы:
- * $group_id - идентификатор группы или null для всех групп.
- * $board_id - идентификатор доски или null для всех досок.
- * $thread_id - идентификатор нити или null для всех нитей.
- * $post_id - идентификатор сообщения или null для всех сообщений.
- */
-function acl_delete($group_id, $board_id, $thread_id, $post_id)
-{
-	db_acl_delete(DataExchange::getDBLink(), $group_id, $board_id, $thread_id,
-		$post_id);
-}
-
 /*************************
  * Работа с сообщениями. *
  *************************/
 
+/**
+ * Добавляет сообщение.
+ * @param board_id mixed<p>Идентификатор доски.</p>
+ * @param thread_id mixed<p>Идентификатор нити.</p>
+ * @param user_id mixed<p>Идентификатор автора.</p>
+ * @param password string <p>Пароль на удаление сообщения.</p>
+ * @param name string <p>Имя автора.</p>
+ * @param tripcode string <p>Трипкод.</p>
+ * @param ip int <p>IP адрес автора.</p>
+ * @param subject string <p>Тема.</p>
+ * @param datetime string <p>Время получения сообщения.</p>
+ * @param text string <p>Текст.</p>
+ * @param sage mixed <p>Флаг поднятия нити.</p>
+ * @return array
+ * Возвращает сообщение.
+ */
+function posts_add($board_id, $thread_id, $user_id, $password, $name, $tripcode,
+	$ip, $subject, $datetime, $text, $sage)
+{
+	return db_posts_add(DataExchange::getDBLink(), $board_id, $thread_id,
+		$user_id, $password, $name, $tripcode, $ip, $subject, $datetime, $text,
+		$sage);
+}
+/**
+ * Добавляет текст в конец текста заданного сообщения.
+ * @param id mixed <p>Идентификатор сообщения.</p>
+ * @param text string <p>Текст.</p>
+ */
+function posts_add_text_by_id($id, $text)
+{
+	db_posts_add_text_by_id(DataExchange::getDBLink(), $id, $text);
+}
 /**
  * Проверяет корректность идентификатора сообщения.
  * @param id mixed <p>Идентификатор сообщения.</p>
@@ -1299,6 +1501,36 @@ function posts_check_id($id)
 	else
 		throw new FormatException(FormatException::$messages['POST_ID']);
 	return $id;
+}
+/**
+ * Проверяет, удовлетворяет ли имя отправителя ограничениям по размеру.
+ * @param name string <p>Имя отправителя.</p>
+ */
+function posts_check_name_size($name)
+{
+	if(strlen($name) > Config::MAX_THEME_LENGTH)
+		throw new LimitException(LimitException::$messages['MAX_NAME_LENGTH']);
+}
+/**
+ * Проверяет корректность номера сообщения.
+ * @param number mixed <p>Номер сообщения.</p>
+ * @return string
+ * Возвращает безопасный для использования номер сообщения.
+ */
+function posts_check_number($number)
+{
+	$length = strlen($number);
+	$max_int_length = strlen('' . PHP_INT_MAX);
+	if($length <= $max_int_length && $length >= 1)
+	{
+		$number = RawUrlEncode($number);
+		$length = strlen($number);
+		if($length > $max_int_length || (ctype_digit($number) === false) || $length < 1)
+			throw new FormatException(FormatException::$messages['POST_NUMBER']);
+	}
+	else
+		throw new FormatException(FormatException::$messages['POST_NUMBER']);
+	return $number;
 }
 /**
  * Проверяет корректность пароля для удаления сообщений.
@@ -1325,34 +1557,13 @@ function posts_check_password($password)
 	return $password;
 }
 /**
- * Проверяет корректность номера сообщения.
- * @param number mixed <p>Номер сообщения.</p>
- * @return string
- * Возвращает безопасный для использования номер сообщения.
+ * Проверяет, удовлетворяет ли тема сообщения ограничениям по размеру.
+ * @param subject string <p>Тема сообщения.</p>
  */
-function posts_check_number($number)
+function posts_check_subject_size($subject)
 {
-	$length = strlen($number);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$number = RawUrlEncode($number);
-		$length = strlen($number);
-		if($length > $max_int_length || (ctype_digit($number) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['POST_NUMBER']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['POST_NUMBER']);
-	return $number;
-}
-/**
- * Проверяет, удовлетворяет ли текст сообщения ограничениям по размеру.
- * @param text string <p>Текст сообщения.</p>
- */
-function posts_check_text_size($text)
-{
-	if(mb_strlen($text) > Config::MAX_MESSAGE_LENGTH)
-		throw new LimitException(LimitException::$messages['MAX_TEXT_LENGTH']);
+	if(strlen($subject) > Config::MAX_THEME_LENGTH)
+		throw new LimitException(LimitException::$messages['MAX_SUBJECT_LENGTH']);
 }
 /**
  * Проверяет корректность текста.
@@ -1364,22 +1575,214 @@ function posts_check_text($text)
 		throw new CommonException(CommonException::$messages['TEXT_UNICODE']);
 }
 /**
- * Проверяет, удовлетворяет ли тема сообщения ограничениям по размеру.
- * @param subject string <p>Тема сообщения.</p>
+ * Проверяет, удовлетворяет ли текст сообщения ограничениям по размеру.
+ * @param text string <p>Текст сообщения.</p>
  */
-function posts_check_subject_size($subject)
+function posts_check_text_size($text)
 {
-	if(strlen($subject) > Config::MAX_THEME_LENGTH)
-		throw new LimitException(LimitException::$messages['MAX_SUBJECT_LENGTH']);
+	if(mb_strlen($text) > Config::MAX_MESSAGE_LENGTH)
+		throw new LimitException(LimitException::$messages['MAX_TEXT_LENGTH']);
 }
 /**
- * Проверяет, удовлетворяет ли имя отправителя ограничениям по размеру.
- * @param name string <p>Имя отправителя.</p>
+ * Урезает длинное сообщение.
+ * TODO: Урезание в длины.
+ * @param message string <p>Текст сообщения.</p>
+ * @param preview_lines mixed <p>Количество строк, которые нужно оставить.</p>
+ * @param is_cutted boolean <p>Ссылка на флаг урезанного сообщения.</p>
+ * @return string
+ * Возвращает урезанное сообщение.
  */
-function posts_check_name_size($name)
+function posts_corp_text(&$message, $preview_lines, &$is_cutted)
 {
-	if(strlen($name) > Config::MAX_THEME_LENGTH)
-		throw new LimitException(LimitException::$messages['MAX_NAME_LENGTH']);
+	$lines = explode('<br>', $message);
+	if(count($lines) > $preview_lines) {
+		$is_cutted = 1;
+		return implode('<br>', array_slice($lines, 0, $preview_lines));
+	}
+	else {
+		$is_cutted = 0;
+		return $message;
+	}
+}
+/**
+ * Удаляет сообщение с заданным идентификатором.
+ * @param id mixed <p>Идентификатор сообщения.</p>
+ */
+function posts_delete($id)
+{
+	db_posts_delete(DataExchange::getDBLink(), $id);
+}
+/**
+ * Удаляет сообщение с заданным идентификатором и все сообщения с ip адреса
+ * отправителя, оставленные с заданного момента.
+ * @param id mixed <p>Идентификатор сообщения.</p>
+ * @param date_time mixed <p>Момент времени.</p>
+ */
+function posts_delete_last($id, $date_time)
+{
+	db_posts_delete_last(DataExchange::getDBLink(), $id, $date_time);
+}
+/**
+ * Удаляет сообщения, помеченные на удаление.
+ */
+function posts_delete_marked()
+{
+	db_posts_delete_marked(DataExchange::getDBLink());
+}
+/**
+ * Получает все сообщения.
+ * @return array
+ * Возвращает сообщеня:<p>
+ * 'id' - Идентификатор.<br>
+ * 'board' - Доска.<br>
+ * 'board_name' - Имя доски.<br>
+ * 'thread' - Нить.<br>
+ * 'thread_number' - Номер нити.<br>
+ * 'number' - Номер.<br>
+ * 'password' - Пароль.<br>
+ * 'name' - Имя отправителя.<br>
+ * 'tripcode' - Трипкод.<br>
+ * 'ip' - IP-адрес отправителя.<br>
+ * 'subject' - Тема.<br>
+ * 'date_time' - Время сохранения.<br>
+ * 'text' - Текст.<br>
+ * 'sage' - Флаг поднятия нити.</p>
+ */
+function posts_get_all()
+{
+	return db_posts_get_all(DataExchange::getDBLink());
+}
+/**
+ * Возвращает сообщения с заданных досок.
+ * @param boards array <p>Доски.</p>
+ * @return array
+ * Возвращает сообщеня:<p>
+ * 'id' - идентификатор.<br>
+ * 'thread' - идентификатор нити.<br>
+ * 'thread_number' - номер нити.<br>
+ * 'board' - идентификатор доски.<br>
+ * 'board_name' - имя доски.<br>
+ * 'number' - номер.<br>
+ * 'password' - пароль для удаления.<br>
+ * 'name' - имя отправителя.<br>
+ * 'tripcode' - трипкод.<br>
+ * 'ip' - ip адрес отправителя.<br>
+ * 'subject' - тема.<br>
+ * 'date_time' - время сохранения.<br>
+ * 'text' - текст.<br>
+ * 'sage' - флаг поднятия нити.</p>
+ */
+function posts_get_by_boards($boards)
+{
+	return db_posts_get_by_boards(DataExchange::getDBLink(), $boards);
+}
+/**
+ * Получает сообщения заданной нити.
+ * @param thread_id array <p>Идентификатор нити.</p>
+ * @return array
+ * Возвращает сообщения:<p>
+ * 'id' - Идентификатор.<br>
+ * 'thread' - Нить.<br>
+ * 'number' - Номер.<br>
+ * 'password' - Пароль.<br>
+ * 'name' - Имя отправителя.<br>
+ * 'tripcode' - Трипкод.<br>
+ * 'ip' - IP-адрес отправителя.<br>
+ * 'subject' - Тема.<br>
+ * 'date_time' - Время сохранения.<br>
+ * 'text' - Текст.<br>
+ * 'sage' - Флаг поднятия нити.</p>
+ */
+function posts_get_by_thread($thread_id)
+{
+	return db_posts_get_by_thread(DataExchange::getDBLink(), $thread_id);
+}
+/**
+ * Получает отфильтрованные сообщения с заданных досок.
+ * @param boards array <p>Доски.</p>
+ * @param filter object <p>Фильтр (лямбда).</p>
+ * @return array
+ * Возвращает сообщеня:<p>
+ * 'id' - идентификатор.<br>
+ * 'thread' - идентификатор нити.<br>
+ * 'thread_number' - номер нити.<br>
+ * 'board' - идентификатор доски.<br>
+ * 'board_name' - имя доски.<br>
+ * 'number' - номер.<br>
+ * 'password' - пароль для удаления.<br>
+ * 'name' - имя отправителя.<br>
+ * 'tripcode' - трипкод.<br>
+ * 'ip' - ip адрес отправителя.<br>
+ * 'subject' - тема.<br>
+ * 'date_time' - время сохранения.<br>
+ * 'text' - текст.<br>
+ * 'sage' - флаг поднятия нити.</p>
+ */
+function posts_get_filtred_by_boards($boards, $filter)
+{
+	$posts = db_posts_get_by_boards(DataExchange::getDBLink(), $boards);
+	$filtred_posts = array();
+	$filter_args = array();
+	$filter_argn = 0;
+	$n = func_num_args();
+	for($i = 2; $i < $n; $i++)	// Пропустим первые два аргумента фукнции.
+		$filter_args[$filter_argn++] = func_get_arg($i);
+	foreach($posts as $post)
+	{
+		$filter_args[$filter_argn] = $post;
+		if(call_user_func_array($filter, $filter_args))
+			array_push($filtred_posts, $post);
+	}
+	return $filtred_posts;
+}
+/**
+ * Получает сообщение, доступное для чтения заданному пользоватею, по
+ * идентификатору.
+ * @param post_id mixed <p>Идентификатор сообщения.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает сообщение:<p>
+ * 'id' - идентификатор.<br>
+ * 'thread' - идентификатор нити.<br>
+ * 'board' - идентификатор доски.<br>
+ * 'board_name' - имя доски.<br>
+ * 'number' - номер.<br>
+ * 'password' - пароль для удаления.<br>
+ * 'name' - имя отправителя.<br>
+ * 'ip' - ip адрес отправителя.<br>
+ * 'subject' - тема.<br>
+ * 'date_time' - время сохранения.<br>
+ * 'text' - текст.<br>
+ * 'sage' - флаг поднятия нити.</p>
+ */
+function posts_get_visible_by_id($post_id, $user_id)
+{
+	return db_posts_get_visible_by_id(DataExchange::getDBLink(), $post_id,
+		$user_id);
+}
+/**
+ * Получает сообщение по заданному номеру.
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param post_number mixed <p>Номер сообщения.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает сообщение:<p>
+ * 'id' - Идентификатор.<br>
+ * 'thread' - Нить.<br>
+ * 'number' - Номер.<br>
+ * 'password' - Пароль.<br>
+ * 'name' - Имя отправителя.<br>
+ * 'tripcode' - Трипкод.<br>
+ * 'ip' - IP-адрес отправителя.<br>
+ * 'subject' - Тема.<br>
+ * 'date_time' - Время сохранения.<br>
+ * 'text' - Текст.<br>
+ * 'sage' - Флаг поднятия нити.</p>
+ */
+function posts_get_visible_by_number($board_id, $post_number, $user_id)
+{
+	return db_posts_get_visible_by_number(DataExchange::getDBLink(), $board_id,
+			$post_number, $user_id);
 }
 /**
  * Для каждой нити получает отфильтрованные сообщения, доступные для чтения
@@ -1424,226 +1827,6 @@ function posts_prepare_text(&$text, $board)
 	$text = str_replace("\n<blockquote", '<blockquote', $text);
 	$text = preg_replace('/\n{3,}/', '\n', $text);
 	$text = preg_replace('/\n/', '<br>', $text);
-}
-/**
- * Получает все сообщения заданной нити.
- * @param thread_id array <p>Идентификатор нити.</p>
- * @return array
- * Возвращает сообщения:<p>
- * 'id' - идентификатор.<br>
- * 'thread' - идентификатор нити.<br>
- * 'number' - номер.<br>
- * 'password' - пароль для удаления.<br>
- * 'name' - имя отправителя.<br>
- * 'ip' - ip адрес отправителя.<br>
- * 'subject' - тема.<br>
- * 'date_time' - время сохранения.<br>
- * 'text' - текст.<br>
- * 'sage' - флаг поднятия нити.</p>
- */
-function posts_get_thread($thread_id)
-{
-	return db_posts_get_thread(DataExchange::getDBLink(), $thread_id);
-}
-/**
- * Получает сообщение по номеру.
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param post_num mixed <p>Номер сообщения.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @return array
- * Возвращает сообщение:<p>
- * 'id' - идентификатор.<br>
- * 'thread' - идентификатор нити.<br>
- * 'number' - номер.<br>
- * 'password' - пароль для удаления.<br>
- * 'name' - имя отправителя.<br>
- * 'ip' - ip адрес отправителя.<br>
- * 'subject' - тема.<br>
- * 'date_time' - время сохранения.<br>
- * 'text' - текст.<br>
- * 'sage' - флаг поднятия нити.</p>
- */
-function posts_get_specifed_view_bynumber($board_id, $post_num, $user_id)
-{
-	return db_posts_get_specifed_view_bynumber(DataExchange::getDBLink(),
-		$board_id, $post_num, $user_id);
-}
-/**
- * Получает сообщение, доступное для чтения заданному пользоватею, по
- * идентификатору.
- * @param post_id mixed <p>Идентификатор сообщения.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @return array
- * Возвращает сообщение:<p>
- * 'id' - идентификатор.<br>
- * 'thread' - идентификатор нити.<br>
- * 'board' - идентификатор доски.<br>
- * 'board_name' - имя доски.<br>
- * 'number' - номер.<br>
- * 'password' - пароль для удаления.<br>
- * 'name' - имя отправителя.<br>
- * 'ip' - ip адрес отправителя.<br>
- * 'subject' - тема.<br>
- * 'date_time' - время сохранения.<br>
- * 'text' - текст.<br>
- * 'sage' - флаг поднятия нити.</p>
- */
-function posts_get_visible_by_id($post_id, $user_id)
-{
-	return db_posts_get_visible_by_id(DataExchange::getDBLink(), $post_id,
-		$user_id);
-}
-/**
- * Получает отфильтрованные сообщения с заданных досок.
- * @param boards array <p>Доски.</p>
- * @param filter object <p>Фильтр (лямбда).</p>
- * @return array
- * Возвращает сообщеня:<p>
- * 'id' - идентификатор.<br>
- * 'thread' - идентификатор нити.<br>
- * 'thread_number' - номер нити.<br>
- * 'board' - идентификатор доски.<br>
- * 'board_name' - имя доски.<br>
- * 'number' - номер.<br>
- * 'password' - пароль для удаления.<br>
- * 'name' - имя отправителя.<br>
- * 'tripcode' - трипкод.<br>
- * 'ip' - ip адрес отправителя.<br>
- * 'subject' - тема.<br>
- * 'date_time' - время сохранения.<br>
- * 'text' - текст.<br>
- * 'sage' - флаг поднятия нити.</p>
- */
-function posts_get_filtred_by_boards($boards, $filter)
-{
-	$posts = db_posts_get_by_boards(DataExchange::getDBLink(), $boards);
-	$filtred_posts = array();
-	$filter_args = array();
-	$filter_argn = 0;
-	$n = func_num_args();
-	for($i = 2; $i < $n; $i++)	// Пропустим первые два аргумента фукнции.
-		$filter_args[$filter_argn++] = func_get_arg($i);
-	foreach($posts as $post)
-	{
-		$filter_args[$filter_argn] = $post;
-		if(call_user_func_array($filter, $filter_args))
-			array_push($filtred_posts, $post);
-	}
-	return $filtred_posts;
-}
-/**
- * Возвращает сообщения с заданных досок.
- * @param boards array <p>Доски.</p>
- * @return array
- * Возвращает сообщеня:<p>
- * 'id' - идентификатор.<br>
- * 'thread' - идентификатор нити.<br>
- * 'thread_number' - номер нити.<br>
- * 'board' - идентификатор доски.<br>
- * 'board_name' - имя доски.<br>
- * 'number' - номер.<br>
- * 'password' - пароль для удаления.<br>
- * 'name' - имя отправителя.<br>
- * 'tripcode' - трипкод.<br>
- * 'ip' - ip адрес отправителя.<br>
- * 'subject' - тема.<br>
- * 'date_time' - время сохранения.<br>
- * 'text' - текст.<br>
- * 'sage' - флаг поднятия нити.</p>
- */
-function posts_get_by_boards($boards)
-{
-	return db_posts_get_by_boards(DataExchange::getDBLink(), $boards);
-}
-/**
- * Добавляет сообщение.
- * @param board_id mixed<p>Идентификатор доски.</p>
- * @param thread_id mixed<p>Идентификатор нити.</p>
- * @param user_id mixed<p>Идентификатор автора.</p>
- * @param password string <p>Пароль на удаление сообщения.</p>
- * @param name string <p>Имя автора.</p>
- * @param tripcode string <p>Трипкод.</p>
- * @param ip int <p>IP адрес автора.</p>
- * @param subject string <p>Тема.</p>
- * @param datetime string <p>Время получения сообщения.</p>
- * @param text string <p>Текст.</p>
- * @param sage mixed <p>Флаг поднятия нити.</p>
- * @return array
- * Возвращает сообщение.
- */
-function posts_add($board_id, $thread_id, $user_id, $password, $name, $tripcode,
-	$ip, $subject, $datetime, $text, $sage)
-{
-	return db_posts_add(DataExchange::getDBLink(), $board_id, $thread_id,
-		$user_id, $password, $name, $tripcode, $ip, $subject, $datetime, $text,
-		$sage);
-}
-/**
- * Урезает длинное сообщение.
- * TODO: Урезание в длины.
- * @param message string <p>Текст сообщения.</p>
- * @param preview_lines mixed <p>Количество строк, которые нужно оставить.</p>
- * @param is_cutted boolean <p>Ссылка на флаг урезанного сообщения.</p>
- * @return string
- * Возвращает урезанное сообщение.
- */
-function posts_corp_text(&$message, $preview_lines, &$is_cutted)
-{
-	$lines = explode('<br>', $message);
-	if(count($lines) > $preview_lines) {
-		$is_cutted = 1;
-		return implode('<br>', array_slice($lines, 0, $preview_lines));
-	}
-	else {
-		$is_cutted = 0;
-		return $message;
-	}
-}
-/**
- * Удаляет сообщение с заданным идентификатором.
- * @param id mixed <p>Идентификатор сообщения.</p>
- */
-function posts_delete($id)
-{
-	db_posts_delete(DataExchange::getDBLink(), $id);
-}
-/**
- * Удаляет сообщение с заданным идентификатором и все сообщения с ip адреса
- * отправителя, оставленные с заданного момента.
- * @param id mixed <p>Идентификатор сообщения.</p>
- * @param date_time mixed <p>Момент времени.</p>
- */
-function posts_delete_last($id, $date_time)
-{
-	db_posts_delete_last(DataExchange::getDBLink(), $id, $date_time);
-}
-/**
- * Удаляет сообщения, помеченные на удаление.
- */
-function posts_delete_all_marked()
-{
-	db_posts_delete_all_marked(DataExchange::getDBLink());
-}
-/**
- * Добавляет текст в конец текста заданного сообщения.
- * @param id mixed <p>Идентификатор сообщения.</p>
- * @param text string <p>Текст.</p>
- */
-function posts_edit_specifed_addtext($id, $text)
-{
-	db_posts_edit_specifed_addtext(DataExchange::getDBLink(), $id, $text);
-}
-/**
- * Получает все сообщения с номерами нитей и именем доски.
- * @return array
- * Возвращает сообщения:<p>
- * 'post' - номер сообщения.<br>
- * 'thread' - номер нити.<br>
- * 'board' - номер доски.</p>
- */
-function posts_get_all_numbers()
-{
-	return db_posts_get_all_numbers(DataExchange::getDBLink());
 }
 
 /**********************************************
@@ -1982,87 +2165,31 @@ function upload_types_check_id($id)
 	return $id;
 }
 
-/*********************************************
- * Работа со связями типов файлов с досками. *
- *********************************************/
-
-/**
- * Получает все связи типов файлов с досками.
- *
- * Возвращает связи:
- * 'board' - идентификатор доски.
- * 'upload_type' - идентификатор типа файла.
- */
-function board_upload_types_get_all()
-{
-	return db_board_upload_types_get_all(DataExchange::getDBLink());
-}
-/**
- * Добавляет связь типа загружаемого файла с доской.
- *
- * Аргументы:
- * $board_id - идентификатор доски.
- * $upload_type_id - идтенификатор типа загружаемого файла.
- */
-function board_upload_types_add($board_id, $upload_type_id)
-{
-	db_board_upload_types_add(DataExchange::getDBLink(), $board_id,
-		$upload_type_id);
-}
-/**
- * Удаляет связь типа загружаемого файла с доской.
- *
- * Аргументы:
- * $board_id - идентификатор доски.
- * $upload_type_id - идтенификатор типа загружаемого файла.
- */
-function board_upload_types_delete($board_id, $upload_type_id)
-{
-	db_board_upload_types_delete(DataExchange::getDBLink(), $board_id,
-		$upload_type_id);
-}
-
 /********************
  * Работа с нитями. *
  ********************/
 
 /**
- * Получает все нити.
+ * Создаёт нить. Если номер оригинального сообщения null, то будет создана
+ * пустая нить.
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param original_post mixed <p>Номер оригинального сообщения.</p>
+ * @param bump_limit mixed <p>Специфичный для нити бамплимит.</p>
+ * @param sage mixed <p>Флаг поднятия нити.</p>
+ * @param with_files mixed <p>Флаг загрузки файлов.</p>
  * @return array
- * Возвращает нити:<p>
- * 'id' - идентификатор.<br>
- * 'board' - идентификатор доски.<br>
- * 'original_post' - оригинальное сообщение.<br>
- * 'bump_limit' - специфичный для нити бамплимит.<br>
- * 'sticky' - флаг закрепления.<br>
- * 'sage' - флаг поднятия нити при ответе.<br>
- * 'with_files' - флаг загрузки файлов.</p>
+ * Возвращает нить.
  */
-function threads_get_all()
+function threads_add($board_id, $original_post, $bump_limit, $sage, $with_files)
 {
-	return db_threads_get_all(DataExchange::getDBLink());
-}
-/**
- * Получает все нити, помеченные для архивирования.
- * @return array
- * Возвращает нити:<p>
- * 'id' - идентификатор.<br>
- * 'board' - идентификатор доски.<br>
- * 'original_post' - оригинальное сообщение.<br>
- * 'bump_limit' - специфичный для нити бамплимит.<br>
- * 'sticky' - флаг закрепления.<br>
- * 'sage' - флаг поднятия нити при ответе.<br>
- * 'with_files' - флаг загрузки файлов.</p>
- */
-function threads_get_all_archived()
-{
-	return db_threads_get_all_archived(DataExchange::getDBLink());
+	return db_threads_add(DataExchange::getDBLink(), $board_id, $original_post,
+		$bump_limit, $sage, $with_files);
 }
 /**
  * Проверяет корректность специфичного для нити бамплимита.
- * @param bump_limit mixed <p>Специфичный для нити бампилимит.</p>
+ * @param bump_limit mixed <p>Специфичный для нити бамплимит.</p>
  * @return string
- * Возвращает безопасный для использования специфичный для нити бампилимит.
+ * Возвращает безопасный для использования специфичный для нити бамплимит.
  */
 function threads_check_bump_limit($bump_limit)
 {
@@ -2137,34 +2264,17 @@ function threads_edit($thread_id, $bump_limit, $sticky, $sage, $with_files)
 		$sage, $with_files);
 }
 /**
- * Редактирует оригинальное сообщение нити.
- * @param thread_id mixed <p>Идентификатор нити.</p>
+ * Редактирует номер оригинального сообщения нити.
+ * @param id mixed <p>Идентификатор нити.</p>
  * @param original_post mixed <p>Номер оригинального сообщения нити.</p>
  */
-function threads_edit_originalpost($thread_id, $original_post)
+function threads_edit_original_post($id, $original_post)
 {
-	db_threads_edit_originalpost(DataExchange::getDBLink(), $thread_id,
-		$original_post);
+	db_threads_edit_original_post(DataExchange::getDBLink(), $id,
+			$original_post);
 }
 /**
- * Создаёт нить. Если номер оригинального сообщения null, то будет создана
- * пустая нить.
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param original_post mixed <p>Номер оригинального сообщения.</p>
- * @param bump_limit mixed <p>Специфичный для нити бамплимит.</p>
- * @param sage mixed <p>Флаг поднятия нити.</p>
- * @param with_files mixed <p>Флаг загрузки файлов.</p>
- * @return array
- * Возвращает нить.
- */
-function threads_add($board_id, $original_post, $bump_limit, $sage, $with_files)
-{
-	return db_threads_add(DataExchange::getDBLink(), $board_id, $original_post,
-		$bump_limit, $sage, $with_files);
-}
-/**
- * Получает нити, доступные для модерирования заданному пользователю.
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * Получает все нити.
  * @return array
  * Возвращает нити:<p>
  * 'id' - идентификатор.<br>
@@ -2175,9 +2285,75 @@ function threads_add($board_id, $original_post, $bump_limit, $sage, $with_files)
  * 'sage' - флаг поднятия нити при ответе.<br>
  * 'with_files' - флаг загрузки файлов.</p>
  */
-function threads_get_all_moderate($user_id)
+function threads_get_all()
 {
-	return db_threads_get_all_moderate(DataExchange::getDBLink(), $user_id);
+	return db_threads_get_all(DataExchange::getDBLink());
+}
+/**
+ * Получает нити, помеченные для архивирования.
+ * @return array
+ * Возвращает нити:<p>
+ * 'id' - Идентификатор.<br>
+ * 'board' - Доска.<br>
+ * 'original_post' - Номер оригинального сообщения.<br>
+ * 'bump_limit' - Специфичный для нити бамплимит.<br>
+ * 'sage' - Флаг поднятия нити при ответе.<br>
+ * 'sticky' - Флаг закрепления.<br>
+ * 'with_attachments' - Флаг вложений.</p>
+ */
+function threads_get_archived()
+{
+	return db_threads_get_archived(DataExchange::getDBLink());
+}
+/**
+ * Получает нить, доступную для редактирования заданному пользователю.
+ * @param thread_id mixed <p>Идентификатор нити.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает нить:<p>
+ * 'id' - идентификатор.<br>
+ * 'board' - доска.<br>
+ * 'original_post' - номер оригинального сообщения.<br>
+ * 'bump_limit' - специфичный для нити бамплимит.<br>
+ * 'sage' - флаг поднятия нити.<br>
+ * 'with_attachments' - флаг вложений.<br>
+ * 'archived' - флаг архивирования.</p>
+ */
+function threads_get_changeable_by_id($thread_id, $user_id)
+{
+	return db_threads_get_changeable_by_id(DataExchange::getDBLink(),
+		$thread_id, $user_id);
+}
+/**
+ * Получает нити, доступные для модерирования заданному пользователю.
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает нити:<p>
+ * 'id' - Идентификатор.<br>
+ * 'board' - Доска.<br>
+ * 'original_post' - Номер оригинального сообщения.<br>
+ * 'bump_limit' - Специфичный для нити бамплимит.<br>
+ * 'sage' - Флаг поднятия нити при ответе.<br>
+ * 'sticky' - Флаг закрепления.<br>
+ * 'with_attachments' - Флаг вложений.</p>
+ */
+function threads_get_moderatable($user_id)
+{
+	return db_threads_get_moderatable(DataExchange::getDBLink(), $user_id);
+}
+/**
+ * Получает заданную нить, если она доступна для модерирования.
+ * @param thread_id mixed <p>Идентификатор нити.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return mixed
+ * Возвращает нить:<p>
+ * 'id' - идентификатор.</p>
+ * Или null, если заданная нить не доступна для модерирования.
+ */
+function threads_get_moderatable_by_id($thread_id, $user_id)
+{
+	return db_threads_get_moderatable_by_id(DataExchange::getDBLink(),
+		$thread_id, $user_id);
 }
 /**
  * Получает с заданной страницы доски доступные для просмотра пользователю нити
@@ -2193,7 +2369,7 @@ function threads_get_all_moderate($user_id)
  * 'bump_limit' - специфичный для нити бамплимит.<br>
  * 'sage' - флаг поднятия нити при ответе.<br>
  * 'sticky' - флаг закрепления.<br>
- * 'with_files' - флаг загрузки файлов.<br>
+ * 'with_attachments' - флаг вложений.<br>
  * 'posts_count' - число доступных для просмотра сообщений.</p>
  */
 function threads_get_visible_by_board($board_id, $page, $user_id,
@@ -2203,96 +2379,39 @@ function threads_get_visible_by_board($board_id, $page, $user_id,
 		$page, $user_id, $threads_per_page);
 }
 /**
+ * Получает доступную для просмотра нить с заданной доски.
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param thread_num mixed <p>Номер нити.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @return array
+ * Возвращает нить:<p>
+ * 'id' - идентификатор.<br>
+ * 'board' - идентификатор доски.<br>
+ * 'original_post' - номер оригинального сообщения.<br>
+ * 'bump_limit' - специфичный для нити бамплимит.<br>
+ * 'archived' - флаг архивирования.<br>
+ * 'sage' - флаг поднятия нити.<br>
+ * 'sticky' - флаг закрепления.<br>
+ * 'with_attachments' - флаг вложений.<br>
+ * 'posts_count' - число доступных для просмотра сообщений в нити.</p>
+ */
+function threads_get_visible_by_id($board_id, $thread_num, $user_id)
+{
+	return db_threads_get_visible_by_id(DataExchange::getDBLink(), $board_id,
+		$thread_num, $user_id);
+}
+/**
  * Вычисляет количество нитей, доступных для просмотра заданному пользователю
  * на заданной доске.
  * @param user_id mixed <p>Идентификатор пользователя.</p>
  * @param board_id mixed <p>Идентификатор доски.</p>
  * @return string
- * Возвращает число нитей.
+ * Возвращает количество нитей.
  */
-function threads_get_view_threadscount($user_id, $board_id)
+function threads_get_visible_count($user_id, $board_id)
 {
-	return db_threads_get_view_threadscount(DataExchange::getDBLink(),
-		$user_id, $board_id);
-}
-/**
- * Получает доступную для просмотра пользователю нить с заданной доски и
- * количество сообщений в ней.
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param thread_num mixed <p>Номер нити.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @return array
- * Возвращает нить:<p>
- * 'id' - идентификатор.<br>
- * 'board' - идентификатор доски.<br>
- * 'original_post' - оригинальное сообщение.<br>
- * 'bump_limit' - специфичный для нити бамплимит.<br>
- * 'sticky' - флаг закрепления.<br>
- * 'sage' - флаг поднятия нити.<br>
- * 'with_files' - флаг загрузки файлов.<br>
- * 'archived' - нить помечена для архивирования.<br>
- * 'posts_count' - число доступных для просмотра сообщений в нити.</p>
- */
-function threads_get_specifed_view($board_id, $thread_num, $user_id)
-{
-	return db_threads_get_specifed_view(DataExchange::getDBLink(), $board_id,
-		$thread_num, $user_id);
-}
-/**
- * Получает доступную для просмотра пользователю скрытую нить с заданной доски
- * и количество сообщений в ней.
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param thread_num mixed <p>Номер нити.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @return array
- * Возвращает нить:<p>
- * 'id' - идентификатор.<br>
- * 'board' - идентификатор доски.<br>
- * 'original_post' - оригинальное сообщение.<br>
- * 'bump_limit' - специфичный для нити бамплимит.<br>
- * 'sticky' - флаг закрепления.<br>
- * 'sage' - флаг поднятия нити.<br>
- * 'with_files' - флаг загрузки файлов.<br>
- * 'archived' - нить помечена для архивирования.<br>
- * 'posts_count' - число доступных для просмотра сообщений в нити.</p>
- */
-function threads_get_specifed_view_hiden($board_id, $thread_num, $user_id)
-{
-	return db_threads_get_specifed_view_hiden(DataExchange::getDBLink(),
-		$board_id, $thread_num, $user_id);
-}
-/**
- * Проверяет, доступна ли нить для модерирования пользователю.
- *
- * Аргументы:
- * $thread_id - идентификатор нити.
- * $user_id - идентификатор пользователя.
- *
- * Возвращает true или false.
- */
-function threads_check_specifed_moderate($thread_id, $user_id)
-{
-	return db_threads_check_specifed_moderate(DataExchange::getDBLink(),
-		$thread_id, $user_id);
-}
-/**
- * Получает нить доступную для редактирования заданному пользователю.
- * @param thread_id mixed <p>Идентификатор нити.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @return array
- * Возвращает нить:<p>
- * 'id' - идентификатор.<br>
- * 'board' - идентификатор доски.<br>
- * 'original_post' - оригинальное сообщение.<br>
- * 'bump_limit' - специфичный для нити бамплимит.<br>
- * 'sage' - флаг поднятия нити.<br>
- * 'with_files' - разрешить прикреплять файлы к ответам в нить.<br>
- * 'archived' - нить помечена для архивирования.</p>
- */
-function threads_get_specifed_change($thread_id, $user_id)
-{
-	return db_threads_get_specifed_change(DataExchange::getDBLink(), $thread_id,
-		$user_id);
+	return db_threads_get_visible_count(DataExchange::getDBLink(), $user_id,
+		$board_id);
 }
 
 /***************************************************
@@ -2439,59 +2558,6 @@ function uploads_get_dangling()
 function uploads_get_same($board_id, $hash, $user_id)
 {
 	return db_uploads_get_same(DataExchange::getDBLink(), $board_id, $hash,
-		$user_id);
-}
-
-/******************************
- * Работа со скрытыми нитями. *
- ******************************/
-
-/**
- * Возвращает отфильтрованные скрытые нити на заданных досках.
- * @param boards array <p>Доски.</p>
- * @param filter object <p>Фильтр (лямбда).</p>
- * @return array
- * Возвращает скрытые нити:<p>
- * 'thread' - идентификатор нити.<br>
- * 'thread_number' - номер оригинального сообщения.<br>
- * 'user' - идентификатор пользователя.</p>
- */
-function hidden_threads_get_filtred_by_boards($boards, $filter)
-{
-	$threads = db_hidden_threads_get_by_boards(DataExchange::getDBLink(),
-		$boards);
-	$filtred_threads = array();
-	$filter_args = array();
-	$filter_argn = 0;
-	$n = func_num_args();
-	for($i = 2; $i < $n; $i++)	// Пропустим первые два аргумента фукнции.
-		$filter_args[$filter_argn++] = func_get_arg($i);
-	foreach($threads as $t)
-	{
-		$filter_args[$filter_argn] = $t;
-		if(call_user_func_array($filter, $filter_args))
-			array_push($filtred_threads, $t);
-	}
-	return $filtred_threads;
-}
-/**
- * Скрывает нить.
- * @param thread_id mixed <p>Идентификатор нити.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- */
-function hidden_threads_add($thread_id, $user_id)
-{
-	return db_hidden_threads_add(DataExchange::getDBLink(), $thread_id,
-		$user_id);
-}
-/**
- * Отменяет скрытие нити.
- * @param thread_id mixed <p>Идентификатор доски.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- */
-function hidden_threads_delete($thread_id, $user_id)
-{
-	return db_hidden_threads_delete(DataExchange::getDBLink(), $thread_id,
 		$user_id);
 }
 ?>

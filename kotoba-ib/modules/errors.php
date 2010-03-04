@@ -8,27 +8,21 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
-
-/*
- * Скрипт расширений стандартного исключения.
- */
-
+// Скрипт расширений стандартного исключения.
 class CommonException extends Exception
 {
 	static $messages;
 	private $reason;
 	/**
-	 * Создаёт новое исключение с сообщением $message.
-	 *
-	 * Аргументы:
-	 * $message - сообщение.
+	 * Создаёт новое исключение с заданным сообщением.
+	 * @param message string <p>Сообщение.</p>
 	 */
 	public function __construct($message)
 	{
 		$this->reason = $message;
 		parent::__construct($message);
 	}
-	/*
+	/**
 	 * Возвращает данные об исключении.
 	 */
 	public function __toString()
@@ -36,7 +30,7 @@ class CommonException extends Exception
 		return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
 	}
 	/**
-	 * Возвращает причину произошедшуей ошибки.
+	 * Возвращает причину произошедшей ошибки.
 	 */
 	public function getReason()
 	{
@@ -51,17 +45,15 @@ class NodataException extends Exception
 	static $messages;
 	private $reason;
 	/**
-	 * Создаёт новое исключение с сообщением $message.
-	 *
-	 * Аргументы:
-	 * $message - сообщение.
+	 * Создаёт новое исключение с заданным сообщением.
+	 * @param message string <p>Сообщение.</p>
 	 */
 	public function __construct($message)
 	{
 		$this->reason = $message;
 		parent::__construct($message);
 	}
-	/*
+	/**
 	 * Возвращает данные об исключении.
 	 */
 	public function __toString()
@@ -69,7 +61,7 @@ class NodataException extends Exception
 		return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
 	}
 	/**
-	 * Возвращает причину произошедшуей ошибки.
+	 * Возвращает причину произошедшей ошибки.
 	 */
 	public function getReason()
 	{
@@ -85,16 +77,14 @@ class FormatException extends Exception
 	private $reason;
 	/**
 	 * Создаёт новое исключение с сообщением $message.
-	 *
-	 * Аргументы:
-	 * $message - сообщение.
+	 * @param message string <p>Сообщение.</p>
 	 */
 	public function __construct($message)
 	{
 		$this->reason = $message;
 		parent::__construct($message);
 	}
-	/*
+	/**
 	 * Возвращает данные об исключении.
 	 */
 	public function __toString()
@@ -102,7 +92,7 @@ class FormatException extends Exception
 		return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
 	}
 	/**
-	 * Возвращает причину произошедшуей ошибки.
+	 * Возвращает причину произошедшей ошибки.
 	 */
 	public function getReason()
 	{
@@ -110,24 +100,22 @@ class FormatException extends Exception
 	}
 }
 /**
- * Ошибки при регистрации, авторизация, идентификация и прав доступа.
+ * Ошибки при регистрации, авторизации, идентификации и прав доступа.
  */
-class PremissionException extends Exception
+class PermissionException extends Exception
 {
 	static $messages;
 	private $reason;
 	/**
 	 * Создаёт новое исключение с сообщением $message.
-	 *
-	 * Аргументы:
-	 * $message - сообщение.
+	 * @param message string <p>Сообщение.</p>
 	 */
 	public function __construct($message)
 	{
 		$this->reason = $message;
 		parent::__construct($message);
 	}
-	/*
+	/**
 	 * Возвращает данные об исключении.
 	 */
 	public function __toString()
@@ -135,7 +123,7 @@ class PremissionException extends Exception
 		return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
 	}
 	/**
-	 * Возвращает причину произошедшуей ошибки.
+	 * Возвращает причину произошедшей ошибки.
 	 */
 	public function getReason()
 	{
@@ -151,16 +139,14 @@ class DataExchangeException extends Exception
 	private $reason;
 	/**
 	 * Создаёт новое исключение с сообщением $message.
-	 *
-	 * Аргументы:
-	 * $message - сообщение.
+	 * @param message string <p>Сообщение.</p>
 	 */
 	public function __construct($message)
 	{
 		$this->reason = $message;
 		parent::__construct($message);
 	}
-	/*
+	/**
 	 * Возвращает данные об исключении.
 	 */
 	public function __toString()
@@ -168,7 +154,7 @@ class DataExchangeException extends Exception
 		return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
 	}
 	/**
-	 * Возвращает причину произошедшуей ошибки.
+	 * Возвращает причину произошедшей ошибки.
 	 */
 	public function getReason()
 	{
@@ -184,16 +170,14 @@ class UploadException extends Exception
 	private $reason;
 	/**
 	 * Создаёт новое исключение с сообщением $message.
-	 *
-	 * Аргументы:
-	 * $message - сообщение.
+	 * @param message string <p>Сообщение.</p>
 	 */
 	public function __construct($message)
 	{
 		$this->reason = $message;
 		parent::__construct($message);
 	}
-	/*
+	/**
 	 * Возвращает данные об исключении.
 	 */
 	public function __toString()
@@ -201,7 +185,7 @@ class UploadException extends Exception
 		return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
 	}
 	/**
-	 * Возвращает причину произошедшуей ошибки.
+	 * Возвращает причину произошедшей ошибки.
 	 */
 	public function getReason()
 	{
@@ -217,16 +201,14 @@ class LimitException extends Exception
 	private $reason;
 	/**
 	 * Создаёт новое исключение с сообщением $message.
-	 *
-	 * Аргументы:
-	 * $message - сообщение.
+	 * @param message string <p>Сообщение.</p>
 	 */
 	public function __construct($message)
 	{
 		$this->reason = $message;
 		parent::__construct($message);
 	}
-	/*
+	/**
 	 * Возвращает данные об исключении.
 	 */
 	public function __toString()
@@ -234,7 +216,7 @@ class LimitException extends Exception
 		return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
 	}
 	/**
-	 * Возвращает причину произошедшуей ошибки.
+	 * Возвращает причину произошедшей ошибки.
 	 */
 	public function getReason()
 	{

@@ -1,159 +1,215 @@
 delimiter |
-drop procedure if exists sp_bans_check|
-drop procedure if exists sp_bans_refresh|
+-- DONE
+drop procedure if exists sp_acl_add|
+drop procedure if exists sp_acl_delete|
+drop procedure if exists sp_acl_edit|
+drop procedure if exists sp_acl_get_all|
+
 drop procedure if exists sp_bans_add|
-drop procedure if exists sp_bans_delete_byid|
-drop procedure if exists sp_bans_delete_byip|
+drop procedure if exists sp_bans_check|
+drop procedure if exists sp_bans_delete_by_id|
+drop procedure if exists sp_bans_delete_by_ip|
 drop procedure if exists sp_bans_get_all|
-drop procedure if exists sp_boards_get_all|
-drop procedure if exists sp_boards_get_all_view|
-drop procedure if exists sp_boards_get_all_change|
-drop procedure if exists sp_boards_get_specifed|
-drop procedure if exists sp_boards_get_specifed_byname|
-drop procedure if exists sp_boards_get_by_id|
-drop procedure if exists sp_boards_get_specifed_change_byname|
-drop procedure if exists sp_boards_get_specifed_change|
-drop procedure if exists sp_boards_get_moderatable|
-drop procedure if exists sp_posts_get_by_board|
-drop procedure if exists sp_boards_edit|
-drop procedure if exists sp_boards_edit_annotation|
-drop procedure if exists sp_boards_delete|
+drop procedure if exists sp_bans_refresh|
+
+drop procedure if exists sp_board_upload_types_add|
+drop procedure if exists sp_board_upload_types_delete|
+drop procedure if exists sp_board_upload_types_get_all|
+
 drop procedure if exists sp_boards_add|
-drop procedure if exists sp_categories_get_all|
+drop procedure if exists sp_boards_delete|
+drop procedure if exists sp_boards_edit|
+drop procedure if exists sp_boards_get_all|
+drop procedure if exists sp_boards_get_by_id|
+drop procedure if exists sp_boards_get_by_name|
+drop procedure if exists sp_boards_get_changeable|
+drop procedure if exists sp_boards_get_changeable_by_id|
+drop procedure if exists sp_boards_get_changeable_by_name|
+drop procedure if exists sp_boards_get_moderatable|
+drop procedure if exists sp_boards_get_visible|
+
 drop procedure if exists sp_categories_add|
 drop procedure if exists sp_categories_delete|
+drop procedure if exists sp_categories_get_all|
+
+drop procedure if exists sp_groups_add|
+drop procedure if exists sp_groups_delete|
+drop procedure if exists sp_groups_get_all|
+
+drop procedure if exists sp_hidden_threads_add|
+drop procedure if exists sp_hidden_threads_delete|
+drop procedure if exists sp_hidden_threads_get_by_board|
+drop procedure if exists sp_hidden_threads_get_visible|
+
+drop procedure if exists sp_images_get_by_post|
+drop procedure if exists sp_images_get_same|
+-- /DONE
+drop procedure if exists sp_files_get_by_post|
+
+drop procedure if exists sp_languages_add|
+drop procedure if exists sp_languages_delete|
+drop procedure if exists sp_languages_get_all|
+
+drop procedure if exists sp_links_get_by_post|
+
+drop procedure if exists sp_popdown_handlers_add|
+drop procedure if exists sp_popdown_handlers_delete|
+drop procedure if exists sp_popdown_handlers_get_all|
+
+drop procedure if exists sp_stylesheets_add|
+drop procedure if exists sp_stylesheets_delete|
+drop procedure if exists sp_stylesheets_get_all|
+
+drop procedure if exists sp_upload_handlers_add|
+drop procedure if exists sp_upload_handlers_delete|
+drop procedure if exists sp_upload_handlers_get_all|
+
+drop procedure if exists sp_videos_get_by_post|
+
 drop procedure if exists sp_users_edit_bykeyword|
 drop procedure if exists sp_users_get_by_keyword|
 drop procedure if exists sp_users_set_password|
 drop procedure if exists sp_users_get_all|
-drop procedure if exists sp_stylesheets_get_all|
-drop procedure if exists sp_stylesheets_add|
-drop procedure if exists sp_stylesheets_delete|
-drop procedure if exists sp_languages_get_all|
-drop procedure if exists sp_languages_add|
-drop procedure if exists sp_languages_delete|
-drop procedure if exists sp_groups_get_all|
-drop procedure if exists sp_groups_add|
-drop procedure if exists sp_groups_delete|
 drop procedure if exists sp_user_groups_get_all|
 drop procedure if exists sp_user_groups_add|
 drop procedure if exists sp_user_groups_edit|
 drop procedure if exists sp_user_groups_delete|
-drop procedure if exists sp_acl_get_all|
-drop procedure if exists sp_acl_edit|
-drop procedure if exists sp_acl_delete|
-drop procedure if exists sp_acl_add|
-drop procedure if exists sp_upload_handlers_get_all|
-drop procedure if exists sp_upload_handlers_add|
-drop procedure if exists sp_upload_handlers_delete|
-drop procedure if exists sp_popdown_handlers_get_all|
-drop procedure if exists sp_popdown_handlers_add|
-drop procedure if exists sp_popdown_handlers_delete|
 drop procedure if exists sp_upload_types_get_all|
 drop procedure if exists sp_upload_types_get_board|
 drop procedure if exists sp_upload_types_edit|
 drop procedure if exists sp_upload_types_add|
 drop procedure if exists sp_upload_types_delete|
-drop procedure if exists sp_board_upload_types_get_all|
-drop procedure if exists sp_board_upload_types_add|
-drop procedure if exists sp_board_upload_types_delete|
-drop procedure if exists sp_threads_get_all|
-drop procedure if exists sp_threads_get_all_archived|
-drop procedure if exists sp_threads_get_all_moderate|
-drop procedure if exists sp_threads_edit|
-drop procedure if exists sp_threads_edit_originalpost|
-drop procedure if exists sp_threads_get_visible_by_board|
-drop procedure if exists sp_threads_get_view_threadscount|
-drop procedure if exists sp_threads_get_specifed_view|
-drop procedure if exists sp_threads_get_specifed_view_hiden|
-drop procedure if exists sp_threads_get_specifed_change|
-drop procedure if exists sp_threads_check_specifed_moderate|
 drop procedure if exists sp_threads_add|
-drop procedure if exists sp_threads_edit_archived_postlimit|
 drop procedure if exists sp_threads_delete_specifed|
+drop procedure if exists sp_threads_edit|
+drop procedure if exists sp_threads_edit_original_post|
+drop procedure if exists sp_threads_edit_archived_postlimit|
+drop procedure if exists sp_threads_get_all|
+drop procedure if exists sp_threads_get_archived|
+drop procedure if exists sp_threads_get_changeable_by_id|
+drop procedure if exists sp_threads_get_moderatable|
+drop procedure if exists sp_threads_get_moderatable_by_id|
+drop procedure if exists sp_threads_get_visible_by_board|
+drop procedure if exists sp_threads_get_visible_by_id|
+drop procedure if exists sp_threads_get_visible_count|
 drop procedure if exists sp_posts_get_visible_by_thread|
-drop procedure if exists sp_posts_get_thread|
-drop procedure if exists sp_posts_get_specifed_view_bynumber|
+drop procedure if exists sp_posts_get_by_thread|
+drop procedure if exists sp_posts_get_visible_by_number|
 drop procedure if exists sp_posts_get_visible_by_id|
 drop procedure if exists sp_posts_get_all|
+drop procedure if exists sp_posts_get_by_board|
 drop procedure if exists sp_posts_add|
 drop procedure if exists sp_posts_uploads_get_by_post|
 drop procedure if exists sp_posts_uploads_add|
 drop procedure if exists sp_posts_uploads_delete_by_post|
 drop procedure if exists sp_posts_delete|
 drop procedure if exists sp_posts_delete_last|
-drop procedure if exists sp_posts_delete_all_marked|
-drop procedure if exists sp_posts_edit_specifed_addtext|
-drop procedure if exists sp_posts_get_all_numbers|
+drop procedure if exists sp_posts_delete_marked|
+drop procedure if exists sp_posts_add_text_by_id|
 drop procedure if exists sp_uploads_get_by_post|
 drop procedure if exists sp_uploads_get_same|
 drop procedure if exists sp_uploads_add|
 drop procedure if exists sp_uploads_get_dangling|
 drop procedure if exists sp_uploads_delete_by_id|
-drop procedure if exists sp_hidden_threads_get_by_board|
-drop procedure if exists sp_hidden_threads_add|
-drop procedure if exists sp_hidden_threads_delete|
+drop procedure if exists sp_posts_files_get_by_post|
+drop procedure if exists sp_posts_images_get_by_post|
+drop procedure if exists sp_posts_links_get_by_post|
+drop procedure if exists sp_posts_videos_get_by_post|
+-- DONE
+-- ---------------------------------------
+--  Работа со списком контроля доступа. --
+-- ---------------------------------------
 
--- ------------------------------
---  Блокировки адресов (баны). --
--- ------------------------------
-
--- Удаляет все истекшие блокировки.
-create procedure sp_bans_refresh ()
-begin
-	delete from bans where untill <= now();
-end|
-
--- Проверяет, заблокирован ли адрес ip.
+-- Добавляет новое правило в список контроля доступа.
 --
--- Аргументы:
--- ip - адрес.
---
--- Если адрес заблокирован, то возвращает запись с самым широким диапазоном, в
--- который он входит.
-create procedure sp_bans_check
+-- group_id - Группа.
+-- board_id - Доска.
+-- thread_id - Нить.
+-- post_id - Сообщение.
+-- _view - Право на просмотр.
+-- _change - Право на изменение.
+-- _moderate - Право на модерирование.
+create procedure sp_acl_add
 (
-	ip int
+	group_id int,
+	board_id int,
+	thread_id int,
+	post_id int,
+	_view bit,
+	_change bit,
+	_moderate bit
 )
 begin
-	call sp_bans_refresh();
-	select range_beg, range_end, untill, reason
-	from bans
-	where range_beg <= ip and range_end >= ip
-	order by range_end desc limit 1;
+	insert into acl (`group`, board, thread, post, `view`, `change`, moderate)
+	values (group_id, board_id, thread_id, post_id, _view, _change, _moderate);
 end|
 
--- Удаляет бан с заданным идентификатором.
+-- Удаляет правило из списка контроля доступа.
 --
--- Аргументы:
--- _id - идентификатор бана.
-create procedure sp_bans_delete_byid
+-- group_id - Группа.
+-- board_id - Доска.
+-- thread_id - Нить.
+-- post_id - Сообщение.
+create procedure sp_acl_delete
 (
-	_id int
+	group_id int,
+	board_id int,
+	thread_id int,
+	post_id int
 )
 begin
-	delete from bans where id = _id;
+	delete from acl
+	where ((`group` = group_id) or (coalesce(`group`, group_id) is null))
+		and ((board = board_id) or (coalesce(board, board_id) is null))
+		and ((thread = thread_id) or (coalesce(thread, thread_id) is null))
+		and ((post = post_id) or (coalesce(post, post_id) is null));
 end|
 
--- Удаляет баны с заданным IP.
+-- Редактирует правило в списке контроля доступа.
 --
--- Аргументы:
--- ip - IP адрес.
-create procedure sp_bans_delete_byip
+-- group_id - Группа.
+-- board_id - Доска.
+-- thread_id - Нить.
+-- post_id - Сообщение.
+-- view - Право на просмотр.
+-- change - Право на изменение.
+-- moderate - Право на модерирование.
+create procedure sp_acl_edit
 (
-	ip int
+	group_id int,
+	board_id int,
+	thread_id int,
+	post_id int,
+	_view bit,
+	_change bit,
+	_moderate bit
 )
 begin
-	delete from bans where range_beg <= ip and range_end >= ip;
+	update acl set `view` = _view, `change` = _change, moderate = _moderate
+	where ((`group` = group_id) or (coalesce(`group`, group_id) is null))
+		and ((board = board_id) or (coalesce(board, board_id) is null))
+		and ((thread = thread_id) or (coalesce(thread, thread_id) is null))
+		and ((post = post_id) or (coalesce(post, post_id) is null));
 end|
 
--- Блокирует диапазон адресов.
+-- Выбирает список контроля доступа.
+create procedure sp_acl_get_all ()
+begin
+	select `group`, board, thread, post, `view`, `change`, moderate
+	from acl order by `group`, board, thread, post;
+end|
+
+-- --------------------------
+--  Работа с блокировками. --
+-- --------------------------
+
+-- Блокирует заданный диапазон IP-адресов.
 --
 -- Аргументы:
--- _range_beg - начало диапазона адресов.
--- _range_end - конец диапазона адресов.
--- _reason - причина.
--- _untill - время истечения бана.
+-- _range_beg - Начало диапазона IP-адресов.
+-- _range_end - Конец диапазона IP-адресов.
+-- _reason - Причина блокировки.
+-- _untill - Время истечения блокировки.
 create procedure sp_bans_add
 (
 	_range_beg int,
@@ -167,62 +223,247 @@ begin
 	values (_range_beg, _range_end, _reason, _untill);
 end|
 
--- Выбирает все баны.
+-- Проверяет, заблокирован ли IP-адрес. Если да, то возвращает запись с самым
+-- широким диапазоном IP-адресов, в который он входит.
+--
+-- Аргументы:
+-- ip - IP-адрес.
+create procedure sp_bans_check
+(
+	ip int
+)
+begin
+	call sp_bans_refresh();
+	select range_beg, range_end, untill, reason
+	from bans
+	where range_beg <= ip and range_end >= ip
+	order by range_end desc limit 1;
+end|
+
+-- Удаляет блокировку с заданным идентификатором.
+--
+-- Аргументы:
+-- _id - Идентификатор блокировки.
+create procedure sp_bans_delete_by_id
+(
+	_id int
+)
+begin
+	delete from bans where id = _id;
+end|
+
+-- Удаляет блокировки с заданным IP-адресом.
+--
+-- Аргументы:
+-- ip - IP-адрес.
+create procedure sp_bans_delete_by_ip
+(
+	ip int
+)
+begin
+	delete from bans where range_beg <= ip and range_end >= ip;
+end|
+
+-- Выбирает все блокировки.
 create procedure sp_bans_get_all ()
 begin
 	select id, range_beg, range_end, reason, untill from bans;
+end|
+
+-- Удаляет все истекшие блокировки.
+create procedure sp_bans_refresh ()
+begin
+	delete from bans where untill <= now();
+end|
+
+-- -------------------------------------------------------
+--  Работа со связями досок и типов загружаемых файлов. --
+-- -------------------------------------------------------
+
+-- Добавляет связь доски с типом загружаемых файлов.
+--
+-- Аргументы:
+-- _board - Доска.
+-- _upload_type - Тип загружаемого файла.
+create procedure sp_board_upload_types_add
+(
+	_board int,
+	_upload_type int
+)
+begin
+	insert into board_upload_types (board, upload_type)
+	values (_board, _upload_type);
+end|
+
+-- Удаляет связь доски с типом загружаемых файлов.
+--
+-- Аргументы:
+-- _board - Доска.
+-- _upload_type - Тип загружаемого файла.
+create procedure sp_board_upload_types_delete
+(
+	_board int,
+	_upload_type int
+)
+begin
+	delete from board_upload_types
+	where board = _board and upload_type = _upload_type;
+end|
+
+-- Выбирает все связи досок с типами загружаемых файлов.
+create procedure sp_board_upload_types_get_all ()
+begin
+	select board, upload_type from board_upload_types;
 end|
 
 -- ---------------------
 --  Работа с досками. --
 -- ---------------------
 
--- Выбирает доски, доступные для чтения пользователю с идентификатором user_id.
+-- Добавляет доску.
 --
 -- Аргументы:
--- user_id - идентификатор пользователя.
---
--- Возвращает пустую выборку, если нет досок, доступных для просмотра.
--- TODO Возвращать имя вместо идентификатора категории - плохая идея. А что если
--- понадобится получить результат с идентификаторами, а не с именами?
-create procedure sp_boards_get_all_view
+-- _name - Имя.
+-- _title - Заголовок.
+-- _annotation - Аннотация.
+-- _bump_limit - Специфичный для доски бамплимит.
+-- _force_anonymous - Флаг отображения имени отправителя.
+-- _default_name - Имя отправителя по умолчанию.
+-- _with_attachments - Флаг вложений.
+-- _enable_macro - Включение интеграции с макрочаном.
+-- _enable_youtube - Включение вложения видео с ютуба.
+-- _enable_captcha - Включение капчи.
+-- _same_upload - Политика загрузки одинаковых файлов.
+-- _popdown_handler - Обработчик автоматического удаления нитей.
+-- _category - Категория.
+create procedure sp_boards_add
 (
-	user_id int
+	_name varchar(16),
+	_title varchar(50),
+	_annotation text,
+	_bump_limit int,
+	_force_anonymous bit,
+	_default_name varchar(128),
+	_with_attachments bit,
+	_enable_macro bit,
+	_enable_youtube bit,
+	_enable_captcha bit,
+	_same_upload varchar(32),
+	_popdown_handler int,
+	_category int
 )
 begin
-	select b.id, b.`name`, b.title, b.annotation, b.bump_limit, b.force_anonymous,
-		b.default_name, b.with_files, b.same_upload, b.popdown_handler,
-		ct.`name` as category
-	from boards b
-	join categories ct on ct.id = b.category
-	join user_groups ug on ug.user = user_id
-	left join acl a1 on ug.`group` = a1.`group` and b.id = a1.board
-	left join acl a2 on a2.`group` is null and b.id = a2.board
-	left join acl a3 on ug.`group` = a3.`group` and a3.board is null
-		and a3.thread is null and a3.post is null
-	where
-		-- Доска не запрещена для просмотра группе и
-		(a1.`view` = 1 or a1.`view` is null)
-		-- доска не запрещена для просмотра всем и
-		and (a2.`view` = 1 or a2.`view` is null)
-		-- группе разрешен просмотр.
-		and a3.`view` = 1
-	group by b.id
-	order by b.category, b.`name`;
+	insert into boards (name, title, annotation, bump_limit, force_anonymous,
+		default_name, with_attachments, enable_macro, enable_youtube,
+		enable_captcha, same_upload, popdown_handler, category)
+	values (_name, _title, _annotation, _bump_limit, _force_anonymous,
+		_default_name, _with_attachments, _enable_macro, _enable_youtube,
+		_enable_captcha, _same_upload, _popdown_handler, _category);
 end|
 
--- Выбирает доски, доступные для редактирования пользователю.
+-- Удаляет заданную доску.
+create procedure sp_boards_delete
+(
+	_id int
+)
+begin
+	delete from boards where id = _id;
+end|
+
+-- Редактирует доску.
 --
 -- Аргументы:
--- user_id - идентификатор пользователя.
-create procedure sp_boards_get_all_change
+-- _id - Идентификатор.
+-- _title - Заголовок.
+-- _annotation - Аннотация.
+-- _bump_limit - Специфичный для доски бамплимит.
+-- _force_anonymous - Флаг отображения имени отправителя.
+-- _default_name - Имя отправителя по умолчанию.
+-- _with_attachments - Флаг вложений.
+-- _enable_macro - Включение интеграции с макрочаном.
+-- _enable_youtube - Включение вложения видео с ютуба.
+-- _enable_captcha - Включение капчи.
+-- _same_upload - Политика загрузки одинаковых файлов.
+-- _popdown_handler - Обработчик автоматического удаления нитей.
+-- _category - Категория.
+create procedure sp_boards_edit
+(
+	_id int,
+	_title varchar(50),
+	_annotation text,
+	_bump_limit int,
+	_force_anonymous bit,
+	_default_name varchar(128),
+	_with_attachments bit,
+	_enable_macro bit,
+	_enable_youtube bit,
+	_enable_captcha bit,
+	_same_upload varchar(32),
+	_popdown_handler int,
+	_category int
+)
+begin
+	update boards set title = _title, annotation = _annotation,
+		bump_limit = _bump_limit, force_anonymous = _force_anonymous,
+		default_name = _default_name, with_attachments = _with_attachments,
+		enable_macro = _enable_macro, enable_youtube = _enable_youtube,
+		enable_captcha = _enable_captcha, same_upload = _same_upload,
+		popdown_handler = _popdown_handler, category = _category
+	where id = _id;
+end|
+
+-- Выбирает все доски.
+create procedure sp_boards_get_all ()
+begin
+	select id, name, title, annotation, bump_limit, force_anonymous, default_name,
+		with_attachments, enable_macro, enable_youtube, enable_captcha,
+		same_upload, popdown_handler, category
+	from boards;
+end|
+
+-- Выбирает заданную доску.
+--
+-- Аргументы:
+-- board_id - Идентификатор доски.
+create procedure sp_boards_get_by_id
+(
+	board_id int
+)
+begin
+	select id, name, title, annotation, bump_limit, force_anonymous,
+		default_name, with_attachments, enable_macro, enable_youtube,
+		enable_captcha, same_upload, popdown_handler, category
+	from boards where id = board_id;
+end|
+
+-- Выбирает заданную доску.
+--
+-- Аргументы:
+-- board_name - Имя доски.
+create procedure sp_boards_get_by_name
+(
+	board_name varchar(16)
+)
+begin
+	select id, name, title, annotation, bump_limit, force_anonymous, default_name,
+		with_attachments, enable_macro, enable_youtube, enable_captcha,
+		same_upload, popdown_handler, category
+	from boards where name = board_name;
+end|
+
+-- Выбирает доски, доступные для изменения заданному пользователю.
+--
+-- Аргументы:
+-- user_id - Идентификатор пользователя.
+create procedure sp_boards_get_changeable
 (
 	user_id int
 )
 begin
-	select b.id, b.`name`, b.title, b.bump_limit, b.force_anonymous,
-		b.default_name, b.with_files, b.same_upload, b.popdown_handler,
-		ct.`name` as category
+	select b.id, b.name, b.title, b.annotation, b.bump_limit, b.force_anonymous,
+		b.default_name, b.with_attachments, b.enable_macro, b.enable_youtube,
+		b.enable_captcha, b.same_upload, b.popdown_handler, b.category,
+		ct.name as category_name
 	from boards b
 	join categories ct on ct.id = b.category
 	join user_groups ug on ug.user = user_id
@@ -246,7 +487,113 @@ begin
 			-- конкретной группе редактирование разрешено.
 			or (a1.change is null and a2.change is null and a3.change = 1))
 	group by b.id
-	order by b.category, b.`name`;
+	order by b.category, b.name;
+end|
+
+-- Выбирает заданную доску, доступную для редактирования заданному
+-- пользователю.
+--
+-- Аргументы:
+-- _board_id - Идентификатор доски.
+-- user_id - Идентификатор пользователя.
+create procedure sp_boards_get_changeable_by_id
+(
+	_board_id int,
+	user_id int
+)
+begin
+	declare board_id int;
+	select id into board_id from boards where id = _board_id;
+	if(board_id is null) then
+		select 'NOT_FOUND' as error;
+	else
+		select b.id, b.name, b.title, b.annotation, b.bump_limit, b.force_anonymous,
+			b.default_name, b.with_attachments, b.enable_macro, b.enable_youtube,
+			b.enable_captcha, b.same_upload, b.popdown_handler, b.category,
+			ct.name as category_name
+		from boards b
+		join categories ct on ct.id = b.category
+		join user_groups ug on ug.user = user_id
+		-- Правила для конкретной группы и доски.
+		left join acl a1 on ug.`group` = a1.`group` and b.id = a1.board
+		-- Правило для конкретной доски.
+		left join acl a2 on a2.`group` is null and b.id = a2.board
+		-- Правила для конкретной группы.
+		left join acl a3 on ug.`group` = a3.`group` and a3.board is null
+			and a3.thread is null and a3.post is null
+		where
+			b.id = board_id
+			and
+				-- Доска не запрещена для просмотра группе и
+			((a1.`view` = 1 or a1.`view` is null)
+				-- доска не запрещена для просмотра всем и
+				and (a2.`view` = 1 or a2.`view` is null)
+				-- группе разрешен просмотр.
+				and a3.`view` = 1)
+				-- Редактирование доски разрешено конкретной группе или
+			and (a1.change = 1
+				-- редактирование доски не запрещено конкретной группе и
+				-- разрешено всем группам или
+				or (a1.change is null and a2.change = 1)
+				-- редактирование доски не запрещено ни конкретной группе ни
+				-- всем, и конкретной группе редактирование разрешено.
+				or (a1.change is null and a2.change is null and a3.change = 1))
+		group by b.id
+		order by b.category, b.name;
+	end if;
+end|
+
+-- Выбирает заданную доску, доступную для редактирования заданному
+-- пользователю.
+--
+-- Аргументы:
+-- board_name - Имя доски.
+-- user_id - Идентификатор пользователя.
+create procedure sp_boards_get_changeable_by_name
+(
+	board_name varchar(16),
+	user_id int
+)
+begin
+	declare board_id int;
+	select id into board_id from boards where name = board_name;
+	if(board_id is null) then
+		select 'NOT_FOUND' as error;
+	else
+		select b.id, b.name, b.title, b.annotation, b.bump_limit, b.force_anonymous,
+			b.default_name, b.with_attachments, b.enable_macro, b.enable_youtube,
+			b.enable_captcha, b.same_upload, b.popdown_handler, b.category,
+			ct.name as category_name
+		from boards b
+		join categories ct on ct.id = b.category
+		join user_groups ug on ug.user = user_id
+		-- Правила для конкретной группы и доски.
+		left join acl a1 on ug.`group` = a1.`group` and b.id = a1.board
+		-- Правило для конкретной доски.
+		left join acl a2 on a2.`group` is null and b.id = a2.board
+		-- Правила для конкретной группы.
+		left join acl a3 on ug.`group` = a3.`group` and a3.board is null
+			and a3.thread is null and a3.post is null
+		where
+			b.id = board_id
+			and
+				-- Доска не запрещена для просмотра группе и
+			((a1.`view` = 1 or a1.`view` is null)
+				-- доска не запрещена для просмотра всем и
+				and (a2.`view` = 1 or a2.`view` is null)
+				-- группе разрешен просмотр.
+				and a3.`view` = 1)
+				-- Редактирование доски разрешено конкретной группе или
+			and (a1.change = 1
+				-- редактирование доски не запрещено конкретной группе и
+				-- разрешено всем группам или
+				or (a1.change is null and a2.change = 1)
+				-- редактирование доски не запрещено ни конкретной группе ни
+				-- всем, и конкретной группе редактирование разрешено.
+				or (a1.change is null and a2.change is null and a3.change = 1))
+		group by b.id
+		order by b.category, b.name;
+	end if;
 end|
 
 -- Выбирает доски, доступные для модерирования заданному пользователю.
@@ -258,9 +605,9 @@ create procedure sp_boards_get_moderatable
 	user_id int
 )
 begin
-	select b.id, b.`name`, b.title, b.bump_limit, b.force_anonymous,
-		b.default_name, b.with_files, b.same_upload, b.popdown_handler,
-		b.category
+	select b.id, b.name, b.title, b.annotation, b.bump_limit, b.force_anonymous,
+		b.default_name, b.with_attachments, b.enable_macro, b.enable_youtube,
+		b.enable_captcha, b.same_upload, b.popdown_handler, b.category
 	from boards b
 	join user_groups ug on ug.user = user_id
 	-- Правила для конкретной группы и доски.
@@ -287,279 +634,408 @@ begin
 			or (a1.moderate is null and a2.moderate is null
 				and a3.moderate = 1))
 	group by b.id
-	order by b.`name`;
+	order by b.name;
 end|
 
--- Выбирает доску по заданному имени, доступную для редактирования пользователю.
+-- Выбирает доски, доступные для просмотра заданному пользователю.
 --
 -- Аргументы:
--- board_name - Имя доски.
--- user_id - Идентификатор пользователя.
-create procedure sp_boards_get_specifed_change_byname
+-- user_id - идентификатор пользователя.
+create procedure sp_boards_get_visible
 (
-	board_name varchar(16),
 	user_id int
 )
 begin
-	declare board_id int;
-	select id into board_id from boards where `name` = board_name;
-	if(board_id is null) then
-		select 'NOT_FOUND' as error;
-	else
-		select b.id, b.`name`, b.title, b.bump_limit, b.force_anonymous,
-			b.default_name, b.with_files, b.same_upload, b.popdown_handler,
-			ct.`name` as category
-		from boards b
-		join categories ct on ct.id = b.category
-		join user_groups ug on ug.user = user_id
-		-- Правила для конкретной группы и доски.
-		left join acl a1 on ug.`group` = a1.`group` and b.id = a1.board
-		-- Правило для конкретной доски.
-		left join acl a2 on a2.`group` is null and b.id = a2.board
-		-- Правила для конкретной группы.
-		left join acl a3 on ug.`group` = a3.`group` and a3.board is null
-			and a3.thread is null and a3.post is null
-		where
-			b.id = board_id
-			and
-				-- Доска не запрещена для просмотра группе и
-			((a1.`view` = 1 or a1.`view` is null)
-				-- доска не запрещена для просмотра всем и
-				and (a2.`view` = 1 or a2.`view` is null)
-				-- группе разрешен просмотр.
-				and a3.`view` = 1)
-				-- Редактирование доски разрешено конкретной группе или
-			and (a1.change = 1
-				-- редактирование доски не запрещено конкретной группе и
-				-- разрешено всем группам или
-				or (a1.change is null and a2.change = 1)
-				-- редактирование доски не запрещено ни конкретной группе ни
-				-- всем, и конкретной группе редактирование разрешено.
-				or (a1.change is null and a2.change is null and a3.change = 1))
-		group by b.id
-		order by b.category, b.`name`;
-	end if;
-end|
-
--- Выбирает доску, доступную для редактирования пользователю.
---
--- Аргументы:
--- board_id - Идентификатор доски.
--- user_id - Идентификатор пользователя.
-create procedure sp_boards_get_specifed_change
-(
-	_board_id int,
-	user_id int
-)
-begin
-	declare board_id int;
-	select id into board_id from boards where id = _board_id;
-	if(board_id is null) then
-		select 'NOT_FOUND' as error;
-	else
-		select b.id, b.`name`, b.title, b.bump_limit, b.force_anonymous,
-			b.default_name, b.with_files, b.same_upload, b.popdown_handler,
-			ct.`name` as category
-		from boards b
-		join categories ct on ct.id = b.category
-		join user_groups ug on ug.user = user_id
-		-- Правила для конкретной группы и доски.
-		left join acl a1 on ug.`group` = a1.`group` and b.id = a1.board
-		-- Правило для конкретной доски.
-		left join acl a2 on a2.`group` is null and b.id = a2.board
-		-- Правила для конкретной группы.
-		left join acl a3 on ug.`group` = a3.`group` and a3.board is null
-			and a3.thread is null and a3.post is null
-		where
-			b.id = board_id
-			and
-				-- Доска не запрещена для просмотра группе и
-			((a1.`view` = 1 or a1.`view` is null)
-				-- доска не запрещена для просмотра всем и
-				and (a2.`view` = 1 or a2.`view` is null)
-				-- группе разрешен просмотр.
-				and a3.`view` = 1)
-				-- Редактирование доски разрешено конкретной группе или
-			and (a1.change = 1
-				-- редактирование доски не запрещено конкретной группе и
-				-- разрешено всем группам или
-				or (a1.change is null and a2.change = 1)
-				-- редактирование доски не запрещено ни конкретной группе ни
-				-- всем, и конкретной группе редактирование разрешено.
-				or (a1.change is null and a2.change is null and a3.change = 1))
-		group by b.id
-		order by b.category, b.`name`;
-	end if;
-end|
-
--- Выбирает все доски.
-create procedure sp_boards_get_all ()
-begin
-	select id, `name`, title, annotation, bump_limit, force_anonymous,
-		default_name, with_files, same_upload, popdown_handler, category
-	from boards;
-end|
-
--- Выбирает доску по заданному идентификатору.
---
--- Аргументы:
--- board_id - Идентификатор доски.
-create procedure sp_boards_get_specifed
-(
-	board_id int
-)
-begin
-	select id, `name`, title, bump_limit, force_anonymous, default_name,
-		with_files, same_upload, popdown_handler, category
-	from boards where id = board_id;
-end|
-
--- Выбирает доску по заданному имени.
---
--- Аргументы:
--- board_name - Имя доски.
-create procedure sp_boards_get_specifed_byname
-(
-	board_name varchar(16)
-)
-begin
-	select id, `name`, title, bump_limit, force_anonymous, default_name,
-		with_files, same_upload, popdown_handler, category
-	from boards where `name` = board_name;
-end|
-
--- Выбирает доску по заданному идентификатору.
---
--- Аргументы:
--- board_name - Имя доски.
-create procedure sp_boards_get_by_id
-(
-	_id int
-)
-begin
-	select id, `name`, title, bump_limit, force_anonymous, default_name,
-		with_files, same_upload, popdown_handler, category
-	from boards where id = _id;
-end|
-
--- Добавляет доску.
---
--- Аргументы:
--- _name - Имя доски.
--- _title - Заголовок.
--- _bump_limit - Специфичный для доски бамплимит.
--- _force_anonymous - Флаг отображения имени отправителя.
--- _default_name - Имя отправителя по умолчанию.
--- _with_files - Флаг загрузки файлов.
--- _same_upload - Политика загрузки одинаковых файлов.
--- _popdown_handler - Обработчик удаления нитей.
--- _category - Категория.
-create procedure sp_boards_add
-(
-	_name varchar(16),
-	_title varchar(50),
-	_bump_limit int,
-	_force_anonymous bit,
-	_default_name varchar(128),
-	_with_files bit,
-	_same_upload varchar(32),
-	_popdown_handler int,
-	_category int
-)
-begin
-	insert into boards (`name`, title, bump_limit, force_anonymous,
-		default_name, with_files, same_upload, popdown_handler, category)
-	values (_name, _title, _bump_limit, _force_anonymous, _default_name,
-		_with_files, _same_upload, _popdown_handler, _category);
-end|
-
--- Редактирует параметры доски.
---
--- Аргументы:
--- _id - Идентификатор.
--- _title - Заголовок.
--- _bump_limit - Специфичный для доски бамплимит.
--- _force_anonymous - Флаг отображения имени отправителя.
--- _default_name - Имя отправителя по умолчанию.
--- _with_files - Флаг загрузки файлов.
--- _same_upload - Политика загрузки одинаковых файлов.
--- _popdown_handler - Обработчик удаления нитей.
--- _category - Категория.
-create procedure sp_boards_edit
-(
-	_id int,
-	_title varchar(50),
-	_bump_limit int,
-	_force_anonymous bit,
-	_default_name varchar(128),
-	_with_files bit,
-	_same_upload varchar(32),
-	_popdown_handler int,
-	_category int
-)
-begin
-	update boards set title = _title, bump_limit = _bump_limit,
-		force_anonymous = _force_anonymous, default_name = _default_name,
-		with_files = _with_files, same_upload = _same_upload,
-		popdown_handler = _popdown_handler, category = _category
-	where id = _id;
-end|
-
--- Редактирует аннотацию доски.
---
--- Аргументы:
--- _id - Идентификатор.
--- _annotation - Аннотация.
-create procedure sp_boards_edit_annotation
-(
-	_id int,
-	_annotation text
-)
-begin
-	update boards set annotation = _annotation where id = _id;
-end|
-
--- Удаляет заданную доску.
-create procedure sp_boards_delete
-(
-	_id int
-)
-begin
-	delete from boards where id = _id;
+	select b.id, b.name, b.title, b.annotation, b.bump_limit, b.force_anonymous,
+		b.default_name, b.with_attachments, b.enable_macro, b.enable_youtube,
+		b.enable_captcha, b.same_upload, b.popdown_handler, b.category,
+		ct.name as category_name
+	from boards b
+	join categories ct on ct.id = b.category
+	join user_groups ug on ug.user = user_id
+	left join acl a1 on ug.`group` = a1.`group` and b.id = a1.board
+	left join acl a2 on a2.`group` is null and b.id = a2.board
+	left join acl a3 on ug.`group` = a3.`group` and a3.board is null
+		and a3.thread is null and a3.post is null
+	where
+		-- Доска не запрещена для просмотра группе и
+		(a1.`view` = 1 or a1.`view` is null)
+		-- доска не запрещена для просмотра всем и
+		and (a2.`view` = 1 or a2.`view` is null)
+		-- группе разрешен просмотр.
+		and a3.`view` = 1
+	group by b.id
+	order by b.category, b.name;
 end|
 
 -- -------------------------
 --  Работа с категориями. --
 -- -------------------------
 
--- Возвращает все категории досок.
-create procedure sp_categories_get_all ()
-begin
-	select id, `name` from categories;
-end|
-
--- Добавляет новую категорию с именем _name.
+-- Добавляет новую категорию с заданным именем.
 --
 -- Аргументы:
--- _name - имя новой категории.
+--_ name - Имя.
 create procedure sp_categories_add
 (
 	_name varchar(50)
 )
 begin
-	insert into categories (`name`) values (_name);
+	insert into categories (name) values (_name);
 end|
 
--- Удаляет категорию с идентификатором _id.
+-- Удаляет заданную категорию.
 --
 -- Аргументы:
--- _id - идентификатор категории для удаления.
+-- _id - Идентификатор.
 create procedure sp_categories_delete
 (
 	_id int
 )
 begin
 	delete from categories where id = _id;
+end|
+
+-- Возвращает все категории.
+create procedure sp_categories_get_all ()
+begin
+	select id, name from categories;
+end|
+
+-- ----------------------
+--  Работа с группами. --
+-- ----------------------
+
+-- Добавляет группу с заданным именем.
+--
+-- Аргументы:
+-- _name - Имя.
+create procedure sp_groups_add
+(
+	_name varchar(50)
+)
+begin
+	insert into groups (name) values (_name);
+	select id from groups where name = _name;
+	-- TODO:
+	-- insert into acl (`group`, `view`, `change`, moderate) values (group_id, 1, 0, 0);
+end|
+
+-- Удаляет заданную группу, а так же всех пользователей, которые входят в эту
+-- группу и все правила в ACL, распространяющиеся на эту группу.
+--
+-- Аргументы:
+-- _id - Идентификатор группы.
+create procedure sp_groups_delete
+(
+	_id int
+)
+begin
+	delete from groups where id = _id;
+end|
+
+-- Выбирает все группы.
+create procedure sp_groups_get_all ()
+begin
+	select id, name from groups order by id;
+end|
+
+-- ------------------------------
+--  Работа со скрытыми нитями. --
+-- ------------------------------
+
+-- Скрывает нить.
+--
+-- Аргументы:
+-- thread_id - Идентификатор доски.
+-- user_id - Идентификатор пользователя.
+create procedure sp_hidden_threads_add
+(
+	thread_id int,
+	user_id int
+)
+begin
+	insert into hidden_threads (user, thread) values (user_id, thread_id);
+end|
+
+-- Отменяет скрытие нити.
+--
+-- Аргументы:
+-- thread_id - Идентификатор нити.
+-- user_id - Идентификатор пользователя.
+create procedure sp_hidden_threads_delete
+(
+	thread_id int,
+	user_id int
+)
+begin
+	delete from hidden_threads where user = user_id and thread = thread_id;
+end|
+
+-- Выбирает скрыте нити на заданной доске.
+--
+-- Аргументы:
+-- board_id - идентификатор доски.
+create procedure sp_hidden_threads_get_by_board
+(
+	board_id int
+)
+begin
+	select ht.thread, t.original_post, ht.user
+	from hidden_threads ht
+	join threads t on t.id = ht.thread and t.board = board_id;
+end|
+
+-- -------------------------------------
+-- Работа с вложенными изображениями. --
+-- -------------------------------------
+
+-- Выбирает вложенные в заданное сообщение изображения.
+--
+-- Аргументы:
+-- post_id - Идентификатор сообщения.
+create procedure sp_images_get_by_post
+(
+	post_id int
+)
+begin
+	select i.id, i.`hash`, i.`name`, i.widht, i.height, i.`size`, i.thumbnail,
+		i.thumbnail_w, i.thumbnail_h
+	from posts_images pi
+	join images i on i.id = pi.image and pi.post = post_id;
+end|
+
+-- Выбирает одинаковые вложенные изображения на заданной доски.
+--
+-- Аргументы:
+-- board_id - Идентификатор доски.
+-- image_hash - Хеш вложенного изображения.
+-- user_id - Идентификатор пользователя.
+create procedure sp_images_get_same
+(
+	board_id int,
+	image_hash varchar(32),
+	user_id int
+)
+begin
+	select i.id, i.hash, i.name, i.width, i.height, i.size, i.thumbnail,
+		i.thumbnail_w, i.thumbnail_h, p.number, t.original_post,
+		max(case
+			when a1.`view` = 0 then 0
+			when a2.`view` = 0 then 0
+			when a3.`view` = 0 then 0
+			when a4.`view` = 0 then 0
+			when a5.`view` = 0 then 0
+			when a6.`view` = 0 then 0
+			when a7.`view` = 0 then 0
+			else 1 end) as `view`
+	from images i
+	join posts_images pi on pi.image = i.id
+	join posts p on p.id = pi.post and p.board = board_id
+	join threads t on t.id = p.thread
+	join user_groups ug on ug.`user` = user_id
+	-- Правило для конкретной группы и сообщения.
+	left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+	-- Правило для всех групп и конкретного сообщения.
+	left join acl a2 on a2.`group` is null and a2.post = p.id
+	-- Правила для конкретной группы и нити.
+	left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+	-- Правило для всех групп и конкретной нити.
+	left join acl a4 on a4.`group` is null and a4.thread = p.thread
+	-- Правила для конкретной группы и доски.
+	left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+	-- Правило для всех групп и конкретной доски.
+	left join acl a6 on a6.`group` is null and a6.board = p.board
+	-- Правило для конкретной групы.
+	left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+		and a7.thread is null and a7.post is null
+	where i.hash = image_hash
+	group by i.id, p.id;
+end|
+-- /DONE
+-- -------------------------------
+-- Работа с вложенными файлами. --
+-- -------------------------------
+
+-- Выбирает файлы, вложенные в заданное сообщение.
+
+-- Аргументы:
+-- post_id - Идентификатор сообщения.
+create procedure sp_files_get_by_post
+(
+	post_id int
+)
+begin
+	select f.id, f.`hash`, f.`name`, f.`size`, f.thumbnail, f.thumbnail_w,
+		f.thumbnail_h, f.deleted
+	from posts_files pf
+	join files f on f.id = pf.`file` and pf.post = post_id;
+end|
+
+-- ---------------------
+--  Работа с языками. --
+-- ---------------------
+
+-- Добавляет новый язык с именем _name.
+--
+-- Аргументы:
+-- _name - имя нового языка.
+create procedure sp_languages_add
+(
+	_name varchar(50)
+)
+begin
+	insert into languages (`name`) values (_name);
+end|
+
+-- Удаляет язык с идентификатором _id.
+--
+-- Аргументы:
+-- _id - идентификатор языка для удаления.
+create procedure sp_languages_delete
+(
+	_id int
+)
+begin
+	delete from languages where id = _id;
+end|
+
+create procedure sp_languages_get_all ()
+begin
+	select id, `name` from languages;
+end|
+
+-- -------------------------------
+-- Работа с вложенными ссылами. --
+-- -------------------------------
+
+-- Выбирает ссылки, вложенные в заданное сообщение.
+
+-- Аргументы:
+-- post_id - Идентификатор сообщения.
+create procedure sp_links_get_by_post
+(
+	post_id int
+)
+begin
+	select l.id, l.url, l.widht, l.height, l.`size`, l.thumbnail, l.thumbnail_w,
+		l.thumbnail_h, l.deleted
+	from posts_links pl
+	join links l on l.id = pl.`link` and pl.post = post_id;
+end|
+
+-- ------------------------------------------
+--  Работа с обработчиками удаления нитей. --
+-- ------------------------------------------
+
+-- Выбирает все обработчики удаления нитей.
+create procedure sp_popdown_handlers_get_all ()
+begin
+	select id, `name` from popdown_handlers;
+end|
+
+-- Добавляет новый обработчик удаления нитей.
+--
+-- Аргументы:
+-- _name - имя нового обработчика удаления нитей.
+create procedure sp_popdown_handlers_add
+(
+	_name varchar(50)
+)
+begin
+	insert into popdown_handlers (`name`) values (_name);
+end|
+
+--
+create procedure sp_popdown_handlers_delete
+(
+	_id int
+)
+begin
+	delete from popdown_handlers where id = _id;
+end|
+
+-- ---------------------------------
+--  Работа со стилями оформления. --
+-- ---------------------------------
+
+-- Возвращает все стили оформления.
+create procedure sp_stylesheets_get_all ()
+begin
+	select id, `name` from stylesheets;
+end|
+
+-- Добавляет новый стиль оформления с именем _name.
+--
+-- Аргументы:
+-- _name - имя нового стиля оформления.
+create procedure sp_stylesheets_add
+(
+	_name varchar(50)
+)
+begin
+	insert into stylesheets (`name`) values (_name);
+end|
+
+-- Удаляет стиль оформления.
+--
+-- Аргументы:
+-- _id - идентификатор стиля для удаления.
+create procedure sp_stylesheets_delete
+(
+	_id int
+)
+begin
+	delete from stylesheets where id = _id;
+end|
+
+-- ----------------------------------------------
+--  Работа с обработчиками загружаемых файлов. --
+-- ----------------------------------------------
+
+-- Выбирает все обработчики загружаемых файлов.
+create procedure sp_upload_handlers_get_all ()
+begin
+	select id, `name` from upload_handlers;
+end|
+
+-- Добавляет новый обработчик загружаемых файлов.
+--
+-- Аргументы:
+-- _name - имя нового обработчика загружаемых файлов.
+create procedure sp_upload_handlers_add
+(
+	_name varchar(50)
+)
+begin
+	insert into upload_handlers (`name`) values (_name);
+end|
+
+--
+create procedure sp_upload_handlers_delete
+(
+	_id int
+)
+begin
+	delete from upload_handlers where id = _id;
+end|
+
+-- ----------------------------
+-- Работа с вложенным видео. --
+-- ----------------------------
+
+-- Выбирает видео, вложенные в заданное сообщение.
+
+-- Аргументы:
+-- post_id - Идентификатор сообщения.
+create procedure sp_videos_get_by_post
+(
+	post_id int
+)
+begin
+	select v.id, v.code, v.widht, v.height, v.deleted
+	from posts_videos pv
+	join videos v on v.id = pv.video and pv.post = post_id;
 end|
 
 -- ----------------------------
@@ -661,116 +1137,6 @@ begin
 	select id from users;
 end|
 
--- ---------------------------------
---  Работа со стилями оформления. --
--- ---------------------------------
-
--- Возвращает все стили оформления.
-create procedure sp_stylesheets_get_all ()
-begin
-	select id, `name` from stylesheets;
-end|
-
--- Добавляет новый стиль оформления с именем _name.
---
--- Аргументы:
--- _name - имя нового стиля оформления.
-create procedure sp_stylesheets_add
-(
-	_name varchar(50)
-)
-begin
-	insert into stylesheets (`name`) values (_name);
-end|
-
--- Удаляет стиль оформления.
---
--- Аргументы:
--- _id - идентификатор стиля для удаления.
-create procedure sp_stylesheets_delete
-(
-	_id int
-)
-begin
-	delete from stylesheets where id = _id;
-end|
-
--- ---------------------
---  Работа с языками. --
--- ---------------------
-
-create procedure sp_languages_get_all ()
-begin
-	select id, `name` from languages;
-end|
-
--- Добавляет новый язык с именем _name.
---
--- Аргументы:
--- _name - имя нового языка.
-create procedure sp_languages_add
-(
-	_name varchar(50)
-)
-begin
-	insert into languages (`name`) values (_name);
-end|
-
--- Удаляет язык с идентификатором _id.
---
--- Аргументы:
--- _id - идентификатор языка для удаления.
-create procedure sp_languages_delete
-(
-	_id int
-)
-begin
-	delete from languages where id = _id;
-end|
-
--- ----------------------
---  Работа с группами. --
--- ----------------------
-
--- Выбирает все группы.
-create procedure sp_groups_get_all ()
-begin
-	select id, `name` from groups order by id;
-end|
-
--- Добавляет группу с именем _group_name, а так же стандартные разрешения на
--- чтение.
---
--- Аргументы:
--- _group_name - имя группы.
-create procedure sp_groups_add
-(
-	_name varchar(50)
-)
-begin
-	declare group_id int;
-	insert into groups (`name`) values (_name);
-	select id into group_id from groups where name = _name;
-	-- Стандартные права как для Гостя
-	insert into acl (`group`, `view`, `change`, moderate) values (group_id, 1, 0, 0);
-end|
-
--- Удаляет группу с идентификатором _id, а так же всех пользователей, которые
--- входят в эту группу и все права, которые заданы для этой группы.
---
--- Аргументы:
--- _id - идентификатор групы.
-create procedure sp_groups_delete
-(
-	_id int
-)
-begin
-	-- TODO: Сделать просто каскадное удаление
-	delete from acl where `group` = _id;
-	delete from user_groups where `group` = _id;
-	delete from groups where id = _id;
-end|
-
 -- -----------------------------------------------------
 --  Работа с закреплениями пользователей за группами. --
 -- -----------------------------------------------------
@@ -827,156 +1193,6 @@ create procedure sp_user_groups_delete
 )
 begin
 	delete from user_groups where `user` = user_id and `group` = group_id;
-end|
-
--- ---------------------------------------
---  Работа со списком контроля доступа. --
--- ---------------------------------------
-
--- Выбирает список контроля доступа.
-create procedure sp_acl_get_all ()
-begin
-	select `group`, `board`, `thread`, `post`, `view`, `change`, `moderate`
-	from acl order by `group`, `board`, `thread`, `post`;
-end|
-
--- Редактирует запись в списке контроля доступа.
---
--- Аргументы:
--- group_id - идентификатор группы или null для всех групп.
--- board_id - идентификатор доски или null для всех досок.
--- thread_id - идентификатор нити или null для всех нитей.
--- post_id - идентификатор сообщения или null для всех сообщений.
--- _view - право на чтение.
--- _change - право на изменение.
--- _moderate - право на модерирование.
-create procedure sp_acl_edit
-(
-	group_id int,
-	board_id int,
-	thread_num int,
-	post_num int,
-	_view bit,
-	_change bit,
-	_moderate bit
-)
-begin
-	update acl set `view` = _view, `change` = _change, `moderate` = _moderate
-	where ((`group` = group_id) or (coalesce(`group`, group_id) is null))
-		and ((`board` = board_id) or (coalesce(`board`, board_id) is null))
-		and ((`thread` = thread_num) or (coalesce(`thread`, thread_num) is null))
-		and ((`post` = post_num) or (coalesce(`post`, post_num) is null));
-end|
-
--- Удаляет запись из списка контроля доступа.
---
--- Аргументы:
--- group_id - идентификатор группы или null для всех групп.
--- board_id - идентификатор доски или null для всех досок.
--- thread_id - идентификатор нити или null для всех нитей.
--- post_id - идентификатор сообщения или null для всех сообщений.
-create procedure sp_acl_delete
-(
-	group_id int,
-	board_id int,
-	thread_id int,
-	post_id int
-)
-begin
-	delete from acl
-	where ((`group` = group_id) or (coalesce(`group`, group_id) is null))
-		and ((`board` = board_id) or (coalesce(`board`, board_id) is null))
-		and ((`thread` = thread_id) or (coalesce(`thread`, thread_id) is null))
-		and ((`post` = post_id) or (coalesce(`post`, post_id) is null));
-end|
-
--- Добавляет новую запись в список контроля доступа.
---
--- Аргументы:
--- group_id - идентификатор группы или null для всех групп.
--- board_id - идентификатор доски или null для всех досок.
--- thread_id - идентификатор нити или null для всех нитей.
--- post_id - идентификатор сообщения или null для всех сообщений.
--- _view - право на чтение. 0 или 1.
--- _change - право на изменение. 0 или 1.
--- _moderate - право на модерирование. 0 или 1.
-create procedure sp_acl_add
-(
-	group_id int,
-	board_id int,
-	thread_num int,
-	post_num int,
-	_view bit,
-	_change bit,
-	_moderate bit
-)
-begin
-	insert into acl (`group`, `board`, `thread`, `post`, `view`, `change`,
-		`moderate`)
-	values (group_id, board_id, thread_num, post_num, _view, _change,
-		_moderate);
-end|
-
--- ----------------------------------------------
---  Работа с обработчиками загружаемых файлов. --
--- ----------------------------------------------
-
--- Выбирает все обработчики загружаемых файлов.
-create procedure sp_upload_handlers_get_all ()
-begin
-	select id, `name` from upload_handlers;
-end|
-
--- Добавляет новый обработчик загружаемых файлов.
---
--- Аргументы:
--- _name - имя нового обработчика загружаемых файлов.
-create procedure sp_upload_handlers_add
-(
-	_name varchar(50)
-)
-begin
-	insert into upload_handlers (`name`) values (_name);
-end|
-
---
-create procedure sp_upload_handlers_delete
-(
-	_id int
-)
-begin
-	delete from upload_handlers where id = _id;
-end|
-
--- ------------------------------------------
---  Работа с обработчиками удаления нитей. --
--- ------------------------------------------
-
--- Выбирает все обработчики удаления нитей.
-create procedure sp_popdown_handlers_get_all ()
-begin
-	select id, `name` from popdown_handlers;
-end|
-
--- Добавляет новый обработчик удаления нитей.
---
--- Аргументы:
--- _name - имя нового обработчика удаления нитей.
-create procedure sp_popdown_handlers_add
-(
-	_name varchar(50)
-)
-begin
-	insert into popdown_handlers (`name`) values (_name);
-end|
-
---
-create procedure sp_popdown_handlers_delete
-(
-	_id int
-)
-begin
-	delete from popdown_handlers where id = _id;
 end|
 
 -- ---------------------------------------
@@ -1063,49 +1279,36 @@ begin
 	delete from upload_types where id = _id;
 end|
 
--- ---------------------------------------------
---  Работа со связями типов файлов с досками. --
--- ---------------------------------------------
-
--- Выбирает все связи типов файлов с досками.
-create procedure sp_board_upload_types_get_all ()
-begin
-	select board, upload_type from board_upload_types;
-end|
-
--- Добавляет связь типа загружаемого файла с доской.
---
--- Аргументы:
--- _board - идентификатор доски.
--- _upload_type - идтенификатор типа загружаемого файла.
-create procedure sp_board_upload_types_add
-(
-	_board int,
-	_upload_type int
-)
-begin
-	insert into board_upload_types (board, upload_type)
-	values (_board, _upload_type);
-end|
-
--- Удаляет связь типа загружаемого файла с доской.
---
--- Аргументы:
--- _board - идентификатор доски.
--- _upload_type - идтенификатор типа загружаемого файла.
-create procedure sp_board_upload_types_delete
-(
-	_board int,
-	_upload_type int
-)
-begin
-	delete from board_upload_types
-	where board = _board and upload_type = _upload_type;
-end|
-
 -- --------------------
 --  Работа с нитями. --
 -- --------------------
+
+-- Создаёт нить. Если номер оригинального сообщения null, то будет создана
+-- пустая нить.
+--
+-- Аргументы:
+-- _board_id - Идентификатор доски.
+-- _original_post - Номер оригинального сообщения.
+-- _bump_limit - Специфичный для нити бамплимит.
+-- _sage - Флаг поднятия нити при ответе.
+-- _with_files - Флаг прикрепления файлов к ответам в нить.
+create procedure sp_threads_add
+(
+	_board_id int,
+	_original_post int,
+	_bump_limit int,
+	_sage bit,
+	_with_files bit
+)
+begin
+	declare thread_id int;
+	insert into threads (board, original_post, bump_limit, deleted, archived,
+		sage, with_files)
+	values (_board_id, _original_post, _bump_limit, 0, 0,
+		_sage, _with_files);
+	select last_insert_id() into thread_id;
+	select * from threads where id = thread_id;
+end|
 
 -- Выбирает все нити.
 create procedure sp_threads_get_all ()
@@ -1116,10 +1319,10 @@ begin
 	order by id desc;
 end|
 
--- Выбирает все нити, помеченные для архивирования.
-create procedure sp_threads_get_all_archived ()
+-- Выбирает нити, помеченные для архивирования.
+create procedure sp_threads_get_archived ()
 begin
-	select id, board, original_post, bump_limit, sticky, sage, with_files
+	select id, board, original_post, bump_limit, sage, sticky, with_attachments
 	from threads
 	where deleted = 0 and archived = 1;
 end|
@@ -1146,32 +1349,31 @@ begin
 	where id = _id;
 end|
 
--- Редактирует оригинальное сообщение нити.
+-- Редактирует номер оригинального сообщения нити.
 --
 -- Аргументы:
--- _id - идентификатор нити.
--- _original_post - номер нового оригинального сообщения.
-create procedure sp_threads_edit_originalpost
+-- _id - Идентификатор нити.
+-- _original_post - Номер нового оригинального сообщения.
+create procedure sp_threads_edit_original_post
 (
 	_id int,
 	_original_post int
 )
 begin
-	update threads set original_post = _original_post
-	where id = _id;
+	update threads set original_post = _original_post where id = _id;
 end|
 
 -- Выбирает нити, доступные для модерирования заданному пользователю.
 --
 -- Аргументы:
--- user_id - идентификатор пользователя.
-create procedure sp_threads_get_all_moderate
+-- user_id - Идентификатор пользователя.
+create procedure sp_threads_get_moderatable
 (
 	user_id int
 )
 begin
-	select t.id, t.board, t.original_post, t.bump_limit, t.sticky, t.sage,
-		t.with_files
+	select t.id, t.board, t.original_post, t.bump_limit, t.sage, t.sticky,
+		t.with_attachments
 	from threads t
 	join user_groups ug on ug.`user` = user_id
 	left join hidden_threads ht on t.id = ht.thread and ug.`user` = ht.`user`
@@ -1235,16 +1437,16 @@ create procedure sp_threads_get_visible_by_board
 )
 begin
 	select q1.id, q1.original_post, q1.bump_limit, q1.sticky, q1.sage,
-		q1.with_files, q1.posts_count, q1.last_post_num
+		q1.with_attachments, q1.posts_count, q1.last_post_num
 	from (
 		-- Без учёта сообщений с сажей вычислим последнее сообщение в нити.
 		select q.id, q.original_post, q.bump_limit, q.sticky, q.sage,
-			q.with_files, q.posts_count, max(p.`number`) as last_post_num
+			q.with_attachments, q.posts_count, max(p.`number`) as last_post_num
 		from posts p
 		join (
 			-- Выберем видимые нити и подсчитаем количество видимых сообщений.
 			select t.id, t.original_post, t.bump_limit, t.sticky, t.sage,
-				t.with_files, count(distinct p.id) as posts_count
+				t.with_attachments, count(distinct p.id) as posts_count
 			from posts p
 			join threads t on t.id = p.thread and t.board = board_id
 			join user_groups ug on ug.`user` = user_id
@@ -1300,60 +1502,13 @@ begin
 	order by q1.last_post_num desc;
 end|
 
--- Вычисляет количество нитей, доступных для просмотра заданному пользователю
--- на заданной доске.
---
--- Аргументы:
--- user_id - идентификатор пользователя.
--- board_id - идентификатор доски.
-create procedure sp_threads_get_view_threadscount
-(
-	user_id int,
-	board_id int
-)
-begin
-	select count(q.id) as threads_count
-	from (select t.id
-	from threads t
-	join user_groups ug on ug.user = user_id
-	left join hidden_threads ht on ht.thread = t.id and ht.`user` = ug.`user`
-	-- Правила для конкретной группы и нити.
-	left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
-	-- Правило для всех групп и конкретной нити.
-	left join acl a2 on a2.`group` is null and a2.thread = t.id
-	-- Правила для конкретной группы и доски.
-	left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
-	-- Правило для всех групп и конкретной доски.
-	left join acl a4 on a4.`group` is null and a4.board = t.board
-	-- Правило для конкретной групы.
-	left join acl a5 on a5.`group` = ug.`group` and a5.board is null
-		and a5.thread is null and a5.post is null
-	where t.board = board_id
-		and t.deleted = 0
-		and t.archived = 0
-		and ht.thread is null
-		-- Нить должна быть доступна для просмотра.
-			-- Просмотр нити не запрещен конкретной группе и
-		and ((a1.`view` = 1 or a1.`view` is null)
-			-- просмотр нити не запрещен всем группам и
-			and (a2.`view` = 1 or a2.`view` is null)
-			-- просмотр доски не запрещен конкретной группе и
-			and (a3.`view` = 1 or a3.`view` is null)
-			-- просмотр доски не запрещен всем группам и
-			and (a4.`view` = 1 or a4.`view` is null)
-			-- просмотр разрешен конкретной группе.
-			and a5.`view` = 1)
-	group by t.id) q;
-end|
-
--- Выбирает доступную для просмотра пользователю нить с заданной страницы доски,
--- и количество сообщений в ней.
+-- Выбирает доступную для просмотра нить с заданной доски.
 --
 -- Аргументы:
 -- board_id - идентификатор доски.
 -- thread_num - номер нити.
 -- user_id - идентификатор пользователя.
-create procedure sp_threads_get_specifed_view
+create procedure sp_threads_get_visible_by_id
 (
 	board_id int,
 	thread_num int,
@@ -1368,7 +1523,7 @@ begin
 		select 'NOT_FOUND' as error;
 	else
 		select t.id, t.original_post, t.bump_limit, t.sticky, t.archived, t.sage,
-			t.with_files, count(p.id) as visible_posts_count
+			t.with_attachments, count(p.id) as visible_posts_count
 		from posts p
 		join threads t on t.id = p.thread
 		join user_groups ug on ug.`user` = user_id
@@ -1424,14 +1579,59 @@ begin
 	end if;
 end|
 
--- Получает доступную для просмотра пользователю скрытую нить с заданной доски
--- и количество сообщений в ней.
+-- Вычисляет количество нитей, доступных для просмотра заданному пользователю
+-- на заданной доске.
 --
 -- Аргументы:
--- board_id - идентификатор доски.
--- thread_num - номер нити.
 -- user_id - идентификатор пользователя.
-create procedure sp_threads_get_specifed_view_hiden
+-- board_id - идентификатор доски.
+create procedure sp_threads_get_visible_count
+(
+	user_id int,
+	board_id int
+)
+begin
+	select count(q.id) as threads_count
+	from (select t.id
+	from threads t
+	join user_groups ug on ug.user = user_id
+	left join hidden_threads ht on ht.thread = t.id and ht.`user` = ug.`user`
+	-- Правила для конкретной группы и нити.
+	left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+	-- Правило для всех групп и конкретной нити.
+	left join acl a2 on a2.`group` is null and a2.thread = t.id
+	-- Правила для конкретной группы и доски.
+	left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
+	-- Правило для всех групп и конкретной доски.
+	left join acl a4 on a4.`group` is null and a4.board = t.board
+	-- Правило для конкретной групы.
+	left join acl a5 on a5.`group` = ug.`group` and a5.board is null
+		and a5.thread is null and a5.post is null
+	where t.board = board_id
+		and t.deleted = 0
+		and t.archived = 0
+		and ht.thread is null
+		-- Нить должна быть доступна для просмотра.
+			-- Просмотр нити не запрещен конкретной группе и
+		and ((a1.`view` = 1 or a1.`view` is null)
+			-- просмотр нити не запрещен всем группам и
+			and (a2.`view` = 1 or a2.`view` is null)
+			-- просмотр доски не запрещен конкретной группе и
+			and (a3.`view` = 1 or a3.`view` is null)
+			-- просмотр доски не запрещен всем группам и
+			and (a4.`view` = 1 or a4.`view` is null)
+			-- просмотр разрешен конкретной группе.
+			and a5.`view` = 1)
+	group by t.id) q;
+end|
+
+-- Выбирает доступную для просмотра скрытую нить и количество сообщений в ней.
+--
+-- Аргументы:
+-- board_id - Идентификатор доски.
+-- thread_num - Номер нити.
+-- user_id - Идентификатор пользователя.
+create procedure sp_hidden_threads_get_visible
 (
 	board_id int,
 	thread_num int,
@@ -1445,8 +1645,8 @@ begin
 	then
 		select 'NOT_FOUND' as error;
 	else
-		select t.id, t.original_post, t.bump_limit, t.sticky, t.archived,
-			t.sage, t.with_files, count(p.id) as visible_posts_count
+		select t.id, t.original_post, t.bump_limit, t.archived, t.sage,
+			t.sticky, t.with_attachments, count(p.id) as posts_count
 		from posts p
 		join threads t on t.id = p.thread
 		join user_groups ug on ug.`user` = user_id
@@ -1502,19 +1702,19 @@ begin
 	end if;
 end|
 
--- Выбирает нить доступную для редактирования заданному пользователю.
+-- Выбирает нить, доступную для редактирования заданному пользователю.
 --
 -- Аргументы:
 -- thread_id - Идентификатор нити.
 -- user_id - Идентификатор пользователя.
-create procedure sp_threads_get_specifed_change
+create procedure sp_threads_get_changeable_by_id
 (
 	thread_id int,
 	user_id int
 )
 begin
 	select t.id, t.board, t.original_post, t.bump_limit, t.archived, t.sage,
-		t.with_files
+		t.with_attachments
 	from threads t
 	join user_groups ug on ug.`user` = user_id
 	left join hidden_threads ht on t.id = ht.thread and ug.`user` = ht.`user`
@@ -1555,12 +1755,12 @@ begin
 	group by t.id;
 end|
 
--- Проверяет, доступна ли нить для модерирования пользователю.
+-- Выбирает заданную нить, если она доступна для модерирования.
 --
 -- Аргументы:
 -- thread_id - идентификатор нити.
 -- user_id - идентификатор пользователя.
-create procedure sp_threads_check_specifed_moderate
+create procedure sp_threads_get_moderatable_by_id
 (
 	thread_id int,
 	user_id int
@@ -1611,33 +1811,6 @@ begin
 			-- модерирование нити не запрещено ни конкретной группе ни всем, и конкретной группе модерирование разрешено.
 			or (a1.moderate is null and a2.moderate is null and a5.moderate = 1))
 	group by t.id;
-end|
-
--- Создаёт нить. Если номер оригинального сообщения null, то будет создана
--- пустая нить.
---
--- Аргументы:
--- _board_id - Идентификатор доски.
--- _original_post - Номер оригинального сообщения нити.
--- _bump_limit - Специфичный для нити бамплимит.
--- _sage - Не поднимать нить ответами.
--- _with_files - Флаг прикрепления файлов к ответам в нить.
-create procedure sp_threads_add
-(
-	_board_id int,
-	_original_post int,
-	_bump_limit int,
-	_sage bit,
-	_with_files bit
-)
-begin
-	declare thread_id int;
-	insert into threads (board, original_post, bump_limit, deleted, archived,
-		sage, with_files)
-	values (_board_id, _original_post, _bump_limit, 0, 0,
-		_sage, _with_files);
-	select last_insert_id() into thread_id;
-	select * from threads where id = thread_id;
 end|
 
 -- Оставляет не помеченными на архивирование нити заданной доски, суммарное
@@ -1759,35 +1932,35 @@ begin
 	order by p.`number` asc;
 end|
 
--- Выбирает все сообщения заданной нити.
+-- Выбирает сообщения заданной нити.
 --
 -- Аргументы:
--- thread_id - идентификатор нити.
-create procedure sp_posts_get_thread
+-- thread_id - Идентификатор нити.
+create procedure sp_posts_get_by_thread
 (
 	thread_id int
 )
 begin
-	select id, thread, `number`, password, `name`, tripcode, ip, subject,
+	select id, thread, number, password, `name`, tripcode, ip, subject,
 		date_time, text, sage
 	from posts p
 	where thread = thread_id;
 end|
 
--- Выбирает сообщение по номеру.
+-- Выбирает сообщение по заданному номеру.
 --
 -- Аргументы:
 -- board_id - Идентификатор доски.
--- post_num - Номер сообщения.
+-- post_number - Номер сообщения.
 -- user_id - Идентификатор пользователя.
-create procedure sp_posts_get_specifed_view_bynumber
+create procedure sp_posts_get_visible_by_number
 (
 	board_id int,
-	post_num int,
+	post_number int,
 	user_id int
 )
 begin
-	select p.id, p.thread, p.`number`, p.password, p.`name`, p.tripcode, p.ip,
+	select p.id, p.thread, p.number, p.password, p.name, p.tripcode, p.ip,
 		p.subject, p.date_time, p.text, p.sage
 	from posts p
 	join user_groups ug on ug.`user` = user_id
@@ -1807,7 +1980,7 @@ begin
 	left join acl a7 on a7.`group` = ug.`group` and a7.board is null and
 		a7.thread is null and a7.post is null
 	where p.board = board_id
-		and p.`number` = post_num
+		and p.number = post_number
 		and p.deleted = 0
 		-- Сообщение должно быть доступно для просмотра.
 			-- Просмотр сообщения не запрещен конкретной группе и
@@ -1881,9 +2054,9 @@ end|
 -- Выбирает все сообщения.
 create procedure sp_posts_get_all ()
 begin
-	select p.id, p.thread, t.original_post as thread_number, p.board,
-		b.name as board_name, p.`number`, p.password, p.`name`, p.tripcode,
-		p.ip, p.subject, p.date_time, p.text, p.sage
+	select p.id, p.board, b.name as board_name, p.thread,
+		t.original_post as thread_number, p.`number`, p.password, p.name,
+		p.tripcode, p.ip, p.subject, p.date_time, p.text, p.sage
 	from posts p
 	join threads t on t.id = p.thread
 	join boards b on b.id = p.board
@@ -2036,7 +2209,7 @@ begin
 end|
 
 -- Удаляет сообщения, помеченные на удаление.
-create procedure sp_posts_delete_all_marked ()
+create procedure sp_posts_delete_marked ()
 begin
 	delete pu from posts_uploads pu
 	join posts p on p.id = pu.post
@@ -2060,24 +2233,13 @@ end|
 -- Аргументы:
 -- _id - Идентификатор сообщения.
 -- _text - Текст.
-create procedure sp_posts_edit_specifed_addtext
+create procedure sp_posts_add_text_by_id
 (
 	_id int,
 	_text text
 )
 begin
 	update posts set text = concat(text, _text) where id = _id;
-end|
-
--- Выбирает все сообщения с номерами нитей и именами досок.
-create procedure sp_posts_get_all_numbers ()
-begin
-	select p.`number` as post, t.`original_post` as thread, b.`name` as board
-	from posts p
-	join threads t on t.id = p.thread
-	join boards b on b.id = p.board
-	where p.deleted = 0 and t.deleted = 0 and t.archived = 0
-	order by p.`number`, t.`original_post`, b.`name` asc;
 end|
 
 -- ----------------------------------------------------------
@@ -2243,48 +2405,76 @@ begin
 	group by u.id, p.id;
 end|
 
--- ------------------------------
---  Работа со скрытыми нитями. --
--- ------------------------------
+-- ---------------------------------------------------------
+-- Работа с закрплениями вложенных файлов за сообщениями. --
+-- ---------------------------------------------------------
 
--- Выбирает скрыте нити на заданной доске.
---
+-- Выбирает закрепления вложенных файлов за заданным сообщением.
+
 -- Аргументы:
--- board_id - идентификатор доски.
-create procedure sp_hidden_threads_get_by_board
+-- post_id - Идентификатор сообщения.
+create procedure sp_posts_files_get_by_post
 (
-	board_id int
+	post_id int
 )
 begin
-	select ht.thread, t.original_post, ht.`user`
-	from hidden_threads ht
-	join threads t on t.id = ht.thread and t.board = board_id;
+	select post, `file` from posts_files where post = post_id;
 end|
 
--- Скрывает нить.
---
+-- --------------------------------------------------------------
+-- Работа с закрплениями вложенных изображений за сообщениями. --
+-- --------------------------------------------------------------
+
+-- Выбирает закрепления вложенных изображений за заданным сообщением.
+
 -- Аргументы:
--- thread_id - Идентификатор доски.
--- user_id - Идентификатор пользователя.
-create procedure sp_hidden_threads_add
+-- post_id - Идентификатор сообщения.
+create procedure sp_posts_images_get_by_post
 (
-	thread_id int,
-	user_id int
+	post_id int
 )
 begin
-	insert into hidden_threads (`user`, thread) values (user_id, thread_id);
+	select post, image from posts_images where post = post_id;
 end|
 
--- Отменяет скрытие нити.
---
+-- ---------------------------------------------------------
+-- Работа с закрплениями вложенных ссылок за сообщениями. --
+-- ---------------------------------------------------------
+
+-- Выбирает закрепления вложенных ссылок за заданным сообщением.
+
 -- Аргументы:
--- thread_id - Идентификатор доски.
--- user_id - Идентификатор пользователя.
-create procedure sp_hidden_threads_delete
+-- post_id - Идентификатор сообщения.
+create procedure sp_posts_links_get_by_post
 (
-	thread_id int,
-	user_id int
+	post_id int
 )
 begin
-	delete from hidden_threads where `user` = user_id and thread = thread_id;
+	select post, `link` from posts_links where post = post_id;
+end|
+
+-- ---------------------------------------------------------
+-- Работа с закрплениями вложенного видео за сообщениями. --
+-- ---------------------------------------------------------
+
+-- Выбирает закрепления вложенных видео за заданным сообщением.
+
+-- Аргументы:
+-- post_id - Идентификатор сообщения.
+create procedure sp_posts_videos_get_by_post
+(
+	post_id int
+)
+begin
+	select post, video from posts_videos where post = post_id;
+end|
+
+-- Proc for test mysql bit type support
+drop procedure if exists sp_test_mysql_bit|
+create procedure sp_test_mysql_bit ()
+begin
+	insert into uploads (is_image, upload_type, `file`, `size`) values (1, 0, 'test mysql bit', 0);
+	insert into uploads (is_image, upload_type, `file`, `size`) values (0, 0, 'test mysql bit', 0);
+	select is_image from uploads where `file` = 'test mysql bit';
+	delete from uploads where `file` = 'test mysql bit';
 end|
