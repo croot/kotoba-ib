@@ -56,6 +56,12 @@ hidden_threads_get_visible()
 images_get_same() | db_images_get_same() | sp_images_get_same()
 | db_images_get_by_post() | sp_images_get_by_post()
 
+languages_add() | db_languages_add() | sp_languages_add()
+function languages_check_code()
+function languages_check_id()
+languages_delete() | db_languages_delete() | sp_languages_delete()
+languages_get_all() | db_languages_delete() | sp_languages_delete()
+
 threads_add()
 threads_check_bump_limit()
 threads_check_id()

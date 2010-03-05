@@ -1046,6 +1046,58 @@ function db_images_get_same($link, $board_id, $image_hash, $user_id)
 	return $images;
 }
 
+/*********************
+ * Работа с языками. *
+ *********************/
+
+/**
+ * Добавляет язык.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param code string <p>ISO_639-2 код языка.</p>
+ */
+function db_languages_add($link, $code)
+{
+	$result = mysqli_query($link, 'call sp_languages_add(\'' . $code . '\')');
+	if(!$result)
+		throw new CommonException(mysqli_error($link));
+	db_cleanup_link($link);
+}
+/**
+ * Удаляет язык с заданным идентификатором.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param id mixed <p>Идентификатор языка.</p>
+ */
+function db_languages_delete($link, $id)
+{
+	$result = mysqli_query($link, 'call sp_languages_delete(' . $id . ')');
+	if(!$result)
+		throw new CommonException(mysqli_error($link));
+	db_cleanup_link($link);
+}
+/**
+ * Получает языки.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @return array
+ * Возвращает языки:<p>
+ * 'id' - Идентификатор.<br>
+ * 'code' - Код ISO_639-2.</p>
+ */
+function db_languages_get_all($link)
+{
+	if(($result = mysqli_query($link, 'call sp_languages_get_all()')) == false)
+		throw new CommonException(mysqli_error($link));
+	$languages = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) != null)
+			array_push($languages, array('id' => $row['id'],
+					'name' => $row['name']));
+	else
+		throw new NodataException(NodataException::$messages['LANGUAGES_NOT_EXIST']);
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $languages;
+}
+
 /****************************
  * Работа с пользователями. *
  ****************************/
@@ -1233,63 +1285,6 @@ function db_stylesheets_add($link, $name)
 function db_stylesheets_delete($link, $id)
 {
 	if(!mysqli_query($link, "call sp_stylesheets_delete($id)"))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
-}
-
-/*********************
- * Работа с языками. *
- *********************/
-
-/**
- * Получает все языки.
- *
- * Аргументы:
- * $link - связь с базой данных.
- *
- * Возвращает языки:
- * 'id' - идентификатор языка.
- * 'name' - имя языка.
- */
-function db_languages_get_all($link)
-{
-	if(($result = mysqli_query($link, 'call sp_languages_get_all()')) == false)
-		throw new CommonException(mysqli_error($link));
-	$languages = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) != null)
-			array_push($languages, array('id' => $row['id'],
-					'name' => $row['name']));
-	else
-		throw new NodataException(NodataException::$messages['LANGUAGES_NOT_EXIST']);
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $languages;
-}
-/**
- * Добавляет новый язык с именем $name.
- *
- * Аргументы:
- * $link - связь с базой данных.
- * $name - имя нового языка.
- */
-function db_languages_add($link, $name)
-{
-	$result = mysqli_query($link, "call sp_languages_add('$name')");
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
-}
-/**
- * Удаляет язык с идентификатором $id.
- *
- * Аргументы:
- * $link - связь с базой данных.
- * $id - идентификатор языка для удаления.
- */
-function db_languages_delete($link, $id)
-{
-	if(($result = mysqli_query($link, "call sp_languages_delete($id)")) == false)
 		throw new CommonException(mysqli_error($link));
 	db_cleanup_link($link);
 }
