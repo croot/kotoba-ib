@@ -1009,6 +1009,79 @@ function images_get_same($board_id, $image_hash, $user_id)
 		$user_id);
 }
 
+/*********************
+ * Работа с языками. *
+ *********************/
+
+/**
+ * Добавляет язык.
+ * @param code string <p>ISO_639-2 код языка.</p>
+ */
+function languages_add($code)
+{
+	db_languages_add(DataExchange::getDBLink(), $code);
+}
+/**
+ * Проверяет корректность ISO_639-2 кода языка.
+ * @param code string <p>ISO_639-2 код языка.</p>
+ * @return string
+ * Возвращает безопасный для использования ISO_639-2 код языка.
+ */
+function languages_check_code($code)
+{
+	$length = strlen($code);
+	if($length == 3)
+	{
+		$code = RawUrlEncode($code);
+		$length = strlen($code);
+		if($length != 3 || (strpos($code, '%') !== false))
+			throw new FormatException(FormatException::$messages['LANGUAGE_CODE']);
+	}
+	else
+		throw new FormatException(FormatException::$messages['LANGUAGE_CODE']);
+	return $code;
+}
+/**
+ * Проверяет корректность идентификатора языка.
+ * @param id mixed <p>Идентификатор языка.</p>
+ * @return string
+ * Возвращает безопасный для использования идентификатор языка.
+ */
+function languages_check_id($id)
+{
+	$length = strlen($id);
+	$max_int_length = strlen('' . PHP_INT_MAX);
+	if($length <= $max_int_length && $length >= 1)
+	{
+		$id = RawUrlEncode($id);
+		$length = strlen($id);
+		if($length > $max_int_length || (ctype_digit($id) === false) || $length < 1)
+			throw new FormatException(FormatException::$messages['LANGUAGE_ID']);
+	}
+	else
+		throw new FormatException(FormatException::$messages['LANGUAGE_ID']);
+	return $id;
+}
+/**
+ * Удаляет язык с заданным идентификатором.
+ * @param id mixed <p>Идентификатор языка.</p>
+ */
+function languages_delete($id)
+{
+	db_languages_delete(DataExchange::getDBLink(), $id);
+}
+/**
+ * Получает языки.
+ * @return array
+ * Возвращает языки:<p>
+ * 'id' - Идентификатор.<br>
+ * 'code' - Код ISO_639-2.</p>
+ */
+function languages_get_all()
+{
+	return db_languages_get_all(DataExchange::getDBLink());
+}
+
 /****************************
  * Работа с пользователями. *
  ****************************/
@@ -1306,87 +1379,6 @@ function stylesheets_add($name)
 function stylesheets_delete($id)
 {
 	db_stylesheets_delete(DataExchange::getDBLink(), $id);
-}
-
-/*********************
- * Работа с языками. *
- *********************/
-
-/**
- * Проверяет корректность идентификатора $id языка.
- *
- * Аргументы:
- * $id - идентификатор языка.
- *
- * Возвращает безопасный для использования идентификатор языка.
- */
-function languages_check_id($id)
-{
-	if(!isset($id))
-		throw new NodataException(NodataException::$messages['LANGUAGE_ID_NOT_SPECIFED']);
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['LANGUAGE_ID']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['LANGUAGE_ID']);
-	return $id;
-}
-/**
- * Проверяет корректность имени языка.
- * @param name string <p>Имя языка.</p>
- * @return string
- * Возвращает безопасное для использования имя языка.
- */
-function languages_check_name($name)
-{
-	if(!isset($name))
-		throw new NodataException(NodataException::$messages['LANGUAGE_NAME_NOT_SPECIFED']);
-	$length = strlen($name);
-	if($length <= 50 && $length >= 1)
-	{
-		$name = RawUrlEncode($name);
-		$length = strlen($name);
-		if($length > 50 || (strpos($name, '%') !== false) || $length < 1)
-			throw new FormatException(FormatException::$messages['LANGUAGE_NAME']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['LANGUAGE_NAME']);
-	return $name;
-}
-/**
- * Получает все языки.
- *
- * Возвращает языки:
- * 'id' - идентификатор языка.
- * 'name' - имя языка.
- */
-function languages_get_all()
-{
-	return db_languages_get_all(DataExchange::getDBLink());
-}
-/**
- * Добавляет новый язык.
- * @param name string <p>Имя нового языка.</p>
- */
-function languages_add($name)
-{
-	db_languages_add(DataExchange::getDBLink(), $name);
-}
-/**
- * Удаляет язык с идентификатором $id.
- *
- * Аргументы:
- * $id - идентификатор языка для удаления.
- */
-function languages_delete($id)
-{
-	db_languages_delete(DataExchange::getDBLink(), $id);
 }
 
 /*****************************************************
