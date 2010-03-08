@@ -91,7 +91,7 @@ engine=InnoDB|
 create table popdown_handlers		-- Обработчики автоматического удаления нитей.
 (
 	id int not null auto_increment,	-- Идентификатор.
-	name varchar(50) not null,		-- Имя фукнции.
+	name varchar(50) not null,		-- Имя функции.
 	primary key (id)
 )
 engine=InnoDB|
@@ -202,14 +202,14 @@ engine=InnoDB|
 create table threads					-- Нити.
 (
 	id int not null auto_increment,		-- Идентификатор.
-	board int not null,					-- Доска.
+	board int not null,					-- Идентификатор доски.
 	original_post int default null,		-- Номер оригинального сообщения.
 	bump_limit int default null,		-- Специфичный для нити бамплимит.
 	deleted bit not null,				-- Пометка на удаление.
 	archived bit not null,				-- Флаг архивирования.
 	-- Этот флаг не может быть null, так как для него нет родительского
 	-- значения, которое можно было бы унаследовать.
-	sage bit not null,					-- Флаг поднятия нити при ответе.
+	sage bit not null,					-- Флаг поднятия нити.
 	sticky bit not null default 0,		-- Флаг закрепления.
 	-- Если этот флаг null, то берётся родительский with_attachments доски.
 	with_attachments bit default null,	-- Флаг вложений.
@@ -228,13 +228,16 @@ create table hidden_threads	-- Скрытые нити.
 )
 engine=InnoDB|
 
+-- Заметки:
+-- Если установлен флаг удаления, то сообщение считается "помеченным на
+-- удаление".
 create table posts						-- Сообщения.
 (
 	id int not null auto_increment,		-- Идентификатор.
-	board int not null,					-- Доска.
-	thread int not null,				-- Нить.
+	board int not null,					-- Идентификатор доски.
+	thread int not null,				-- Идентификатор нити.
 	number int not null,				-- Номер.
-	user int not null,					-- Пользователь.
+	user int not null,					-- Идентификатор пользователя.
 	password varchar(12) default null,	-- Пароль.
 	name varchar(128) default null,		-- Имя отправителя.
 	tripcode varchar(128) default null,	-- Трипкод.
