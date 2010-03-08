@@ -43,22 +43,34 @@ drop procedure if exists sp_hidden_threads_get_visible|
 
 drop procedure if exists sp_images_get_by_post|
 drop procedure if exists sp_images_get_same|
--- /DONE
-drop procedure if exists sp_files_get_by_post|
 
 drop procedure if exists sp_languages_add|
 drop procedure if exists sp_languages_delete|
 drop procedure if exists sp_languages_get_all|
 
-drop procedure if exists sp_links_get_by_post|
-
 drop procedure if exists sp_popdown_handlers_add|
 drop procedure if exists sp_popdown_handlers_delete|
 drop procedure if exists sp_popdown_handlers_get_all|
 
+drop procedure if exists sp_posts_add|
+drop procedure if exists sp_posts_add_text_by_id|
+drop procedure if exists sp_posts_delete|
+drop procedure if exists sp_posts_delete_last|
+drop procedure if exists sp_posts_delete_marked|
+drop procedure if exists sp_posts_get_all|
+drop procedure if exists sp_posts_get_by_board|
+drop procedure if exists sp_posts_get_by_thread|
+drop procedure if exists sp_posts_get_visible_by_id|
+drop procedure if exists sp_posts_get_visible_by_number|
+drop procedure if exists sp_posts_get_visible_by_thread|
+
 drop procedure if exists sp_stylesheets_add|
 drop procedure if exists sp_stylesheets_delete|
 drop procedure if exists sp_stylesheets_get_all|
+-- /DONE
+drop procedure if exists sp_files_get_by_post|
+
+drop procedure if exists sp_links_get_by_post|
 
 drop procedure if exists sp_upload_handlers_add|
 drop procedure if exists sp_upload_handlers_delete|
@@ -92,20 +104,9 @@ drop procedure if exists sp_threads_get_moderatable_by_id|
 drop procedure if exists sp_threads_get_visible_by_board|
 drop procedure if exists sp_threads_get_visible_by_id|
 drop procedure if exists sp_threads_get_visible_count|
-drop procedure if exists sp_posts_get_visible_by_thread|
-drop procedure if exists sp_posts_get_by_thread|
-drop procedure if exists sp_posts_get_visible_by_number|
-drop procedure if exists sp_posts_get_visible_by_id|
-drop procedure if exists sp_posts_get_all|
-drop procedure if exists sp_posts_get_by_board|
-drop procedure if exists sp_posts_add|
 drop procedure if exists sp_posts_uploads_get_by_post|
 drop procedure if exists sp_posts_uploads_add|
 drop procedure if exists sp_posts_uploads_delete_by_post|
-drop procedure if exists sp_posts_delete|
-drop procedure if exists sp_posts_delete_last|
-drop procedure if exists sp_posts_delete_marked|
-drop procedure if exists sp_posts_add_text_by_id|
 drop procedure if exists sp_uploads_get_by_post|
 drop procedure if exists sp_uploads_get_same|
 drop procedure if exists sp_uploads_add|
@@ -852,6 +853,477 @@ begin
 	where i.hash = image_hash
 	group by i.id, p.id;
 end|
+
+-- ---------------------
+--  Работа с языками. --
+-- ---------------------
+
+-- Добавляет язык.
+--
+-- Аргументы:
+-- _code - ISO_639-2 код языка.
+create procedure sp_languages_add
+(
+	_code char(3)
+)
+begin
+	insert into languages (code) values (_code);
+end|
+
+-- Удаляет язык с заданным идентификатором.
+--
+-- Аргументы:
+-- _id - Идентификатор языка.
+create procedure sp_languages_delete
+(
+	_id int
+)
+begin
+	delete from languages where id = _id;
+end|
+
+-- Выбирает языки.
+create procedure sp_languages_get_all ()
+begin
+	select id, code from languages;
+end|
+
+-- ----------------------------------------------------------
+--  Работа с обработчиками автоматического удаления нитей. --
+-- ----------------------------------------------------------
+
+-- Добавляет обработчик автоматического удаления нитей.
+--
+-- Аргументы:
+-- _name - Имя функции обработчика автоматического удаления нитей.
+create procedure sp_popdown_handlers_add
+(
+	_name varchar(50)
+)
+begin
+	insert into popdown_handlers (name) values (_name);
+end|
+
+-- Удаляет обработчик автоматического удаления нитей.
+--
+-- Аргументы:
+-- _id - Идентификатор обработчика автоматического удаления нитей.
+create procedure sp_popdown_handlers_delete
+(
+	_id int
+)
+begin
+	delete from popdown_handlers where id = _id;
+end|
+
+-- Выбирает обработчики автоматического удаления нитей.
+create procedure sp_popdown_handlers_get_all ()
+begin
+	select id, name from popdown_handlers;
+end|
+
+-- -------------------------
+--  Работа с сообщениями. --
+-- -------------------------
+
+-- Добавляет сообщение.
+--
+-- Аргументы:
+-- board_id - Идентификатор доски.
+-- thread_id - Идентификатор нити.
+-- user_id - Идентификатор пользователя.
+-- _password - Пароль на удаление сообщения.
+-- _name - Имя отправителя.
+-- _tripcode - Трипкод.
+-- _ip - IP-адрес отправителя.
+-- _subject - Тема.
+-- _date_time - Время сохранения.
+-- _text - Текст.
+-- _sage - Флаг поднятия нити.
+create procedure sp_posts_add
+(
+	board_id int,
+	thread_id int,
+	user_id int,
+	_password varchar(128),
+	_name varchar(128),
+	_tripcode varchar(128),
+	_ip bigint,
+	_subject varchar(128),
+	_date_time datetime,
+	_text text,
+	_sage bit
+)
+begin
+	declare count_posts int;	-- posts in thread
+	declare post_number int;	-- number on post on thread
+	declare bumplimit int;		-- number of bump posts (posts which brings thread to up)
+	declare threadsage bit;		-- whole thread sage
+	declare post_id int;
+	select max(number) into post_number from posts where board = board_id;
+	if(post_number is null)
+	then
+		set post_number = 1;
+	else
+		set post_number = post_number + 1;
+	end if;
+	select bump_limit into bumplimit from threads where id = thread_id;
+	select count(id) into count_posts from posts where thread = thread_id;
+	select sage into threadsage from threads where id = thread_id;
+	if(threadsage is not null and threadsage = 1)
+	then
+		set _sage = 1;
+	end if;
+	if(count_posts > bumplimit)
+	then
+		set _sage = 1;
+	end if;
+	if(_date_time is null)
+	then
+		set _date_time = now();
+	end if;
+	insert into posts (board, thread, number, user, password, name,
+		tripcode, ip, subject, date_time, text, sage, deleted)
+	values (board_id, thread_id, post_number, user_id, _password, _name,
+		_tripcode, _ip, _subject, _date_time, _text, _sage, 0);
+	select last_insert_id() into post_id;
+	select id, board, thread, number, user, password, name, tripcode, ip,
+		subject, date_time, `text`, sage
+	from posts where id = post_id;
+end|
+
+-- Добавляет текст в конец текста заданного сообщения.
+--
+-- Аргументы:
+-- _id - Идентификатор сообщения.
+-- _text - Текст.
+create procedure sp_posts_add_text_by_id
+(
+	_id int,
+	_text text
+)
+begin
+	update posts set text = concat(text, _text) where id = _id;
+end|
+
+-- Удаляет сообщение с заданным идентификатором.
+--
+-- Аргументы:
+-- _id - Идентификатор сообщения.
+create procedure sp_posts_delete
+(
+	_id int
+)
+begin
+	declare thread_id int;
+	set thread_id = null;
+	-- Проверим, не является ли пост оригинальным. Если да, то удалим всю нить
+	-- целиком.
+	select p.thread into thread_id
+	from posts p
+	join threads t on t.id = p.thread and p.id = _id
+		and p.number = t.original_post;
+	if(thread_id is null) then
+		update posts set deleted = 1 where id = _id;
+	else
+		update threads set deleted = 1 where id = thread_id;
+		update posts set deleted = 1 where thread = thread_id;
+	end if;
+end|
+
+-- Удаляет сообщение с заданным идентификатором и все сообщения с ip адреса
+-- отправителя, оставленные с заданного момента времени.
+--
+-- Аргументы:
+-- _id - Идентификатор сообщения.
+-- _date_time - Момент времени.
+create procedure sp_posts_delete_last
+(
+	_id int,
+	_date_time datetime
+)
+begin
+	declare _ip bigint;
+	declare done int default 0;
+	declare thread_id int;
+	declare `c` cursor for
+		select t.id
+		from posts p
+		join (select ip from posts where id = _id) q on q.ip = p.ip
+		join threads t on t.id = p.thread and p.`date_time` > _date_time
+			and p.`number` = t.original_post;
+	declare continue handler for not found set done = 1;
+	open `c`;
+	repeat
+	fetch `c` into thread_id;
+	if(not done) then
+		call sp_threads_delete_specifed(thread_id);
+	end if;
+	until done end repeat;
+	close `c`;
+	select ip into _ip from posts where id = _id;
+	if(_ip is not null) then
+		update posts set deleted = 1 where ip = _ip and `date_time` > _date_time;
+	end if;
+end|
+
+-- Удаляет сообщения, помеченные на удаление.
+create procedure sp_posts_delete_marked ()
+begin
+	delete pu from posts_uploads pu
+	join posts p on p.id = pu.post
+	where p.deleted = 1;
+
+	delete a from acl a
+	join posts p on p.id = a.post
+	where p.deleted = 1;
+
+	delete from posts where deleted = 1;
+
+	delete ht from hidden_threads ht
+	join threads t on t.id = ht.thread
+	where t.deleted = 1;
+
+	delete from threads where deleted = 1;
+end|
+
+-- Выбирает все сообщения.
+create procedure sp_posts_get_all ()
+begin
+	select p.id, p.board, b.name as board_name, p.thread,
+		t.original_post as thread_number, p.number, p.password, p.name,
+		p.tripcode, p.ip, p.subject, p.date_time, p.text, p.sage
+	from posts p
+	join threads t on t.id = p.thread
+	join boards b on b.id = p.board
+	where p.deleted = 0 and t.deleted = 0 and t.archived = 0
+	order by p.date_time desc;
+end|
+
+-- Выбирает сообщения с заданной доски.
+--
+-- Аргументы:
+-- board_id - Идентификатор доски.
+create procedure sp_posts_get_by_board
+(
+	board_id int
+)
+begin
+	select p.id, p.thread, t.original_post as thread_number, p.board,
+		b.name as board_name, p.number, p.password, p.name, p.tripcode,
+		p.ip, p.subject, p.date_time, p.text, p.sage
+	from posts p
+	join threads t on t.id = p.thread
+	join boards b on b.id = p.board
+	where p.deleted = 0 and t.deleted = 0 and t.archived = 0
+		and p.board = board_id
+	order by p.date_time desc;
+end|
+
+-- Выбирает сообщения заданной нити.
+--
+-- Аргументы:
+-- thread_id - Идентификатор нити.
+create procedure sp_posts_get_by_thread
+(
+	thread_id int
+)
+begin
+	select id, thread, number, password, name, tripcode, ip, subject,
+		date_time, text, sage
+	from posts p
+	where thread = thread_id;
+end|
+
+-- Выбирает заданное сообщение, доступное для просмотра заданному пользователю.
+--
+-- Аргументы:
+-- post_id - Идентификатор сообщения.
+-- user_id - Идентификатор пользователя.
+create procedure sp_posts_get_visible_by_id
+(
+	post_id int,
+	user_id int
+)
+begin
+	select p.id, p.thread, p.board, p.number, p.password, p.name,
+		p.tripcode, p.ip, p.subject, p.date_time, p.text, p.sage
+	from posts p
+	left join threads t on t.id = p.thread
+	join user_groups ug on ug.user = user_id
+	-- Правило для конкретной группы и сообщения.
+	left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+	-- Правило для всех групп и конкретного сообщения.
+	left join acl a2 on a2.`group` is null and a2.post = p.id
+	-- Правила для конкретной группы и нити.
+	left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+	-- Правило для всех групп и конкретной нити.
+	left join acl a4 on a4.`group` is null and a4.thread = p.thread
+	-- Правила для конкретной группы и доски.
+	left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+	-- Правило для всех групп и конкретной доски.
+	left join acl a6 on a6.`group` is null and a6.board = p.board
+	-- Правило для конкретной групы.
+	left join acl a7 on a7.`group` = ug.`group` and a7.board is null and
+		a7.thread is null and a7.post is null
+	where p.id = post_id and p.deleted = 0 and t.deleted = 0 and t.archived = 0
+		-- Сообщение должно быть доступно для просмотра.
+			-- Просмотр сообщения не запрещен конкретной группе и
+		and ((a1.`view` = 1 or a1.`view` is null)
+			-- просмотр сообщения не запрещен всем группам и
+			and (a2.`view` = 1 or a2.`view` is null)
+			-- просмотр нити не запрещен конкретной группе и
+			and (a3.`view` = 1 or a3.`view` is null)
+			-- просмотр нити не запрещен всем группам и
+			and (a4.`view` = 1 or a4.`view` is null)
+			-- просмотр доски не запрещен конкретной группе и
+			and (a5.`view` = 1 or a5.`view` is null)
+			-- просмотр доски не запрещен всем группам и
+			and (a6.`view` = 1 or a6.`view` is null)
+			-- просмотр разрешен конкретной группе.
+			and a7.`view` = 1)
+	group by p.id;
+end|
+
+-- Выбирает заданное сообщение, доступное для просмотра заданному пользователю.
+--
+-- Аргументы:
+-- board_id - Идентификатор доски.
+-- post_number - Номер сообщения.
+-- user_id - Идентификатор пользователя.
+create procedure sp_posts_get_visible_by_number
+(
+	board_id int,
+	post_number int,
+	user_id int
+)
+begin
+	select p.id, p.thread, p.number, p.password, p.name, p.tripcode, p.ip,
+		p.subject, p.date_time, p.text, p.sage
+	from posts p
+	join user_groups ug on ug.`user` = user_id
+	-- Правило для конкретной группы и сообщения.
+	left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+	-- Правило для всех групп и конкретного сообщения.
+	left join acl a2 on a2.`group` is null and a2.post = p.id
+	-- Правила для конкретной группы и нити.
+	left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+	-- Правило для всех групп и конкретной нити.
+	left join acl a4 on a4.`group` is null and a4.thread = p.thread
+	-- Правила для конкретной группы и доски.
+	left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+	-- Правило для всех групп и конкретной доски.
+	left join acl a6 on a6.`group` is null and a6.board = p.board
+	-- Правило для конкретной групы.
+	left join acl a7 on a7.`group` = ug.`group` and a7.board is null and
+		a7.thread is null and a7.post is null
+	where p.board = board_id
+		and p.number = post_number
+		and p.deleted = 0
+		-- Сообщение должно быть доступно для просмотра.
+			-- Просмотр сообщения не запрещен конкретной группе и
+		and ((a1.`view` = 1 or a1.`view` is null)
+			-- просмотр сообщения не запрещен всем группам и
+			and (a2.`view` = 1 or a2.`view` is null)
+			-- просмотр нити не запрещен конкретной группе и
+			and (a3.`view` = 1 or a3.`view` is null)
+			-- просмотр нити не запрещен всем группам и
+			and (a4.`view` = 1 or a4.`view` is null)
+			-- просмотр доски не запрещен конкретной группе и
+			and (a5.`view` = 1 or a5.`view` is null)
+			-- просмотр доски не запрещен всем группам и
+			and (a6.`view` = 1 or a6.`view` is null)
+			-- просмотр разрешен конкретной группе.
+			and a7.`view` = 1)
+	group by p.id;
+end|
+
+-- Для заданной нити выбирает сообщения, доступные для просмотра заданному
+-- пользователю.
+--
+-- Аргументы:
+-- thread_id - Идентификатор нити.
+-- user_id - Идентификатор пользователя.
+create procedure sp_posts_get_visible_by_thread
+(
+	thread_id int,
+	user_id int
+)
+begin
+	select p.id, p.thread, p.number, p.password, p.name, p.tripcode,
+			p.ip, p.subject, p.date_time, p.text, p.sage
+	from posts p
+	join threads t on t.board = p.board and t.id = p.thread
+	join user_groups ug on ug.user = user_id
+	-- Правило для конкретной группы и сообщения.
+	left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+	-- Правило для всех групп и конкретного сообщения.
+	left join acl a2 on a2.`group` is null and a2.post = p.id
+	-- Правила для конкретной группы и нити.
+	left join acl a3 on a3.`group` = ug.`group` and a3.thread = t.id
+	-- Правило для всех групп и конкретной нити.
+	left join acl a4 on a4.`group` is null and a4.thread = t.id
+	-- Правила для конкретной группы и доски.
+	left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+	-- Правило для всех групп и конкретной доски.
+	left join acl a6 on a6.`group` is null and a6.board = p.board
+	-- Правило для конкретной групы.
+	left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+		and a7.thread is null and a7.post is null
+	where p.thread = thread_id
+		and p.deleted = 0 and t.deleted = 0 and t.archived = 0
+		-- Сообщение должно быть доступно для просмотра.
+			-- Просмотр сообщения не запрещен конкретной группе и
+		and ((a1.`view` = 1 or a1.`view` is null)
+			-- просмотр сообщения не запрещен всем группам и
+			and (a2.`view` = 1 or a2.`view` is null)
+			-- просмотр нити не запрещен конкретной группе и
+			and (a3.`view` = 1 or a3.`view` is null)
+			-- просмотр нити не запрещен всем группам и
+			and (a4.`view` = 1 or a4.`view` is null)
+			-- просмотр доски не запрещен конкретной группе и
+			and (a5.`view` = 1 or a5.`view` is null)
+			-- просмотр доски не запрещен всем группам и
+			and (a6.`view` = 1 or a6.`view` is null)
+			-- просмотр разрешен конкретной группе.
+			and a7.`view` = 1)
+	group by p.id
+	order by p.number asc;
+end|
+
+-- ----------------------
+--  Работа со стилями. --
+-- ----------------------
+
+-- Добавляет стиль.
+--
+-- Аргументы:
+-- _name - Имя файла стиля.
+create procedure sp_stylesheets_add
+(
+	_name varchar(50)
+)
+begin
+	insert into stylesheets (name) values (_name);
+end|
+
+-- Удаляет заданный стиль.
+--
+-- Аргументы:
+-- _id - Идентификатор стиля.
+create procedure sp_stylesheets_delete
+(
+	_id int
+)
+begin
+	delete from stylesheets where id = _id;
+end|
+
+-- Выбирает все стили.
+create procedure sp_stylesheets_get_all ()
+begin
+	select id, name from stylesheets;
+end|
 -- /DONE
 -- -------------------------------
 -- Работа с вложенными файлами. --
@@ -872,45 +1344,12 @@ begin
 	join files f on f.id = pf.`file` and pf.post = post_id;
 end|
 
--- ---------------------
---  Работа с языками. --
--- ---------------------
-
--- Добавляет новый язык с именем _name.
---
--- Аргументы:
--- _name - имя нового языка.
-create procedure sp_languages_add
-(
-	_name varchar(50)
-)
-begin
-	insert into languages (`name`) values (_name);
-end|
-
--- Удаляет язык с идентификатором _id.
---
--- Аргументы:
--- _id - идентификатор языка для удаления.
-create procedure sp_languages_delete
-(
-	_id int
-)
-begin
-	delete from languages where id = _id;
-end|
-
-create procedure sp_languages_get_all ()
-begin
-	select id, `name` from languages;
-end|
-
 -- -------------------------------
 -- Работа с вложенными ссылами. --
 -- -------------------------------
 
 -- Выбирает ссылки, вложенные в заданное сообщение.
-
+--
 -- Аргументы:
 -- post_id - Идентификатор сообщения.
 create procedure sp_links_get_by_post
@@ -922,71 +1361,6 @@ begin
 		l.thumbnail_h, l.deleted
 	from posts_links pl
 	join links l on l.id = pl.`link` and pl.post = post_id;
-end|
-
--- ------------------------------------------
---  Работа с обработчиками удаления нитей. --
--- ------------------------------------------
-
--- Выбирает все обработчики удаления нитей.
-create procedure sp_popdown_handlers_get_all ()
-begin
-	select id, `name` from popdown_handlers;
-end|
-
--- Добавляет новый обработчик удаления нитей.
---
--- Аргументы:
--- _name - имя нового обработчика удаления нитей.
-create procedure sp_popdown_handlers_add
-(
-	_name varchar(50)
-)
-begin
-	insert into popdown_handlers (`name`) values (_name);
-end|
-
---
-create procedure sp_popdown_handlers_delete
-(
-	_id int
-)
-begin
-	delete from popdown_handlers where id = _id;
-end|
-
--- ---------------------------------
---  Работа со стилями оформления. --
--- ---------------------------------
-
--- Возвращает все стили оформления.
-create procedure sp_stylesheets_get_all ()
-begin
-	select id, `name` from stylesheets;
-end|
-
--- Добавляет новый стиль оформления с именем _name.
---
--- Аргументы:
--- _name - имя нового стиля оформления.
-create procedure sp_stylesheets_add
-(
-	_name varchar(50)
-)
-begin
-	insert into stylesheets (`name`) values (_name);
-end|
-
--- Удаляет стиль оформления.
---
--- Аргументы:
--- _id - идентификатор стиля для удаления.
-create procedure sp_stylesheets_delete
-(
-	_id int
-)
-begin
-	delete from stylesheets where id = _id;
 end|
 
 -- ----------------------------------------------
@@ -1283,31 +1657,32 @@ end|
 --  Работа с нитями. --
 -- --------------------
 
--- Создаёт нить. Если номер оригинального сообщения null, то будет создана
+-- Добавляет нить. Если номер оригинального сообщения null, то будет создана
 -- пустая нить.
 --
 -- Аргументы:
--- _board_id - Идентификатор доски.
+-- board_id - Идентификатор доски.
 -- _original_post - Номер оригинального сообщения.
 -- _bump_limit - Специфичный для нити бамплимит.
--- _sage - Флаг поднятия нити при ответе.
--- _with_files - Флаг прикрепления файлов к ответам в нить.
+-- _sage - Флаг поднятия нити.
+-- _with_attachments - Флаг вложений.
 create procedure sp_threads_add
 (
-	_board_id int,
+	board_id int,
 	_original_post int,
 	_bump_limit int,
 	_sage bit,
-	_with_files bit
+	_with_attachments bit
 )
 begin
 	declare thread_id int;
 	insert into threads (board, original_post, bump_limit, deleted, archived,
-		sage, with_files)
+		sage, sticky, with_attachments)
 	values (_board_id, _original_post, _bump_limit, 0, 0,
-		_sage, _with_files);
+		_sage, 0, _with_attachments);
 	select last_insert_id() into thread_id;
-	select * from threads where id = thread_id;
+	select id, board, original_post, bump_limit, sage, sticky, with_attachments
+	from threads where id = thread_id;
 end|
 
 -- Выбирает все нити.
@@ -1873,373 +2248,6 @@ create procedure sp_threads_delete_specifed
 begin
 	update threads set deleted = 1 where id = _id;
 	update posts set deleted = 1 where thread = _id;
-end|
-
--- -------------------------
---  Работа с сообщениями. --
--- -------------------------
-
--- Для заданной нити выбирает сообщения, доступные для чтения заданному
--- пользователю.
---
--- Аргументы:
--- thread_id - идентификатор нити.
--- user_id - идентификатор пользователя.
-create procedure sp_posts_get_visible_by_thread
-(
-	thread_id int,
-	user_id int
-)
-begin
-	select p.id, p.thread, p.`number`, p.password, p.`name`, p.tripcode,
-			p.ip, p.subject, p.date_time, p.text, p.sage
-	from posts p
-	join threads t on t.board = p.board and t.id = p.thread
-	join user_groups ug on ug.user = user_id
-	-- Правило для конкретной группы и сообщения.
-	left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
-	-- Правило для всех групп и конкретного сообщения.
-	left join acl a2 on a2.`group` is null and a2.post = p.id
-	-- Правила для конкретной группы и нити.
-	left join acl a3 on a3.`group` = ug.`group` and a3.thread = t.id
-	-- Правило для всех групп и конкретной нити.
-	left join acl a4 on a4.`group` is null and a4.thread = t.id
-	-- Правила для конкретной группы и доски.
-	left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
-	-- Правило для всех групп и конкретной доски.
-	left join acl a6 on a6.`group` is null and a6.board = p.board
-	-- Правило для конкретной групы.
-	left join acl a7 on a7.`group` = ug.`group` and a7.board is null
-		and a7.thread is null and a7.post is null
-	where p.thread = thread_id
-		and p.deleted = 0 and t.deleted = 0 and t.archived = 0
-		-- Сообщение должно быть доступно для просмотра.
-			-- Просмотр сообщения не запрещен конкретной группе и
-		and ((a1.`view` = 1 or a1.`view` is null)
-			-- просмотр сообщения не запрещен всем группам и
-			and (a2.`view` = 1 or a2.`view` is null)
-			-- просмотр нити не запрещен конкретной группе и
-			and (a3.`view` = 1 or a3.`view` is null)
-			-- просмотр нити не запрещен всем группам и
-			and (a4.`view` = 1 or a4.`view` is null)
-			-- просмотр доски не запрещен конкретной группе и
-			and (a5.`view` = 1 or a5.`view` is null)
-			-- просмотр доски не запрещен всем группам и
-			and (a6.`view` = 1 or a6.`view` is null)
-			-- просмотр разрешен конкретной группе.
-			and a7.`view` = 1)
-	group by p.id
-	order by p.`number` asc;
-end|
-
--- Выбирает сообщения заданной нити.
---
--- Аргументы:
--- thread_id - Идентификатор нити.
-create procedure sp_posts_get_by_thread
-(
-	thread_id int
-)
-begin
-	select id, thread, number, password, `name`, tripcode, ip, subject,
-		date_time, text, sage
-	from posts p
-	where thread = thread_id;
-end|
-
--- Выбирает сообщение по заданному номеру.
---
--- Аргументы:
--- board_id - Идентификатор доски.
--- post_number - Номер сообщения.
--- user_id - Идентификатор пользователя.
-create procedure sp_posts_get_visible_by_number
-(
-	board_id int,
-	post_number int,
-	user_id int
-)
-begin
-	select p.id, p.thread, p.number, p.password, p.name, p.tripcode, p.ip,
-		p.subject, p.date_time, p.text, p.sage
-	from posts p
-	join user_groups ug on ug.`user` = user_id
-	-- Правило для конкретной группы и сообщения.
-	left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
-	-- Правило для всех групп и конкретного сообщения.
-	left join acl a2 on a2.`group` is null and a2.post = p.id
-	-- Правила для конкретной группы и нити.
-	left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
-	-- Правило для всех групп и конкретной нити.
-	left join acl a4 on a4.`group` is null and a4.thread = p.thread
-	-- Правила для конкретной группы и доски.
-	left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
-	-- Правило для всех групп и конкретной доски.
-	left join acl a6 on a6.`group` is null and a6.board = p.board
-	-- Правило для конкретной групы.
-	left join acl a7 on a7.`group` = ug.`group` and a7.board is null and
-		a7.thread is null and a7.post is null
-	where p.board = board_id
-		and p.number = post_number
-		and p.deleted = 0
-		-- Сообщение должно быть доступно для просмотра.
-			-- Просмотр сообщения не запрещен конкретной группе и
-		and ((a1.`view` = 1 or a1.`view` is null)
-			-- просмотр сообщения не запрещен всем группам и
-			and (a2.`view` = 1 or a2.`view` is null)
-			-- просмотр нити не запрещен конкретной группе и
-			and (a3.`view` = 1 or a3.`view` is null)
-			-- просмотр нити не запрещен всем группам и
-			and (a4.`view` = 1 or a4.`view` is null)
-			-- просмотр доски не запрещен конкретной группе и
-			and (a5.`view` = 1 or a5.`view` is null)
-			-- просмотр доски не запрещен всем группам и
-			and (a6.`view` = 1 or a6.`view` is null)
-			-- просмотр разрешен конкретной группе.
-			and a7.`view` = 1)
-	group by p.id;
-end|
-
--- Выбирает сообщение, доступное для чтения заданному пользоватею, по
--- идентификатору.
---
--- Аргументы:
--- post_id - Идентификатор сообщения.
--- user_id - Идентификатор пользователя.
-create procedure sp_posts_get_visible_by_id
-(
-	post_id int,
-	user_id int
-)
-begin
-	select p.id, p.thread, p.board, p.`number`, p.password, p.`name`,
-		p.tripcode, p.ip, p.subject, p.date_time, p.text, p.sage
-	from posts p
-	left join threads t on t.id = p.thread
-	join user_groups ug on ug.`user` = user_id
-	-- Правило для конкретной группы и сообщения.
-	left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
-	-- Правило для всех групп и конкретного сообщения.
-	left join acl a2 on a2.`group` is null and a2.post = p.id
-	-- Правила для конкретной группы и нити.
-	left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
-	-- Правило для всех групп и конкретной нити.
-	left join acl a4 on a4.`group` is null and a4.thread = p.thread
-	-- Правила для конкретной группы и доски.
-	left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
-	-- Правило для всех групп и конкретной доски.
-	left join acl a6 on a6.`group` is null and a6.board = p.board
-	-- Правило для конкретной групы.
-	left join acl a7 on a7.`group` = ug.`group` and a7.board is null and
-		a7.thread is null and a7.post is null
-	where p.id = post_id and p.deleted = 0 and t.deleted = 0 and t.archived = 0
-		-- Сообщение должно быть доступно для просмотра.
-			-- Просмотр сообщения не запрещен конкретной группе и
-		and ((a1.`view` = 1 or a1.`view` is null)
-			-- просмотр сообщения не запрещен всем группам и
-			and (a2.`view` = 1 or a2.`view` is null)
-			-- просмотр нити не запрещен конкретной группе и
-			and (a3.`view` = 1 or a3.`view` is null)
-			-- просмотр нити не запрещен всем группам и
-			and (a4.`view` = 1 or a4.`view` is null)
-			-- просмотр доски не запрещен конкретной группе и
-			and (a5.`view` = 1 or a5.`view` is null)
-			-- просмотр доски не запрещен всем группам и
-			and (a6.`view` = 1 or a6.`view` is null)
-			-- просмотр разрешен конкретной группе.
-			and a7.`view` = 1)
-	group by p.id;
-end|
-
--- Выбирает все сообщения.
-create procedure sp_posts_get_all ()
-begin
-	select p.id, p.board, b.name as board_name, p.thread,
-		t.original_post as thread_number, p.`number`, p.password, p.name,
-		p.tripcode, p.ip, p.subject, p.date_time, p.text, p.sage
-	from posts p
-	join threads t on t.id = p.thread
-	join boards b on b.id = p.board
-	where p.deleted = 0 and t.deleted = 0 and t.archived = 0
-	order by p.date_time desc;
-end|
-
--- Выбирает сообщения с заданной доски.
---
--- Аргументы:
--- board_id - Идентификатор доски.
-create procedure sp_posts_get_by_board
-(
-	board_id int
-)
-begin
-	select p.id, p.thread, t.original_post as thread_number, p.board,
-		b.name as board_name, p.`number`, p.password, p.`name`, p.tripcode,
-		p.ip, p.subject, p.date_time, p.text, p.sage
-	from posts p
-	join threads t on t.id = p.thread
-	join boards b on b.id = p.board
-	where p.deleted = 0 and t.deleted = 0 and t.archived = 0
-		and p.board = board_id
-	order by p.date_time desc;
-end|
-
--- Добавляет сообщение в сущестующую нить.
---
--- Аргументы:
--- _board_id - идентификатор доски.
--- _thread_id - идентификатор нити.
--- _user_id - идентификатор автора.
--- _password - пароль на удаление сообщения.
--- _name - имя автора.
--- _ip - IP адрес автора.
--- _subject - тема.
--- _datetime - время получения сообщения.
--- _text - текст.
--- _sage - не поднимать нить этим сообщением.
-create procedure sp_posts_add
-(
-	_board_id int,
-	_thread_id int,
-	_user_id int,
-	_password varchar(128),
-	_name varchar(128),
-	_tripcode varchar(128),
-	_ip bigint,
-	_subject varchar(128),
-	_datetime datetime,
-	_text text,
-	_sage bit
-)
-begin
-	declare count_posts int;	-- posts in thread
-	declare post_number int;	-- number on post on thread
-	declare bumplimit int;		-- number of bump posts (posts which brings thread to up)
-	declare threadsage bit;		-- whole thread sage
-	declare post_id int;
-	select max(`number`) into post_number from posts where board = _board_id;
-	if(post_number is null)
-	then
-		set post_number = 1;
-	else
-		set post_number = post_number + 1;
-	end if;
-	select bump_limit into bumplimit from threads where id = _thread_id;
-	select count(id) into count_posts from posts where thread = _thread_id;
-	select sage into threadsage from threads where id = _thread_id;
-	if(threadsage is not null and threadsage = 1)
-	then
-		set _sage = 1;
-	end if;
-	if(count_posts > bumplimit)
-	then
-		set _sage = 1;
-	end if;
-	if(_datetime is null)
-	then
-		set _datetime = now();
-	end if;
-	insert into posts (board, thread, `number`, `user`, password, `name`,
-		tripcode, ip, subject, date_time, text, sage, deleted)
-	values (_board_id, _thread_id, post_number, _user_id, _password, _name,
-		_tripcode, _ip, _subject, _datetime, _text, _sage, 0);
-	select last_insert_id() into post_id;
-	select * from posts where id = post_id;
-end|
-
--- Удаляет сообщение с заданным идентификатором.
---
--- Аргументы:
--- _id - Идентификатор сообщения.
-create procedure sp_posts_delete
-(
-	_id int
-)
-begin
-	declare thread_id int;
-	set thread_id = null;
-	-- Проверим, не является ли пост оригинальным. Если да, то удалим всю нить
-	-- целиком.
-	select p.thread into thread_id
-	from posts p
-	join threads t on t.id = p.thread and p.id = _id
-		and p.`number` = t.original_post;
-	if(thread_id is null) then
-		update posts set deleted = 1 where id = _id;
-	else
-		update threads set deleted = 1 where id = thread_id;
-		update posts set deleted = 1 where thread = thread_id;
-	end if;
-end|
-
--- Удаляет сообщение с заданным идентификатором и все сообщения с ip адреса
--- отправителя, оставленные с заданного момента.
---
--- Аргументы:
--- _id - Идентификатор сообщения.
--- _date_time - Момент времени.
-create procedure sp_posts_delete_last
-(
-	_id int,
-	_date_time datetime
-)
-begin
-	declare _ip bigint;
-	declare done int default 0;
-	declare thread_id int;
-	declare `c` cursor for
-		select t.id
-		from posts p
-		join (select ip from posts where id = _id) q on q.ip = p.ip
-		join threads t on t.id = p.thread and p.`date_time` > _date_time
-			and p.`number` = t.original_post;
-	declare continue handler for not found set done = 1;
-	open `c`;
-	repeat
-	fetch `c` into thread_id;
-	if(not done) then
-		call sp_threads_delete_specifed(thread_id);
-	end if;
-	until done end repeat;
-	close `c`;
-	select ip into _ip from posts where id = _id;
-	if(_ip is not null) then
-		update posts set deleted = 1 where ip = _ip and `date_time` > _date_time;
-	end if;
-end|
-
--- Удаляет сообщения, помеченные на удаление.
-create procedure sp_posts_delete_marked ()
-begin
-	delete pu from posts_uploads pu
-	join posts p on p.id = pu.post
-	where p.deleted = 1;
-
-	delete a from acl a
-	join posts p on p.id = a.post
-	where p.deleted = 1;
-
-	delete from posts where deleted = 1;
-
-	delete ht from hidden_threads ht
-	join threads t on t.id = ht.thread
-	where t.deleted = 1;
-
-	delete from threads where deleted = 1;
-end|
-
--- Добавляет текст в конец текста заданного сообщения.
---
--- Аргументы:
--- _id - Идентификатор сообщения.
--- _text - Текст.
-create procedure sp_posts_add_text_by_id
-(
-	_id int,
-	_text text
-)
-begin
-	update posts set text = concat(text, _text) where id = _id;
 end|
 
 -- ----------------------------------------------------------
