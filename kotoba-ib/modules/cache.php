@@ -1654,7 +1654,7 @@ function stylesheets_get_all()
  * @param bump_limit mixed <p>Специфичный для нити бамплимит.</p>
  * @param sage mixed <p>Флаг поднятия нити.</p>
  * @param with_attachments mixed <p>Флаг вложений.</p>
- * @return array
+ * @return mixed
  * Возвращает нить:<p>
  * 'id' - Идентификатор.<br>
  * 'board' - Идентификатор доски.<br>
@@ -1663,6 +1663,7 @@ function stylesheets_get_all()
  * 'sage' - Флаг поднятия нити.<br>
  * 'sticky' - Флаг закрепления.<br>
  * 'with_attachments' - Флаг вложений.</p>
+ * Или null, если что-то пошло не так.
  */
 function threads_add($board_id, $original_post, $bump_limit, $sage, $with_files)
 {
@@ -1685,14 +1686,16 @@ function threads_check_bump_limit($bump_limit)
 		$length = strlen($bump_limit);
 		if($length > $max_int_length || (ctype_digit($bump_limit) === false)
 			|| $length < 1)
-				throw new FormatException(FormatException::$messages['THREAD_BUMP_LIMIT']);
+		{
+			throw new FormatException(FormatException::$messages['THREAD_BUMP_LIMIT']);
+		}
 	}
 	else
 		throw new FormatException(FormatException::$messages['THREAD_BUMP_LIMIT']);
 	return $bump_limit;
 }
 /**
- * Проверяет корректность идентификатора $id нити.
+ * Проверяет корректность идентификатора нити.
  * @param id string <p>Идентификатор нити.</p>
  * @return string
  * Возвращает безопасный для использования идентификатор нити.
@@ -1707,17 +1710,19 @@ function threads_check_id($id)
 		$length = strlen($id);
 		if($length > $max_int_length || (ctype_digit($id) === false)
 			|| $length < 1)
-				throw new FormatException(FormatException::$messages['THREAD_ID']);
+		{
+			throw new FormatException(FormatException::$messages['THREAD_ID']);
+		}
 	}
 	else
 		throw new FormatException(FormatException::$messages['THREAD_ID']);
 	return $id;
 }
 /**
- * Проверяет корректность номера нити.
- * @param number mixed <p>Номер нити.</p>
+ * Проверяет корректность номера оригинального сообщения.
+ * @param number mixed <p>Номер оригинального сообщения.</p>
  * @return string
- * Возвращает безопасный для использования номер нити.
+ * Возвращает безопасный для использования номер оригинального сообщения.
  */
 function threads_check_number($number)
 {
@@ -1727,25 +1732,29 @@ function threads_check_number($number)
 	{
 		$number = RawUrlEncode($number);
 		$length = strlen($number);
-		if($length > $max_int_length || (ctype_digit($number) === false) || $length < 1)
+		if($length > $max_int_length || (ctype_digit($number) === false)
+			|| $length < 1)
+		{
 			throw new FormatException(FormatException::$messages['THREAD_NUMBER']);
+		}
 	}
 	else
 		throw new FormatException(FormatException::$messages['THREAD_NUMBER']);
 	return $number;
 }
 /**
- * Редактирует настройки нити.
+ * Редактирует заданную нить.
  * @param thread_id mixed <p>Идентификатор нити.</p>
  * @param bump_limit mixed <p>Специфичный для нити бамплимит.</p>
- * @param sage mixed <p>Флаг поднятия нити при ответе.</p>
+ * @param sage mixed <p>Флаг поднятия нити.</p>
  * @param sticky mixed <p>Флаг закрепления.</p>
- * @param with_files mixed <p>Флаг загрузки файлов.</p>
+ * @param with_attachments mixed <p>Флаг вложений.</p>
  */
-function threads_edit($thread_id, $bump_limit, $sticky, $sage, $with_files)
+function threads_edit($thread_id, $bump_limit, $sticky, $sage,
+		$with_attachments)
 {
 	db_threads_edit(DataExchange::getDBLink(), $thread_id, $bump_limit, $sticky,
-		$sage, $with_files);
+		$sage, $with_attachments);
 }
 /**
  * Редактирует номер оригинального сообщения нити.

@@ -1631,8 +1631,16 @@ function db_stylesheets_get_all($link)
  * @param bump_limit mixed <p>Специфичный для нити бамплимит.</p>
  * @param sage mixed <p>Флаг поднятия нити.</p>
  * @param with_attachments mixed <p>Флаг вложений.</p>
- * @return array
- * Возвращает нить.
+ * @return mixed
+ * Возвращает нить:<p>
+ * 'id' - Идентификатор.<br>
+ * 'board' - Идентификатор доски.<br>
+ * 'original_post' - Номер оригинального сообщения.<br>
+ * 'bump_limit' - Специфичный для нити бамплимит.<br>
+ * 'sage' - Флаг поднятия нити.<br>
+ * 'sticky' - Флаг закрепления.<br>
+ * 'with_attachments' - Флаг вложений.</p>
+ * Или null, если что-то пошло не так.
  */
 function db_threads_add($link, $board_id, $original_post, $bump_limit, $sage,
 	$with_files)
@@ -1641,32 +1649,47 @@ function db_threads_add($link, $board_id, $original_post, $bump_limit, $sage,
 	$bump_limit = ($bump_limit === null ? 'null' : $bump_limit);
 	$sage = $sage ? '1' : '0';
 	$with_files = $with_files === null ? 'null' : $with_files;
-	$result = mysqli_query($link, "call sp_threads_add($board_id,
-		$original_post, $bump_limit, $sage, $with_files)");
+	$result = mysqli_query($link, 'call sp_threads_add(' . $board_id . ', '
+		. $original_post . ', ' . $bump_limit . ', ' . $sage . ', '
+		. $with_files . ')');
 	if(!$result)
 		throw new CommonException(mysqli_error($link));
-	$row = mysqli_fetch_assoc($result);
+	$thread = null;
+	if(mysqli_affected_rows($link) > 0
+		&& ($row = mysqli_fetch_assoc($result)) !== null)
+	{
+			$thread['id'] = $row['id'];
+			$thread['board'] = $row['board'];
+			$thread['original_post'] = $row['original_post'];
+			$thread['bump_limit'] = $row['bump_limit'];
+			$thread['sage'] = $row['sage'];
+			$thread['sticky'] = $row['sticky'];
+			$thread['with_attachments'] = $row['with_attachments'];
+	}
 	mysqli_free_result($result);
 	db_cleanup_link($link);
-	return $row;
+	return $thread;
 }
 /**
- * Редактирует настройки нити.
+ * Редактирует заданную нить.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param thread_id mixed <p>Идентификатор нити.</p>
  * @param bump_limit mixed <p>Специфичный для нити бамплимит.</p>
+ * @param sage mixed <p>Флаг поднятия нити.</p>
  * @param sticky mixed <p>Флаг закрепления.</p>
- * @param sage mixed <p>Флаг поднятия нити при ответе.</p>
- * @param with_files mixed <p>Флаг загрузки файлов.</p>
+ * @param with_attachments mixed <p>Флаг вложений.</p>
  */
 function db_threads_edit($link, $thread_id, $bump_limit, $sticky, $sage,
-	$with_files)
+	$with_attachments)
 {
 	$bump_limit = ($bump_limit === null ? 'null' : $bump_limit);
-	$with_files = ($with_files === null ? 'null' : $with_files);
-	if(!mysqli_query($link, "call sp_threads_edit($thread_id, $bump_limit,
-			$sticky, $sage, $with_files)"))
+	$with_attachments = ($with_attachments === null ? 'null' : $with_attachments);
+	if(!mysqli_query($link, 'call sp_threads_edit(' . $thread_id . ', '
+		. $bump_limit . ', ' . $sticky . ', ' . $sage . ', '
+		. $with_attachments . ')'))
+	{
 		throw new CommonException(mysqli_error($link));
+	}
 	db_cleanup_link($link);
 }
 /**

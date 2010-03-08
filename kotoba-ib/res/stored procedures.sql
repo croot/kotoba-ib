@@ -67,6 +67,20 @@ drop procedure if exists sp_posts_get_visible_by_thread|
 drop procedure if exists sp_stylesheets_add|
 drop procedure if exists sp_stylesheets_delete|
 drop procedure if exists sp_stylesheets_get_all|
+
+drop procedure if exists sp_threads_add|
+drop procedure if exists sp_threads_delete_specifed|
+drop procedure if exists sp_threads_edit|
+drop procedure if exists sp_threads_edit_archived_postlimit|
+drop procedure if exists sp_threads_edit_original_post|
+drop procedure if exists sp_threads_get_all|
+drop procedure if exists sp_threads_get_archived|
+drop procedure if exists sp_threads_get_changeable_by_id|
+drop procedure if exists sp_threads_get_moderatable|
+drop procedure if exists sp_threads_get_moderatable_by_id|
+drop procedure if exists sp_threads_get_visible_by_board|
+drop procedure if exists sp_threads_get_visible_by_id|
+drop procedure if exists sp_threads_get_visible_count|
 -- /DONE
 drop procedure if exists sp_files_get_by_post|
 
@@ -91,19 +105,6 @@ drop procedure if exists sp_upload_types_get_board|
 drop procedure if exists sp_upload_types_edit|
 drop procedure if exists sp_upload_types_add|
 drop procedure if exists sp_upload_types_delete|
-drop procedure if exists sp_threads_add|
-drop procedure if exists sp_threads_delete_specifed|
-drop procedure if exists sp_threads_edit|
-drop procedure if exists sp_threads_edit_original_post|
-drop procedure if exists sp_threads_edit_archived_postlimit|
-drop procedure if exists sp_threads_get_all|
-drop procedure if exists sp_threads_get_archived|
-drop procedure if exists sp_threads_get_changeable_by_id|
-drop procedure if exists sp_threads_get_moderatable|
-drop procedure if exists sp_threads_get_moderatable_by_id|
-drop procedure if exists sp_threads_get_visible_by_board|
-drop procedure if exists sp_threads_get_visible_by_id|
-drop procedure if exists sp_threads_get_visible_count|
 drop procedure if exists sp_posts_uploads_get_by_post|
 drop procedure if exists sp_posts_uploads_add|
 drop procedure if exists sp_posts_uploads_delete_by_post|
@@ -1685,6 +1686,42 @@ begin
 	from threads where id = thread_id;
 end|
 
+-- Редактирует заданную нить.
+--
+-- Аргументы:
+-- _id - Идентификатор нити.
+-- _bump_limit - Специфичный для нити бамплимит.
+-- _sage - Флаг поднятия нити.
+-- _sticky - Флаг закрепления.
+-- _with_attachments - Флаг вложений.
+create procedure sp_threads_edit
+(
+	_id int,
+	_bump_limit int,
+	_sticky bit,
+	_sage bit,
+	_with_attachments bit
+)
+begin
+	update threads set bump_limit = _bump_limit, sticky = _sticky, sage = _sage,
+		with_attachments = _with_attachments
+	where id = _id;
+end|
+
+-- Редактирует номер оригинального сообщения нити.
+--
+-- Аргументы:
+-- _id - Идентификатор нити.
+-- _original_post - Номер оригинального сообщения нити.
+create procedure sp_threads_edit_original_post
+(
+	_id int,
+	_original_post int
+)
+begin
+	update threads set original_post = _original_post where id = _id;
+end|
+
 -- Выбирает все нити.
 create procedure sp_threads_get_all ()
 begin
@@ -1700,42 +1737,6 @@ begin
 	select id, board, original_post, bump_limit, sage, sticky, with_attachments
 	from threads
 	where deleted = 0 and archived = 1;
-end|
-
--- Редактирует настройки нити.
---
--- Аргументы:
--- _id - Идентификатор нити.
--- _bump_limit - Специфичный для нити бамплимит.
--- _sticky - Флаг закрепления.
--- _sage - Флаг поднятия нити при ответе.
--- _with_files - Флаг загрузки файлов.
-create procedure sp_threads_edit
-(
-	_id int,
-	_bump_limit int,
-	_sticky bit,
-	_sage bit,
-	_with_files bit
-)
-begin
-	update threads set bump_limit = _bump_limit, sticky = _sticky, sage = _sage,
-		with_files = _with_files
-	where id = _id;
-end|
-
--- Редактирует номер оригинального сообщения нити.
---
--- Аргументы:
--- _id - Идентификатор нити.
--- _original_post - Номер нового оригинального сообщения.
-create procedure sp_threads_edit_original_post
-(
-	_id int,
-	_original_post int
-)
-begin
-	update threads set original_post = _original_post where id = _id;
 end|
 
 -- Выбирает нити, доступные для модерирования заданному пользователю.
