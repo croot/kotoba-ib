@@ -1712,17 +1712,17 @@ function db_threads_edit_original_post($link, $id, $original_post)
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @return array
  * Возвращает нити:<p>
- * 'id' - идентификатор.<br>
- * 'board' - идентификатор доски.<br>
- * 'original_post' - оригинальное сообщение.<br>
- * 'bump_limit' - специфичный для нити бамплимит.<br>
- * 'sticky' - флаг закрепления.<br>
- * 'sage' - флаг поднятия нити при ответе.<br>
- * 'with_files' - флаг загрузки файлов.</p>
+ * 'id' - Идентификатор.<br>
+ * 'board' - Идентификатор доски.<br>
+ * 'original_post' - Номер оригинального сообщения.<br>
+ * 'bump_limit' - Специфичный для нити бамплимит.<br>
+ * 'sage' - Флаг поднятия нити.<br>
+ * 'sticky' - Флаг закрепления.<br>
+ * 'with_attachments' - Флаг вложений.</p>
  */
 function db_threads_get_all($link)
 {
-	$result = mysqli_query($link, "call sp_threads_get_all()");
+	$result = mysqli_query($link, 'call sp_threads_get_all()');
 	if(!$result)
 		throw new CommonException(mysqli_error($link));
 	$threads = array();
@@ -1733,9 +1733,9 @@ function db_threads_get_all($link)
 						'board' => $row['board'],
 						'original_post' => $row['original_post'],
 						'bump_limit' => $row['bump_limit'],
-						'sticky' => $row['sticky'],
 						'sage' => $row['sage'],
-						'with_files' => $row['with_files']));
+						'sticky' => $row['sticky'],
+						'with_attachments' => $row['with_attachments']));
 	mysqli_free_result($result);
 	db_cleanup_link($link);
 	return $threads;
