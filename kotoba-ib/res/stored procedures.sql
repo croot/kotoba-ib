@@ -1725,7 +1725,7 @@ end|
 -- Выбирает все нити.
 create procedure sp_threads_get_all ()
 begin
-	select id, board, original_post, bump_limit, sticky, sage, with_files
+	select id, board, original_post, bump_limit, sage, sticky, with_attachments
 	from threads
 	where deleted = 0 and archived = 0
 	order by id desc;
