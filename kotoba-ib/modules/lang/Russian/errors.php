@@ -133,7 +133,6 @@ FormatException::$messages['GOTO'] = 'Перенаправление при по
 
 PermissionException::$messages['THREAD_NOT_ALLOWED'] = 'Нет прав для запрашиваемого действия с нитью.';
 
-
 // Параметры: хеш ключевого слова.
 PermissionException::$messages['USER_NOT_EXIST'] = 'Пользователя с хешем ключевого слова %s не существует.';
 PermissionException::$messages['NOT_ADMIN'] = 'Вы не являетесь администратором.';

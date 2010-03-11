@@ -1325,6 +1325,464 @@ create procedure sp_stylesheets_get_all ()
 begin
 	select id, name from stylesheets;
 end|
+
+-- --------------------
+--  Работа с нитями. --
+-- --------------------
+
+-- Добавляет нить. Если номер оригинального сообщения null, то будет создана
+-- пустая нить.
+--
+-- Аргументы:
+-- board_id - Идентификатор доски.
+-- _original_post - Номер оригинального сообщения.
+-- _bump_limit - Специфичный для нити бамплимит.
+-- _sage - Флаг поднятия нити.
+-- _with_attachments - Флаг вложений.
+create procedure sp_threads_add
+(
+	board_id int,
+	_original_post int,
+	_bump_limit int,
+	_sage bit,
+	_with_attachments bit
+)
+begin
+	declare thread_id int;
+	insert into threads (board, original_post, bump_limit, deleted, archived,
+		sage, sticky, with_attachments)
+	values (_board_id, _original_post, _bump_limit, 0, 0,
+		_sage, 0, _with_attachments);
+	select last_insert_id() into thread_id;
+	select id, board, original_post, bump_limit, sage, sticky, with_attachments
+	from threads where id = thread_id;
+end|
+
+-- Редактирует заданную нить.
+--
+-- Аргументы:
+-- _id - Идентификатор нити.
+-- _bump_limit - Специфичный для нити бамплимит.
+-- _sage - Флаг поднятия нити.
+-- _sticky - Флаг закрепления.
+-- _with_attachments - Флаг вложений.
+create procedure sp_threads_edit
+(
+	_id int,
+	_bump_limit int,
+	_sticky bit,
+	_sage bit,
+	_with_attachments bit
+)
+begin
+	update threads set bump_limit = _bump_limit, sticky = _sticky, sage = _sage,
+		with_attachments = _with_attachments
+	where id = _id;
+end|
+
+-- Редактирует номер оригинального сообщения нити.
+--
+-- Аргументы:
+-- _id - Идентификатор нити.
+-- _original_post - Номер оригинального сообщения нити.
+create procedure sp_threads_edit_original_post
+(
+	_id int,
+	_original_post int
+)
+begin
+	update threads set original_post = _original_post where id = _id;
+end|
+
+-- Выбирает все нити.
+create procedure sp_threads_get_all ()
+begin
+	select id, board, original_post, bump_limit, sage, sticky, with_attachments
+	from threads
+	where deleted = 0 and archived = 0
+	order by id desc;
+end|
+
+-- Выбирает нити, помеченные для архивирования.
+create procedure sp_threads_get_archived ()
+begin
+	select id, board, original_post, bump_limit, sage, sticky, with_attachments
+	from threads
+	where deleted = 0 and archived = 1;
+end|
+
+-- Выбирает заданную нить, доступную для редактирования заданному пользователю.
+--
+-- Аргументы:
+-- thread_id - Идентификатор нити.
+-- user_id - Идентификатор пользователя.
+create procedure sp_threads_get_changeable_by_id
+(
+	thread_id int,
+	user_id int
+)
+begin
+	select t.id, t.board, t.original_post, t.bump_limit, t.archived, t.sage,
+		t.with_attachments
+	from threads t
+	join user_groups ug on ug.user = user_id
+	left join hidden_threads ht on t.id = ht.thread and ug.user = ht.user
+	-- Правила для конкретной группы и нити.
+	left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+	-- Правило для всех групп и конкретной нити.
+	left join acl a2 on a2.`group` is null and a2.thread = t.id
+	-- Правила для конкретной группы и доски.
+	left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
+	-- Правило для всех групп и конкретной доски.
+	left join acl a4 on a4.`group` is null and a4.board = t.board
+	-- Правило для конкретной групы.
+	left join acl a5 on a5.`group` = ug.`group` and a5.board is null
+		and a5.thread is null and a5.post is null
+	where t.id = thread_id
+		and (t.deleted = 0 or t.deleted is null)
+		and ht.thread is null
+		-- Нить должна быть доступна для просмотра.
+			-- Просмотр нити не запрещен конкретной группе и
+		and ((a1.`view` = 1 or a1.`view` is null)
+			-- просмотр нити не запрещен всем группам и
+			and (a2.`view` = 1 or a2.`view` is null)
+			-- просмотр доски не запрещен конкретной группе и
+			and (a3.`view` = 1 or a3.`view` is null)
+			-- просмотр доски не запрещен всем группам и
+			and (a4.`view` = 1 or a4.`view` is null)
+			-- просмотр разрешен конкретной группе.
+			and a5.`view` = 1)
+		-- Нить должна быть доступна для редактирования.
+			-- Редактирование нити разрешено конкретной группе или
+		and (a1.change = 1
+				-- редактирование нити не запрещено конкретной группе и
+				-- разрешено всем группам или
+				or (a1.change is null and a2.change = 1)
+				-- редактирование нити не запрещено ни конкретной группе ни
+				-- всем, и конкретной группе редактирование разрешено.
+				or (a1.change is null and a2.change is null and a5.change = 1))
+	group by t.id;
+end|
+
+-- Выбирает нити, доступные для модерирования заданному пользователю.
+--
+-- Аргументы:
+-- user_id - Идентификатор пользователя.
+create procedure sp_threads_get_moderatable
+(
+	user_id int
+)
+begin
+	select t.id, t.board, t.original_post, t.bump_limit, t.sage, t.sticky,
+		t.with_attachments
+	from threads t
+	join user_groups ug on ug.user = user_id
+	left join hidden_threads ht on t.id = ht.thread and ug.user = ht.user
+	-- Правила для конкретной группы и нити.
+	left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+	-- Правило для всех групп и конкретной нити.
+	left join acl a2 on a2.`group` is null and a2.thread = t.id
+	-- Правила для конкретной группы и доски.
+	left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
+	-- Правило для всех групп и конкретной доски.
+	left join acl a4 on a4.`group` is null and a4.board = t.board
+	-- Правило для конкретной групы.
+	left join acl a5 on a5.`group` = ug.`group` and a5.board is null
+		and a5.thread is null and a5.post is null
+	where t.deleted = 0
+		and t.archived = 0
+		and ht.thread is null
+		-- Нить должна быть доступна для просмотра.
+			-- Просмотр нити не запрещен конкретной группе и
+		and ((a1.`view` = 1 or a1.`view` is null)
+			-- просмотр нити не запрещен всем группам и
+			and (a2.`view` = 1 or a2.`view` is null)
+			-- просмотр доски не запрещен конкретной группе и
+			and (a3.`view` = 1 or a3.`view` is null)
+			-- просмотр доски не запрещен всем группам и
+			and (a4.`view` = 1 or a4.`view` is null)
+			-- просмотр разрешен конкретной группе.
+			and a5.`view` = 1)
+		-- Нить должна быть доступна для редактирования.
+			-- Редактирование нити разрешено конкретной группе или
+		and (a1.change = 1
+			-- редактирование нити не запрещено конкретной группе и разрешено
+			-- всем группам или
+			or (a1.change is null and a2.change = 1)
+			-- редактирование нити не запрещено ни конкретной группе ни всем, и
+			-- конкретной группе редактирование разрешено.
+			or (a1.change is null and a2.change is null and a5.change = 1))
+		-- Нить должна быть доступна для модерирования
+			-- Модерирование нити разрешено конкретной группе или
+		and (a1.moderate = 1
+			-- модерирование нити не запрещено конкретной группе и разрешено
+			-- всем группам или
+			or (a1.moderate is null and a2.moderate = 1)
+			-- модерирование нити не запрещено ни конкретной группе ни всем, и
+			-- конкретной группе модерирование разрешено.
+			or (a1.moderate is null and a2.moderate is null and a5.moderate = 1))
+	group by t.id
+	order by t.id desc;
+end|
+
+-- Выбирает заданную нить, доступную для модерирования заданному пользователю.
+--
+-- Аргументы:
+-- thread_id - Идентификатор нити.
+-- user_id - Идентификатор пользователя.
+create procedure sp_threads_get_moderatable_by_id
+(
+	thread_id int,
+	user_id int
+)
+begin
+	select t.id
+	from threads t
+	join user_groups ug on ug.user = user_id
+	left join hidden_threads ht on t.id = ht.thread and ug.user = ht.user
+	-- Правила для конкретной группы и нити.
+	left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+	-- Правило для всех групп и конкретной нити.
+	left join acl a2 on a2.`group` is null and a2.thread = t.id
+	-- Правила для конкретной группы и доски.
+	left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
+	-- Правило для всех групп и конкретной доски.
+	left join acl a4 on a4.`group` is null and a4.board = t.board
+	-- Правило для конкретной групы.
+	left join acl a5 on a5.`group` = ug.`group` and a5.board is null
+		and a5.thread is null and a5.post is null
+	where t.id = thread_id
+		and (t.deleted = 0 or t.deleted is null)
+		and	(t.archived = 0 or t.archived is null)
+		and ht.thread is null
+		-- Нить должна быть доступна для просмотра.
+			-- Просмотр нити не запрещен конкретной группе и
+		and ((a1.`view` = 1 or a1.`view` is null)
+			-- просмотр нити не запрещен всем группам и
+			and (a2.`view` = 1 or a2.`view` is null)
+			-- просмотр доски не запрещен конкретной группе и
+			and (a3.`view` = 1 or a3.`view` is null)
+			-- просмотр доски не запрещен всем группам и
+			and (a4.`view` = 1 or a4.`view` is null)
+			-- просмотр разрешен конкретной группе.
+			and a5.`view` = 1)
+		-- Нить должна быть доступна для редактирования.
+			-- Редактирование нити разрешено конкретной группе или
+		and (a1.change = 1
+				-- редактирование нити не запрещено конкретной группе и разрешено всем группам или
+				or (a1.change is null and a2.change = 1)
+				-- редактирование нити не запрещено ни конкретной группе ни всем, и конкретной группе редактирование разрешено.
+				or (a1.change is null and a2.change is null and a5.change = 1))
+		-- Нить должна быть доступна для модерирования
+			-- Модерирование нити разрешено конкретной группе или
+		and (a1.moderate = 1
+			-- модерирование нити не запрещено конкретной группе и разрешено всем группам или
+			or (a1.moderate is null and a2.moderate = 1)
+			-- модерирование нити не запрещено ни конкретной группе ни всем, и конкретной группе модерирование разрешено.
+			or (a1.moderate is null and a2.moderate is null and a5.moderate = 1))
+	group by t.id;
+end|
+
+-- Выбирает с заданной доски доступные для просмотра пользователю нити и
+-- количество сообщений в них.
+--
+-- Аргументы:
+-- board_id - Идентификатор доски.
+-- user_id - Идентификатор пользователя.
+create procedure sp_threads_get_visible_by_board
+(
+	board_id int,
+	user_id int
+)
+begin
+	select q1.id, q1.original_post, q1.bump_limit, q1.sticky, q1.sage,
+		q1.with_attachments, q1.posts_count, q1.last_post_num
+	from (
+		-- Без учёта сообщений с сажей вычислим последнее сообщение в нити.
+		select q.id, q.original_post, q.bump_limit, q.sticky, q.sage,
+			q.with_attachments, q.posts_count, max(p.number) as last_post_num
+		from posts p
+		join (
+			-- Выберем видимые нити и подсчитаем количество видимых сообщений.
+			select t.id, t.original_post, t.bump_limit, t.sticky, t.sage,
+				t.with_attachments, count(distinct p.id) as posts_count
+			from posts p
+			join threads t on t.id = p.thread and t.board = board_id
+			join user_groups ug on ug.`user` = user_id
+			left join hidden_threads ht on ht.thread = t.id
+				and ht.user = ug.user
+			-- Правило для конкретной группы и сообщения.
+			left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+			-- Правило для всех групп и конкретного сообщения.
+			left join acl a2 on a2.`group` is null and a2.post = p.id
+			-- Правила для конкретной группы и нити.
+			left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+			-- Правило для всех групп и конкретной нити.
+			left join acl a4 on a4.`group` is null and a4.thread = p.thread
+			-- Правила для конкретной группы и доски.
+			left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+			-- Правило для всех групп и конкретной доски.
+			left join acl a6 on a6.`group` is null and a6.board = p.board
+			-- Правило для конкретной групы.
+			left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+				and a7.thread is null and a7.post is null
+			where t.deleted = 0 and t.archived = 0 and ht.thread is null
+				and p.deleted = 0
+				-- Нить должна быть доступна для просмотра.
+					-- Просмотр нити не запрещен конкретной группе и
+				and ((a3.`view` = 1 or a3.`view` is null)
+					-- просмотр нити не запрещен всем группам и
+					and (a4.`view` = 1 or a4.`view` is null)
+					-- просмотр доски не запрещен конкретной группе и
+					and (a5.`view` = 1 or a5.`view` is null)
+					-- просмотр доски не запрещен всем группам и
+					and (a6.`view` = 1 or a6.`view` is null)
+					-- просмотр разрешен конкретной группе.
+					and a7.`view` = 1)
+				-- Сообщение должно быть доступно для просмотра, чтобы правильно
+				-- подсчитать их количество в нити.
+					-- Просмотр сообщения не запрещен конкретной группе и
+				and ((a1.`view` = 1 or a1.`view` is null)
+					-- просмотр сообщения не запрещен всем группам и
+					and (a2.`view` = 1 or a2.`view` is null)
+					-- просмотр нити не запрещен конкретной группе и
+					and (a3.`view` = 1 or a3.`view` is null)
+					-- просмотр нити не запрещен всем группам и
+					and (a4.`view` = 1 or a4.`view` is null)
+					-- просмотр доски не запрещен конкретной группе и
+					and (a5.`view` = 1 or a5.`view` is null)
+					-- просмотр доски не запрещен всем группам и
+					and (a6.`view` = 1 or a6.`view` is null)
+					-- просмотр разрешен конкретной группе.
+					and a7.`view` = 1)
+			group by t.id) q on q.id = p.thread
+				and (p.sage = 0 or p.sage is null) and p.deleted = 0
+		group by q.id) q1
+	order by q1.last_post_num desc;
+end|
+
+-- Выбирает заданную нить, доступную для просмотра заданному пользователю.
+--
+-- Аргументы:
+-- board_id - Идентификатор доски.
+-- thread_num - Номер нити.
+-- user_id - Идентификатор пользователя.
+create procedure sp_threads_get_visible_by_id
+(
+	board_id int,
+	thread_num int,
+	user_id int
+)
+begin
+	declare thread_id int;
+	select id into thread_id from threads
+	where original_post = thread_num and board = board_id;
+	if thread_id is null
+	then
+		select 'NOT_FOUND' as error;
+	else
+		select t.id, t.original_post, t.bump_limit, t.sticky, t.archived, t.sage,
+			t.with_attachments, count(p.id) as visible_posts_count
+		from posts p
+		join threads t on t.id = p.thread
+		join user_groups ug on ug.`user` = user_id
+		left join hidden_threads ht on t.id = ht.thread
+			and ug.user = ht.user
+		-- Правило для конкретной группы и сообщения.
+		left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+		-- Правило для всех групп и конкретного сообщения.
+		left join acl a2 on a2.`group` is null and a2.post = p.id
+		-- Правила для конкретной группы и нити.
+		left join acl a3 on a3.`group` = ug.`group` and a3.thread = t.id
+		-- Правило для всех групп и конкретной нити.
+		left join acl a4 on a4.`group` is null and a4.thread = t.id
+		-- Правила для конкретной группы и доски.
+		left join acl a5 on a5.`group` = ug.`group` and a5.board = t.board
+		-- Правило для всех групп и конкретной доски.
+		left join acl a6 on a6.`group` is null and a6.board = t.board
+		-- Правило для конкретной групы.
+		left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+			and a7.thread is null and a7.post is null
+		where t.id = thread_id
+			and (t.deleted = 0 or t.deleted is null)
+			and ht.thread is null
+			and (p.deleted = 0 or p.deleted is null)
+			-- Нить должна быть доступна для просмотра.
+				-- Просмотр нити не запрещен конкретной группе и
+			and ((a3.`view` = 1 or a3.`view` is null)
+				-- просмотр нити не запрещен всем группам и
+				and (a4.`view` = 1 or a4.`view` is null)
+				-- просмотр доски не запрещен конкретной группе и
+				and (a5.`view` = 1 or a5.`view` is null)
+				-- просмотр доски не запрещен всем группам и
+				and (a6.`view` = 1 or a6.`view` is null)
+				-- просмотр разрешен конкретной группе.
+				and a7.`view` = 1)
+			-- Сообщение должно быть доступно для просмотра, чтобы правильно
+			-- подсчитать количество видимых сообщений в нити.
+				-- Просмотр сообщения не запрещен конкретной группе и
+			and ((a1.`view` = 1 or a1.`view` is null)
+				-- просмотр сообщения не запрещен всем группам и
+				and (a2.`view` = 1 or a2.`view` is null)
+				-- просмотр нити не запрещен конкретной группе и
+				and (a3.`view` = 1 or a3.`view` is null)
+				-- просмотр нити не запрещен всем группам и
+				and (a4.`view` = 1 or a4.`view` is null)
+				-- просмотр доски не запрещен конкретной группе и
+				and (a5.`view` = 1 or a5.`view` is null)
+				-- просмотр доски не запрещен всем группам и
+				and (a6.`view` = 1 or a6.`view` is null)
+				-- просмотр разрешен конкретной группе.
+				and a7.`view` = 1)
+		group by t.id;
+	end if;
+end|
+
+-- Вычисляет количество нитей, доступных для просмотра заданному пользователю
+-- на заданной доске.
+--
+-- Аргументы:
+-- user_id - Идентификатор пользователя.
+-- board_id - Идентификатор доски.
+create procedure sp_threads_get_visible_count
+(
+	user_id int,
+	board_id int
+)
+begin
+	select count(q.id) as threads_count
+	from (select t.id
+	from threads t
+	join user_groups ug on ug.user = user_id
+	left join hidden_threads ht on ht.thread = t.id and ht.user = ug.user
+	-- Правила для конкретной группы и нити.
+	left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+	-- Правило для всех групп и конкретной нити.
+	left join acl a2 on a2.`group` is null and a2.thread = t.id
+	-- Правила для конкретной группы и доски.
+	left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
+	-- Правило для всех групп и конкретной доски.
+	left join acl a4 on a4.`group` is null and a4.board = t.board
+	-- Правило для конкретной групы.
+	left join acl a5 on a5.`group` = ug.`group` and a5.board is null
+		and a5.thread is null and a5.post is null
+	where t.board = board_id
+		and t.deleted = 0
+		and t.archived = 0
+		and ht.thread is null
+		-- Нить должна быть доступна для просмотра.
+			-- Просмотр нити не запрещен конкретной группе и
+		and ((a1.`view` = 1 or a1.`view` is null)
+			-- просмотр нити не запрещен всем группам и
+			and (a2.`view` = 1 or a2.`view` is null)
+			-- просмотр доски не запрещен конкретной группе и
+			and (a3.`view` = 1 or a3.`view` is null)
+			-- просмотр доски не запрещен всем группам и
+			and (a4.`view` = 1 or a4.`view` is null)
+			-- просмотр разрешен конкретной группе.
+			and a5.`view` = 1)
+	group by t.id) q;
+end|
 -- /DONE
 -- -------------------------------
 -- Работа с вложенными файлами. --
@@ -1654,353 +2112,6 @@ begin
 	delete from upload_types where id = _id;
 end|
 
--- --------------------
---  Работа с нитями. --
--- --------------------
-
--- Добавляет нить. Если номер оригинального сообщения null, то будет создана
--- пустая нить.
---
--- Аргументы:
--- board_id - Идентификатор доски.
--- _original_post - Номер оригинального сообщения.
--- _bump_limit - Специфичный для нити бамплимит.
--- _sage - Флаг поднятия нити.
--- _with_attachments - Флаг вложений.
-create procedure sp_threads_add
-(
-	board_id int,
-	_original_post int,
-	_bump_limit int,
-	_sage bit,
-	_with_attachments bit
-)
-begin
-	declare thread_id int;
-	insert into threads (board, original_post, bump_limit, deleted, archived,
-		sage, sticky, with_attachments)
-	values (_board_id, _original_post, _bump_limit, 0, 0,
-		_sage, 0, _with_attachments);
-	select last_insert_id() into thread_id;
-	select id, board, original_post, bump_limit, sage, sticky, with_attachments
-	from threads where id = thread_id;
-end|
-
--- Редактирует заданную нить.
---
--- Аргументы:
--- _id - Идентификатор нити.
--- _bump_limit - Специфичный для нити бамплимит.
--- _sage - Флаг поднятия нити.
--- _sticky - Флаг закрепления.
--- _with_attachments - Флаг вложений.
-create procedure sp_threads_edit
-(
-	_id int,
-	_bump_limit int,
-	_sticky bit,
-	_sage bit,
-	_with_attachments bit
-)
-begin
-	update threads set bump_limit = _bump_limit, sticky = _sticky, sage = _sage,
-		with_attachments = _with_attachments
-	where id = _id;
-end|
-
--- Редактирует номер оригинального сообщения нити.
---
--- Аргументы:
--- _id - Идентификатор нити.
--- _original_post - Номер оригинального сообщения нити.
-create procedure sp_threads_edit_original_post
-(
-	_id int,
-	_original_post int
-)
-begin
-	update threads set original_post = _original_post where id = _id;
-end|
-
--- Выбирает все нити.
-create procedure sp_threads_get_all ()
-begin
-	select id, board, original_post, bump_limit, sage, sticky, with_attachments
-	from threads
-	where deleted = 0 and archived = 0
-	order by id desc;
-end|
-
--- Выбирает нити, помеченные для архивирования.
-create procedure sp_threads_get_archived ()
-begin
-	select id, board, original_post, bump_limit, sage, sticky, with_attachments
-	from threads
-	where deleted = 0 and archived = 1;
-end|
-
--- Выбирает нити, доступные для модерирования заданному пользователю.
---
--- Аргументы:
--- user_id - Идентификатор пользователя.
-create procedure sp_threads_get_moderatable
-(
-	user_id int
-)
-begin
-	select t.id, t.board, t.original_post, t.bump_limit, t.sage, t.sticky,
-		t.with_attachments
-	from threads t
-	join user_groups ug on ug.`user` = user_id
-	left join hidden_threads ht on t.id = ht.thread and ug.`user` = ht.`user`
-	-- Правила для конкретной группы и нити.
-	left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
-	-- Правило для всех групп и конкретной нити.
-	left join acl a2 on a2.`group` is null and a2.thread = t.id
-	-- Правила для конкретной группы и доски.
-	left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
-	-- Правило для всех групп и конкретной доски.
-	left join acl a4 on a4.`group` is null and a4.board = t.board
-	-- Правило для конкретной групы.
-	left join acl a5 on a5.`group` = ug.`group` and a5.board is null
-		and a5.thread is null and a5.post is null
-	where t.deleted = 0
-		and t.archived = 0
-		and ht.thread is null
-		-- Нить должна быть доступна для просмотра.
-			-- Просмотр нити не запрещен конкретной группе и
-		and ((a1.`view` = 1 or a1.`view` is null)
-			-- просмотр нити не запрещен всем группам и
-			and (a2.`view` = 1 or a2.`view` is null)
-			-- просмотр доски не запрещен конкретной группе и
-			and (a3.`view` = 1 or a3.`view` is null)
-			-- просмотр доски не запрещен всем группам и
-			and (a4.`view` = 1 or a4.`view` is null)
-			-- просмотр разрешен конкретной группе.
-			and a5.`view` = 1)
-		-- Нить должна быть доступна для редактирования.
-			-- Редактирование нити разрешено конкретной группе или
-		and (a1.change = 1
-			-- редактирование нити не запрещено конкретной группе и разрешено
-			-- всем группам или
-			or (a1.change is null and a2.change = 1)
-			-- редактирование нити не запрещено ни конкретной группе ни всем, и
-			-- конкретной группе редактирование разрешено.
-			or (a1.change is null and a2.change is null and a5.change = 1))
-		-- Нить должна быть доступна для модерирования
-			-- Модерирование нити разрешено конкретной группе или
-		and (a1.moderate = 1
-			-- модерирование нити не запрещено конкретной группе и разрешено
-			-- всем группам или
-			or (a1.moderate is null and a2.moderate = 1)
-			-- модерирование нити не запрещено ни конкретной группе ни всем, и
-			-- конкретной группе модерирование разрешено.
-			or (a1.moderate is null and a2.moderate is null and a5.moderate = 1))
-	group by t.id
-	order by t.id desc;
-end|
-
--- Выбирает с заданной доски доступные для просмотра пользователю нити и
--- количество сообщений в них.
---
--- Аргументы:
--- board_id - идентификатор доски.
--- user_id - идентификатор пользователя.
-create procedure sp_threads_get_visible_by_board
-(
-	board_id int,
-	user_id int
-)
-begin
-	select q1.id, q1.original_post, q1.bump_limit, q1.sticky, q1.sage,
-		q1.with_attachments, q1.posts_count, q1.last_post_num
-	from (
-		-- Без учёта сообщений с сажей вычислим последнее сообщение в нити.
-		select q.id, q.original_post, q.bump_limit, q.sticky, q.sage,
-			q.with_attachments, q.posts_count, max(p.`number`) as last_post_num
-		from posts p
-		join (
-			-- Выберем видимые нити и подсчитаем количество видимых сообщений.
-			select t.id, t.original_post, t.bump_limit, t.sticky, t.sage,
-				t.with_attachments, count(distinct p.id) as posts_count
-			from posts p
-			join threads t on t.id = p.thread and t.board = board_id
-			join user_groups ug on ug.`user` = user_id
-			left join hidden_threads ht on ht.thread = t.id
-				and ht.`user` = ug.`user`
-			-- Правило для конкретной группы и сообщения.
-			left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
-			-- Правило для всех групп и конкретного сообщения.
-			left join acl a2 on a2.`group` is null and a2.post = p.id
-			-- Правила для конкретной группы и нити.
-			left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
-			-- Правило для всех групп и конкретной нити.
-			left join acl a4 on a4.`group` is null and a4.thread = p.thread
-			-- Правила для конкретной группы и доски.
-			left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
-			-- Правило для всех групп и конкретной доски.
-			left join acl a6 on a6.`group` is null and a6.board = p.board
-			-- Правило для конкретной групы.
-			left join acl a7 on a7.`group` = ug.`group` and a7.board is null
-				and a7.thread is null and a7.post is null
-			where t.deleted = 0 and t.archived = 0 and ht.thread is null
-				and p.deleted = 0
-				-- Нить должна быть доступна для просмотра.
-					-- Просмотр нити не запрещен конкретной группе и
-				and ((a3.`view` = 1 or a3.`view` is null)
-					-- просмотр нити не запрещен всем группам и
-					and (a4.`view` = 1 or a4.`view` is null)
-					-- просмотр доски не запрещен конкретной группе и
-					and (a5.`view` = 1 or a5.`view` is null)
-					-- просмотр доски не запрещен всем группам и
-					and (a6.`view` = 1 or a6.`view` is null)
-					-- просмотр разрешен конкретной группе.
-					and a7.`view` = 1)
-				-- Сообщение должно быть доступно для просмотра, чтобы правильно
-				-- подсчитать их количество в нити.
-					-- Просмотр сообщения не запрещен конкретной группе и
-				and ((a1.`view` = 1 or a1.`view` is null)
-					-- просмотр сообщения не запрещен всем группам и
-					and (a2.`view` = 1 or a2.`view` is null)
-					-- просмотр нити не запрещен конкретной группе и
-					and (a3.`view` = 1 or a3.`view` is null)
-					-- просмотр нити не запрещен всем группам и
-					and (a4.`view` = 1 or a4.`view` is null)
-					-- просмотр доски не запрещен конкретной группе и
-					and (a5.`view` = 1 or a5.`view` is null)
-					-- просмотр доски не запрещен всем группам и
-					and (a6.`view` = 1 or a6.`view` is null)
-					-- просмотр разрешен конкретной группе.
-					and a7.`view` = 1)
-			group by t.id) q on q.id = p.thread
-				and (p.sage = 0 or p.sage is null) and p.deleted = 0
-		group by q.id) q1
-	order by q1.last_post_num desc;
-end|
-
--- Выбирает доступную для просмотра нить с заданной доски.
---
--- Аргументы:
--- board_id - идентификатор доски.
--- thread_num - номер нити.
--- user_id - идентификатор пользователя.
-create procedure sp_threads_get_visible_by_id
-(
-	board_id int,
-	thread_num int,
-	user_id int
-)
-begin
-	declare thread_id int;
-	select id into thread_id from threads
-	where original_post = thread_num and board = board_id;
-	if thread_id is null
-	then
-		select 'NOT_FOUND' as error;
-	else
-		select t.id, t.original_post, t.bump_limit, t.sticky, t.archived, t.sage,
-			t.with_attachments, count(p.id) as visible_posts_count
-		from posts p
-		join threads t on t.id = p.thread
-		join user_groups ug on ug.`user` = user_id
-		left join hidden_threads ht on t.id = ht.thread
-			and ug.`user` = ht.`user`
-		-- Правило для конкретной группы и сообщения.
-		left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
-		-- Правило для всех групп и конкретного сообщения.
-		left join acl a2 on a2.`group` is null and a2.post = p.id
-		-- Правила для конкретной группы и нити.
-		left join acl a3 on a3.`group` = ug.`group` and a3.thread = t.id
-		-- Правило для всех групп и конкретной нити.
-		left join acl a4 on a4.`group` is null and a4.thread = t.id
-		-- Правила для конкретной группы и доски.
-		left join acl a5 on a5.`group` = ug.`group` and a5.board = t.board
-		-- Правило для всех групп и конкретной доски.
-		left join acl a6 on a6.`group` is null and a6.board = t.board
-		-- Правило для конкретной групы.
-		left join acl a7 on a7.`group` = ug.`group` and a7.board is null
-			and a7.thread is null and a7.post is null
-		where t.id = thread_id
-			and (t.deleted = 0 or t.deleted is null)
-			and ht.thread is null
-			and (p.deleted = 0 or p.deleted is null)
-			-- Нить должна быть доступна для просмотра.
-				-- Просмотр нити не запрещен конкретной группе и
-			and ((a3.`view` = 1 or a3.`view` is null)
-				-- просмотр нити не запрещен всем группам и
-				and (a4.`view` = 1 or a4.`view` is null)
-				-- просмотр доски не запрещен конкретной группе и
-				and (a5.`view` = 1 or a5.`view` is null)
-				-- просмотр доски не запрещен всем группам и
-				and (a6.`view` = 1 or a6.`view` is null)
-				-- просмотр разрешен конкретной группе.
-				and a7.`view` = 1)
-			-- Сообщение должно быть доступно для просмотра, чтобы правильно
-			-- подсчитать количество видимых сообщений в нити.
-				-- Просмотр сообщения не запрещен конкретной группе и
-			and ((a1.`view` = 1 or a1.`view` is null)
-				-- просмотр сообщения не запрещен всем группам и
-				and (a2.`view` = 1 or a2.`view` is null)
-				-- просмотр нити не запрещен конкретной группе и
-				and (a3.`view` = 1 or a3.`view` is null)
-				-- просмотр нити не запрещен всем группам и
-				and (a4.`view` = 1 or a4.`view` is null)
-				-- просмотр доски не запрещен конкретной группе и
-				and (a5.`view` = 1 or a5.`view` is null)
-				-- просмотр доски не запрещен всем группам и
-				and (a6.`view` = 1 or a6.`view` is null)
-				-- просмотр разрешен конкретной группе.
-				and a7.`view` = 1)
-		group by t.id;
-	end if;
-end|
-
--- Вычисляет количество нитей, доступных для просмотра заданному пользователю
--- на заданной доске.
---
--- Аргументы:
--- user_id - идентификатор пользователя.
--- board_id - идентификатор доски.
-create procedure sp_threads_get_visible_count
-(
-	user_id int,
-	board_id int
-)
-begin
-	select count(q.id) as threads_count
-	from (select t.id
-	from threads t
-	join user_groups ug on ug.user = user_id
-	left join hidden_threads ht on ht.thread = t.id and ht.`user` = ug.`user`
-	-- Правила для конкретной группы и нити.
-	left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
-	-- Правило для всех групп и конкретной нити.
-	left join acl a2 on a2.`group` is null and a2.thread = t.id
-	-- Правила для конкретной группы и доски.
-	left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
-	-- Правило для всех групп и конкретной доски.
-	left join acl a4 on a4.`group` is null and a4.board = t.board
-	-- Правило для конкретной групы.
-	left join acl a5 on a5.`group` = ug.`group` and a5.board is null
-		and a5.thread is null and a5.post is null
-	where t.board = board_id
-		and t.deleted = 0
-		and t.archived = 0
-		and ht.thread is null
-		-- Нить должна быть доступна для просмотра.
-			-- Просмотр нити не запрещен конкретной группе и
-		and ((a1.`view` = 1 or a1.`view` is null)
-			-- просмотр нити не запрещен всем группам и
-			and (a2.`view` = 1 or a2.`view` is null)
-			-- просмотр доски не запрещен конкретной группе и
-			and (a3.`view` = 1 or a3.`view` is null)
-			-- просмотр доски не запрещен всем группам и
-			and (a4.`view` = 1 or a4.`view` is null)
-			-- просмотр разрешен конкретной группе.
-			and a5.`view` = 1)
-	group by t.id) q;
-end|
-
 -- Выбирает доступную для просмотра скрытую нить и количество сообщений в ней.
 --
 -- Аргументы:
@@ -2076,117 +2187,6 @@ begin
 				and a7.`view` = 1)
 		group by t.id;
 	end if;
-end|
-
--- Выбирает нить, доступную для редактирования заданному пользователю.
---
--- Аргументы:
--- thread_id - Идентификатор нити.
--- user_id - Идентификатор пользователя.
-create procedure sp_threads_get_changeable_by_id
-(
-	thread_id int,
-	user_id int
-)
-begin
-	select t.id, t.board, t.original_post, t.bump_limit, t.archived, t.sage,
-		t.with_attachments
-	from threads t
-	join user_groups ug on ug.`user` = user_id
-	left join hidden_threads ht on t.id = ht.thread and ug.`user` = ht.`user`
-	-- Правила для конкретной группы и нити.
-	left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
-	-- Правило для всех групп и конкретной нити.
-	left join acl a2 on a2.`group` is null and a2.thread = t.id
-	-- Правила для конкретной группы и доски.
-	left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
-	-- Правило для всех групп и конкретной доски.
-	left join acl a4 on a4.`group` is null and a4.board = t.board
-	-- Правило для конкретной групы.
-	left join acl a5 on a5.`group` = ug.`group` and a5.board is null
-		and a5.thread is null and a5.post is null
-	where t.id = thread_id
-		and (t.deleted = 0 or t.deleted is null)
-		and ht.thread is null
-		-- Нить должна быть доступна для просмотра.
-			-- Просмотр нити не запрещен конкретной группе и
-		and ((a1.`view` = 1 or a1.`view` is null)
-			-- просмотр нити не запрещен всем группам и
-			and (a2.`view` = 1 or a2.`view` is null)
-			-- просмотр доски не запрещен конкретной группе и
-			and (a3.`view` = 1 or a3.`view` is null)
-			-- просмотр доски не запрещен всем группам и
-			and (a4.`view` = 1 or a4.`view` is null)
-			-- просмотр разрешен конкретной группе.
-			and a5.`view` = 1)
-		-- Нить должна быть доступна для редактирования.
-			-- Редактирование нити разрешено конкретной группе или
-		and (a1.change = 1
-				-- редактирование нити не запрещено конкретной группе и
-				-- разрешено всем группам или
-				or (a1.change is null and a2.change = 1)
-				-- редактирование нити не запрещено ни конкретной группе ни
-				-- всем, и конкретной группе редактирование разрешено.
-				or (a1.change is null and a2.change is null and a5.change = 1))
-	group by t.id;
-end|
-
--- Выбирает заданную нить, если она доступна для модерирования.
---
--- Аргументы:
--- thread_id - идентификатор нити.
--- user_id - идентификатор пользователя.
-create procedure sp_threads_get_moderatable_by_id
-(
-	thread_id int,
-	user_id int
-)
-begin
-	select t.id
-	from threads t
-	join user_groups ug on ug.`user` = user_id
-	left join hidden_threads ht on t.id = ht.thread and ug.`user` = ht.`user`
-	-- Правила для конкретной группы и нити.
-	left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
-	-- Правило для всех групп и конкретной нити.
-	left join acl a2 on a2.`group` is null and a2.thread = t.id
-	-- Правила для конкретной группы и доски.
-	left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
-	-- Правило для всех групп и конкретной доски.
-	left join acl a4 on a4.`group` is null and a4.board = t.board
-	-- Правило для конкретной групы.
-	left join acl a5 on a5.`group` = ug.`group` and a5.board is null
-		and a5.thread is null and a5.post is null
-	where t.id = thread_id
-		and (t.deleted = 0 or t.deleted is null)
-		and	(t.archived = 0 or t.archived is null)
-		and ht.thread is null
-		-- Нить должна быть доступна для просмотра.
-			-- Просмотр нити не запрещен конкретной группе и
-		and ((a1.`view` = 1 or a1.`view` is null)
-			-- просмотр нити не запрещен всем группам и
-			and (a2.`view` = 1 or a2.`view` is null)
-			-- просмотр доски не запрещен конкретной группе и
-			and (a3.`view` = 1 or a3.`view` is null)
-			-- просмотр доски не запрещен всем группам и
-			and (a4.`view` = 1 or a4.`view` is null)
-			-- просмотр разрешен конкретной группе.
-			and a5.`view` = 1)
-		-- Нить должна быть доступна для редактирования.
-			-- Редактирование нити разрешено конкретной группе или
-		and (a1.change = 1
-				-- редактирование нити не запрещено конкретной группе и разрешено всем группам или
-				or (a1.change is null and a2.change = 1)
-				-- редактирование нити не запрещено ни конкретной группе ни всем, и конкретной группе редактирование разрешено.
-				or (a1.change is null and a2.change is null and a5.change = 1))
-		-- Нить должна быть доступна для модерирования
-			-- Модерирование нити разрешено конкретной группе или
-		and (a1.moderate = 1
-			-- модерирование нити не запрещено конкретной группе и разрешено всем группам или
-			or (a1.moderate is null and a2.moderate = 1)
-			-- модерирование нити не запрещено ни конкретной группе ни всем, и конкретной группе модерирование разрешено.
-			or (a1.moderate is null and a2.moderate is null and a5.moderate = 1))
-	group by t.id;
 end|
 
 -- Оставляет не помеченными на архивирование нити заданной доски, суммарное
