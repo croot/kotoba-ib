@@ -1799,18 +1799,18 @@ function threads_get_archived()
 	return db_threads_get_archived(DataExchange::getDBLink());
 }
 /**
- * Получает нить, доступную для редактирования заданному пользователю.
+ * Получает заданную нить, доступную для изменения заданному пользователю.
  * @param thread_id mixed <p>Идентификатор нити.</p>
  * @param user_id mixed <p>Идентификатор пользователя.</p>
  * @return array
  * Возвращает нить:<p>
- * 'id' - идентификатор.<br>
- * 'board' - доска.<br>
- * 'original_post' - номер оригинального сообщения.<br>
- * 'bump_limit' - специфичный для нити бамплимит.<br>
- * 'sage' - флаг поднятия нити.<br>
- * 'with_attachments' - флаг вложений.<br>
- * 'archived' - флаг архивирования.</p>
+ * 'id' - Идентификатор.<br>
+ * 'board' - Идентификатор доски.<br>
+ * 'original_post' - Номер оригинального сообщения.<br>
+ * 'bump_limit' - Специфичный для нити бамплимит.<br>
+ * 'archived' - Флаг архивирования.<br>
+ * 'sage' - Флаг поднятия нити.<br>
+ * 'with_attachments' - Флаг вложений.</p>
  */
 function threads_get_changeable_by_id($thread_id, $user_id)
 {
@@ -1823,10 +1823,10 @@ function threads_get_changeable_by_id($thread_id, $user_id)
  * @return array
  * Возвращает нити:<p>
  * 'id' - Идентификатор.<br>
- * 'board' - Доска.<br>
+ * 'board' - Идентификатор доски.<br>
  * 'original_post' - Номер оригинального сообщения.<br>
  * 'bump_limit' - Специфичный для нити бамплимит.<br>
- * 'sage' - Флаг поднятия нити при ответе.<br>
+ * 'sage' - Флаг поднятия нити.<br>
  * 'sticky' - Флаг закрепления.<br>
  * 'with_attachments' - Флаг вложений.</p>
  */
@@ -1835,12 +1835,12 @@ function threads_get_moderatable($user_id)
 	return db_threads_get_moderatable(DataExchange::getDBLink(), $user_id);
 }
 /**
- * Получает заданную нить, если она доступна для модерирования.
+ * Получает заданную нить, доступную для модерирования заданному пользователю.
  * @param thread_id mixed <p>Идентификатор нити.</p>
  * @param user_id mixed <p>Идентификатор пользователя.</p>
  * @return mixed
  * Возвращает нить:<p>
- * 'id' - идентификатор.</p>
+ * 'id' - Идентификатор.</p>
  * Или null, если заданная нить не доступна для модерирования.
  */
 function threads_get_moderatable_by_id($thread_id, $user_id)
@@ -1857,13 +1857,13 @@ function threads_get_moderatable_by_id($thread_id, $user_id)
  * @param threads_per_page mixed <p>Количество нитей на странице.</p>
  * @return array
  * Возвращает нити:<p>
- * 'id' - идентификатор.<br>
- * 'original_post' - номер оригинального сообщения.<br>
- * 'bump_limit' - специфичный для нити бамплимит.<br>
- * 'sage' - флаг поднятия нити при ответе.<br>
- * 'sticky' - флаг закрепления.<br>
- * 'with_attachments' - флаг вложений.<br>
- * 'posts_count' - число доступных для просмотра сообщений.</p>
+ * 'id' - Идентификатор.<br>
+ * 'original_post' - Номер оригинального сообщения.<br>
+ * 'bump_limit' - Специфичный для нити бамплимит.<br>
+ * 'sage' - Флаг поднятия нити.<br>
+ * 'sticky' - Флаг закрепления.<br>
+ * 'with_attachments' - Флаг вложений.<br>
+ * 'posts_count' - Число доступных для просмотра сообщений.</p>
  */
 function threads_get_visible_by_board($board_id, $page, $user_id,
 	$threads_per_page)
@@ -1872,21 +1872,21 @@ function threads_get_visible_by_board($board_id, $page, $user_id,
 		$page, $user_id, $threads_per_page);
 }
 /**
- * Получает доступную для просмотра нить с заданной доски.
+ * Получает заданную нить, доступную для просмотра заданному пользователю.
  * @param board_id mixed <p>Идентификатор доски.</p>
  * @param thread_num mixed <p>Номер нити.</p>
  * @param user_id mixed <p>Идентификатор пользователя.</p>
  * @return array
  * Возвращает нить:<p>
- * 'id' - идентификатор.<br>
- * 'board' - идентификатор доски.<br>
- * 'original_post' - номер оригинального сообщения.<br>
- * 'bump_limit' - специфичный для нити бамплимит.<br>
- * 'archived' - флаг архивирования.<br>
- * 'sage' - флаг поднятия нити.<br>
- * 'sticky' - флаг закрепления.<br>
- * 'with_attachments' - флаг вложений.<br>
- * 'posts_count' - число доступных для просмотра сообщений в нити.</p>
+ * 'id' - Идентификатор.<br>
+ * 'board' - Идентификатор доски.<br>
+ * 'original_post' - Номер оригинального сообщения.<br>
+ * 'bump_limit' - Специфичный для нити бамплимит.<br>
+ * 'archived' - Флаг архивирования.<br>
+ * 'sage' - Флаг поднятия нити.<br>
+ * 'sticky' - Флаг закрепления.<br>
+ * 'with_attachments' - Флаг вложений.<br>
+ * 'posts_count' - Число доступных для просмотра сообщений в нити.</p>
  */
 function threads_get_visible_by_id($board_id, $thread_num, $user_id)
 {
