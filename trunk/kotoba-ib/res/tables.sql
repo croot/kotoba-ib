@@ -175,14 +175,17 @@ create table user_groups
 ) 
 engine=InnoDB|
 
+-- Заметки:
+-- Имя файла уменьшенной копии типа загружаемых файлов является имя файла
+-- изображения. См. заметки к таблице files, описание для поля thumbnail.
 create table upload_types						-- Типы загружаемых файлов.
 (
 	id int not null auto_increment,				-- Идентификатор.
 	extension varchar(10) not null,				-- Расширение.
 	store_extension varchar(10) default null,	-- Сохраняемое расширение.
 	is_image bit not null,						-- Флаг изображения.
-	upload_handler int not null,				-- Обработчик загружаемого файла.
-	thumbnail_image varchar(256) default null,	-- Уменьшенная копия.
+	upload_handler int not null,				-- Идентификатор обработчика загружаемого файла.
+	thumbnail_image varchar(256) default null,	-- Имя файла уменьшенной копии.
 	primary key (id),
 	constraint foreign key (upload_handler) references upload_handlers (id) on delete restrict on update restrict,
 	unique key (extension)

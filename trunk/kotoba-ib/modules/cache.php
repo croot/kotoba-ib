@@ -1071,7 +1071,7 @@ function languages_delete($id)
 	db_languages_delete(DataExchange::getDBLink(), $id);
 }
 /**
- * Получает языки.
+ * Получает все языки.
  * @return array
  * Возвращает языки:<p>
  * 'id' - Идентификатор.<br>
@@ -1157,7 +1157,7 @@ function popdown_handlers_delete($id)
 	db_popdown_handlers_delete(DataExchange::getDBLink(), $id);
 }
 /**
- * Получает обработчики автоматического удаления нитей.
+ * Получает все обработчики автоматического удаления нитей.
  * @return array
  * Возвращает обработчики автоматического удаления нитей:<p>
  * 'id' - Идентификатор.<br>
@@ -1907,6 +1907,87 @@ function threads_get_visible_count($user_id, $board_id)
 		$board_id);
 }
 
+/**********************************************
+ * Работа с обработчиками загружаемых файлов. *
+ **********************************************/
+
+/**
+ * Добавляет обработчик загружаемых файлов.
+ * @param name string <p>Имя фукнции обработчика загружаемых файлов.</p>
+ */
+function upload_handlers_add($name)
+{
+	db_upload_handlers_add(DataExchange::getDBLink(), $name);
+}
+/**
+ * Проверяет корректность идентификатора обработчика загружаемых файлов.
+ * @param id mixed <p>Идентификатор обработчика загружаемых файлов.</p>
+ * @return string
+ * Возвращает безопасный для использования идентификатор обработчика загружаемых
+ * файлов.
+ */
+function upload_handlers_check_id($id)
+{
+	$length = strlen($id);
+	$max_int_length = strlen('' . PHP_INT_MAX);
+	if($length <= $max_int_length && $length >= 1)
+	{
+		$id = RawUrlEncode($id);
+		$length = strlen($id);
+		if($length > $max_int_length || (ctype_digit($id) === false)
+			|| $length < 1)
+		{
+			throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_ID']);
+		}
+	}
+	else
+		throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_ID']);
+	return $id;
+}
+/**
+ * Проверяет корректность имени фукнции обработчика загружаемых файлов.
+ * @param name string <p>Имя фукнции обработчика загружаемых файлов.</p>
+ * @return string
+ * Возвращает безопасное для использования имя фукнции обработчика загружаемых
+ * файлов.
+ */
+function upload_handlers_check_name($name)
+{
+	$length = strlen($name);
+	if($length <= 50 && $length >= 1)
+	{
+		$name = RawUrlEncode($name);
+		$length = strlen($name);
+		if($length > 50 || (strpos($name, '%') !== false)
+			|| $length < 1 || ctype_digit($name[0]))
+		{
+			throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_NAME']);
+		}
+	}
+	else
+		throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_NAME']);
+	return $name;
+}
+/**
+ * Удаляет обработчик загружаемых файлов.
+ * @param id mixed <p>Идентификатор обработчика загружаемых файлов.</p>
+ */
+function upload_handlers_delete($id)
+{
+	db_upload_handlers_delete(DataExchange::getDBLink(), $id);
+}
+/**
+ * Получает все обработчики загружаемых файлов.
+ * @return array
+ * Возвращает обработчики загружаемых файлов:<p>
+ * 'id' - Идентификатор.<br>
+ * 'name' - Имя фукнции.</p>
+ */
+function upload_handlers_get_all()
+{
+	return db_upload_handlers_get_all(DataExchange::getDBLink());
+}
+
 /****************************
  * Работа с пользователями. *
  ****************************/
@@ -2175,95 +2256,139 @@ function user_groups_delete($user_id, $group_id)
 	db_user_groups_delete(DataExchange::getDBLink(), $user_id, $group_id);
 }
 
-/**********************************************
- * Работа с обработчиками загружаемых файлов. *
- **********************************************/
+/***************************************
+ * Работа с типами загружаемых файлов. *
+ ***************************************/
 
 /**
- * Получает все обработчики загружаемых файлов.
- * @return array
- * Возвращает обработчики загружаемых файлов:<p>
- * 'id' - идентификатор.<br>
- * 'name' - имя.</p>
+ * Добавляет тип загружаемых файлов.
+ * @param extension string <p>Расширение.</p>
+ * @param store_extension string <p>Сохраняемое расширение.</p>
+ * @param is_image mixed <p>Флаг изображения.</p>
+ * @param upload_handler_id mixed <p>Идентификатор обработчика загружаемого
+ * файла.</p>
+ * @param thumbnail_image string <p>Уменьшенная копия.</p>
  */
-function upload_handlers_get_all()
+function upload_types_add($extension, $store_extension, $is_image,
+	$upload_handler_id, $thumbnail_image)
 {
-	return db_upload_handlers_get_all(DataExchange::getDBLink());
+	db_upload_types_add(DataExchange::getDBLink(), $extension, $store_extension,
+		$is_image, $upload_handler_id, $thumbnail_image);
 }
 /**
- * Проверяет корректность имени $name обработчика загружаемых файлов.
- *
- * Аргументы:
- * $name - имя обработчика загружаемых файлов.
- *
- * Возвращает безопасное для использования имя обработчика загружаемых файлов.
+ * Проверяет корректность расширения загружаемого файла.
+ * @param ext string <p>Расширение.</p>
+ * @return string
+ * Возвращает безопасное для использования расширение загружаемого файла.
  */
-function upload_handlers_check_name($name)
+function upload_types_check_extension($ext)
 {
-	if(!isset($name))
-		throw new NodataException(NodataException::$messages['UPLOAD_HANDLER_NAME_NOT_SPECIFED']);
-	$length = strlen($name);
-	if($length <= 50 && $length >= 1)
+	$length = strlen($ext);
+	if($length <= 10 && $length >= 1)
 	{
-		$name = RawUrlEncode($name);
-		$length = strlen($name);
-		if($length > 50 || (strpos($name, '%') !== false)
-			|| $length < 1 || ctype_digit($name[0]))
-			throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_NAME']);
+		$ext = RawUrlEncode($ext);
+		$length = strlen($ext);
+		if($length > 10 || (strpos($ext, '%') !== false) || $length < 1)
+			throw new FormatException(FormatException::$messages['UPLOAD_TYPE_EXTENSION']);
 	}
 	else
-		throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_NAME']);
-	return $name;
+		throw new FormatException(FormatException::$messages['UPLOAD_TYPE_EXTENSION']);
+	return $ext;
 }
 /**
- * Проверяет корректность идентификатора обработчика загружаемых файлов.
- * @param id mixed <p>Идентификатор обработчика загружаемых файлов.</p>
+ * Проверяет корректность идентификатора типа загружаемых файлов.
+ * @param id mixed <p>Идентификатор.</p>
  * @return string
- * Возвращает безопасный для использования идентификатор обработчика загружаемых
- * файлов.
+ * Возвращает безопасный для использования идентификатор типа загружаемых файлов.
  */
-function upload_handlers_check_id($id)
+function upload_types_check_id($id)
 {
-	if(!isset($id))
-		throw new NodataException(NodataException::$messages['UPLOAD_HANDLER_ID_NOT_SPECIFED']);
 	$length = strlen($id);
 	$max_int_length = strlen('' . PHP_INT_MAX);
 	if($length <= $max_int_length && $length >= 1)
 	{
 		$id = RawUrlEncode($id);
 		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_ID']);
+		if($length > $max_int_length || (ctype_digit($id) === false)
+			|| $length < 1)
+		{
+			throw new FormatException(FormatException::$messages['UPLOAD_TYPE_ID']);
+		}
 	}
 	else
-		throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_ID']);
+		throw new FormatException(FormatException::$messages['UPLOAD_TYPE_ID']);
 	return $id;
 }
 /**
- * Добавляет новый обработчик загружаемых файлов.
- *
- * Аргументы:
- * $name - имя нового обработчика загружаемых файлов.
+ * Проверяет корректность сохраняемого расширения загружаемого файла.
+ * @param store_ext string <p>Сохраняемое расширение.</p>
+ * @return string
+ * Возвращает безопасное для использования сохраняемое расширение загружаемого
+ * файла.
  */
-function upload_handlers_add($name)
+function upload_types_check_store_extension($store_ext)
 {
-	db_upload_handlers_add(DataExchange::getDBLink(), $name);
+	$length = strlen($store_ext);
+	if($length <= 10 && $length >= 1)
+	{
+		$store_ext = RawUrlEncode($store_ext);
+		$length = strlen($store_ext);
+		if($length > 10 || (strpos($store_ext, '%') !== false) || $length < 1)
+			throw new FormatException(FormatException::$messages['UPLOAD_TYPE_STORE_EXTENSION']);
+	}
+	else
+		throw new FormatException(FormatException::$messages['UPLOAD_TYPE_STORE_EXTENSION']);
+	return $store_ext;
 }
 /**
- * Удаляет обработчик загружаемых файлов.
- *
- * Аргументы:
- * $id - идентификатор обработчика загружаемых файлов для удаления.
+ * Проверяет корректность имени файла уменьшенной копии типа загружаемых файлов.
+ * Подробнее см. заметки к таблице upload_types.
+ * @param thumbnail_image string <p>Имя файла уменьшенной копии.</p>
+ * @return string
+ * Возвращает безопасное для использования имя файла уменьшенной копии типа
+ * загружаемых файлов.
  */
-function upload_handlers_delete($id)
+function upload_types_check_thumbnail_image($thumbnail_image)
 {
-	db_upload_handlers_delete(DataExchange::getDBLink(), $id);
+	$length = strlen($thumbnail_image);
+	if($length <= 256 && $length >= 1)
+	{
+		$thumbnail_image = RawUrlEncode($thumbnail_image);
+		$length = strlen($thumbnail_image);
+		if($length > 256 || (strpos($thumbnail_image, '%') !== false)
+			|| $length < 1)
+		{
+			throw new FormatException(FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE']);
+		}
+	}
+	else
+		throw new FormatException(FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE']);
+	return $thumbnail_image;
 }
-
-/***************************************
- * Работа с типами загружаемых файлов. *
- ***************************************/
-
+/**
+ * Удаляет тип загружаемых файлов.
+ * @param id mixed <p>Идентифаикатор.</p>
+ */
+function upload_types_delete($id)
+{
+	db_upload_types_delete(DataExchange::getDBLink(), $id);
+}
+/**
+ * Редактирует тип загружаемых файлов.
+ * @param id mixed <p>Идентификатор типа.</p>
+ * @param store_extension string <p>Сохраняемое расширение файла.</p>
+ * @param is_image mixed <p>Флаг типа файлов изображений.</p>
+ * @param upload_handler_id mixed <p>Идентификатор обработчика загружаемых
+ * файлов.</p>
+ * @param thumbnail_image string <p>Имя картинки для файлов, не являющихся
+ * изображением.</p>
+ */
+function upload_types_edit($id, $store_extension, $is_image,
+	$upload_handler_id, $thumbnail_image)
+{
+	db_upload_types_edit(DataExchange::getDBLink(), $id, $store_extension,
+		$is_image, $upload_handler_id, $thumbnail_image);
+}
 /**
  * Получает все типы загружаемых файлов.
  * @return array
@@ -2293,139 +2418,6 @@ function upload_types_get_all()
 function upload_types_get_board($board_id)
 {
 	return db_upload_types_get_board(DataExchange::getDBLink(), $board_id);
-}
-/**
- * Проверяет корректность расширения загружаемого файла.
- * @param ext string <p>Расширение загружаемого файла.</p>
- * @return string
- * Возвращает безопасное для использования расширение загружаемого файла.
- */
-function upload_types_check_extension($ext)
-{
-	if(!isset($ext))
-		throw new NodataException(NodataException::$messages['UPLOAD_TYPE_EXTENSION_NOT_SPECIFED']);
-	$length = strlen($ext);
-	if($length <= 10 && $length >= 1)
-	{
-		$ext = RawUrlEncode($ext);
-		$length = strlen($ext);
-		if($length > 10 || (strpos($ext, '%') !== false) || $length < 1)
-			throw new FormatException(FormatException::$messages['UPLOAD_TYPE_EXTENSION']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['UPLOAD_TYPE_EXTENSION']);
-	return $ext;
-}
-/**
- * Проверяет корректность сохраняемого расширения загружаемого файла.
- * @param store_ext string <p>Сохраняемое расширение загружаемого файла.</p>
- * @return string
- * Возвращает безопасное для использования сохраняемое расширение загружаемого
- * файла.
- */
-function upload_types_check_store_extension($store_ext)
-{
-	if(!isset($store_ext))
-		throw new NodataException(NodataException::$messages['UPLOAD_TYPE_STORE_EXTENSION_NOT_SPECIFED']);
-	$length = strlen($store_ext);
-	if($length <= 10 && $length >= 1)
-	{
-		$store_ext = RawUrlEncode($store_ext);
-		$length = strlen($store_ext);
-		if($length > 10 || (strpos($store_ext, '%') !== false) || $length < 1)
-			throw new FormatException(FormatException::$messages['UPLOAD_TYPE_STORE_EXTENSION']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['UPLOAD_TYPE_STORE_EXTENSION']);
-	return $store_ext;
-}
-/**
- * Проверяет корректность имени картинки для файла, не являющегося изображением.
- * @param thumbnail_image string <p>имя картинки для файла, не являющегося изображением.</p>
- * @return string
- * Возвращает безопасное для использования имя картинки для файла, не
- * являющегося изображением.
- */
-function upload_types_check_thumbnail_image($thumbnail_image)
-{
-	if(!isset($thumbnail_image))
-		throw new NodataException(NodataException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE_NOT_SPECIFED']);
-	$length = strlen($thumbnail_image);
-	if($length <= 256 && $length >= 1)
-	{
-		$thumbnail_image = RawUrlEncode($thumbnail_image);
-		$length = strlen($thumbnail_image);
-		if($length > 256 || (strpos($thumbnail_image, '%') !== false) || $length < 1)
-			throw new FormatException(FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE']);
-	return $thumbnail_image;
-}
-/**
- * Редактирует тип загружаемых файлов.
- * @param id mixed <p>Идентификатор типа.</p>
- * @param store_extension string <p>Сохраняемое расширение файла.</p>
- * @param is_image mixed <p>Флаг типа файлов изображений.</p>
- * @param upload_handler_id mixed <p>Идентификатор обработчика загружаемых
- * файлов.</p>
- * @param thumbnail_image string <p>Имя картинки для файлов, не являющихся
- * изображением.</p>
- */
-function upload_types_edit($id, $store_extension, $is_image,
-	$upload_handler_id, $thumbnail_image)
-{
-	db_upload_types_edit(DataExchange::getDBLink(), $id, $store_extension,
-		$is_image, $upload_handler_id, $thumbnail_image);
-}
-/**
- * Добавляет новый тип загружаемых файлов.
- * @param extension string <p>Расширение файла.</p>
- * @param store_extension string <p>Сохраняемое расширение файла.</p>
- * @param is_image mixed <p>Флаг типа файлов изображений.</p>
- * @param upload_handler_id mixed <p>Идентификатор обработчика загружаемых
- * файлов.</p>
- * @param thumbnail_image string <p>Имя картинки для файлов, не являющихся
- * изображением.</p>
- */
-function upload_types_add($extension, $store_extension, $is_image,
-	$upload_handler_id, $thumbnail_image)
-{
-	db_upload_types_add(DataExchange::getDBLink(), $extension, $store_extension,
-		$is_image, $upload_handler_id, $thumbnail_image);
-}
-/**
- * Удаляет тип загружаемых файлов.
- * @param id mixed <p>Идентифаикатор типа загружаемых файлов.</p>
- */
-function upload_types_delete($id)
-{
-	db_upload_types_delete(DataExchange::getDBLink(), $id);
-}
-/**
- * Проверяет корректность идентификатора типа загружаемых файлов.
- *
- * Аргументы:
- * $id - идентификатор типа загружаемых файлов.
- *
- * Возвращает безопасный для использования идентификатор типа загружаемых файлов.
- */
-function upload_types_check_id($id)
-{
-	if(!isset($id))
-		throw new NodataException(NodataException::$messages['UPLOAD_TYPE_ID_NOT_SPECIFED']);
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['UPLOAD_TYPE_ID']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['UPLOAD_TYPE_ID']);
-	return $id;
 }
 
 /***************************************************

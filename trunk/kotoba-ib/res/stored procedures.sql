@@ -81,14 +81,14 @@ drop procedure if exists sp_threads_get_moderatable_by_id|
 drop procedure if exists sp_threads_get_visible_by_board|
 drop procedure if exists sp_threads_get_visible_by_id|
 drop procedure if exists sp_threads_get_visible_count|
--- /DONE
-drop procedure if exists sp_files_get_by_post|
-
-drop procedure if exists sp_links_get_by_post|
 
 drop procedure if exists sp_upload_handlers_add|
 drop procedure if exists sp_upload_handlers_delete|
 drop procedure if exists sp_upload_handlers_get_all|
+-- /DONE
+drop procedure if exists sp_files_get_by_post|
+
+drop procedure if exists sp_links_get_by_post|
 
 drop procedure if exists sp_videos_get_by_post|
 
@@ -883,7 +883,7 @@ begin
 	delete from languages where id = _id;
 end|
 
--- Выбирает языки.
+-- Выбирает все языки.
 create procedure sp_languages_get_all ()
 begin
 	select id, code from languages;
@@ -917,7 +917,7 @@ begin
 	delete from popdown_handlers where id = _id;
 end|
 
--- Выбирает обработчики автоматического удаления нитей.
+-- Выбирает все обработчики автоматического удаления нитей.
 create procedure sp_popdown_handlers_get_all ()
 begin
 	select id, name from popdown_handlers;
@@ -1783,6 +1783,37 @@ begin
 			and a5.`view` = 1)
 	group by t.id) q;
 end|
+
+-- ----------------------------------------------
+--  Работа с обработчиками загружаемых файлов. --
+-- ----------------------------------------------
+
+-- Добавляет обработчик загружаемых файлов.
+--
+-- Аргументы:
+-- _name - Имя фукнции обработчика загружаемых файлов.
+create procedure sp_upload_handlers_add
+(
+	_name varchar(50)
+)
+begin
+	insert into upload_handlers (name) values (_name);
+end|
+
+-- Удаляет обработчик загружаемых файлов.
+create procedure sp_upload_handlers_delete
+(
+	_id int
+)
+begin
+	delete from upload_handlers where id = _id;
+end|
+
+-- Выбирает все обработчики загружаемых файлов.
+create procedure sp_upload_handlers_get_all ()
+begin
+	select id, name from upload_handlers;
+end|
 -- /DONE
 -- -------------------------------
 -- Работа с вложенными файлами. --
@@ -1820,37 +1851,6 @@ begin
 		l.thumbnail_h, l.deleted
 	from posts_links pl
 	join links l on l.id = pl.`link` and pl.post = post_id;
-end|
-
--- ----------------------------------------------
---  Работа с обработчиками загружаемых файлов. --
--- ----------------------------------------------
-
--- Выбирает все обработчики загружаемых файлов.
-create procedure sp_upload_handlers_get_all ()
-begin
-	select id, `name` from upload_handlers;
-end|
-
--- Добавляет новый обработчик загружаемых файлов.
---
--- Аргументы:
--- _name - имя нового обработчика загружаемых файлов.
-create procedure sp_upload_handlers_add
-(
-	_name varchar(50)
-)
-begin
-	insert into upload_handlers (`name`) values (_name);
-end|
-
---
-create procedure sp_upload_handlers_delete
-(
-	_id int
-)
-begin
-	delete from upload_handlers where id = _id;
 end|
 
 -- ----------------------------
