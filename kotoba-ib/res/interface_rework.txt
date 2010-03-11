@@ -111,6 +111,22 @@ threads_get_visible_by_board() | db_threads_get_visible_by_board() | sp_threads_
 threads_get_visible_by_id() | db_threads_get_visible_by_id() | sp_threads_get_visible_by_id()
 threads_get_visible_count() | db_threads_get_visible_count() | sp_threads_get_visible_count()
 
+upload_handlers_add() | db_upload_handlers_add() | sp_upload_handlers_add()
+upload_handlers_check_id()
+upload_handlers_check_name()
+upload_handlers_delete() | db_upload_handlers_delete() | sp_upload_handlers_delete()
+upload_handlers_get_all() | db_upload_handlers_get_all() |
+
+upload_types_add() | db_upload_types_add() | 
+upload_types_check_extension()
+upload_types_check_id()
+upload_types_check_store_extension()
+upload_types_check_thumbnail_image()
+upload_types_delete()
+upload_types_edit()
+upload_types_get_all()
+upload_types_get_board() -> upload_types_get_by_board()
+
 uploads_add()
 uploads_check_image_size()
 uploads_delete_by_id()
@@ -121,11 +137,6 @@ uploads_get_same()
 posts_uploads_add()
 posts_uploads_delete_by_post()
 posts_uploads_get_by_posts()
-
-hidden_threads_add()
-hidden_threads_delete()
-hidden_threads_get_filtred_by_boards()
-hidden_threads_get_visible()
 
 bans
 categories
@@ -138,3 +149,51 @@ popdown_handlers
 stylesheets
 upload_handlers
 videos
+
+В комментариях к функциям работы с сущностями будем следовать следующим
+правилам:
+
+1. Если функция удаляет, редактирует или получает/выбирает один или более
+экземпляров сущности по одному или более атрибуту сущности, то в описаннии
+фукнции не нужно перечислять все эти атрибуты, а лишь обозначить их словом
+"заданную".
+
+Примеры:
+
+1)
+/**
+ * Удаляет заданную нить.
+ * @param id mixed <p>Идентификатор.</p>
+ */
+function threads_delete_by_id($id) { ... }
+
+Подробно фукнцию можно описать так: Удаляет нить по заданному идентификатору id.
+
+Здесь:
+threads - имя сущности.
+delete (Удаляет) - действие, которое фукнция осуществляет с одним или более экземпляром сущности.
+id - атрибут, по которому осуществляется действие.
+Нить - имя экземпляра сущности.
+
+2)
+/**
+ * Редактирует специфичный для нити бамплимит заданных нитей.
+ * @param boards array <p>Идентификаторы досок.</p>
+ * @param bump_limit mixed <p>Бамплимит.</p>
+ */
+function threads_edit_bump_limit_by_boards($boards, $bump_limit) { ... }
+
+Подробно фукнцию можно описать так: Редактирует специфичный для нити бамплимит
+у всех нитей принадлежащих доскам, имена которых перечислены в массиве $boards,
+устанавливая значение специфичного для нити бамплимита в bump_limit.
+
+TODO: Атрибуты не приналдежание редактируемой сущности.
+TODO: Обощение лямбдами.
+
+Здесь:
+threads - имя сущности.
+edit (Редактирует) - действие, которое фукнция осуществляет с одним или более экземпляром сущности.
+boards - массиватрибут, по которому осуществляется действие.
+Нить - имя экземпляра сущности.
+
+3)

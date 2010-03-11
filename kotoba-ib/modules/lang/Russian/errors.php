@@ -63,12 +63,6 @@ NodataException::$messages['LANGUAGE_NAME_NOT_SPECIFED'] = 'Не задано и
 NodataException::$messages['USER_ID_NOT_SPECIFED'] = 'Не задан идентификатор пользователя.';
 NodataException::$messages['USERS_NOT_EXIST'] = 'Не создан ни один пользователь.';
 NodataException::$messages['ACL_NOT_EXIST'] = 'В списке контроля доступа нет ни одной записи.';
-NodataException::$messages['UPLOAD_HANDLER_NAME_NOT_SPECIFED'] = 'Не задано имя обработчика загружаемых файлов.';
-NodataException::$messages['UPLOAD_HANDLER_ID_NOT_SPECIFED'] = 'Не задан идентификатор обработчика загружаемых файлов.';
-NodataException::$messages['UPLOAD_TYPE_EXTENSION_NOT_SPECIFED'] = 'Не задано расширение загружаемого файла.';
-NodataException::$messages['UPLOAD_TYPE_STORE_EXTENSION_NOT_SPECIFED'] = 'Не задано сохраняемое расширение загружаемого файла.';
-NodataException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE_NOT_SPECIFED'] = 'Не задано имя картинки для файла, не являющегося изображением.';
-NodataException::$messages['UPLOAD_TYPE_ID_NOT_SPECIFED'] = 'Не задан идентификатор типа загружаемых файлов.';
 NodataException::$messages['THREADS_EDIT'] = 'Нет нитей для редактирования настроек';
 NodataException::$messages['EMPTY_MESSAGE'] = 'Файл не был загружен и пустой текст сообщения.';
 
@@ -109,6 +103,13 @@ FormatException::$messages['THREAD_BUMP_LIMIT'] = 'Специфичный для
 FormatException::$messages['THREAD_ID'] = 'Идентификатор нити имеет не верный формат.';
 FormatException::$messages['THREAD_NUMBER'] = 'Номер оригинального сообщения имеет не верный формат.';
 
+FormatException::$messages['UPLOAD_HANDLER_ID'] = 'Идентификатор обработчика загружаемых файлов имеет не верный формат.';
+FormatException::$messages['UPLOAD_HANDLER_NAME'] = 'Имя фукнции обработчика загружаемых файлов имеет не верный формат.';
+
+FormatException::$messages['UPLOAD_TYPE_EXTENSION'] = 'Расширение загружаемого файла имеет не верный формат.';
+FormatException::$messages['UPLOAD_TYPE_ID'] = 'Идентификатор типа загружаемых файлов имеет не верный формат.';
+FormatException::$messages['UPLOAD_TYPE_STORE_EXTENSION'] = 'Сохраняемое расширение загружаемого файла имеет не верный формат.';
+
 FormatException::$messages['KEYWORD'] = 'Длина ключего слова должна быть от 16 до 32 символов, допустимые значения: латинские буквы, цифры, нижнее подчеркивание и дефис.';
 // Параметры: минимальное число нитей, максимальное число нитей.
 FormatException::$messages['THREADS_PER_PAGE'] = 'Число нитей на странице просмотра доски должно быть в пределах %s-%s.';
@@ -117,13 +118,8 @@ FormatException::$messages['POSTS_PER_THREAD'] = 'Число сообщений 
 // Параметры: минимальное число строк, максимальное число строк.
 FormatException::$messages['LINES_PER_POST'] = 'Число строк в сообщении на странице просмотра доски должно быть в пределах %s-%s.';
 FormatException::$messages['USER_ID'] = 'Идентификатор пользователя имеет не верный формат.';
-FormatException::$messages['UPLOAD_HANDLER_NAME'] = 'Имя обработчика загружаемых файлов имеет не верный формат.';
 FormatException::$messages['POPDOWN_HANDLER_NAME'] = 'Имя обработчика удаления нитей имеет не верный формат.';
-FormatException::$messages['UPLOAD_HANDLER_ID'] = 'Идентификатор обработчика загружаемых файлов имеет не верный формат.';
-FormatException::$messages['UPLOAD_TYPE_EXTENSION'] = 'Расширение загружаемого файла имеет не верный формат.';
-FormatException::$messages['UPLOAD_TYPE_STORE_EXTENSION'] = 'Сохраняемое расширение загружаемого файла имеет не верный формат.';
 FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE'] = 'Имя картинки для файла, не являющегося изображением имеет не верный формат.';
-FormatException::$messages['UPLOAD_TYPE_ID'] = 'Идентификатор типа загружаемых файлов имеет не верный формат.';
 FormatException::$messages['PAGE'] = 'Номер страницы имеет не верный формат.';
 FormatException::$messages['GOTO'] = 'Перенаправление при постинге имеет не верный формат.';
 

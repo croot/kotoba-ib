@@ -1075,7 +1075,7 @@ function db_languages_delete($link, $id)
 	db_cleanup_link($link);
 }
 /**
- * Получает языки.
+ * Получает все языки.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @return array
  * Возвращает языки:<p>
@@ -1127,7 +1127,7 @@ function db_popdown_handlers_delete($link, $id)
 	db_cleanup_link($link);
 }
 /**
- * Получает обработчики автоматического удаления нитей.
+ * Получает все обработчики автоматического удаления нитей.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @return array
  * Возвращает обработчики автоматического удаления нитей:<p>
@@ -2024,6 +2024,54 @@ function db_threads_get_visible_count($link, $user_id, $board_id)
 	}
 }
 
+/**********************************************
+ * Работа с обработчиками загружаемых файлов. *
+ **********************************************/
+
+/**
+ * Добавляет обработчик загружаемых файлов.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param name string <p>Имя фукнции обработчика загружаемых файлов.</p>
+ */
+function db_upload_handlers_add($link, $name)
+{
+	if(!mysqli_query($link, 'call sp_upload_handlers_add(\'' . $name . '\')'))
+		throw new CommonException(mysqli_error($link));
+	db_cleanup_link($link);
+}
+/**
+ * Удаляет обработчик загружаемых файлов.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param id mixed <p>Идентификатор обработчика загружаемых файлов.</p>
+ */
+function db_upload_handlers_delete($link, $id)
+{
+	if(!mysqli_query($link, 'call sp_upload_handlers_delete(' . $id . ')'))
+		throw new CommonException(mysqli_error($link));
+	db_cleanup_link($link);
+}
+/**
+ * Получает все обработчики загружаемых файлов.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @return array
+ * Возвращает обработчики загружаемых файлов:<p>
+ * 'id' - Идентификатор.<br>
+ * 'name' - Имя фукнции.</p>
+ */
+function db_upload_handlers_get_all($link)
+{
+	$result = mysqli_query($link, 'call sp_upload_handlers_get_all()');
+	if(!$result)
+		throw new CommonException(mysqli_error($link));
+	$upload_handlers = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) !== null)
+			array_push($upload_handlers, array('id' => $row['id'],
+					'name' => $row['name']));
+	db_cleanup_link($link);
+	return $upload_handlers;
+}
+
 /****************************
  * Работа с пользователями. *
  ****************************/
@@ -2348,64 +2396,32 @@ function db_acl_get_all($link)
 	return $acl;
 }
 
-/**********************************************
- * Работа с обработчиками загружаемых файлов. *
- **********************************************/
-
-/**
- * Получает все обработчики загружаемых файлов.
- *
- * Аргументы:
- * $link - связь с базой данных.
- *
- * Возвращает обработчики загружаемых файлов:
- * 'id' - идентификатор обработчика.
- * 'name' - имя обработчика.
- */
-function db_upload_handlers_get_all($link)
-{
-	$result = mysqli_query($link, 'call sp_upload_handlers_get_all()');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$upload_handlers = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) !== null)
-			array_push($upload_handlers, array('id' => $row['id'],
-					'name' => $row['name']));
-	db_cleanup_link($link);
-	return $upload_handlers;
-}
-/**
- * Добавляет новый обработчик загружаемых файлов.
- *
- * Аргументы:
- * $link - связь с базой данных.
- * $name - имя нового обработчика загружаемых файлов.
- */
-function db_upload_handlers_add($link, $name)
-{
-	if(!mysqli_query($link, "call sp_upload_handlers_add('$name')"))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
-}
-/**
- * Удаляет обработчик загружаемых файлов.
- *
- * Аргументы:
- * $link - связь с базой данных.
- * $id - идентификатор обработчика загружаемых файлов для удаления.
- */
-function db_upload_handlers_delete($link, $id)
-{
-	if(!mysqli_query($link, "call sp_upload_handlers_delete($id)"))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
-}
-
 /***************************************
  * Работа с типами загружаемых файлов. *
  ***************************************/
 
+/**
+ * Добавляет тип загружаемых файлов.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param extension string <p>Расширение.</p>
+ * @param store_extension string <p>Сохраняемое расширение.</p>
+ * @param is_image mixed <p>Флаг изображения.</p>
+ * @param upload_handler_id mixed <p>Идентификатор обработчика загружаемого
+ * файла.</p>
+ * @param thumbnail_image string <p>Уменьшенная копия.</p>
+ */
+function db_upload_types_add($link, $extension, $store_extension, $is_image,
+	$upload_handler_id, $thumbnail_image)
+{
+	$thumbnail_image = ($thumbnail_image === null ? 'null' : '\'' . $thumbnail_image . '\'');
+	if(!mysqli_query($link, 'call sp_upload_types_add(\''
+		. $extension . '\', \'' . $store_extension . '\', ' . $is_image . ', '
+		. $upload_handler_id . ', ' . $thumbnail_image . ')'))
+	{
+		throw new CommonException(mysqli_error($link));
+	}
+	db_cleanup_link($link);
+}
 /**
  * Получает все типы загружаемых файлов.
  *
@@ -2491,26 +2507,6 @@ function db_upload_types_edit($link, $id, $store_extension, $is_image,
 	$thumbnail_image = ($thumbnail_image === null ? 'null' : "'$thumbnail_image'");
 	if(!mysqli_query($link, "call sp_upload_types_edit($id, '$store_extension',
 			$is_image, $upload_handler_id, $thumbnail_image)"))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
-}
-/**
- * Добавляет новый тип загружаемых файлов.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param extension string <p>Расширение файла.</p>
- * @param store_extension string <p>Сохраняемое расширение файла.</p>
- * @param is_image mixed <p>Флаг типа файлов изображений.</p>
- * @param upload_handler_id mixed <p>Идентификатор обработчика загружаемых
- * файлов.</p>
- * @param thumbnail_image string <p>Имя картинки для файлов, не являющихся
- * изображением.</p>
- */
-function db_upload_types_add($link, $extension, $store_extension, $is_image,
-	$upload_handler_id, $thumbnail_image)
-{
-	$thumbnail_image = ($thumbnail_image === null ? 'null' : "'$thumbnail_image'");
-	if(!mysqli_query($link, "call sp_upload_types_add('$extension',
-			'$store_extension', $is_image, $upload_handler_id, $thumbnail_image)"))
 		throw new CommonException(mysqli_error($link));
 	db_cleanup_link($link);
 }
