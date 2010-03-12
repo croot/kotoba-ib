@@ -32,6 +32,8 @@ drop procedure if exists sp_categories_add|
 drop procedure if exists sp_categories_delete|
 drop procedure if exists sp_categories_get_all|
 
+drop procedure if exists sp_files_get_by_post|
+
 drop procedure if exists sp_groups_add|
 drop procedure if exists sp_groups_delete|
 drop procedure if exists sp_groups_get_all|
@@ -64,6 +66,14 @@ drop procedure if exists sp_posts_get_visible_by_id|
 drop procedure if exists sp_posts_get_visible_by_number|
 drop procedure if exists sp_posts_get_visible_by_thread|
 
+drop procedure if exists sp_posts_files_get_by_post|
+
+drop procedure if exists sp_posts_images_get_by_post|
+
+drop procedure if exists sp_posts_links_get_by_post|
+
+drop procedure if exists sp_posts_videos_get_by_post|
+
 drop procedure if exists sp_stylesheets_add|
 drop procedure if exists sp_stylesheets_delete|
 drop procedure if exists sp_stylesheets_get_all|
@@ -85,9 +95,18 @@ drop procedure if exists sp_threads_get_visible_count|
 drop procedure if exists sp_upload_handlers_add|
 drop procedure if exists sp_upload_handlers_delete|
 drop procedure if exists sp_upload_handlers_get_all|
--- /DONE
-drop procedure if exists sp_files_get_by_post|
 
+drop procedure if exists sp_upload_types_add|
+drop procedure if exists sp_upload_types_delete|
+drop procedure if exists sp_upload_types_edit|
+drop procedure if exists sp_upload_types_get_all|
+drop procedure if exists sp_upload_types_get_by_board|
+
+drop procedure if exists sp_user_groups_add|
+drop procedure if exists sp_user_groups_delete|
+drop procedure if exists sp_user_groups_edit|
+drop procedure if exists sp_user_groups_get_all|
+-- /DONE
 drop procedure if exists sp_links_get_by_post|
 
 drop procedure if exists sp_videos_get_by_post|
@@ -96,15 +115,6 @@ drop procedure if exists sp_users_edit_bykeyword|
 drop procedure if exists sp_users_get_by_keyword|
 drop procedure if exists sp_users_set_password|
 drop procedure if exists sp_users_get_all|
-drop procedure if exists sp_user_groups_get_all|
-drop procedure if exists sp_user_groups_add|
-drop procedure if exists sp_user_groups_edit|
-drop procedure if exists sp_user_groups_delete|
-drop procedure if exists sp_upload_types_get_all|
-drop procedure if exists sp_upload_types_get_board|
-drop procedure if exists sp_upload_types_edit|
-drop procedure if exists sp_upload_types_add|
-drop procedure if exists sp_upload_types_delete|
 drop procedure if exists sp_posts_uploads_get_by_post|
 drop procedure if exists sp_posts_uploads_add|
 drop procedure if exists sp_posts_uploads_delete_by_post|
@@ -113,10 +123,6 @@ drop procedure if exists sp_uploads_get_same|
 drop procedure if exists sp_uploads_add|
 drop procedure if exists sp_uploads_get_dangling|
 drop procedure if exists sp_uploads_delete_by_id|
-drop procedure if exists sp_posts_files_get_by_post|
-drop procedure if exists sp_posts_images_get_by_post|
-drop procedure if exists sp_posts_links_get_by_post|
-drop procedure if exists sp_posts_videos_get_by_post|
 -- DONE
 -- ---------------------------------------
 --  Работа со списком контроля доступа. --
@@ -792,7 +798,7 @@ end|
 -- Работа с вложенными изображениями. --
 -- -------------------------------------
 
--- Выбирает вложенные в заданное сообщение изображения.
+-- Выбирает изображения, вложенные в заданное сообщение.
 --
 -- Аргументы:
 -- post_id - Идентификатор сообщения.
@@ -801,7 +807,7 @@ create procedure sp_images_get_by_post
 	post_id int
 )
 begin
-	select i.id, i.`hash`, i.`name`, i.widht, i.height, i.`size`, i.thumbnail,
+	select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail,
 		i.thumbnail_w, i.thumbnail_h
 	from posts_images pi
 	join images i on i.id = pi.image and pi.post = post_id;
@@ -887,6 +893,25 @@ end|
 create procedure sp_languages_get_all ()
 begin
 	select id, code from languages;
+end|
+
+-- -----------------------------------------------
+-- Работа с вложенными ссылками на изображения. --
+-- -----------------------------------------------
+
+-- Выбирает ссылки на изображения, вложенные в заданное сообщение.
+--
+-- Аргументы:
+-- post_id - Идентификатор сообщения.
+create procedure sp_links_get_by_post
+(
+	post_id int
+)
+begin
+	select l.id, l.url, l.widht, l.height, l.size, l.thumbnail, l.thumbnail_w,
+		l.thumbnail_h
+	from posts_links pl
+	join links l on l.id = pl.link and pl.post = post_id;
 end|
 
 -- ----------------------------------------------------------
@@ -1290,6 +1315,70 @@ begin
 			and a7.`view` = 1)
 	group by p.id
 	order by p.number asc;
+end|
+
+-- --------------------------------------------------
+-- Работа со связями сообщений и вложенных файлов. --
+-- --------------------------------------------------
+
+-- Выбирает связи заданного сообщения с вложенными файлами.
+
+-- Аргументы:
+-- post_id - Идентификатор сообщения.
+create procedure sp_posts_files_get_by_post
+(
+	post_id int
+)
+begin
+	select post, file from posts_files where post = post_id;
+end|
+
+-- -------------------------------------------------------
+-- Работа со связями сообщений и вложенных изображений. --
+-- -------------------------------------------------------
+
+-- Выбирает связи заданного сообщения с вложенными изображениями.
+
+-- Аргументы:
+-- post_id - Идентификатор сообщения.
+create procedure sp_posts_images_get_by_post
+(
+	post_id int
+)
+begin
+	select post, image from posts_images where post = post_id;
+end|
+
+-- -----------------------------------------------------------------
+-- Работа со связями сообщений и вложенных ссылок на изображения. --
+-- -----------------------------------------------------------------
+
+-- Выбирает связи заданного сообщения с вложенными ссылками на изображения.
+
+-- Аргументы:
+-- post_id - Идентификатор сообщения.
+create procedure sp_posts_links_get_by_post
+(
+	post_id int
+)
+begin
+	select post, link from posts_links where post = post_id;
+end|
+
+-- --------------------------------------------------
+-- Работа со связями сообщений и вложенного видео. --
+-- --------------------------------------------------
+
+-- Выбирает связи заданного сообщения с вложенным видео.
+
+-- Аргументы:
+-- post_id - Идентификатор сообщения.
+create procedure sp_posts_videos_get_by_post
+(
+	post_id int
+)
+begin
+	select post, video from posts_videos where post = post_id;
 end|
 
 -- ----------------------
@@ -1814,7 +1903,90 @@ create procedure sp_upload_handlers_get_all ()
 begin
 	select id, name from upload_handlers;
 end|
--- /DONE
+
+-- ---------------------------------------
+--  Работа с типами загружаемых файлов. --
+-- ---------------------------------------
+
+-- Добавляет тип загружаемых файлов.
+--
+-- Аргументы:
+-- _extension - Расширение.
+-- _store_extension - Сохраняемое расширение.
+-- _is_image - Флаг изображения.
+-- _upload_handler_id - Идентификатор обработчика загружаемых файлов.
+-- _thumbnail_image - Имя файла уменьшенной копии.
+create procedure sp_upload_types_add
+(
+	_extension varchar(10),
+	_store_extension varchar(10),
+	_is_image bit,
+	_upload_handler_id int,
+	_thumbnail_image varchar(256)
+)
+begin
+	insert into upload_types (extension, store_extension, is_image,
+		upload_handler, thumbnail_image)
+	values (_extension, _store_extension, _is_image, _upload_handler_id,
+		_thumbnail_image);
+end|
+
+-- Удаляет заданный тип загружаемых файлов.
+create procedure sp_upload_types_delete
+(
+	_id int
+)
+begin
+	delete from upload_types where id = _id;
+end|
+
+-- Редактирует заданный тип загружаемых файлов.
+--
+-- Аргументы:
+-- _id - Идентификатор.
+-- _store_extension - Сохраняемое расширение.
+-- _is_image - Флаг изображения.
+-- _upload_handler_id - Идентификатор обработчика загружаемых файлов.
+-- _thumbnail_image - Имя файла уменьшенной копии.
+create procedure sp_upload_types_edit
+(
+	_id int,
+	_store_extension varchar(10),
+	_is_image bit,
+	_upload_handler_id int,
+	_thumbnail_image varchar(256)
+)
+begin
+	update upload_types set store_extension = _store_extension,
+		is_image = _is_image, upload_handler = _upload_handler_id,
+		thumbnail_image = _thumbnail_image
+	where id = _id;
+end|
+
+-- Выбирает все типы загружаемых файлов.
+create procedure sp_upload_types_get_all ()
+begin
+	select id, extension, store_extension, is_image, upload_handler,
+		thumbnail_image
+	from upload_types;
+end|
+
+-- Выбирает типы загружаемых файлов, доступных для загрузки на заданной доске.
+--
+-- Аргументы:
+-- board_id - Идентификатор доски.
+create procedure sp_upload_types_get_by_board
+(
+	board_id int
+)
+begin
+	select ut.id, ut.extension, ut.store_extension, ut.is_image, ut.upload_handler,
+		uh.name as upload_handler_name, ut.thumbnail_image
+	from upload_types ut
+	join board_upload_types but on ut.id = but.upload_type and but.board = board_id
+	join upload_handlers uh on uh.id = ut.upload_handler;
+end|
+
 -- -------------------------------
 -- Работа с вложенными файлами. --
 -- -------------------------------
@@ -1828,31 +2000,67 @@ create procedure sp_files_get_by_post
 	post_id int
 )
 begin
-	select f.id, f.`hash`, f.`name`, f.`size`, f.thumbnail, f.thumbnail_w,
-		f.thumbnail_h, f.deleted
+	select f.id, f.hash, f.name, f.size, f.thumbnail, f.thumbnail_w,
+		f.thumbnail_h
 	from posts_files pf
-	join files f on f.id = pf.`file` and pf.post = post_id;
+	join files f on f.id = pf.file and pf.post = post_id;
 end|
 
--- -------------------------------
--- Работа с вложенными ссылами. --
--- -------------------------------
+-- -----------------------------------------------
+--  Работа со связями пользователей с группами. --
+-- -----------------------------------------------
 
--- Выбирает ссылки, вложенные в заданное сообщение.
+-- Добавляет пользователя в группу.
 --
 -- Аргументы:
--- post_id - Идентификатор сообщения.
-create procedure sp_links_get_by_post
+-- user_id - Идентификатор пользователя.
+-- group_id - Идентификатор группы.
+create procedure sp_user_groups_add
 (
-	post_id int
+	user_id int,
+	group_id int
 )
 begin
-	select l.id, l.url, l.widht, l.height, l.`size`, l.thumbnail, l.thumbnail_w,
-		l.thumbnail_h, l.deleted
-	from posts_links pl
-	join links l on l.id = pl.`link` and pl.post = post_id;
+	insert into user_groups (user, `group`) values (user_id, group_id);
 end|
 
+-- Удаляет заданного пользователя из заданной группы.
+--
+-- Аргументы:
+-- user_id - Идентификатор пользователя.
+-- group_id - Идентификатор группы.
+create procedure sp_user_groups_delete
+(
+	user_id int,
+	group_id int
+)
+begin
+	delete from user_groups where user = user_id and `group` = group_id;
+end|
+
+-- Переносит заданного пользователя из одной группы в другую.
+--
+-- Аргументы:
+-- user_id - Идентификатор пользователя.
+-- old_group_id - Идентификатор старой группы.
+-- new_group_id - Идентификатор новой группы.
+create procedure sp_user_groups_edit
+(
+	user_id int,
+	old_group_id int,
+	new_group_id int
+)
+begin
+	update user_groups set `group` = new_group_id
+	where user = user_id and `group` = old_group_id;
+end|
+
+-- Выбирает все связи пользователей с группами.
+create procedure sp_user_groups_get_all ()
+begin
+	select user, `group` from user_groups order by user, `group`;
+end|
+-- /DONE
 -- ----------------------------
 -- Работа с вложенным видео. --
 -- ----------------------------
@@ -1968,148 +2176,6 @@ end|
 create procedure sp_users_get_all ()
 begin
 	select id from users;
-end|
-
--- -----------------------------------------------------
---  Работа с закреплениями пользователей за группами. --
--- -----------------------------------------------------
-
--- Выбирает закрепления пользователей за группами.
-create procedure sp_user_groups_get_all ()
-begin
-	select `user`, `group` from user_groups order by `user`, `group`;
-end|
-
--- Добавляет пользователя с идентификатором user_id в группу с идентификатором
--- group_id.
---
--- Аргументы:
--- user_id - идентификатор пользователя.
--- group_id - идентификатор группы.
-create procedure sp_user_groups_add
-(
-	user_id int,
-	group_id int
-)
-begin
-	insert into user_groups (`user`, `group`) values (user_id, group_id);
-end|
-
--- Переносит пользователя с идентификатором user_id из группы с идентификатором
--- old_group_id в группу с идентификатором new_group_id.
---
--- Аргументы:
--- user_id - идентификатор пользователя.
--- old_group_id - идентификатор старой группы.
--- new_group_id - идентификатор новой группы.
-create procedure sp_user_groups_edit
-(
-	user_id int,
-	old_group_id int,
-	new_group_id int
-)
-begin
-	update user_groups set `group` = new_group_id
-	where `user` = user_id and `group` = old_group_id;
-end|
-
--- Удаляет пользователя с идентификатором user_id из группы с идентификатором
--- group_id.
---
--- Аргументы:
--- user_id - идентификатор пользователя.
--- group_id - идентификатор группы.
-create procedure sp_user_groups_delete
-(
-	user_id int,
-	group_id int
-)
-begin
-	delete from user_groups where `user` = user_id and `group` = group_id;
-end|
-
--- ---------------------------------------
---  Работа с типами загружаемых файлов. --
--- ---------------------------------------
-
--- Выбирает все типы загружаемых файлов.
-create procedure sp_upload_types_get_all ()
-begin
-	select id, extension, store_extension, is_image, upload_handler,
-		thumbnail_image
-	from upload_types;
-end|
-
--- Выбирает типы файлов, доступных для загрузки на доске с идентификатором
--- board_id.
---
--- Аргументы:
--- board_id - идентификатор доски.
-create procedure sp_upload_types_get_board
-(
-	board_id int
-)
-begin
-	select ut.id, ut.extension, ut.store_extension, ut.is_image, ut.upload_handler,
-		uh.`name` as upload_handler_name, ut.thumbnail_image
-	from upload_types ut
-	join board_upload_types but on ut.id = but.upload_type and but.board = board_id
-	join upload_handlers uh on uh.id = ut.upload_handler;
-end|
-
--- Редактирует тип загружаемых файлов.
---
--- Аргументы:
--- _id - идентификатор типа.
--- _store_extension - сохраняемое расширение файла.
--- _is_image - файлы этого типа являются изображениями.
--- _upload_handler_id - идентификатор обработчика загружаемых файлов.
--- _thumbnail_image - имя картинки для файлов, не являющихся изображением.
-create procedure sp_upload_types_edit
-(
-	_id int,
-	_store_extension varchar(10),
-	_is_image bit,
-	_upload_handler_id int,
-	_thumbnail_image varchar(256)
-)
-begin
-	update upload_types set store_extension = _store_extension,
-		is_image = _is_image, upload_handler = _upload_handler_id,
-		thumbnail_image = _thumbnail_image
-	where id = _id;
-end|
-
--- Добавляет новый тип загружаемых файлов.
---
--- Аргументы:
--- _extension - расширение файла.
--- _store_extension - сохраняемое расширение файла.
--- _is_image - Флаг типа файлов изображений.
--- _upload_handler_id - идентификатор обработчика загружаемых файлов.
--- _thumbnail_image - имя картинки для файлов, не являющихся изображением.
-create procedure sp_upload_types_add
-(
-	_extension varchar(10),
-	_store_extension varchar(10),
-	_is_image bit,
-	_upload_handler_id int,
-	_thumbnail_image varchar(256)
-)
-begin
-	insert into upload_types (extension, store_extension, is_image,
-		upload_handler, thumbnail_image)
-	values (_extension, _store_extension, _is_image, _upload_handler_id,
-		_thumbnail_image);
-end|
-
---
-create procedure sp_upload_types_delete
-(
-	_id int
-)
-begin
-	delete from upload_types where id = _id;
 end|
 
 -- Выбирает доступную для просмотра скрытую нить и количество сообщений в ней.
@@ -2412,70 +2478,6 @@ begin
 		and a7.thread is null and a7.post is null
 	where u.`hash` = _hash
 	group by u.id, p.id;
-end|
-
--- ---------------------------------------------------------
--- Работа с закрплениями вложенных файлов за сообщениями. --
--- ---------------------------------------------------------
-
--- Выбирает закрепления вложенных файлов за заданным сообщением.
-
--- Аргументы:
--- post_id - Идентификатор сообщения.
-create procedure sp_posts_files_get_by_post
-(
-	post_id int
-)
-begin
-	select post, `file` from posts_files where post = post_id;
-end|
-
--- --------------------------------------------------------------
--- Работа с закрплениями вложенных изображений за сообщениями. --
--- --------------------------------------------------------------
-
--- Выбирает закрепления вложенных изображений за заданным сообщением.
-
--- Аргументы:
--- post_id - Идентификатор сообщения.
-create procedure sp_posts_images_get_by_post
-(
-	post_id int
-)
-begin
-	select post, image from posts_images where post = post_id;
-end|
-
--- ---------------------------------------------------------
--- Работа с закрплениями вложенных ссылок за сообщениями. --
--- ---------------------------------------------------------
-
--- Выбирает закрепления вложенных ссылок за заданным сообщением.
-
--- Аргументы:
--- post_id - Идентификатор сообщения.
-create procedure sp_posts_links_get_by_post
-(
-	post_id int
-)
-begin
-	select post, `link` from posts_links where post = post_id;
-end|
-
--- ---------------------------------------------------------
--- Работа с закрплениями вложенного видео за сообщениями. --
--- ---------------------------------------------------------
-
--- Выбирает закрепления вложенных видео за заданным сообщением.
-
--- Аргументы:
--- post_id - Идентификатор сообщения.
-create procedure sp_posts_videos_get_by_post
-(
-	post_id int
-)
-begin
-	select post, video from posts_videos where post = post_id;
 end|
 
 -- Proc for test mysql bit type support

@@ -42,6 +42,8 @@ categories_check_name()
 categories_delete()
 categories_get_all()
 
+| db_files_get_by_post() | sp_files_get_by_post()
+
 groups_add()
 groups_check_id()
 groups_check_name()
@@ -61,6 +63,8 @@ languages_check_code()
 languages_check_id()
 languages_delete() | db_languages_delete() | sp_languages_delete()
 languages_get_all() | db_languages_delete() | sp_languages_delete()
+
+| db_links_get_by_post() | sp_links_get_by_post()
 
 popdown_handlers_add() | db_popdown_handlers_add() | sp_popdown_handlers_add()
 popdown_handlers_check_id()
@@ -90,6 +94,11 @@ posts_get_visible_by_number() | db_posts_get_visible_by_number() | sp_posts_get_
 posts_get_visible_filtred_by_threads() | db_posts_get_visible_filtred_by_threads() | sp_posts_get_visible_by_thread()
 posts_prepare_text()
 
+| db_posts_files_get_by_post() | sp_posts_files_get_by_post()
+| db_posts_images_get_by_post() | sp_posts_images_get_by_post()
+| db_posts_links_get_by_post() | sp_posts_links_get_by_post()
+| db_posts_videos_get_by_post() | sp_posts_videos_get_by_post()
+
 stylesheets_add() | db_stylesheets_add() | sp_stylesheets_add()
 stylesheets_check_id()
 stylesheets_check_name()
@@ -117,26 +126,31 @@ upload_handlers_check_name()
 upload_handlers_delete() | db_upload_handlers_delete() | sp_upload_handlers_delete()
 upload_handlers_get_all() | db_upload_handlers_get_all() |
 
-upload_types_add() | db_upload_types_add() | 
+upload_types_add() | db_upload_types_add() | sp_upload_types_add()
 upload_types_check_extension()
 upload_types_check_id()
 upload_types_check_store_extension()
 upload_types_check_thumbnail_image()
-upload_types_delete()
-upload_types_edit()
-upload_types_get_all()
-upload_types_get_board() -> upload_types_get_by_board()
+upload_types_delete() | db_upload_types_delete() | sp_upload_types_delete()
+upload_types_edit() | db_upload_types_edit() | sp_upload_types_edit()
+upload_types_get_all() | db_upload_types_get_all() | sp_upload_types_get_all()
+upload_types_get_by_board() | db_upload_types_get_by_board() | sp_upload_types_get_by_board()
 
-uploads_add()
-uploads_check_image_size()
-uploads_delete_by_id()
-uploads_get_by_posts()
-uploads_get_dangling()
-uploads_get_same()
+user_groups_add() | db_user_groups_add() | sp_user_groups_add()
+user_groups_delete() | db_user_groups_delete() | sp_user_groups_delete()
+user_groups_edit() | db_user_groups_edit() | sp_user_groups_edit()
+user_groups_get_all() | db_user_groups_get_all() | sp_user_groups_get_all()
 
-posts_uploads_add()
-posts_uploads_delete_by_post()
-posts_uploads_get_by_posts()
+users_check_goto()
+users_check_id()
+users_check_keyword()
+users_check_lines_per_post()
+users_check_posts_per_thread()
+users_check_threads_per_page()
+users_edit_bykeyword()
+users_get_all()
+users_get_by_keyword()
+users_set_password()
 
 bans
 categories
@@ -149,102 +163,3 @@ popdown_handlers
 stylesheets
 upload_handlers
 videos
-
-В комментариях к функциям работы с сущностями, а так же при именовании этих
-функций и их аргументов будем следовать следующим правилам:
-
-1. Если функция удаляет, редактирует или получает/выбирает один или более
-экземпляров сущности по одному или более атрибуту сущности, то в описании
-функции не нужно перечислять все эти атрибуты, а лишь обозначить их словом
-"заданную". В качестве имён аргументов функции берутся имена атрибутов сущности,
-по которым выполняется действие. Имя функции строится по следующему правилу:
-сущность_действие[_уточнение][_filtred][_by_атрибут[_атрибут]]() Примеры
-уточнений: all, visible, first, last, count.
-
-Примеры:
-
-1)
-/**
- * Удаляет заданную нить.
- * @param id mixed <p>Идентификатор.</p>
- */
-function threads_delete_by_id($id) { ... }
-
-Подробно функцию можно описать так: Удаляет нить по заданному идентификатору id
-нити.
-Поскольку атрибут id нити является родным атрибутом нити, то в качестве его
-имени берётся имя атрибута.
-
-Здесь:
-threads - имя сущности.
-delete (Удаляет) - действие, которое функция осуществляет с одним или более
-экземпляром сущности.
-id - атрибут, по значению которого осуществляется действие.
-Нить - имя экземпляра сущности.
-
-2.1)
-/**
- * Редактирует специфичный для нити бамплимит заданных нитей.
- * @param boards array <p>Идентификаторы досок.</p>
- * @param bump_limit mixed <p>Бамплимит.</p>
- */
-function threads_edit_bump_limit_by_boards($boards, $bump_limit) { ... }
-
-Подробно функцию можно описать так: Редактирует специфичный для нити бамплимит
-у всех нитей принадлежащих доскам, идентификаторы которых перечислены в массиве
-boards, устанавливая значение специфичного для нити бамплимита в bump_limit.
-Атрибут "Идентификатор доски" является родным атрибутом доски, поэтому его имя
-выбрано в виде "Атрибут сущность", где сущность - доска.
-
-Здесь:
-threads - имя сущности.
-edit (Редактирует) - действие, которое функция осуществляет с одним или более
-экземпляром сущности.
-boards - массив значений атрибута board (нить имеет атрибут board), по которым
-осуществляется действие.
-Нить - имя экземпляра сущности.
-
-2.2)*
-Функция может выполнять действие не только по атрибуту сущности, с которой она
-работает, но и по атрибутам других сущностей, которые с ним связаны. В этом
-случае так же справедливо правило 1. Именовать аргумент для хранения значения
-атрибута, по которому выполняется действие, нужно полностью: сущность_атрибут:
-/**
- * Редактирует специфичный для нити бамплимит заданных нитей.
- * @param board_names array <p>Имена досок.</p>
- * @param bump_limit mixed <p>Бамплимит.</p>
- */
-function threads_edit_bump_limit_by_boards($board_names, $bump_limit) { ... }
-
-Подробно функцию можно описать так: Редактирует специфичный для нити бамплимит
-у всех нитей принадлежащих доскам, имена которых перечислены в массиве
-board_names, устанавливая значение специфичного для нити бамплимита в
-bump_limit.
-
-Здесь:
-threads - имя сущности.
-edit (Редактирует) - действие, которое функция осуществляет с одним или более
-экземпляром сущности.
-board_names - массив значений атрибута name (доска имеет атрибут name), по
-которым осуществляется действие. Нить имеет атрибут идентификатор доски, по
-которому можно определить значение атрибута имя доски.
-Нить - имя экземпляра сущности.
-
-2.3)*
-Функция может выполнять сложное действие с экземплярами сущностей, которое
-выполняется не по атрибутам сущности или не только по ним, в этом случае
-функция использует функцию, в частности лямбда функцию, которая будет применяется
-к экземплярам сущности, чтобы выполнить с ними требуемое действие.
-/**
- * Получает отфильтрованные нити.
- * @param filter object <p>Фильтр (лямбда функция).</p>
- */
-function threads_get_filtred($filter) { ... }
-
-/**
- * Такой фильтр может быть применён к выбранным нитям, чтобы пропустить первые
- * 10 из них.
- */
-$filter = function () { static $i = 0; while($i++ < 10) return false; return true;  }
-
-3)

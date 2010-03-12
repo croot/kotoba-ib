@@ -147,17 +147,17 @@ create table boards							-- Доски.
 )
 engine=InnoDB|
 
-create table users
+create table users						-- Пользователи.
 (
-	id int not null auto_increment,
-	keyword varchar(32) default null,
-	posts_per_thread int default null,
-	threads_per_page int default null,
-	lines_per_post int default null,
-	language int not null,
-	stylesheet int not null,
-	password varchar(12) default null,
-	`goto` varchar(32) default null,
+	id int not null auto_increment,		-- Идентификатор.
+	keyword varchar(32) default null,	-- Хеш ключевого слова.
+	posts_per_thread int default null,	-- Число сообщений в нити на странице просмотра доски.
+	threads_per_page int default null,	-- Число нитей на странице просмотра доски.
+	lines_per_post int default null,	-- Количество строк в предпросмотре сообщения.
+	language int not null,				-- Идентификатор языка.
+	stylesheet int not null,			-- Идентификатор стиля.
+	password varchar(12) default null,	-- Пароль для удаления сообщений.
+	`goto` varchar(32) default null,	-- Перенаправление.
 	primary key (id),
 	unique key (keyword),
 	constraint foreign key (language) references languages (id) on delete restrict on update restrict,
@@ -165,10 +165,10 @@ create table users
 )
 engine=InnoDB|
 
-create table user_groups
+create table user_groups	-- Связь пользователей с группами.
 (
-	user int not null,
-	`group` int not null,
+	user int not null,		-- Идентификатор пользователя.
+	`group` int not null,	-- Идентификатор группы.
 	constraint foreign key (`group`) references groups (id) on delete cascade on update restrict,
 	constraint foreign key (user) references users (id),
 	unique key (user, `group`)
@@ -176,7 +176,7 @@ create table user_groups
 engine=InnoDB|
 
 -- Заметки:
--- Имя файла уменьшенной копии типа загружаемых файлов является имя файла
+-- Имя файла уменьшенной копии типа загружаемых файлов является именем файла
 -- изображения. См. заметки к таблице files, описание для поля thumbnail.
 create table upload_types						-- Типы загружаемых файлов.
 (
@@ -184,7 +184,7 @@ create table upload_types						-- Типы загружаемых файлов.
 	extension varchar(10) not null,				-- Расширение.
 	store_extension varchar(10) default null,	-- Сохраняемое расширение.
 	is_image bit not null,						-- Флаг изображения.
-	upload_handler int not null,				-- Идентификатор обработчика загружаемого файла.
+	upload_handler int not null,				-- Идентификатор обработчика загружаемых файлов.
 	thumbnail_image varchar(256) default null,	-- Имя файла уменьшенной копии.
 	primary key (id),
 	constraint foreign key (upload_handler) references upload_handlers (id) on delete restrict on update restrict,
@@ -275,44 +275,44 @@ create table acl				-- Список контроля доступа.
 )
 engine=InnoDB|
 
-create table posts_images
+create table posts_files	-- Связь сообщений и вложенных файлов.
 (
-	post int not null,
-	image int not null,
-	deleted bit not null,
-	unique key (post, image),
-	constraint foreign key (post) references posts (id) on delete restrict on update restrict,
-	constraint foreign key (image) references images (id) on delete restrict on update restrict
-)
-engine=InnoDB|
-
-create table posts_files
-(
-	post int not null,
-	file int not null,
-	deleted bit not null,
+	post int not null,		-- Идентификатор сообщения.
+	file int not null,		-- Идентификатор вложенного файла.
+	deleted bit not null,	-- Флаг удаления.
 	unique key (post, file),
 	constraint foreign key (post) references posts (id) on delete restrict on update restrict,
 	constraint foreign key (file) references files (id) on delete restrict on update restrict
 )
 engine=InnoDB|
 
-create table posts_links
+create table posts_images	-- Связь сообщений и вложенных изображений.
 (
-	post int not null,
-	link int not null,
-	deleted bit not null,
+	post int not null,		-- Идентификатор сообщения.
+	image int not null,		-- Идентификатор вложенного изображения.
+	deleted bit not null,	-- Флаг удаления.
+	unique key (post, image),
+	constraint foreign key (post) references posts (id) on delete restrict on update restrict,
+	constraint foreign key (image) references images (id) on delete restrict on update restrict
+)
+engine=InnoDB|
+
+create table posts_links	-- Связь сообщений и вложенных ссылок на изображения.
+(
+	post int not null,		-- Идентификатор сообщения.
+	link int not null,		-- Идентификатор вложенной ссылки на изображение.
+	deleted bit not null,	-- Флаг удаления.
 	unique key (post, link),
 	constraint foreign key (post) references posts (id) on delete restrict on update restrict,
 	constraint foreign key (link) references links (id) on delete restrict on update restrict
 )
 engine=InnoDB|
 
-create table posts_videos
+create table posts_videos	-- Связь сообщений и вложенного видео.
 (
-	post int not null,
-	video int not null,
-	deleted bit not null,
+	post int not null,		-- Идентификатор сообщения.
+	video int not null,		-- Идентификатор вложенного видео.
+	deleted bit not null,	-- Флаг удаления.
 	unique key (post, video),
 	constraint foreign key (post) references posts (id) on delete restrict on update restrict,
 	constraint foreign key (video) references videos (id) on delete restrict on update restrict

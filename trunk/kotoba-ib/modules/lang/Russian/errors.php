@@ -48,20 +48,15 @@ NodataException::$messages['POST_NOT_FOUND'] = 'Сообщение не найд
 
 NodataException::$messages['STYLESHEETS_NOT_EXIST'] = 'Не задан ни один стиль.';
 
-NodataException::$messages['KEYWORD_NOT_SPECIFED'] = 'Ключевое слово не задано.';
+NodataException::$messages['USERS_NOT_EXIST'] = 'Не создан ни один пользователь.';
 // Параметры: хеш ключевого слова.
 NodataException::$messages['USER_WITHOUT_GROUP'] = 'Пользователь с хешем ключевого слова %s не входит ни в одну группу.';
-NodataException::$messages['THREADS_PER_PAGE_NOT_SPECIFED'] = 'Количество нитей на странице просмотра доски не задано.';
-NodataException::$messages['POSTS_PER_THREAD_NOT_SPECIFED'] = 'Количество сообщений в нити на странице просмотра доски не задано.';
-NodataException::$messages['LINES_PER_POST_NOT_SPECIFED'] = 'Количество строк в сообщении на странице просмотра доски не задано.';
 // Параметры: идентификатор стиля оформления.
 NodataException::$messages['STYLESHEET_NOT_EXIST'] = 'Стиля оформления с идентификатором %s не существует.';
 NodataException::$messages['STYLESHEET_NAME_NOT_SPECIFED'] = 'Не задано имя стиля оформления.';
 // Параметры: идентификатор языка.
 NodataException::$messages['LANGUAGE_NOT_EXIST'] = 'Языка с идентификатором %s не существует.';
 NodataException::$messages['LANGUAGE_NAME_NOT_SPECIFED'] = 'Не задано имя языка.';
-NodataException::$messages['USER_ID_NOT_SPECIFED'] = 'Не задан идентификатор пользователя.';
-NodataException::$messages['USERS_NOT_EXIST'] = 'Не создан ни один пользователь.';
 NodataException::$messages['ACL_NOT_EXIST'] = 'В списке контроля доступа нет ни одной записи.';
 NodataException::$messages['THREADS_EDIT'] = 'Нет нитей для редактирования настроек';
 NodataException::$messages['EMPTY_MESSAGE'] = 'Файл не был загружен и пустой текст сообщения.';
@@ -91,6 +86,7 @@ FormatException::$messages['LANGUAGE_ID'] = 'Идентификатор язык
 FormatException::$messages['LANGUAGE_CODE'] = 'ISO_639-2 код языка имеет не верный формат.';
 
 FormatException::$messages['POPDOWN_HANDLER_ID'] = 'Идентификатор обработчика автоматического удаления нитей имеет не верный формат.';
+FormatException::$messages['POPDOWN_HANDLER_NAME'] = 'Имя обработчика автоматического удаления нитей имеет не верный формат.';
 
 FormatException::$messages['POST_ID'] = 'Идентификатор сообщения имеет не верный формат.';
 FormatException::$messages['POST_NUMBER'] = 'Номер сообщения имеет не верный формат.';
@@ -110,18 +106,18 @@ FormatException::$messages['UPLOAD_TYPE_EXTENSION'] = 'Расширение за
 FormatException::$messages['UPLOAD_TYPE_ID'] = 'Идентификатор типа загружаемых файлов имеет не верный формат.';
 FormatException::$messages['UPLOAD_TYPE_STORE_EXTENSION'] = 'Сохраняемое расширение загружаемого файла имеет не верный формат.';
 
+FormatException::$messages['GOTO'] = 'Перенаправление имеет не верный формат.';
+FormatException::$messages['USER_ID'] = 'Идентификатор пользователя имеет не верный формат.';
 FormatException::$messages['KEYWORD'] = 'Длина ключего слова должна быть от 16 до 32 символов, допустимые значения: латинские буквы, цифры, нижнее подчеркивание и дефис.';
-// Параметры: минимальное число нитей, максимальное число нитей.
-FormatException::$messages['THREADS_PER_PAGE'] = 'Число нитей на странице просмотра доски должно быть в пределах %s-%s.';
+// Параметры: минимальное число строк, максимальное число строк.
+FormatException::$messages['LINES_PER_POST'] = 'Количество строк в предпросмотре сообщения должно быть в пределах %s-%s.';
 // Параметры: минимальное число сообщений, максимальное число сообщений.
 FormatException::$messages['POSTS_PER_THREAD'] = 'Число сообщений в нити на странице просмотра доски должно быть в пределах %s-%s.';
-// Параметры: минимальное число строк, максимальное число строк.
-FormatException::$messages['LINES_PER_POST'] = 'Число строк в сообщении на странице просмотра доски должно быть в пределах %s-%s.';
-FormatException::$messages['USER_ID'] = 'Идентификатор пользователя имеет не верный формат.';
-FormatException::$messages['POPDOWN_HANDLER_NAME'] = 'Имя обработчика удаления нитей имеет не верный формат.';
+// Параметры: минимальное число нитей, максимальное число нитей.
+FormatException::$messages['THREADS_PER_PAGE'] = 'Число нитей на странице просмотра доски должно быть в пределах %s-%s.';
+
 FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE'] = 'Имя картинки для файла, не являющегося изображением имеет не верный формат.';
 FormatException::$messages['PAGE'] = 'Номер страницы имеет не верный формат.';
-FormatException::$messages['GOTO'] = 'Перенаправление при постинге имеет не верный формат.';
 
 /**********************************************************************
  * Ошибки при регистрации, авторизации, идентификации и прав доступа. *
