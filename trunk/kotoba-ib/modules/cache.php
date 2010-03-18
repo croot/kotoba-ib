@@ -2340,48 +2340,47 @@ function users_check_threads_per_page($threads_per_page)
 	return $threads_per_page;
 }
 /**
- * Редактирует настройки пользователя с заданным ключевым словом или добавляет
- * нового.
+ * Редактирует пользователя с заданным ключевым словом или добавляет нового.
  * @param keyword string <p>Хеш ключевого слова.</p>
- * @param threads_per_page mixed <p>Количество нитей на странице предпросмотра доски.</p>
- * @param posts_per_thread mixed <p>Количество сообщений в предпросмотре треда.</p>
- * @param lines_per_post mixed <p>Максимальное количество строк в предпросмотре сообщения.</p>
- * @param stylesheet mixed <p>Стиль оформления.</p>
- * @param language mixed <p>Язык.</p>
+ * @param posts_per_thread mixed <p>Число сообщений в нити на странице просмотра доски.</p>
+ * @param threads_per_page mixed <p>Число нитей на странице просмотра доски.</p>
+ * @param lines_per_post mixed <p>Количество строк в предпросмотре сообщения.</p>
+ * @param language mixed <p>Идентификатор языка.</p>
+ * @param stylesheet mixed <p>Идентификатор стиля.</p>
  * @param password mixed <p>Пароль для удаления сообщений.</p>
- * @param goto string <p>Перенаправление при постинге.</p>
+ * @param goto string <p>Перенаправление.</p>
  */
-function users_edit_bykeyword($keyword, $threads_per_page, $posts_per_thread,
-	$lines_per_post, $stylesheet, $language, $password, $goto)
+function users_edit_by_keyword($keyword, $posts_per_thread, $threads_per_page,
+    $lines_per_post, $language, $stylesheet, $password, $goto)
 {
-	db_users_edit_bykeyword(DataExchange::getDBLink(), $keyword,
-		$threads_per_page, $posts_per_thread, $lines_per_post, $stylesheet,
-		$language, $password, $goto);
+	db_users_edit_by_keyword(DataExchange::getDBLink(), $keyword,
+        $posts_per_thread, $threads_per_page, $lines_per_post, $language,
+        $stylesheet, $password, $goto);
 }
 /**
  * Получает всех пользователей.
  * @return array
- * Возвращает идентификаторы пользователей:<p>
- * 'id' - идентификатор пользователя.</p>
+ * Возвращает пользователей:<p>
+ * 'id' - Идентификатор.</p>
  */
 function users_get_all()
 {
 	return db_users_get_all(DataExchange::getDBLink());
 }
 /**
- * Получает настройки ползователя по заданному ключевому слову.
+ * Получает пользователя с заданным ключевым словом.
  * @param keyword string <p>Хеш ключевого слова.</p>
  * @return array
- * Возвращает настройки:<p>
- * 'id' - идентификатор пользователя.<br>
- * 'posts_per_thread' - количество последних сообщений в нити при просмотре доски.<br>
- * 'threads_per_page' - количество нитей на странице при просмотре доски.<br>
- * 'lines_per_post' - количество строк в урезанном сообщении при просмотре доски.<br>
- * 'language' - язык.<br>
- * 'stylesheet' - стиль оформления.<br>
- * 'password' - пароль для удаления сообщений.<br>
- * 'goto' - перенаправление при постинге.<br>
- * 'groups' - группы, в которые входит пользователь.</p>
+ * Возвращает пользователя:<p>
+ * 'id' - Идентификатор.<br>
+ * 'posts_per_thread' - Число сообщений в нити на странице просмотра доски.<br>
+ * 'threads_per_page' - Число нитей на странице просмотра доски.<br>
+ * 'lines_per_post' - Количество строк в предпросмотре сообщения.<br>
+ * 'language' - Идентификатор языка.<br>
+ * 'stylesheet' - Идентификатор стиля.<br>
+ * 'password' - Пароль для удаления сообщений.<br>
+ * 'goto' - Перенаправление.<br>
+ * 'groups' - Группы, в которые входит пользователь.</p>
  */
 function users_get_by_keyword($keyword)
 {

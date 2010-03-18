@@ -147,10 +147,10 @@ users_check_keyword()
 users_check_lines_per_post()
 users_check_posts_per_thread()
 users_check_threads_per_page()
-users_edit_bykeyword()
-users_get_all()
-users_get_by_keyword()
-users_set_password()
+users_edit_by_keyword() | db_users_edit_by_keyword() | sp_users_edit_by_keyword()
+users_get_all() | db_users_get_all() | sp_users_get_all()
+users_get_by_keyword() | db_users_get_by_keyword() | sp_users_get_by_keyword()
+users_set_password() | db_users_set_password() | sp_users_set_password()
 
 bans
 categories

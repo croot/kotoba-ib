@@ -50,6 +50,8 @@ drop procedure if exists sp_languages_add|
 drop procedure if exists sp_languages_delete|
 drop procedure if exists sp_languages_get_all|
 
+drop procedure if exists sp_links_get_by_post|
+
 drop procedure if exists sp_popdown_handlers_add|
 drop procedure if exists sp_popdown_handlers_delete|
 drop procedure if exists sp_popdown_handlers_get_all|
@@ -79,9 +81,9 @@ drop procedure if exists sp_stylesheets_delete|
 drop procedure if exists sp_stylesheets_get_all|
 
 drop procedure if exists sp_threads_add|
-drop procedure if exists sp_threads_delete_specifed|
 drop procedure if exists sp_threads_edit|
 drop procedure if exists sp_threads_edit_archived_postlimit|
+drop procedure if exists sp_threads_edit_deleted|
 drop procedure if exists sp_threads_edit_original_post|
 drop procedure if exists sp_threads_get_all|
 drop procedure if exists sp_threads_get_archived|
@@ -106,23 +108,22 @@ drop procedure if exists sp_user_groups_add|
 drop procedure if exists sp_user_groups_delete|
 drop procedure if exists sp_user_groups_edit|
 drop procedure if exists sp_user_groups_get_all|
--- /DONE
-drop procedure if exists sp_links_get_by_post|
 
-drop procedure if exists sp_videos_get_by_post|
-
-drop procedure if exists sp_users_edit_bykeyword|
+drop procedure if exists sp_users_edit_by_keyword|
+drop procedure if exists sp_users_get_all|
 drop procedure if exists sp_users_get_by_keyword|
 drop procedure if exists sp_users_set_password|
-drop procedure if exists sp_users_get_all|
-drop procedure if exists sp_posts_uploads_get_by_post|
+
+drop procedure if exists sp_videos_get_by_post|
+-- /DONE
+/*drop procedure if exists sp_posts_uploads_get_by_post|
 drop procedure if exists sp_posts_uploads_add|
 drop procedure if exists sp_posts_uploads_delete_by_post|
 drop procedure if exists sp_uploads_get_by_post|
 drop procedure if exists sp_uploads_get_same|
 drop procedure if exists sp_uploads_add|
 drop procedure if exists sp_uploads_get_dangling|
-drop procedure if exists sp_uploads_delete_by_id|
+drop procedure if exists sp_uploads_delete_by_id|*/
 -- DONE
 -- ---------------------------------------
 --  Работа со списком контроля доступа. --
@@ -794,6 +795,83 @@ begin
 	join threads t on t.id = ht.thread and t.board = board_id;
 end|
 
+-- Выбирает доступную для просмотра скрытую нить и количество сообщений в ней.
+--
+-- Аргументы:
+-- board_id - Идентификатор доски.
+-- thread_num - Номер нити.
+-- user_id - Идентификатор пользователя.
+create procedure sp_hidden_threads_get_visible
+(
+	board_id int,
+	thread_num int,
+	user_id int
+)
+begin
+	declare thread_id int;
+	select id into thread_id from threads
+	where original_post = thread_num and board = board_id;
+	if thread_id is null
+	then
+		select 'NOT_FOUND' as error;
+	else
+		select t.id, t.original_post, t.bump_limit, t.archived, t.sage,
+			t.sticky, t.with_attachments, count(p.id) as posts_count
+		from posts p
+		join threads t on t.id = p.thread
+		join user_groups ug on ug.`user` = user_id
+		left join hidden_threads ht on t.id = ht.thread
+			and ug.`user` = ht.`user`
+		-- Правило для конкретной группы и сообщения.
+		left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+		-- Правило для всех групп и конкретного сообщения.
+		left join acl a2 on a2.`group` is null and a2.post = p.id
+		-- Правила для конкретной группы и нити.
+		left join acl a3 on a3.`group` = ug.`group` and a3.thread = t.id
+		-- Правило для всех групп и конкретной нити.
+		left join acl a4 on a4.`group` is null and a4.thread = t.id
+		-- Правила для конкретной группы и доски.
+		left join acl a5 on a5.`group` = ug.`group` and a5.board = t.board
+		-- Правило для всех групп и конкретной доски.
+		left join acl a6 on a6.`group` is null and a6.board = t.board
+		-- Правило для конкретной групы.
+		left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+			and a7.thread is null and a7.post is null
+		where t.id = thread_id
+			and t.deleted = 0
+			and ht.thread is not null
+			and p.deleted = 0
+			-- Нить должна быть доступна для просмотра.
+				-- Просмотр нити не запрещен конкретной группе и
+			and ((a3.`view` = 1 or a3.`view` is null)
+				-- просмотр нити не запрещен всем группам и
+				and (a4.`view` = 1 or a4.`view` is null)
+				-- просмотр доски не запрещен конкретной группе и
+				and (a5.`view` = 1 or a5.`view` is null)
+				-- просмотр доски не запрещен всем группам и
+				and (a6.`view` = 1 or a6.`view` is null)
+				-- просмотр разрешен конкретной группе.
+				and a7.`view` = 1)
+			-- Сообщение должно быть доступно для просмотра, чтобы правильно
+			-- подсчитать количество видимых сообщений в нити.
+				-- Просмотр сообщения не запрещен конкретной группе и
+			and ((a1.`view` = 1 or a1.`view` is null)
+				-- просмотр сообщения не запрещен всем группам и
+				and (a2.`view` = 1 or a2.`view` is null)
+				-- просмотр нити не запрещен конкретной группе и
+				and (a3.`view` = 1 or a3.`view` is null)
+				-- просмотр нити не запрещен всем группам и
+				and (a4.`view` = 1 or a4.`view` is null)
+				-- просмотр доски не запрещен конкретной группе и
+				and (a5.`view` = 1 or a5.`view` is null)
+				-- просмотр доски не запрещен всем группам и
+				and (a6.`view` = 1 or a6.`view` is null)
+				-- просмотр разрешен конкретной группе.
+				and a7.`view` = 1)
+		group by t.id;
+	end if;
+end|
+
 -- -------------------------------------
 -- Работа с вложенными изображениями. --
 -- -------------------------------------
@@ -1083,7 +1161,7 @@ begin
 	repeat
 	fetch `c` into thread_id;
 	if(not done) then
-		call sp_threads_delete_specifed(thread_id);
+		call sp_threads_edit_deleted(thread_id);
 	end if;
 	until done end repeat;
 	close `c`;
@@ -1467,6 +1545,68 @@ begin
 	update threads set bump_limit = _bump_limit, sticky = _sticky, sage = _sage,
 		with_attachments = _with_attachments
 	where id = _id;
+end|
+
+-- Оставляет не помеченными на архивирование нити заданной доски, суммарное
+-- количество сообщений в которых не более чем x * бамплимит доски.
+--
+-- Аргументы:
+-- board_id - идентификатор доски.
+-- x - множитель.
+create procedure sp_threads_edit_archived_postlimit
+(
+	board_id int,
+	x int
+)
+begin
+	declare board_bump_limit int;
+	declare done int default 0;
+	declare thread_id int;
+	declare posts_count int;
+	declare total int default 0;
+	declare `c` cursor for
+		select q2.id, q2.posts_count
+		from (
+			-- Без учёта постов с сажей вычислим последнее сообщение в нити.
+			select q1.id, q1.posts_count, max(p.`number`) as last_post_num
+			from posts p
+			join(
+				-- Выберем все нити и подсчитаем количество сообщений в них.
+				select t.id, count(distinct p.id) as posts_count
+				from posts p
+				join threads t on t.id = p.thread and t.board = board_id
+				where t.deleted = 0 and t.archived = 0 and p.deleted = 0
+				group by t.id) q1 on q1.id = p.thread
+					and (p.sage = 0 or p.sage is null)
+			group by q1.id) q2
+		order by q2.last_post_num desc;
+	declare continue handler for not found set done = 1;
+	select bump_limit into board_bump_limit from boards where id = board_id;
+	set x = x * board_bump_limit;
+	open `c`;
+	repeat
+	fetch `c` into thread_id, posts_count;
+	if(not done) then
+		set total = total + posts_count;
+		if(total > x) then
+			update threads set archived = 1 where id = thread_id;
+		end if;
+	end if;
+	until done end repeat;
+	close `c`;
+end|
+
+-- Помечает на удаление заданную нить.
+--
+-- Аргументы:
+-- _id - Идентификатор нити.
+create procedure sp_threads_edit_deleted
+(
+	_id int
+)
+begin
+	update threads set deleted = 1 where id = _id;
+	update posts set deleted = 1 where thread = _id;
 end|
 
 -- Редактирует номер оригинального сообщения нити.
@@ -2060,7 +2200,105 @@ create procedure sp_user_groups_get_all ()
 begin
 	select user, `group` from user_groups order by user, `group`;
 end|
--- /DONE
+
+-- ----------------------------
+--  Работа с пользователями. --
+-- ----------------------------
+
+-- Редактирует пользователя с заданным ключевым словом или добавляет нового.
+--
+-- Аргументы:
+-- _keyword - Хеш ключевого слова.
+-- _posts_per_thread - Число сообщений в нити на странице просмотра доски.
+-- _threads_per_page - Число нитей на странице просмотра доски.
+-- _lines_per_post - Количество строк в предпросмотре сообщения.
+-- _language - Идентификатор языка.
+-- _stylesheet - Идентификатор стиля.
+-- _password - Пароль для удаления сообщений.
+-- _goto - Перенаправление.
+create procedure sp_users_edit_by_keyword
+(
+	_keyword varchar(32),
+	_posts_per_thread int,
+	_threads_per_page int,
+	_lines_per_post int,
+	_language int,
+	_stylesheet int,
+	_password varchar(12),
+	_goto varchar(32)
+)
+begin
+	declare user_id int;
+	set @user_id = null;
+	select id into user_id from users where keyword = _keyword;
+	if(user_id is null)
+	then
+		-- Создаём ногового пользователя
+		insert into users (keyword, threads_per_page, posts_per_thread,
+			lines_per_post, stylesheet, language, password, `goto`)
+		values (_keyword, _threads_per_page, _posts_per_thread,
+			_lines_per_post, _stylesheet, _language, _password, _goto);
+		select last_insert_id() into user_id;
+		insert into user_groups (user, `group`) select user_id, id from groups
+			where name = 'Users';
+	else
+		-- Редактируем настройки существующего
+		update users set threads_per_page = _threads_per_page,
+			posts_per_thread = _posts_per_thread,
+			lines_per_post = _lines_per_post,
+			stylesheet = _stylesheet,
+			language = _language,
+			password = _password,
+			`goto` = _goto
+		where id = user_id;
+	end if;
+end|
+
+-- Выбирает всех пользователей.
+create procedure sp_users_get_all ()
+begin
+	select id from users;
+end|
+
+-- Выбирает ползователя с заданным ключевым словом.
+--
+-- Аргументы:
+-- _keyword - Хеш ключевого слова.
+create procedure sp_users_get_by_keyword
+(
+	_keyword varchar(32)
+)
+begin
+	declare user_id int;
+
+	select id into user_id from users where keyword = _keyword;
+
+	select u.id, u.posts_per_thread, u.threads_per_page, u.lines_per_post,
+		l.name as language, s.name as stylesheet, u.password, u.`goto`
+	from users u
+	join stylesheets s on u.stylesheet = s.id
+	join languages l on u.language = l.id
+	where u.keyword = _keyword;
+
+	select g.name from user_groups ug
+	join users u on ug.user = u.id and u.id = user_id
+	join groups g on ug.`group` = g.id;
+end|
+
+-- Устанавливает пароль для удаления сообщений заданному пользователю.
+--
+-- Аргументы:
+-- _id - Идентификатор пользователя.
+-- _password - Пароль для удаления сообщений.
+create procedure sp_users_set_password
+(
+	_id int,
+	_password varchar(12)
+)
+begin
+	update users set password = _password where id = _id;
+end|
+
 -- ----------------------------
 -- Работа с вложенным видео. --
 -- ----------------------------
@@ -2078,245 +2316,8 @@ begin
 	from posts_videos pv
 	join videos v on v.id = pv.video and pv.post = post_id;
 end|
-
--- ----------------------------
---  Работа с пользователями. --
--- ----------------------------
-
--- Выбирает настройки ползователя по заданному ключевому слову.
---
--- Аргументы:
--- _keyword - хеш ключевого слова.
-create procedure sp_users_get_by_keyword
-(
-	_keyword varchar(32)
-)
-begin
-	declare user_id int;
-
-	select id into user_id from users where keyword = _keyword;
-
-	select u.id, u.posts_per_thread, u.threads_per_page, u.lines_per_post,
-		l.`name` as `language`, s.`name` as `stylesheet`, u.password, u.`goto`
-	from users u
-	join stylesheets s on u.stylesheet = s.id
-	join languages l on u.`language` = l.id
-	where u.keyword = _keyword;
-
-	select g.`name` from user_groups ug
-	join users u on ug.`user` = u.id and u.id = user_id
-	join groups g on ug.`group` = g.id;
-end|
-
--- Редактирует настройки пользователя с ключевым словом _keyword или добавляет
--- нового.
---
--- Аргументы:
--- _keyword - хеш ключевого слова
--- _threads_per_page - количество нитей на странице предпросмотра доски
--- _posts_per_thread - количество сообщений в предпросмотре треда
--- _lines_per_post - максимальное количество строк в предпросмотре сообщения
--- _stylesheet - стиль оформления
--- _language - язык
--- _rempass - пароль для удаления сообщений
--- _goto - перенаправление при постинге
-create procedure sp_users_edit_bykeyword
-(
-	_keyword varchar(32),
-	_threads_per_page int,
-	_posts_per_thread int,
-	_lines_per_post int,
-	_stylesheet int,
-	_language int,
-	_password varchar(12),
-	_goto varchar(32)
-)
-begin
-	declare user_id int;
-	set @user_id = null;
-	select id into user_id from users where keyword = _keyword;
-	if(user_id is null)
-	then
-		-- Создаём ногового пользователя
-		insert into users (keyword, threads_per_page, posts_per_thread,
-			lines_per_post, stylesheet, `language`, password, `goto`)
-		values (_keyword, _threads_per_page, _posts_per_thread,
-			_lines_per_post, _stylesheet, _language, _password, _goto);
-		select last_insert_id() into user_id;
-		insert into user_groups (`user`, `group`) select user_id, id from groups
-			where name = 'Users';
-	else
-		-- Редактируем настройки существующего
-		update users set threads_per_page = _threads_per_page,
-			posts_per_thread = _posts_per_thread,
-			lines_per_post = _lines_per_post,
-			stylesheet = _stylesheet,
-			`language` = _language,
-			password = _password,
-			`goto` = _goto
-		where id = user_id;
-	end if;
-end|
-
--- Устанавливает пароль для удаления сообщений заданному пользователю.
---
--- Аргументы:
--- _id - идентификатор пользователя.
--- _password - пароль для удаления сообщений.
-create procedure sp_users_set_password
-(
-	_id int,
-	_password varchar(12)
-)
-begin
-	update users set `password` = _password where id = _id;
-end|
-
--- Выбирает всех пользователей.
-create procedure sp_users_get_all ()
-begin
-	select id from users;
-end|
-
--- Выбирает доступную для просмотра скрытую нить и количество сообщений в ней.
---
--- Аргументы:
--- board_id - Идентификатор доски.
--- thread_num - Номер нити.
--- user_id - Идентификатор пользователя.
-create procedure sp_hidden_threads_get_visible
-(
-	board_id int,
-	thread_num int,
-	user_id int
-)
-begin
-	declare thread_id int;
-	select id into thread_id from threads
-	where original_post = thread_num and board = board_id;
-	if thread_id is null
-	then
-		select 'NOT_FOUND' as error;
-	else
-		select t.id, t.original_post, t.bump_limit, t.archived, t.sage,
-			t.sticky, t.with_attachments, count(p.id) as posts_count
-		from posts p
-		join threads t on t.id = p.thread
-		join user_groups ug on ug.`user` = user_id
-		left join hidden_threads ht on t.id = ht.thread
-			and ug.`user` = ht.`user`
-		-- Правило для конкретной группы и сообщения.
-		left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
-		-- Правило для всех групп и конкретного сообщения.
-		left join acl a2 on a2.`group` is null and a2.post = p.id
-		-- Правила для конкретной группы и нити.
-		left join acl a3 on a3.`group` = ug.`group` and a3.thread = t.id
-		-- Правило для всех групп и конкретной нити.
-		left join acl a4 on a4.`group` is null and a4.thread = t.id
-		-- Правила для конкретной группы и доски.
-		left join acl a5 on a5.`group` = ug.`group` and a5.board = t.board
-		-- Правило для всех групп и конкретной доски.
-		left join acl a6 on a6.`group` is null and a6.board = t.board
-		-- Правило для конкретной групы.
-		left join acl a7 on a7.`group` = ug.`group` and a7.board is null
-			and a7.thread is null and a7.post is null
-		where t.id = thread_id
-			and t.deleted = 0
-			and ht.thread is not null
-			and p.deleted = 0
-			-- Нить должна быть доступна для просмотра.
-				-- Просмотр нити не запрещен конкретной группе и
-			and ((a3.`view` = 1 or a3.`view` is null)
-				-- просмотр нити не запрещен всем группам и
-				and (a4.`view` = 1 or a4.`view` is null)
-				-- просмотр доски не запрещен конкретной группе и
-				and (a5.`view` = 1 or a5.`view` is null)
-				-- просмотр доски не запрещен всем группам и
-				and (a6.`view` = 1 or a6.`view` is null)
-				-- просмотр разрешен конкретной группе.
-				and a7.`view` = 1)
-			-- Сообщение должно быть доступно для просмотра, чтобы правильно
-			-- подсчитать количество видимых сообщений в нити.
-				-- Просмотр сообщения не запрещен конкретной группе и
-			and ((a1.`view` = 1 or a1.`view` is null)
-				-- просмотр сообщения не запрещен всем группам и
-				and (a2.`view` = 1 or a2.`view` is null)
-				-- просмотр нити не запрещен конкретной группе и
-				and (a3.`view` = 1 or a3.`view` is null)
-				-- просмотр нити не запрещен всем группам и
-				and (a4.`view` = 1 or a4.`view` is null)
-				-- просмотр доски не запрещен конкретной группе и
-				and (a5.`view` = 1 or a5.`view` is null)
-				-- просмотр доски не запрещен всем группам и
-				and (a6.`view` = 1 or a6.`view` is null)
-				-- просмотр разрешен конкретной группе.
-				and a7.`view` = 1)
-		group by t.id;
-	end if;
-end|
-
--- Оставляет не помеченными на архивирование нити заданной доски, суммарное
--- количество сообщений в которых не более чем x * бамплимит доски.
---
--- Аргументы:
--- board_id - идентификатор доски.
--- x - множитель.
-create procedure sp_threads_edit_archived_postlimit
-(
-	board_id int,
-	x int
-)
-begin
-	declare board_bump_limit int;
-	declare done int default 0;
-	declare thread_id int;
-	declare posts_count int;
-	declare total int default 0;
-	declare `c` cursor for
-		select q2.id, q2.posts_count
-		from (
-			-- Без учёта постов с сажей вычислим последнее сообщение в нити.
-			select q1.id, q1.posts_count, max(p.`number`) as last_post_num
-			from posts p
-			join(
-				-- Выберем все нити и подсчитаем количество сообщений в них.
-				select t.id, count(distinct p.id) as posts_count
-				from posts p
-				join threads t on t.id = p.thread and t.board = board_id
-				where t.deleted = 0 and t.archived = 0 and p.deleted = 0
-				group by t.id) q1 on q1.id = p.thread
-					and (p.sage = 0 or p.sage is null)
-			group by q1.id) q2
-		order by q2.last_post_num desc;
-	declare continue handler for not found set done = 1;
-	select bump_limit into board_bump_limit from boards where id = board_id;
-	set x = x * board_bump_limit;
-	open `c`;
-	repeat
-	fetch `c` into thread_id, posts_count;
-	if(not done) then
-		set total = total + posts_count;
-		if(total > x) then
-			update threads set archived = 1 where id = thread_id;
-		end if;
-	end if;
-	until done end repeat;
-	close `c`;
-end|
-
--- Помечает на удаление заданную нить.
---
--- Аргументы:
--- _id - идентификатор нити.
-create procedure sp_threads_delete_specifed
-(
-	_id int
-)
-begin
-	update threads set deleted = 1 where id = _id;
-	update posts set deleted = 1 where thread = _id;
-end|
-
+-- /DONE
+/*
 -- ----------------------------------------------------------
 --  Работа со связями сообщений с информацией о загрузках. --
 -- ----------------------------------------------------------
@@ -2488,4 +2489,4 @@ begin
 	insert into uploads (is_image, upload_type, `file`, `size`) values (0, 0, 'test mysql bit', 0);
 	select is_image from uploads where `file` = 'test mysql bit';
 	delete from uploads where `file` = 'test mysql bit';
-end|
+end|*/

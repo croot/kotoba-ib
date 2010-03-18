@@ -4,9 +4,9 @@
         <file>
             <url>res/stored%20procedures.sql</url>
             <line>1</line>
-            <line>108</line>
-            <line>125</line>
-            <line>2062</line>
+            <line>117</line>
+            <line>126</line>
+            <line>2318</line>
         </file>
         <file>
             <url>securimage/securimage.php</url>
@@ -15,11 +15,11 @@
         </file>
         <file>
             <url>modules/cache.php</url>
-            <line>2201</line>
+            <line>2397</line>
         </file>
         <file>
             <url>modules/db.php</url>
-            <line>2602</line>
+            <line>2768</line>
         </file>
     </editor-bookmarks>
 </project-private>
