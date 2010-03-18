@@ -2606,29 +2606,79 @@ function db_user_groups_get_all($link)
  ****************************/
 
 /**
- * Получает настройки ползователя по заданному ключевому слову.
+ * Редактирует пользователя с заданным ключевым словом или добавляет нового.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param keyword string <p>Хеш ключевого слова.</p>
+ * @param posts_per_thread mixed <p>Число сообщений в нити на странице просмотра
+ * доски.</p>
+ * @param threads_per_page mixed <p>Число нитей на странице просмотра доски.</p>
+ * @param lines_per_post mixed <p>Количество строк в предпросмотре
+ * сообщения.</p>
+ * @param language mixed <p>Идентификатор языка.</p>
+ * @param stylesheet mixed <p>Идентификатор стиля.</p>
+ * @param password mixed <p>Пароль для удаления сообщений.</p>
+ * @param goto string <p>Перенаправление.</p>
+ */
+function db_users_edit_by_keyword($link, $keyword, $posts_per_thread,
+    $threads_per_page, $lines_per_post, $language, $stylesheet, $password,
+    $goto)
+{
+	$password = $password === null? 'null' : '\'' . $password . '\'';
+	$goto = $goto === null? 'null' : '\'' . $goto . '\'';
+	if(!mysqli_query($link, 'call sp_users_edit_by_keyword(\''
+        . $keyword . '\', ' . $posts_per_thread . ', '
+        . $threads_per_page . ', ' . $lines_per_post . ', ' . $language . ', '
+        . $stylesheet . ', ' . $password . ', ' . $goto . ')'))
+	{
+		throw new CommonException(mysqli_error($link));
+	}
+	db_cleanup_link($link);
+}
+/**
+ * Получает всех пользователей.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @return array
+ * Возвращает пользователей:<p>
+ * 'id' - Идентификатор.</p>
+ */
+function db_users_get_all($link)
+{
+	if(($result = mysqli_query($link, 'call sp_users_get_all()')) == false)
+		throw new CommonException(mysqli_error($link));
+	$users = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) !== null)
+			array_push($users, array('id' => $row['id']));
+	else
+		throw new NodataException(NodataException::$messages['USERS_NOT_EXIST']);
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $users;
+}
+/**
+ * Получает пользователя с заданным ключевым словом.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param keyword string <p>Хеш ключевого слова.</p>
  * @return array
- * Возвращает настройки:<p>
- * 'id' - идентификатор пользователя.<br>
- * 'posts_per_thread' - количество последних сообщений в нити при просмотре доски.<br>
- * 'threads_per_page' - количество нитей на странице при просмотре доски.<br>
- * 'lines_per_post' - количество строк в урезанном сообщении при просмотре доски.<br>
- * 'language' - язык.<br>
- * 'stylesheet' - стиль оформления.<br>
- * 'password' - пароль для удаления сообщений.<br>
- * 'goto' - перенаправление при постинге.<br>
- * 'groups' - группы, в которые входит пользователь.</p>
+ * Возвращает пользователя:<p>
+ * 'id' - Идентификатор.<br>
+ * 'posts_per_thread' - Число сообщений в нити на странице просмотра доски.<br>
+ * 'threads_per_page' - Число нитей на странице просмотра доски.<br>
+ * 'lines_per_post' - Количество строк в предпросмотре сообщения.<br>
+ * 'language' - Идентификатор языка.<br>
+ * 'stylesheet' - Идентификатор стиля.<br>
+ * 'password' - Пароль для удаления сообщений.<br>
+ * 'goto' - Перенаправление.<br>
+ * 'groups' - Группы, в которые входит пользователь.</p>
  */
 function db_users_get_by_keyword($link, $keyword)
 {
 	if(mysqli_multi_query($link,
-			"call sp_users_get_by_keyword('$keyword')") == false)
+        'call sp_users_get_by_keyword(\'' . $keyword . '\')') == false)
 	{
 		throw new CommonException(mysqli_error($link));
 	}
-// Настройки пользователя.
+// Пользователь.
 	if(($result = mysqli_store_result($link)) == false)
 	{
 		throw new CommonException(mysqli_error($link));
@@ -2646,8 +2696,7 @@ function db_users_get_by_keyword($link, $keyword)
 	}
 	else
 	{
-		throw new PremissionException(sprintf(PremissionException::$messages['USER_NOT_EXIST'],
-			$keyword));
+		throw new PermissionException(PermissionException::$messages['USER_NOT_EXIST']);
 	}
 	mysqli_free_result($result);
 	if(!mysqli_next_result($link))
@@ -2666,38 +2715,11 @@ function db_users_get_by_keyword($link, $keyword)
 	}
 	if(count($user_settings['groups']) <= 0)
 	{
-		throw new NodataException(sprintf(NodataException::$messages['USER_WITHOUT_GROUP']),
-			$keyword);
+		throw new NodataException(NodataException::$messages['USER_WITHOUT_GROUP']);
 	}
 	mysqli_free_result($result);
 	db_cleanup_link($link);
 	return $user_settings;
-}
-/**
- * Редактирует настройки пользователя с заданным ключевым словом или добавляет
- * нового.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param keyword string <p>Хеш ключевого слова.</p>
- * @param threads_per_page mixed <p>Количество нитей на странице предпросмотра доски.</p>
- * @param posts_per_thread mixed <p>Количество сообщений в предпросмотре треда.</p>
- * @param lines_per_post mixed <p>Максимальное количество строк в предпросмотре сообщения.</p>
- * @param stylesheet mixed <p>Стиль оформления.</p>
- * @param language mixed <p>Язык.</p>
- * @param password mixed <p>Пароль для удаления сообщений.</p>
- * @param goto string <p>Перенаправление при постинге.</p>
- */
-function db_users_edit_bykeyword($link, $keyword, $threads_per_page,
-	$posts_per_thread, $lines_per_post, $stylesheet, $language, $password, $goto)
-{
-	$password = $password === null? 'null' : "'$password'";
-	$goto = $goto === null? 'null' : "'$goto'";
-	if(!mysqli_query($link, "call sp_users_edit_bykeyword('$keyword',
-			$threads_per_page, $posts_per_thread, $lines_per_post, $stylesheet,
-			$language, $password, $goto)"))
-	{
-		throw new CommonException(mysqli_error($link));
-	}
-	db_cleanup_link($link);
 }
 /**
  * Устанавливает пароль для удаления сообщений заданному пользователю.
@@ -2707,33 +2729,42 @@ function db_users_edit_bykeyword($link, $keyword, $threads_per_page,
  */
 function db_users_set_password($link, $id, $password)
 {
-	$password = ($password === null? 'null' : "'$password'");
-	if(!mysqli_query($link, "call sp_users_set_password($id, $password)"))
+	$password = ($password === null? 'null' : '\'' . $password . '\'');
+	if(!mysqli_query($link,
+        'call sp_users_set_password(' . $id . ', ' . $password . ')'))
 	{
 		throw new CommonException(mysqli_error($link));
 	}
 	db_cleanup_link($link);
 }
+
+/*****************************
+ * Работа с вложенным видео. *
+ *****************************/
+
 /**
- * Получает всех пользователей.
+ * Получает видео, вложенные в заданное сообщение.
  * @param link MySQLi <p>Связь с базой данных.</p>
- * @return array
- * Возвращает идентификаторы пользователей:<p>
- * 'id' - идентификатор пользователя.</p>
+ * @param post_id mixed <p>Идентификатор сообщения.</p>
  */
-function db_users_get_all($link)
+function db_videos_get_by_post($link, $post_id)
 {
-	if(($result = mysqli_query($link, 'call sp_users_get_all()')) == false)
+	$result = mysqli_query($link,
+		'call sp_videos_get_by_post(' . $post_id . ')');
+	if(!$result)
 		throw new CommonException(mysqli_error($link));
-	$users = array();
+	$videos = array();
 	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) != null)
-			array_push($users, array('id' => $row['id']));
-	else
-		throw new NodataException(NodataException::$messages['USERS_NOT_EXIST']);
+		while(($row = mysqli_fetch_assoc($result)) !== null)
+			array_push($videos,
+				array('id' => $row['id'],
+						'code' => $row['code'],
+						'widht' => $row['widht'],
+						'height' => $row['height'],
+						'attachment_type' => Config::ATTACHMENT_TYPE_VIDEO));
 	mysqli_free_result($result);
 	db_cleanup_link($link);
-	return $users;
+	return $videos;
 }
 
 /***************************************************
@@ -2749,7 +2780,7 @@ function db_users_get_all($link)
  * 'post' - идентификатор сообщения.<br>
  * 'upload' - идентификатор загрузки.</p>
  */
-function db_posts_uploads_get_by_posts($link, $posts)
+/*function db_posts_uploads_get_by_posts($link, $posts)
 {
 	$posts_uploads = array();
 	foreach($posts as $p)
@@ -2767,7 +2798,7 @@ function db_posts_uploads_get_by_posts($link, $posts)
 		db_cleanup_link($link);
 	}
 	return $posts_uploads;
-}
+}*/
 /**
  * Связывает сообщение с информацией о загрузке.
  * @param link MySQLi <p>Связь с базой данных.</p>
@@ -2981,32 +3012,4 @@ function db_posts_uploads_get_by_posts($link, $posts)
 	db_cleanup_link($link);
 	return $uploads;
 }*/
-
-/*****************************
- * Работа с вложенным видео. *
- *****************************/
-
-/**
- *
- */
-function db_videos_get_by_post($link, $post_id)
-{
-	$result = mysqli_query($link,
-		'call sp_videos_get_by_post(' . $post_id . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$videos = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) !== null)
-			array_push($videos,
-				array('id' => $row['id'],
-						'code' => $row['code'],
-						'widht' => $row['widht'],
-						'height' => $row['height'],
-						'deleted' => $row['deleted'],
-						'attachment_type' => Config::ATTACHMENT_TYPE_VIDEO));
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $videos;
-}
 ?>
