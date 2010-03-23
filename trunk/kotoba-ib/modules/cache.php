@@ -1212,15 +1212,6 @@ function posts_add($board_id, $thread_id, $user_id, $password, $name, $tripcode,
 		$sage);
 }
 /**
- * Добавляет текст в конец текста заданного сообщения.
- * @param id mixed <p>Идентификатор сообщения.</p>
- * @param text string <p>Текст.</p>
- */
-function posts_add_text_by_id($id, $text)
-{
-	db_posts_add_text_by_id(DataExchange::getDBLink(), $id, $text);
-}
-/**
  * Проверяет корректность идентификатора сообщения.
  * @param id mixed <p>Идентификатор сообщения.</p>
  * @return string
@@ -1228,18 +1219,21 @@ function posts_add_text_by_id($id, $text)
  */
 function posts_check_id($id)
 {
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['POST_ID']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['POST_ID']);
-	return $id;
+    $length = strlen($id);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if($length <= $max_int_length && $length >= 1)
+    {
+        $id = RawUrlEncode($id);
+        $length = strlen($id);
+        if($length > $max_int_length || (ctype_digit($id) === false)
+            || $length < 1)
+        {
+            throw new FormatException(FormatException::$messages['POST_ID']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['POST_ID']);
+    return $id;
 }
 /**
  * Проверяет, удовлетворяет ли имя отправителя ограничениям по размеру.
@@ -1258,18 +1252,21 @@ function posts_check_name_size($name)
  */
 function posts_check_number($number)
 {
-	$length = strlen($number);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$number = RawUrlEncode($number);
-		$length = strlen($number);
-		if($length > $max_int_length || (ctype_digit($number) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['POST_NUMBER']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['POST_NUMBER']);
-	return $number;
+    $length = strlen($number);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if($length <= $max_int_length && $length >= 1)
+    {
+        $number = RawUrlEncode($number);
+        $length = strlen($number);
+        if($length > $max_int_length || (ctype_digit($number) === false)
+            || $length < 1)
+        {
+            throw new FormatException(FormatException::$messages['POST_NUMBER']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['POST_NUMBER']);
+    return $number;
 }
 /**
  * Проверяет корректность пароля для удаления сообщения.
@@ -1365,6 +1362,16 @@ function posts_delete_last($id, $date_time)
 function posts_delete_marked()
 {
 	db_posts_delete_marked(DataExchange::getDBLink());
+}
+/**
+ * Редактирует текст заданного сообщения, добавляя в конец его текста заданный
+ * текст.
+ * @param id mixed <p>Идентификатор сообщения.</p>
+ * @param text string <p>Текст.</p>
+ */
+function posts_edit_text_by_id($id, $text)
+{
+	db_posts_edit_text_by_id(DataExchange::getDBLink(), $id, $text);
 }
 /**
  * Получает все сообщения.

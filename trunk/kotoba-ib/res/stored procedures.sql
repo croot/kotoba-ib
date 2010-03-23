@@ -57,10 +57,10 @@ drop procedure if exists sp_popdown_handlers_delete|
 drop procedure if exists sp_popdown_handlers_get_all|
 
 drop procedure if exists sp_posts_add|
-drop procedure if exists sp_posts_add_text_by_id|
 drop procedure if exists sp_posts_delete|
 drop procedure if exists sp_posts_delete_last|
 drop procedure if exists sp_posts_delete_marked|
+drop procedure if exists sp_posts_edit_text_by_id|
 drop procedure if exists sp_posts_get_all|
 drop procedure if exists sp_posts_get_by_board|
 drop procedure if exists sp_posts_get_by_thread|
@@ -1096,20 +1096,6 @@ begin
 	from posts where id = post_id;
 end|
 
--- Добавляет текст в конец текста заданного сообщения.
---
--- Аргументы:
--- _id - Идентификатор сообщения.
--- _text - Текст.
-create procedure sp_posts_add_text_by_id
-(
-	_id int,
-	_text text
-)
-begin
-	update posts set text = concat(text, _text) where id = _id;
-end|
-
 -- Удаляет сообщение с заданным идентификатором.
 --
 -- Аргументы:
@@ -1189,6 +1175,21 @@ begin
 	where t.deleted = 1;
 
 	delete from threads where deleted = 1;
+end|
+
+-- Редактирует текст заданного сообщения, добавляя в конец его текста заданный
+-- текст.
+--
+-- Аргументы:
+-- _id - Идентификатор сообщения.
+-- _text - Текст.
+create procedure sp_posts_edit_text_by_id
+(
+	_id int,
+	_text text
+)
+begin
+	update posts set text = concat(text, _text) where id = _id;
 end|
 
 -- Выбирает все сообщения.

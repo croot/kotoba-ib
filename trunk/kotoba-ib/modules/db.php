@@ -1411,21 +1411,6 @@ function db_posts_add($link, $board_id, $thread_id, $user_id, $password, $name,
 	return $post;
 }
 /**
- * Добавляет текст в конец текста заданного сообщения.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param id mixed <p>Идентификатор сообщения.</p>
- * @param text string <p>Текст.</p>
- */
-function db_posts_add_text_by_id($link, $id, $text)
-{
-	if(!mysqli_query($link, 'call sp_posts_add_text_by_id(' . $id . ', \''
-			. $text . '\')'))
-	{
-		throw new CommonException(mysqli_error($link));
-	}
-	db_cleanup_link($link);
-}
-/**
  * Удаляет сообщение с заданным идентификатором.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param id mixed <p>Идентификатор сообщения.</p>
@@ -1456,6 +1441,22 @@ function db_posts_delete_marked($link)
 {
 	if(!mysqli_query($link, 'call sp_posts_delete_marked()'))
 		throw new CommonException(mysqli_error($link));
+	db_cleanup_link($link);
+}
+/**
+ * Редактирует текст заданного сообщения, добавляя в конец его текста заданный
+ * текст.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param id mixed <p>Идентификатор сообщения.</p>
+ * @param text string <p>Текст.</p>
+ */
+function db_posts_edit_text_by_id($link, $id, $text)
+{
+	if(!mysqli_query($link, 'call sp_posts_add_text_by_id(' . $id . ', \''
+			. $text . '\')'))
+	{
+		throw new CommonException(mysqli_error($link));
+	}
 	db_cleanup_link($link);
 }
 /**
