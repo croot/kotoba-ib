@@ -6,7 +6,7 @@
             <line>1</line>
             <line>117</line>
             <line>126</line>
-            <line>2318</line>
+            <line>2319</line>
         </file>
         <file>
             <url>securimage/securimage.php</url>
@@ -15,11 +15,11 @@
         </file>
         <file>
             <url>modules/cache.php</url>
-            <line>2397</line>
+            <line>2404</line>
         </file>
         <file>
             <url>modules/db.php</url>
-            <line>2768</line>
+            <line>2769</line>
         </file>
     </editor-bookmarks>
 </project-private>

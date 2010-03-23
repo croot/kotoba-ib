@@ -73,7 +73,6 @@ popdown_handlers_delete() | db_popdown_handlers_add() | sp_popdown_handlers_add(
 popdown_handlers_get_all() | db_popdown_handlers_add() | sp_popdown_handlers_add()
 
 posts_add() | db_posts_add() | sp_posts_add()
-posts_add_text_by_id() | db_posts_add_text_by_id() | sp_posts_add_text_by_id()
 posts_check_id()
 posts_check_name_size()
 posts_check_number()
@@ -85,6 +84,7 @@ posts_corp_text()
 posts_delete() | db_posts_delete() | sp_posts_delete()
 posts_delete_last() | db_posts_delete_last() | sp_posts_delete_last()
 posts_delete_marked() | db_posts_delete_marked() | sp_posts_delete_marked()
+posts_edit_text_by_id() | db_posts_edit_text_by_id() | sp_posts_edit_text_by_id()
 posts_get_all() | db_posts_get_all() | sp_posts_get_all()
 posts_get_by_boards() | db_posts_get_by_boards() | sp_posts_get_by_board()
 posts_get_by_thread() | db_posts_get_by_thread() | sp_posts_get_by_thread()
@@ -151,15 +151,3 @@ users_edit_by_keyword() | db_users_edit_by_keyword() | sp_users_edit_by_keyword(
 users_get_all() | db_users_get_all() | sp_users_get_all()
 users_get_by_keyword() | db_users_get_by_keyword() | sp_users_get_by_keyword()
 users_set_password() | db_users_set_password() | sp_users_set_password()
-
-bans
-categories
-files
-groups
-images
-languages
-links
-popdown_handlers
-stylesheets
-upload_handlers
-videos
