@@ -1,14 +1,14 @@
 delimiter |
 
-create table bans					-- Блокировки.
+create table bans                   -- Блокировки.
 (
-	id int not null auto_increment,	-- Идентификатор.
-	range_beg bigint not null,		-- Начало диапазона IP-адресов.
-	range_end bigint not null,		-- Конец диапазона IP-адресов.
-	reason text default null,		-- Причина блокировки.
-	untill datetime not null,		-- Время истечения блокировки.
-	primary key (id),
-	unique key (range_beg, range_end)
+    id int not null auto_increment, -- Идентификатор.
+    range_beg bigint not null,      -- Начало диапазона IP-адресов.
+    range_end bigint not null,      -- Конец диапазона IP-адресов.
+    reason text default null,       -- Причина блокировки.
+    untill datetime not null,       -- Время истечения блокировки.
+    primary key (id),
+    unique key (range_beg, range_end)
 )
 engine=InnoDB|
 
@@ -138,8 +138,8 @@ create table boards							-- Доски.
 	enable_youtube bit default null,		-- Включение вложения видео с ютуба.
 	enable_captcha bit default null,		-- Включение капчи.
 	same_upload varchar(32) not null,		-- Политика загрузки одинаковых файлов.
-	popdown_handler int not null,			-- Обработчик автоматического удаления нитей.
-	category int not null,					-- Категория.
+	popdown_handler int not null,			-- Идентификатор обработчика автоматического удаления нитей.
+	category int not null,					-- Идентификатор категории.
   	primary key (id),
 	unique key (name),
 	constraint foreign key (category) references categories (id) on delete restrict on update restrict,
@@ -192,13 +192,13 @@ create table upload_types						-- Типы загружаемых файлов.
 )
 engine=InnoDB|
 
-create table board_upload_types	-- Связь досок и типов загружаемых файлов.
+create table board_upload_types -- Связь досок и типов загружаемых файлов.
 (
-	board int not null,			-- Доска.
-	upload_type int not null,	-- Тип загружаемого файла.
-	constraint foreign key (board) references boards (id) on delete restrict on update restrict,
-	constraint foreign key (upload_type) references upload_types (id) on delete restrict on update restrict,
-	unique (board, upload_type)
+    board int not null,         -- Идентификатор доски.
+    upload_type int not null,   -- Идентификатор типа загружаемого файла.
+    constraint foreign key (board) references boards (id) on delete restrict on update restrict,
+    constraint foreign key (upload_type) references upload_types (id) on delete restrict on update restrict,
+    unique (board, upload_type)
 )
 engine=InnoDB|
 
@@ -258,31 +258,31 @@ create table posts						-- Сообщения.
 )
 engine=InnoDB|
 
-create table acl				-- Список контроля доступа.
+create table acl                -- Список контроля доступа.
 (
-	`group` int default null,	-- Группа.
-	board int default null,		-- Доска.
-	thread int default null,	-- Нить.
-	post int default null,		-- Сообщение.
-	`view` bit not null,		-- Право на просмотр.
-	`change` bit not null,		-- Право на изменение.
-	moderate bit not null,		-- Право на модерирование.
-	unique key (`group`, board, thread, post),
-	constraint foreign key (`group`) references groups (id)  on delete cascade on update restrict,
-	constraint foreign key (board) references boards (id) on delete restrict on update restrict,
-	constraint foreign key (thread) references threads (id) on delete restrict on update restrict,
-	constraint foreign key (post) references posts (id) on delete restrict on update restrict
+    `group` int default null,   -- Идентификатор группы.
+    board int default null,     -- Идентификатор доски.
+    thread int default null,    -- Идентификатор нить.
+    post int default null,      -- Идентификатор сообщения.
+    `view` bit not null,        -- Право на просмотр.
+    `change` bit not null,      -- Право на изменение.
+    moderate bit not null,      -- Право на модерирование.
+    unique key (`group`, board, thread, post),
+    constraint foreign key (`group`) references groups (id)  on delete cascade on update restrict,
+    constraint foreign key (board) references boards (id) on delete restrict on update restrict,
+    constraint foreign key (thread) references threads (id) on delete restrict on update restrict,
+    constraint foreign key (post) references posts (id) on delete restrict on update restrict
 )
 engine=InnoDB|
 
-create table posts_files	-- Связь сообщений и вложенных файлов.
+create table posts_files    -- Связь сообщений и вложенных файлов.
 (
-	post int not null,		-- Идентификатор сообщения.
-	file int not null,		-- Идентификатор вложенного файла.
-	deleted bit not null,	-- Флаг удаления.
-	unique key (post, file),
-	constraint foreign key (post) references posts (id) on delete restrict on update restrict,
-	constraint foreign key (file) references files (id) on delete restrict on update restrict
+    post int not null,      -- Идентификатор сообщения.
+    file int not null,      -- Идентификатор вложенного файла.
+    deleted bit not null,   -- Флаг удаления.
+    unique key (post, file),
+    constraint foreign key (post) references posts (id) on delete restrict on update restrict,
+    constraint foreign key (file) references files (id) on delete restrict on update restrict
 )
 engine=InnoDB|
 

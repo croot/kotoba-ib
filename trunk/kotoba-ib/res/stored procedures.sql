@@ -1,5 +1,5 @@
 delimiter |
--- DONE
+
 drop procedure if exists sp_acl_add|
 drop procedure if exists sp_acl_delete|
 drop procedure if exists sp_acl_edit|
@@ -115,7 +115,7 @@ drop procedure if exists sp_users_get_by_keyword|
 drop procedure if exists sp_users_set_password|
 
 drop procedure if exists sp_videos_get_by_post|
--- /DONE
+
 /*drop procedure if exists sp_posts_uploads_get_by_post|
 drop procedure if exists sp_posts_uploads_add|
 drop procedure if exists sp_posts_uploads_delete_by_post|
@@ -124,17 +124,17 @@ drop procedure if exists sp_uploads_get_same|
 drop procedure if exists sp_uploads_add|
 drop procedure if exists sp_uploads_get_dangling|
 drop procedure if exists sp_uploads_delete_by_id|*/
--- DONE
+
 -- ---------------------------------------
 --  Работа со списком контроля доступа. --
 -- ---------------------------------------
 
--- Добавляет новое правило в список контроля доступа.
+-- Добавляет правило в список контроля доступа.
 --
--- group_id - Группа.
--- board_id - Доска.
--- thread_id - Нить.
--- post_id - Сообщение.
+-- group_id - Идентификатор группы.
+-- board_id - Идентификатор доски.
+-- thread_id - Идентификатор нить.
+-- post_id - Идентификатор сообщения.
 -- _view - Право на просмотр.
 -- _change - Право на изменение.
 -- _moderate - Право на модерирование.
@@ -292,16 +292,16 @@ end|
 -- Добавляет связь доски с типом загружаемых файлов.
 --
 -- Аргументы:
--- _board - Доска.
--- _upload_type - Тип загружаемого файла.
+-- board_id - Идентификатор доски.
+-- upload_type_id - Идентификатор типа загружаемого файла.
 create procedure sp_board_upload_types_add
 (
-	_board int,
-	_upload_type int
+	board_id int,
+	upload_type_id int
 )
 begin
 	insert into board_upload_types (board, upload_type)
-	values (_board, _upload_type);
+	values (board_id, upload_type_id);
 end|
 
 -- Удаляет связь доски с типом загружаемых файлов.
@@ -343,8 +343,8 @@ end|
 -- _enable_youtube - Включение вложения видео с ютуба.
 -- _enable_captcha - Включение капчи.
 -- _same_upload - Политика загрузки одинаковых файлов.
--- _popdown_handler - Обработчик автоматического удаления нитей.
--- _category - Категория.
+-- _popdown_handler - Идентификатор обработчика автоматического удаления нитей.
+-- _category - Идентификатор категории.
 create procedure sp_boards_add
 (
 	_name varchar(16),
@@ -681,10 +681,10 @@ end|
 --  Работа с категориями. --
 -- -------------------------
 
--- Добавляет новую категорию с заданным именем.
+-- Добавляет категорию.
 --
 -- Аргументы:
---_ name - Имя.
+-- _name - Имя категории.
 create procedure sp_categories_add
 (
 	_name varchar(50)
@@ -715,10 +715,10 @@ end|
 --  Работа с группами. --
 -- ----------------------
 
--- Добавляет группу с заданным именем.
+-- Добавляет группу.
 --
 -- Аргументы:
--- _name - Имя.
+-- _name - Имя группы.
 create procedure sp_groups_add
 (
 	_name varchar(50)
@@ -2317,7 +2317,7 @@ begin
 	from posts_videos pv
 	join videos v on v.id = pv.video and pv.post = post_id;
 end|
--- /DONE
+
 /*
 -- ----------------------------------------------------------
 --  Работа со связями сообщений с информацией о загрузках. --

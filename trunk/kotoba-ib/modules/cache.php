@@ -64,18 +64,19 @@ function create_directories($name) {
 }
 /**
  * Создаёт необходимые директории при добавлении нового языка.
- * @param name string <p>Имя нового языка.</p>
+ * @param code string <p>ISO_639-2 код языка.</p>
  */
-function create_language_directories($name) {
-	$dir = Config::ABS_PATH . "/smarty/kotoba/templates/$name";
-	@mkdir($dir);		// Hide warning when directory exists.
-	chmod($dir, 0777);
-	$dir = Config::ABS_PATH . "/smarty/kotoba/templates_c/$name";
-	@mkdir($dir);		// Hide warning when directory exists.
-	chmod($dir, 0777);
-	$dir = Config::ABS_PATH . "/modules/lang/$name";
-	@mkdir($dir);		// Hide warning when directory exists.
-	chmod($dir, 0777);
+function create_language_directories($code)
+{
+    $dir = Config::ABS_PATH . "/smarty/kotoba/templates/$code";
+    @mkdir($dir);		// Hide warning when directory exists.
+    chmod($dir, 0777);
+    $dir = Config::ABS_PATH . "/smarty/kotoba/templates_c/$code";
+    @mkdir($dir);		// Hide warning when directory exists.
+    chmod($dir, 0777);
+    $dir = Config::ABS_PATH . "/modules/lang/$code";
+    @mkdir($dir);		// Hide warning when directory exists.
+    chmod($dir, 0777);
 }
 
 /***************************************
@@ -83,20 +84,20 @@ function create_language_directories($name) {
  ***************************************/
 
 /**
- * Добавляет новое правило в список контроля доступа.
- * @param group_id mixed <p>Группа.</p>
- * @param board_id mixed <p>Доска.</p>
- * @param thread_id mixed <p>Нить.</p>
- * @param post_id mixed <p>Сообщение.</p>
+ * Добавляет правило в список контроля доступа.
+ * @param group_id mixed <p>Идентификатор группы.</p>
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param thread_id mixed <p>Идентификатор нить.</p>
+ * @param post_id mixed <p>Идентификатор сообщения.</p>
  * @param view mixed <p>Право на просмотр.</p>
  * @param change mixed <p>Право на изменение.</p>
  * @param moderate mixed <p>Право на модерирование.</p>
  */
 function acl_add($group_id, $board_id, $thread_id, $post_id, $view, $change,
-		$moderate)
+    $moderate)
 {
-	db_acl_add(DataExchange::getDBLink(), $group_id, $board_id, $thread_id,
-		$post_id, $view, $change, $moderate);
+    db_acl_add(DataExchange::getDBLink(), $group_id, $board_id, $thread_id,
+        $post_id, $view, $change, $moderate);
 }
 /**
  * Удаляет правило из списка контроля доступа.
@@ -211,8 +212,8 @@ function attachments_get_by_posts($posts)
  */
 function bans_add($range_beg, $range_end, $reason, $untill)
 {
-	db_bans_add(DataExchange::getDBLink(), $range_beg, $range_end, $reason,
-		$untill);
+    db_bans_add(DataExchange::getDBLink(), $range_beg, $range_end, $reason,
+        $untill);
 }
 /**
  * Проверяет, заблокирован ли IP-адрес. Если да, то завершает работу скрипта.
@@ -221,14 +222,14 @@ function bans_add($range_beg, $range_end, $reason, $untill)
  */
 function bans_check($smarty, $ip)
 {
-	if(($ban = db_bans_check(DataExchange::getDBLink(), $ip)) !== false)
-	{
-		$smarty->assign('ip', long2ip($ip));
-		$smarty->assign('reason', $ban['reason']);
-		session_destroy();
-		DataExchange::releaseResources();
-		die($smarty->fetch('banned.tpl'));
-	}
+    if(($ban = db_bans_check(DataExchange::getDBLink(), $ip)) !== false)
+    {
+        $smarty->assign('ip', long2ip($ip));
+        $smarty->assign('reason', $ban['reason']);
+        session_destroy();
+        DataExchange::releaseResources();
+        die($smarty->fetch('banned.tpl'));
+    }
 }
 /**
  * Проверяет корректность начала диапазона IP-адресов.
@@ -238,9 +239,9 @@ function bans_check($smarty, $ip)
  */
 function bans_check_range_beg($range_beg)
 {
-	if(($range_beg = ip2long($range_beg)) == false)
-		throw new FormatException(FormatException::$messages['BANS_RANGE_BEG']);
-	return $range_beg;
+    if(($range_beg = ip2long($range_beg)) == false)
+        throw new FormatException(FormatException::$messages['BANS_RANGE_BEG']);
+    return $range_beg;
 }
 /**
  * Проверяет корректность конца диапазона IP-адресов.
@@ -250,29 +251,29 @@ function bans_check_range_beg($range_beg)
  */
 function bans_check_range_end($range_end)
 {
-	if(($range_end = ip2long($range_end)) == false)
-		throw new FormatException(FormatException::$messages['BANS_RANGE_END']);
-	return $range_end;
+    if(($range_end = ip2long($range_end)) == false)
+        throw new FormatException(FormatException::$messages['BANS_RANGE_END']);
+    return $range_end;
 }
 /**
  * Проверяет корректность причины блокировки.
- * @param reason string <p>Причина бана.</p>
+ * @param reason string <p>Причина блокировки.</p>
  * @return string
  * Возвращает безопасную для использования причину блокировки.
  */
 function bans_check_reason($reason)
 {
-	$length = strlen($reason);
-	if($length <= 10000 && $length >= 1)
-	{
-		$reason = htmlentities($reason, ENT_QUOTES, Config::MB_ENCODING);
-		$length = strlen($reason);
-		if($length > 10000 || $length < 1)
-			throw new FormatException(FormatException::$messages['BANS_REASON']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['BANS_REASON']);
-	return $reason;
+    $length = strlen($reason);
+    if($length <= 10000 && $length >= 1)
+    {
+        $reason = htmlentities($reason, ENT_QUOTES, Config::MB_ENCODING);
+        $length = strlen($reason);
+        if($length > 10000 || $length < 1)
+            throw new FormatException(FormatException::$messages['BANS_REASON']);
+    }
+    else
+        throw new FormatException(FormatException::$messages['BANS_REASON']);
+    return $reason;
 }
 /**
  * Проверяет корректность времени истечения блокировки.
@@ -282,18 +283,21 @@ function bans_check_reason($reason)
  */
 function bans_check_untill($untill)
 {
-	$length = strlen($untill);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$untill = RawUrlEncode($untill);
-		$length = strlen($untill);
-		if($length > $max_int_length || (ctype_digit($untill) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['BANS_UNTILL']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['BANS_UNTILL']);
-	return $untill;
+    $length = strlen($untill);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if($length <= $max_int_length && $length >= 1)
+    {
+        $untill = RawUrlEncode($untill);
+        $length = strlen($untill);
+        if($length > $max_int_length || (ctype_digit($untill) === false)
+            || $length < 1)
+        {
+            throw new FormatException(FormatException::$messages['BANS_UNTILL']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['BANS_UNTILL']);
+    return $untill;
 }
 /**
  * Удаляет блокировку с заданным идентификатором.
@@ -332,15 +336,16 @@ function bans_get_all()
 
 /**
  * Добавляет связь доски с типом загружаемых файлов.
- * @param board mixed <p>Доска.</p>
- * @param upload_type mixed <p>Тип загружаемого файла.</p>
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param upload_type_id mixed <p>Идентификатор типа загружаемого файла.</p>
  */
-function board_upload_types_add($board, $upload_type)
+function board_upload_types_add($board_id, $upload_type_id)
 {
-	db_board_upload_types_add(DataExchange::getDBLink(), $board, $upload_type);
+    db_board_upload_types_add(DataExchange::getDBLink(), $board_id,
+        $upload_type_id);
 }
 /**
- * Удаляет связь доски с типом загружаемых файлов.
+ *upload_type_id Удаляет связь доски с типом загружаемых файлов.
  * @param board mixed <p>Доска.</p>
  * @param upload_type mixed <p>Тип загружаемого файла.</p>
  */
@@ -378,29 +383,30 @@ function board_upload_types_get_all()
  * @param enable_youtube mixed <p>Включение вложения видео с ютуба.</p>
  * @param enable_captcha mixed <p>Включение капчи.</p>
  * @param same_upload string <p>Политика загрузки одинаковых файлов.</p>
- * @param popdown_handler mixed <p>Обработчик автоматического удаления нитей.</p>
- * @param category mixed <p>Категория.</p>
+ * @param popdown_handler mixed <p>Идентификатор обработчика автоматического
+ * удаления нитей.</p>
+ * @param category mixed <p>Идентификатор категории.</p>
  */
 function boards_add($name, $title, $annotation, $bump_limit, $force_anonymous,
-	$default_name, $with_attachments, $enable_macro, $enable_youtube,
-	$enable_captcha, $same_upload, $popdown_handler, $category)
+    $default_name, $with_attachments, $enable_macro, $enable_youtube,
+    $enable_captcha, $same_upload, $popdown_handler, $category)
 {
-	db_boards_add(DataExchange::getDBLink(), $name, $title, $annotation,
-		$bump_limit, $force_anonymous, $default_name, $with_attachments,
-		$enable_macro, $enable_youtube, $enable_captcha, $same_upload,
-		$popdown_handler, $category);
+    db_boards_add(DataExchange::getDBLink(), $name, $title, $annotation,
+        $bump_limit, $force_anonymous, $default_name, $with_attachments,
+        $enable_macro, $enable_youtube, $enable_captcha, $same_upload,
+        $popdown_handler, $category);
 }
 /**
- * Проверяет корректность аннотации.
+ * Проверяет корректность размера аннотации.
  * @param annotation string <p>Аннотация.</p>
  * @return string
  * Возвращает аннотацию.
  */
 function boards_check_annotation($annotation)
 {
-	if(strlen($annotation) > Config::MAX_ANNOTATION_LENGTH)
-		throw new LimitException(LimitException::$messages['MAX_ANNOTATION']);
-	return $annotation;
+    if(strlen($annotation) > Config::MAX_ANNOTATION_LENGTH)
+        throw new LimitException(LimitException::$messages['MAX_ANNOTATION']);
+    return $annotation;
 }
 /**
  * Проверяет корректность специфичного для доски бамплимита.
@@ -410,34 +416,34 @@ function boards_check_annotation($annotation)
  */
 function boards_check_bump_limit($bump_limit)
 {
-	$length = strlen($bump_limit);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$bump_limit = RawUrlEncode($bump_limit);
-		$length = strlen($bump_limit);
-		if($length > $max_int_length || (ctype_digit($bump_limit) === false)
-			|| $length < 1)
-		{
-			throw new FormatException(FormatException::$messages['BOARD_BUMP_LIMIT']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['BOARD_BUMP_LIMIT']);
-	return $bump_limit;
+    $length = strlen($bump_limit);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if($length <= $max_int_length && $length >= 1)
+    {
+        $bump_limit = RawUrlEncode($bump_limit);
+        $length = strlen($bump_limit);
+        if($length > $max_int_length || (ctype_digit($bump_limit) === false)
+            || $length < 1)
+        {
+            throw new FormatException(FormatException::$messages['BOARD_BUMP_LIMIT']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['BOARD_BUMP_LIMIT']);
+    return $bump_limit;
 }
 /**
  * Проверяет корректность имени отправителя по умолчанию.
- * @param name string <p>Имя отправителя по умолчанию.</p>
+ * @param default_name string <p>Имя отправителя по умолчанию.</p>
  * @return string
  * Возвращает безопасное для использования имя отправителя по умолчанию.
  */
-function boards_check_default_name($name)
+function boards_check_default_name($default_name)
 {
-	posts_check_name_size($name);
-	$name = htmlentities($name, ENT_QUOTES, Config::MB_ENCODING);
-	posts_check_name_size($name);
-	return $name;
+    posts_check_name_size($default_name);
+    $default_name = htmlentities($default_name, ENT_QUOTES, Config::MB_ENCODING);
+    posts_check_name_size($default_name);
+    return $default_name;
 }
 /**
  * Проверяет корректность идентификатора доски.
@@ -447,18 +453,21 @@ function boards_check_default_name($name)
  */
 function boards_check_id($id)
 {
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['BOARD_ID']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['BOARD_ID']);
-	return $id;
+    $length = strlen($id);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if($length <= $max_int_length && $length >= 1)
+    {
+        $id = RawUrlEncode($id);
+        $length = strlen($id);
+        if($length > $max_int_length || (ctype_digit($id) === false)
+            || $length < 1)
+        {
+            throw new FormatException(FormatException::$messages['BOARD_ID']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['BOARD_ID']);
+    return $id;
 }
 /**
  * Проверяет корректность имени доски.
@@ -468,17 +477,17 @@ function boards_check_id($id)
  */
 function boards_check_name($name)
 {
-	$length = strlen($name);
-	if($length <= 16 && $length >= 1)
-	{
-		$name = RawUrlEncode($name);
-		$length = strlen($name);
-		if($length > 16 || (strpos($name, '%') !== false) || $length < 1)
-			throw new FormatException(FormatException::$messages['BOARD_NAME']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['BOARD_NAME']);
-	return $name;
+    $length = strlen($name);
+    if($length <= 16 && $length >= 1)
+    {
+        $name = RawUrlEncode($name);
+        $length = strlen($name);
+        if($length > 16 || (strpos($name, '%') !== false) || $length < 1)
+            throw new FormatException(FormatException::$messages['BOARD_NAME']);
+    }
+    else
+        throw new FormatException(FormatException::$messages['BOARD_NAME']);
+    return $name;
 }
 /**
  * Проверяет корректность политики загрузки одинаковых файлов.
@@ -488,17 +497,17 @@ function boards_check_name($name)
  */
 function boards_check_same_upload($same_upload)
 {
-	$length = strlen($same_upload);
-	if($length <= 32 && $length >= 1)
-	{
-		$same_upload = RawUrlEncode($same_upload);
-		$length = strlen($same_upload);
-		if($length > 32 || (strpos($same_upload, '%') !== false) || $length < 1)
-			throw new FormatException(FormatException::$messages['BOARD_SAME_UPLOAD']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['BOARD_SAME_UPLOAD']);
-	return $same_upload;
+    $length = strlen($same_upload);
+    if($length <= 32 && $length >= 1)
+    {
+        $same_upload = RawUrlEncode($same_upload);
+        $length = strlen($same_upload);
+        if($length > 32 || (strpos($same_upload, '%') !== false) || $length < 1)
+            throw new FormatException(FormatException::$messages['BOARD_SAME_UPLOAD']);
+    }
+    else
+        throw new FormatException(FormatException::$messages['BOARD_SAME_UPLOAD']);
+    return $same_upload;
 }
 /**
  * Проверяет корректность заголовка доски.
@@ -508,17 +517,17 @@ function boards_check_same_upload($same_upload)
  */
 function boards_check_title($title)
 {
-	$length = strlen($title);
-	if($length <= 50 && $length >= 1)
-	{
-		$title = htmlentities($title, ENT_QUOTES, Config::MB_ENCODING);
-		$length = strlen($title);
-		if($length > 50 || $length < 1)
-			throw new FormatException(FormatException::$messages['BOARD_TITLE']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['BOARD_TITLE']);
-	return $title;
+    $length = strlen($title);
+    if($length <= 50 && $length >= 1)
+    {
+        $title = htmlentities($title, ENT_QUOTES, Config::MB_ENCODING);
+        $length = strlen($title);
+        if($length > 50 || $length < 1)
+            throw new FormatException(FormatException::$messages['BOARD_TITLE']);
+    }
+    else
+        throw new FormatException(FormatException::$messages['BOARD_TITLE']);
+    return $title;
 }
 /**
  * Удаляет заданную доску.
@@ -760,53 +769,58 @@ function boards_get_visible($user_id)
  *************************/
 
 /**
- * Добавляет новую категорию с заданным именем.
- * @param name string <p>Имя.</p>
+ * Добавляет категорию.
+ * @param name string <p>Имя категории.</p>
  */
 function categories_add($name)
 {
-	db_categories_add(DataExchange::getDBLink(), $name);
+    db_categories_add(DataExchange::getDBLink(), $name);
 }
 /**
  * Проверяет корректность идентификатора категории.
- * @param id mixed <p>Идентификатор.</p>
+ * @param id mixed <p>Идентификатор категории.</p>
  * @return string
  * Возвращает безопасный для использования идентификатор категории.
  */
 function categories_check_id($id)
 {
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['CATEGORY_ID']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['CATEGORY_ID']);
-	return $id;
+    $length = strlen($id);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if($length <= $max_int_length && $length >= 1)
+    {
+        $id = RawUrlEncode($id);
+        $length = strlen($id);
+        if($length > $max_int_length || (ctype_digit($id) === false)
+            || $length < 1)
+        {
+            throw new FormatException(FormatException::$messages['CATEGORY_ID']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['CATEGORY_ID']);
+    return $id;
 }
 /**
  * Проверяет корректность имени категории.
- * @param name string <p>Имя.</p>
+ * @param name string <p>Имя категории.</p>
  * @return string
  * Возвращает безопасное для использования имя категории.
  */
 function categories_check_name($name)
 {
-	$length = strlen($name);
-	if($length <= 50 && $length >= 1)
-	{
-		$name = RawUrlEncode($name);
-		$length = strlen($name);
-		if($length > 50 || (strpos($name, '%') !== false) || $length < 1)
-			throw new FormatException(FormatException::$messages['CATEGORY_NAME']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['CATEGORY_NAME']);
-	return $name;
+    $length = strlen($name);
+    if($length <= 50 && $length >= 1)
+    {
+        $name = RawUrlEncode($name);
+        $length = strlen($name);
+        if($length > 50 || (strpos($name, '%') !== false) || $length < 1)
+        {
+            throw new FormatException(FormatException::$messages['CATEGORY_NAME']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['CATEGORY_NAME']);
+    return $name;
 }
 /**
  * Удаляет заданную категорию.
@@ -833,14 +847,15 @@ function categories_get_all()
  **********************/
 
 /**
- * Добавляет группу с заданным именем.
+ * Добавляет группу.
  * @param name string <p>Имя группы.</p>
  * @return string
- * Возвращает идентификатор добавленной группы.
+ * Возвращает идентификатор добавленной группы. Или null, если что-то пошло не
+ * так.
  */
 function groups_add($name)
 {
-	db_groups_add(DataExchange::getDBLink(), $name);
+    db_groups_add(DataExchange::getDBLink(), $name);
 }
 /**
  * Проверяет корректность идентификатора группы.
@@ -850,18 +865,21 @@ function groups_add($name)
  */
 function groups_check_id($id)
 {
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['GROUP_ID']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['GROUP_ID']);
-	return $id;
+    $length = strlen($id);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if($length <= $max_int_length && $length >= 1)
+    {
+        $id = RawUrlEncode($id);
+        $length = strlen($id);
+        if($length > $max_int_length || (ctype_digit($id) === false)
+            || $length < 1)
+        {
+            throw new FormatException(FormatException::$messages['GROUP_ID']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['GROUP_ID']);
+    return $id;
 }
 /**
  * Проверяет корректность имени группы.
@@ -871,17 +889,17 @@ function groups_check_id($id)
  */
 function groups_check_name($name)
 {
-	$length = strlen($name);
-	if($length <= 50 && $length >= 1)
-	{
-		$name = RawUrlEncode($name);
-		$length = strlen($name);
-		if($length > 50 || (strpos($name, '%') !== false) || $length < 1)
-			throw new FormatException(FormatException::$messages['GROUP_NAME']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['GROUP_NAME']);
-	return $name;
+    $length = strlen($name);
+    if($length <= 50 && $length >= 1)
+    {
+        $name = RawUrlEncode($name);
+        $length = strlen($name);
+        if($length > 50 || (strpos($name, '%') !== false) || $length < 1)
+            throw new FormatException(FormatException::$messages['GROUP_NAME']);
+    }
+    else
+        throw new FormatException(FormatException::$messages['GROUP_NAME']);
+    return $name;
 }
 /**
  * Удаляет заданные группы, а так же всех пользователей, которые входят в эти
@@ -915,8 +933,8 @@ function groups_get_all()
  */
 function hidden_threads_add($thread_id, $user_id)
 {
-	return db_hidden_threads_add(DataExchange::getDBLink(), $thread_id,
-		$user_id);
+    return db_hidden_threads_add(DataExchange::getDBLink(), $thread_id,
+        $user_id);
 }
 /**
  * Отменяет скрытие нити.
@@ -1019,7 +1037,7 @@ function images_get_same($board_id, $image_hash, $user_id)
  */
 function languages_add($code)
 {
-	db_languages_add(DataExchange::getDBLink(), $code);
+    db_languages_add(DataExchange::getDBLink(), $code);
 }
 /**
  * Проверяет корректность ISO_639-2 кода языка.
@@ -1029,17 +1047,17 @@ function languages_add($code)
  */
 function languages_check_code($code)
 {
-	$length = strlen($code);
-	if($length == 3)
-	{
-		$code = RawUrlEncode($code);
-		$length = strlen($code);
-		if($length != 3 || (strpos($code, '%') !== false))
-			throw new FormatException(FormatException::$messages['LANGUAGE_CODE']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['LANGUAGE_CODE']);
-	return $code;
+    $length = strlen($code);
+    if($length == 3)
+    {
+        $code = RawUrlEncode($code);
+        $length = strlen($code);
+        if($length != 3 || (strpos($code, '%') !== false))
+            throw new FormatException(FormatException::$messages['LANGUAGE_CODE']);
+    }
+    else
+        throw new FormatException(FormatException::$messages['LANGUAGE_CODE']);
+    return $code;
 }
 /**
  * Проверяет корректность идентификатора языка.
@@ -1049,18 +1067,21 @@ function languages_check_code($code)
  */
 function languages_check_id($id)
 {
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['LANGUAGE_ID']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['LANGUAGE_ID']);
-	return $id;
+    $length = strlen($id);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if($length <= $max_int_length && $length >= 1)
+    {
+        $id = RawUrlEncode($id);
+        $length = strlen($id);
+        if($length > $max_int_length || (ctype_digit($id) === false)
+            || $length < 1)
+        {
+            throw new FormatException(FormatException::$messages['LANGUAGE_ID']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['LANGUAGE_ID']);
+    return $id;
 }
 /**
  * Удаляет язык с заданным идентификатором.
@@ -1093,7 +1114,7 @@ function languages_get_all()
  */
 function popdown_handlers_add($name)
 {
-	db_popdown_handlers_add(DataExchange::getDBLink(), $name);
+    db_popdown_handlers_add(DataExchange::getDBLink(), $name);
 }
 /**
  * Проверяет корректность идентификатора обработчика автоматического
@@ -1106,21 +1127,21 @@ function popdown_handlers_add($name)
  */
 function popdown_handlers_check_id($id)
 {
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false)
-				|| $length < 1)
-		{
-			throw new FormatException(FormatException::$messages['POPDOWN_HANDLER_ID']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['POPDOWN_HANDLER_ID']);
-	return $id;
+    $length = strlen($id);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if($length <= $max_int_length && $length >= 1)
+    {
+        $id = RawUrlEncode($id);
+        $length = strlen($id);
+        if($length > $max_int_length || (ctype_digit($id) === false)
+            || $length < 1)
+        {
+            throw new FormatException(FormatException::$messages['POPDOWN_HANDLER_ID']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['POPDOWN_HANDLER_ID']);
+    return $id;
 }
 /**
  * Проверяет корректность имени функции обработчика автоматического удаления
@@ -1132,20 +1153,20 @@ function popdown_handlers_check_id($id)
  */
 function popdown_handlers_check_name($name)
 {
-	$length = strlen($name);
-	if($length <= 50 && $length >= 1)
-	{
-		$name = RawUrlEncode($name);
-		$length = strlen($name);
-		if($length > 50 || (strpos($name, '%') !== false)
-			|| $length < 1 || ctype_digit($name[0]))
-		{
-			throw new FormatException(FormatException::$messages['POPDOWN_HANDLER_NAME']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['POPDOWN_HANDLER_NAME']);
-	return $name;
+    $length = strlen($name);
+    if($length <= 50 && $length >= 1)
+    {
+        $name = RawUrlEncode($name);
+        $length = strlen($name);
+        if($length > 50 || (strpos($name, '%') !== false)
+            || $length < 1 || ctype_digit($name[0]))
+        {
+            throw new FormatException(FormatException::$messages['POPDOWN_HANDLER_NAME']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['POPDOWN_HANDLER_NAME']);
+    return $name;
 }
 /**
  * Удаляет обработчик автоматического удаления нитей.
@@ -1172,9 +1193,6 @@ function popdown_handlers_get_all()
  * Работа с сообщениями. *
  *************************/
 
-// Начиная с работы с сообщениями изменены формулировки в комментариях. Вместо
-// "Удаляет заданное сообщение" надо писать "Удаляет сообщения с заданным
-// идентификатором, если сообщение удаляется по id.
 /**
  * Добавляет сообщение.
  * @param board_id mixed <p>Идентификатор доски.</p>
@@ -1203,13 +1221,14 @@ function popdown_handlers_get_all()
  * 'date_time' - Время сохранения.<br>
  * 'text' - Текст.<br>
  * 'sage' - Флаг поднятия нити.</p>
+ * Или null, если что-то пошло не так.
  */
 function posts_add($board_id, $thread_id, $user_id, $password, $name, $tripcode,
-	$ip, $subject, $date_time, $text, $sage)
+    $ip, $subject, $date_time, $text, $sage)
 {
-	return db_posts_add(DataExchange::getDBLink(), $board_id, $thread_id,
-		$user_id, $password, $name, $tripcode, $ip, $subject, $date_time, $text,
-		$sage);
+    return db_posts_add(DataExchange::getDBLink(), $board_id, $thread_id,
+        $user_id, $password, $name, $tripcode, $ip, $subject, $date_time, $text,
+        $sage);
 }
 /**
  * Проверяет корректность идентификатора сообщения.
@@ -1241,8 +1260,8 @@ function posts_check_id($id)
  */
 function posts_check_name_size($name)
 {
-	if(strlen($name) > Config::MAX_THEME_LENGTH)
-		throw new LimitException(LimitException::$messages['MAX_NAME_LENGTH']);
+    if(strlen($name) > Config::MAX_THEME_LENGTH)
+        throw new LimitException(LimitException::$messages['MAX_NAME_LENGTH']);
 }
 /**
  * Проверяет корректность номера сообщения.
@@ -1270,23 +1289,23 @@ function posts_check_number($number)
 }
 /**
  * Проверяет корректность пароля для удаления сообщения.
- * @param password string <p>Пароль.</p>
+ * @param password string <p>Парол для удаления сообщенияь.</p>
  * @return string
  * Возвращает безопасный для использования пароль для удаления сообщения.
  */
 function posts_check_password($password)
 {
-	$length = strlen($password);
-	if($length <= 12 && $length >= 1)
-	{
-		$password = RawUrlEncode($password);
-		$length = strlen($password);
-		if($length > 12 || (strpos($password, '%') !== false) || $length < 1)
-			throw new FormatException(FormatException::$messages['POST_PASSWORD']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['POST_PASSWORD']);
-	return $password;
+    $length = strlen($password);
+    if($length <= 12 && $length >= 1)
+    {
+        $password = RawUrlEncode($password);
+        $length = strlen($password);
+        if($length > 12 || (strpos($password, '%') !== false) || $length < 1)
+            throw new FormatException(FormatException::$messages['POST_PASSWORD']);
+    }
+    else
+        throw new FormatException(FormatException::$messages['POST_PASSWORD']);
+    return $password;
 }
 /**
  * Проверяет, удовлетворяет ли тема сообщения ограничениям по размеру.
@@ -1294,8 +1313,8 @@ function posts_check_password($password)
  */
 function posts_check_subject_size($subject)
 {
-	if(strlen($subject) > Config::MAX_THEME_LENGTH)
-		throw new LimitException(LimitException::$messages['MAX_SUBJECT_LENGTH']);
+    if(strlen($subject) > Config::MAX_THEME_LENGTH)
+        throw new LimitException(LimitException::$messages['MAX_SUBJECT_LENGTH']);
 }
 /**
  * Проверяет корректность текста.
@@ -1303,8 +1322,8 @@ function posts_check_subject_size($subject)
  */
 function posts_check_text($text)
 {
-	if(!check_utf8($text))
-		throw new CommonException(CommonException::$messages['TEXT_UNICODE']);
+    if(!check_utf8($text))
+        throw new CommonException(CommonException::$messages['TEXT_UNICODE']);
 }
 /**
  * Проверяет, удовлетворяет ли текст сообщения ограничениям по размеру.
@@ -1312,8 +1331,8 @@ function posts_check_text($text)
  */
 function posts_check_text_size($text)
 {
-	if(mb_strlen($text) > Config::MAX_MESSAGE_LENGTH)
-		throw new LimitException(LimitException::$messages['MAX_TEXT_LENGTH']);
+    if(mb_strlen($text) > Config::MAX_MESSAGE_LENGTH)
+        throw new LimitException(LimitException::$messages['MAX_TEXT_LENGTH']);
 }
 /**
  * Урезает текст сообщения.
@@ -1583,7 +1602,7 @@ function posts_prepare_text(&$text, $board)
  */
 function stylesheets_add($name)
 {
-	db_stylesheets_add(DataExchange::getDBLink(), $name);
+    db_stylesheets_add(DataExchange::getDBLink(), $name);
 }
 /**
  * Проверяет корректность идентификатора стиля.
@@ -1593,21 +1612,21 @@ function stylesheets_add($name)
  */
 function stylesheets_check_id($id)
 {
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false)
-			|| $length < 1)
-		{
-			throw new FormatException(FormatException::$messages['STYLESHEET_ID']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['STYLESHEET_ID']);
-	return $id;
+    $length = strlen($id);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if($length <= $max_int_length && $length >= 1)
+    {
+        $id = RawUrlEncode($id);
+        $length = strlen($id);
+        if($length > $max_int_length || (ctype_digit($id) === false)
+            || $length < 1)
+        {
+            throw new FormatException(FormatException::$messages['STYLESHEET_ID']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['STYLESHEET_ID']);
+    return $id;
 }
 /**
  * Проверяет корректность имени файла стиля.
@@ -1617,17 +1636,17 @@ function stylesheets_check_id($id)
  */
 function stylesheets_check_name($name)
 {
-	$length = strlen($name);
-	if($length <= 50 && $length >= 1)
-	{
-		$name = RawUrlEncode($name);
-		$length = strlen($name);
-		if($length > 50 || (strpos($name, '%') !== false) || $length < 1)
-			throw new FormatException(FormatException::$messages['STYLESHEET_NAME']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['STYLESHEET_NAME']);
-	return $name;
+    $length = strlen($name);
+    if($length <= 50 && $length >= 1)
+    {
+        $name = RawUrlEncode($name);
+        $length = strlen($name);
+        if($length > 50 || (strpos($name, '%') !== false) || $length < 1)
+            throw new FormatException(FormatException::$messages['STYLESHEET_NAME']);
+    }
+    else
+        throw new FormatException(FormatException::$messages['STYLESHEET_NAME']);
+    return $name;
 }
 /**
  * Удаляет заданный стиль.
@@ -1674,8 +1693,8 @@ function stylesheets_get_all()
  */
 function threads_add($board_id, $original_post, $bump_limit, $sage, $with_files)
 {
-	return db_threads_add(DataExchange::getDBLink(), $board_id, $original_post,
-		$bump_limit, $sage, $with_files);
+    return db_threads_add(DataExchange::getDBLink(), $board_id, $original_post,
+        $bump_limit, $sage, $with_files);
 }
 /**
  * Проверяет корректность специфичного для нити бамплимита.
@@ -1685,21 +1704,21 @@ function threads_add($board_id, $original_post, $bump_limit, $sage, $with_files)
  */
 function threads_check_bump_limit($bump_limit)
 {
-	$length = strlen($bump_limit);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$bump_limit = RawUrlEncode($bump_limit);
-		$length = strlen($bump_limit);
-		if($length > $max_int_length || (ctype_digit($bump_limit) === false)
-			|| $length < 1)
-		{
-			throw new FormatException(FormatException::$messages['THREAD_BUMP_LIMIT']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['THREAD_BUMP_LIMIT']);
-	return $bump_limit;
+    $length = strlen($bump_limit);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if($length <= $max_int_length && $length >= 1)
+    {
+        $bump_limit = RawUrlEncode($bump_limit);
+        $length = strlen($bump_limit);
+        if($length > $max_int_length || (ctype_digit($bump_limit) === false)
+            || $length < 1)
+        {
+            throw new FormatException(FormatException::$messages['THREAD_BUMP_LIMIT']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['THREAD_BUMP_LIMIT']);
+    return $bump_limit;
 }
 /**
  * Проверяет корректность идентификатора нити.
@@ -1709,21 +1728,21 @@ function threads_check_bump_limit($bump_limit)
  */
 function threads_check_id($id)
 {
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false)
-			|| $length < 1)
-		{
-			throw new FormatException(FormatException::$messages['THREAD_ID']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['THREAD_ID']);
-	return $id;
+    $length = strlen($id);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if($length <= $max_int_length && $length >= 1)
+    {
+        $id = RawUrlEncode($id);
+        $length = strlen($id);
+        if($length > $max_int_length || (ctype_digit($id) === false)
+            || $length < 1)
+        {
+            throw new FormatException(FormatException::$messages['THREAD_ID']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['THREAD_ID']);
+    return $id;
 }
 /**
  * Проверяет корректность номера оригинального сообщения.
@@ -1733,21 +1752,21 @@ function threads_check_id($id)
  */
 function threads_check_number($number)
 {
-	$length = strlen($number);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$number = RawUrlEncode($number);
-		$length = strlen($number);
-		if($length > $max_int_length || (ctype_digit($number) === false)
-			|| $length < 1)
-		{
-			throw new FormatException(FormatException::$messages['THREAD_NUMBER']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['THREAD_NUMBER']);
-	return $number;
+    $length = strlen($number);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if($length <= $max_int_length && $length >= 1)
+    {
+        $number = RawUrlEncode($number);
+        $length = strlen($number);
+        if($length > $max_int_length || (ctype_digit($number) === false)
+            || $length < 1)
+        {
+            throw new FormatException(FormatException::$messages['THREAD_NUMBER']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['THREAD_NUMBER']);
+    return $number;
 }
 /**
  * Редактирует заданную нить.
@@ -1924,7 +1943,7 @@ function threads_get_visible_count($user_id, $board_id)
  */
 function upload_handlers_add($name)
 {
-	db_upload_handlers_add(DataExchange::getDBLink(), $name);
+    db_upload_handlers_add(DataExchange::getDBLink(), $name);
 }
 /**
  * Проверяет корректность идентификатора обработчика загружаемых файлов.
@@ -1935,21 +1954,21 @@ function upload_handlers_add($name)
  */
 function upload_handlers_check_id($id)
 {
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false)
-			|| $length < 1)
-		{
-			throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_ID']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_ID']);
-	return $id;
+    $length = strlen($id);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if($length <= $max_int_length && $length >= 1)
+    {
+        $id = RawUrlEncode($id);
+        $length = strlen($id);
+        if($length > $max_int_length || (ctype_digit($id) === false)
+            || $length < 1)
+        {
+            throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_ID']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_ID']);
+    return $id;
 }
 /**
  * Проверяет корректность имени фукнции обработчика загружаемых файлов.
@@ -1960,20 +1979,20 @@ function upload_handlers_check_id($id)
  */
 function upload_handlers_check_name($name)
 {
-	$length = strlen($name);
-	if($length <= 50 && $length >= 1)
-	{
-		$name = RawUrlEncode($name);
-		$length = strlen($name);
-		if($length > 50 || (strpos($name, '%') !== false)
-			|| $length < 1 || ctype_digit($name[0]))
-		{
-			throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_NAME']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_NAME']);
-	return $name;
+    $length = strlen($name);
+    if($length <= 50 && $length >= 1)
+    {
+        $name = RawUrlEncode($name);
+        $length = strlen($name);
+        if($length > 50 || (strpos($name, '%') !== false)
+            || $length < 1 || ctype_digit($name[0]))
+        {
+            throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_NAME']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_NAME']);
+    return $name;
 }
 /**
  * Удаляет обработчик загружаемых файлов.
@@ -1998,7 +2017,6 @@ function upload_handlers_get_all()
 /***************************************
  * Работа с типами загружаемых файлов. *
  ***************************************/
-/* Code and Comment Convention */
 
 /**
  * Добавляет тип загружаемых файлов.
@@ -2010,10 +2028,10 @@ function upload_handlers_get_all()
  * @param thumbnail_image string <p>Имя файла уменьшенной копии.</p>
  */
 function upload_types_add($extension, $store_extension, $is_image,
-	$upload_handler_id, $thumbnail_image)
+    $upload_handler_id, $thumbnail_image)
 {
-	db_upload_types_add(DataExchange::getDBLink(), $extension, $store_extension,
-		$is_image, $upload_handler_id, $thumbnail_image);
+    db_upload_types_add(DataExchange::getDBLink(), $extension, $store_extension,
+        $is_image, $upload_handler_id, $thumbnail_image);
 }
 /**
  * Проверяет корректность расширения загружаемого файла.
@@ -2023,17 +2041,17 @@ function upload_types_add($extension, $store_extension, $is_image,
  */
 function upload_types_check_extension($ext)
 {
-	$length = strlen($ext);
-	if($length <= 10 && $length >= 1)
-	{
-		$ext = RawUrlEncode($ext);
-		$length = strlen($ext);
-		if($length > 10 || (strpos($ext, '%') !== false) || $length < 1)
-			throw new FormatException(FormatException::$messages['UPLOAD_TYPE_EXTENSION']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['UPLOAD_TYPE_EXTENSION']);
-	return $ext;
+    $length = strlen($ext);
+    if($length <= 10 && $length >= 1)
+    {
+        $ext = RawUrlEncode($ext);
+        $length = strlen($ext);
+        if($length > 10 || (strpos($ext, '%') !== false) || $length < 1)
+            throw new FormatException(FormatException::$messages['UPLOAD_TYPE_EXTENSION']);
+    }
+    else
+        throw new FormatException(FormatException::$messages['UPLOAD_TYPE_EXTENSION']);
+    return $ext;
 }
 /**
  * Проверяет корректность идентификатора типа загружаемых файлов.
@@ -2043,21 +2061,21 @@ function upload_types_check_extension($ext)
  */
 function upload_types_check_id($id)
 {
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false)
-			|| $length < 1)
-		{
-			throw new FormatException(FormatException::$messages['UPLOAD_TYPE_ID']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['UPLOAD_TYPE_ID']);
-	return $id;
+    $length = strlen($id);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if($length <= $max_int_length && $length >= 1)
+    {
+        $id = RawUrlEncode($id);
+        $length = strlen($id);
+        if($length > $max_int_length || (ctype_digit($id) === false)
+            || $length < 1)
+        {
+            throw new FormatException(FormatException::$messages['UPLOAD_TYPE_ID']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['UPLOAD_TYPE_ID']);
+    return $id;
 }
 /**
  * Проверяет корректность сохраняемого расширения загружаемого файла.
@@ -2068,17 +2086,17 @@ function upload_types_check_id($id)
  */
 function upload_types_check_store_extension($store_ext)
 {
-	$length = strlen($store_ext);
-	if($length <= 10 && $length >= 1)
-	{
-		$store_ext = RawUrlEncode($store_ext);
-		$length = strlen($store_ext);
-		if($length > 10 || (strpos($store_ext, '%') !== false) || $length < 1)
-			throw new FormatException(FormatException::$messages['UPLOAD_TYPE_STORE_EXTENSION']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['UPLOAD_TYPE_STORE_EXTENSION']);
-	return $store_ext;
+    $length = strlen($store_ext);
+    if($length <= 10 && $length >= 1)
+    {
+        $store_ext = RawUrlEncode($store_ext);
+        $length = strlen($store_ext);
+        if($length > 10 || (strpos($store_ext, '%') !== false) || $length < 1)
+            throw new FormatException(FormatException::$messages['UPLOAD_TYPE_STORE_EXTENSION']);
+    }
+    else
+        throw new FormatException(FormatException::$messages['UPLOAD_TYPE_STORE_EXTENSION']);
+    return $store_ext;
 }
 /**
  * Проверяет корректность имени файла уменьшенной копии для типа загружаемых
@@ -2091,20 +2109,20 @@ function upload_types_check_store_extension($store_ext)
  */
 function upload_types_check_thumbnail_image($thumbnail_image)
 {
-	$length = strlen($thumbnail_image);
-	if($length <= 256 && $length >= 1)
-	{
-		$thumbnail_image = RawUrlEncode($thumbnail_image);
-		$length = strlen($thumbnail_image);
-		if($length > 256 || (strpos($thumbnail_image, '%') !== false)
-			|| $length < 1)
-		{
-			throw new FormatException(FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE']);
-	return $thumbnail_image;
+    $length = strlen($thumbnail_image);
+    if($length <= 256 && $length >= 1)
+    {
+        $thumbnail_image = RawUrlEncode($thumbnail_image);
+        $length = strlen($thumbnail_image);
+        if($length > 256 || (strpos($thumbnail_image, '%') !== false)
+            || $length < 1)
+        {
+            throw new FormatException(FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE']);
+    return $thumbnail_image;
 }
 /**
  * Удаляет заданный тип загружаемых файлов.
@@ -2173,7 +2191,7 @@ function upload_types_get_by_board($board_id)
  */
 function user_groups_add($user_id, $group_id)
 {
-	db_user_groups_add(DataExchange::getDBLink(), $user_id, $group_id);
+    db_user_groups_add(DataExchange::getDBLink(), $user_id, $group_id);
 }
 /**
  * Удаляет заданного пользователя из заданной группы.
@@ -2236,21 +2254,21 @@ function users_check_goto($goto)
  */
 function users_check_id($id)
 {
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false)
-			|| $length < 1)
-		{
-			throw new FormatException(FormatException::$messages['USER_ID']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['USER_ID']);
-	return $id;
+    $length = strlen($id);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if($length <= $max_int_length && $length >= 1)
+    {
+        $id = RawUrlEncode($id);
+        $length = strlen($id);
+        if($length > $max_int_length || (ctype_digit($id) === false)
+            || $length < 1)
+        {
+            throw new FormatException(FormatException::$messages['USER_ID']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['USER_ID']);
+    return $id;
 }
 /**
  * Проверяет корректность ключевого слова.
@@ -2260,17 +2278,17 @@ function users_check_id($id)
  */
 function users_check_keyword($keyword)
 {
-	$length = strlen($keyword);
-	if($length <= 32 && $length >= 16)
-	{
-		$keyword = RawUrlEncode($keyword);
-		$length = strlen($keyword);
-		if($length > 32 || (strpos($keyword, '%') !== false) || $length < 16)
-			throw new FormatException(FormatException::$messages['KEYWORD']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['KEYWORD']);
-	return $keyword;
+    $length = strlen($keyword);
+    if($length <= 32 && $length >= 16)
+    {
+        $keyword = RawUrlEncode($keyword);
+        $length = strlen($keyword);
+        if($length > 32 || (strpos($keyword, '%') !== false) || $length < 16)
+            throw new FormatException(FormatException::$messages['KEYWORD']);
+    }
+    else
+        throw new FormatException(FormatException::$messages['KEYWORD']);
+    return $keyword;
 }
 /**
  * Проверяет корректность количества строк в предпросмотре сообщения.
@@ -2282,20 +2300,22 @@ function users_check_keyword($keyword)
  */
 function users_check_lines_per_post($lines_per_post)
 {
-	$length = strlen($lines_per_post);
-	if($length <= 2 && $length >= 1)
-	{
-		$lines_per_post = RawUrlEncode($lines_per_post);
-		$length = strlen($lines_per_post);
-		if($length > 2 || (ctype_digit($lines_per_post) === false)
-			|| $length < 1)
-			throw new FormatException(sprintf(FormatException::$messages['LINES_PER_POST'],
-					Config::MIN_LINESPERPOST, Config::MAX_LINESPERPOST));
-	}
-	else
-		throw new FormatException(sprintf(FormatException::$messages['LINES_PER_POST'],
-				Config::MIN_LINESPERPOST, Config::MAX_LINESPERPOST));
-	return $lines_per_post;
+    $length = strlen($lines_per_post);
+    if($length <= 2 && $length >= 1)
+    {
+        $lines_per_post = RawUrlEncode($lines_per_post);
+        $length = strlen($lines_per_post);
+        if($length > 2 || (ctype_digit($lines_per_post) === false)
+            || $length < 1)
+        {
+            throw new FormatException(sprintf(FormatException::$messages['LINES_PER_POST'],
+                Config::MIN_LINESPERPOST, Config::MAX_LINESPERPOST));
+        }
+    }
+    else
+        throw new FormatException(sprintf(FormatException::$messages['LINES_PER_POST'],
+            Config::MIN_LINESPERPOST, Config::MAX_LINESPERPOST));
+    return $lines_per_post;
 }
 /**
  * Проверяет корректность числа сообщений в нити на странице просмотра доски.
@@ -2307,20 +2327,22 @@ function users_check_lines_per_post($lines_per_post)
  */
 function users_check_posts_per_thread($posts_per_thread)
 {
-	$length = strlen($posts_per_thread);
-	if($length <= 2 && $length >= 1)
-	{
-		$posts_per_thread = RawUrlEncode($posts_per_thread);
-		$length = strlen($posts_per_thread);
-		if($length > 2 || (ctype_digit($posts_per_thread) === false)
-			|| $length < 1)
-			throw new FormatException(sprintf(FormatException::$messages['POSTS_PER_THREAD'],
-					Config::MIN_POSTSPERTHREAD, Config::MAX_POSTSPERTHREAD));
-	}
-	else
-		throw new FormatException(sprintf(FormatException::$messages['POSTS_PER_THREAD'],
-				Config::MIN_POSTSPERTHREAD, Config::MAX_POSTSPERTHREAD));
-	return $posts_per_thread;
+    $length = strlen($posts_per_thread);
+    if($length <= 2 && $length >= 1)
+    {
+        $posts_per_thread = RawUrlEncode($posts_per_thread);
+        $length = strlen($posts_per_thread);
+        if($length > 2 || (ctype_digit($posts_per_thread) === false)
+            || $length < 1)
+        {
+            throw new FormatException(sprintf(FormatException::$messages['POSTS_PER_THREAD'],
+                Config::MIN_POSTSPERTHREAD, Config::MAX_POSTSPERTHREAD));
+        }
+    }
+    else
+        throw new FormatException(sprintf(FormatException::$messages['POSTS_PER_THREAD'],
+            Config::MIN_POSTSPERTHREAD, Config::MAX_POSTSPERTHREAD));
+    return $posts_per_thread;
 }
 /**
  * Проверяет корректность числа нитей на странице просмотра доски.
@@ -2331,20 +2353,22 @@ function users_check_posts_per_thread($posts_per_thread)
  */
 function users_check_threads_per_page($threads_per_page)
 {
-	$length = strlen($threads_per_page);
-	if($length <= 2 && $length >= 1)
-	{
-		$threads_per_page = RawUrlEncode($threads_per_page);
-		$length = strlen($threads_per_page);
-		if($length > 2 || (ctype_digit($threads_per_page) === false)
-			|| $length < 1)
-			throw new FormatException(sprintf(FormatException::$messages['THREADS_PER_PAGE'],
-					Config::MIN_THREADSPERPAGE, Config::MAX_THREADSPERPAGE));
-	}
-	else
-		throw new FormatException(sprintf(FormatException::$messages['THREADS_PER_PAGE'],
-				Config::MIN_THREADSPERPAGE, Config::MAX_THREADSPERPAGE));
-	return $threads_per_page;
+    $length = strlen($threads_per_page);
+    if($length <= 2 && $length >= 1)
+    {
+        $threads_per_page = RawUrlEncode($threads_per_page);
+        $length = strlen($threads_per_page);
+        if($length > 2 || (ctype_digit($threads_per_page) === false)
+            || $length < 1)
+        {
+            throw new FormatException(sprintf(FormatException::$messages['THREADS_PER_PAGE'],
+                Config::MIN_THREADSPERPAGE, Config::MAX_THREADSPERPAGE));
+        }
+    }
+    else
+        throw new FormatException(sprintf(FormatException::$messages['THREADS_PER_PAGE'],
+            Config::MIN_THREADSPERPAGE, Config::MAX_THREADSPERPAGE));
+    return $threads_per_page;
 }
 /**
  * Редактирует пользователя с заданным ключевым словом или добавляет нового.
