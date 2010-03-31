@@ -1,5 +1,6 @@
 delimiter |
 
+-- Описание экземпляров сущности: Блокировки (мн.ч.), Блокировка (ед.ч.).
 create table bans                   -- Блокировки.
 (
     id int not null auto_increment, -- Идентификатор.
@@ -192,10 +193,12 @@ create table upload_types						-- Типы загружаемых файлов.
 )
 engine=InnoDB|
 
-create table board_upload_types -- Связь досок и типов загружаемых файлов.
+-- Описание экземпляров сущности: Связи досок с типами загружаемых файлов (мн.ч.)
+-- Связь доски с типом загружаемых файлов (ед.ч.).
+create table board_upload_types -- Связь досок с типами загружаемых файлов.
 (
     board int not null,         -- Идентификатор доски.
-    upload_type int not null,   -- Идентификатор типа загружаемого файла.
+    upload_type int not null,   -- Идентификатор типа загружаемых файлов.
     constraint foreign key (board) references boards (id) on delete restrict on update restrict,
     constraint foreign key (upload_type) references upload_types (id) on delete restrict on update restrict,
     unique (board, upload_type)
@@ -258,11 +261,12 @@ create table posts						-- Сообщения.
 )
 engine=InnoDB|
 
+-- Описание экземпляров сущности: Правила (мн.ч.), Правило (ед.ч.).
 create table acl                -- Список контроля доступа.
 (
     `group` int default null,   -- Идентификатор группы.
     board int default null,     -- Идентификатор доски.
-    thread int default null,    -- Идентификатор нить.
+    thread int default null,    -- Идентификатор нити.
     post int default null,      -- Идентификатор сообщения.
     `view` bit not null,        -- Право на просмотр.
     `change` bit not null,      -- Право на изменение.
