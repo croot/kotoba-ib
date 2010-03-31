@@ -84,10 +84,10 @@ function create_language_directories($code)
  ***************************************/
 
 /**
- * Добавляет правило в список контроля доступа.
+ * Добавляет правило.
  * @param group_id mixed <p>Идентификатор группы.</p>
  * @param board_id mixed <p>Идентификатор доски.</p>
- * @param thread_id mixed <p>Идентификатор нить.</p>
+ * @param thread_id mixed <p>Идентификатор нити.</p>
  * @param post_id mixed <p>Идентификатор сообщения.</p>
  * @param view mixed <p>Право на просмотр.</p>
  * @param change mixed <p>Право на изменение.</p>
@@ -100,48 +100,48 @@ function acl_add($group_id, $board_id, $thread_id, $post_id, $view, $change,
         $post_id, $view, $change, $moderate);
 }
 /**
- * Удаляет правило из списка контроля доступа.
- * @param group_id mixed <p>Группа.</p>
- * @param board_id mixed <p>Доска.</p>
- * @param thread_id mixed <p>Нить.</p>
- * @param post_id mixed <p>Сообщение.</p>
+ * Удаляет правило.
+ * @param group_id mixed <p>Идентификатор группы.</p>
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param thread_id mixed <p>Идентификатор нити.</p>
+ * @param post_id mixed <p>Идентификатор сообщения.</p>
  */
 function acl_delete($group_id, $board_id, $thread_id, $post_id)
 {
-	db_acl_delete(DataExchange::getDBLink(), $group_id, $board_id, $thread_id,
-		$post_id);
+    db_acl_delete(DataExchange::getDBLink(), $group_id, $board_id, $thread_id,
+        $post_id);
 }
 /**
- * Редактирует правило в списке контроля доступа.
- * @param group_id mixed <p>Группа.</p>
- * @param board_id mixed <p>Доска.</p>
- * @param thread_id mixed <p>Нить.</p>
- * @param post_id mixed <p>Сообщение.</p>
+ * Редактирует правило.
+ * @param group_id mixed <p>Идентификатор группы.</p>
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param thread_id mixed <p>Идентификатор нити.</p>
+ * @param post_id mixed <p>Идентификатор сообщения.</p>
  * @param view mixed <p>Право на просмотр.</p>
  * @param change mixed <p>Право на изменение.</p>
  * @param moderate mixed <p>Право на модерирование.</p>
  */
 function acl_edit($group_id, $board_id, $thread_id, $post_id, $view, $change,
-	$moderate)
+    $moderate)
 {
-	db_acl_edit(DataExchange::getDBLink(), $group_id, $board_id, $thread_id,
-		$post_id, $view, $change, $moderate);
+    db_acl_edit(DataExchange::getDBLink(), $group_id, $board_id, $thread_id,
+        $post_id, $view, $change, $moderate);
 }
 /**
- * Получает список контроля доступа.
+ * Получает все правила.
  * @return array
- * Возвращает список контроля доступа:<p>
- * 'group' - Группа.<br>
- * 'board' - Доска.<br>
- * 'thread' - Нить.<br>
- * 'post' - Сообщение.<br>
+ * Возвращает правила:<p>
+ * 'group' - Идентификатор группы.<br>
+ * 'board' - Идентификатор доски.<br>
+ * 'thread' - Идентификатор нити.<br>
+ * 'post' - Идентификатор сообщения.<br>
  * 'view' - Право на просмотр.<br>
  * 'change' - Право на изменение.<br>
  * 'moderate' - Право на модерирование.</p>
  */
 function acl_get_all()
 {
-	return db_acl_get_all(DataExchange::getDBLink());
+    return db_acl_get_all(DataExchange::getDBLink());
 }
 
 /*********************************************************************
@@ -204,7 +204,7 @@ function attachments_get_by_posts($posts)
  **************************/
 
 /**
- * Блокирует заданный диапазон IP-адресов.
+ * Блокирует диапазон IP-адресов.
  * @param range_beg int <p>Начало диапазона IP-адресов.</p>
  * @param range_end int <p>Конец диапазона IP-адресов.</p>
  * @param reason string <p>Причина блокировки.</p>
@@ -305,7 +305,7 @@ function bans_check_untill($untill)
  */
 function bans_delete_by_id($id)
 {
-	db_bans_delete_by_id(DataExchange::getDBLink(), $id);
+    db_bans_delete_by_id(DataExchange::getDBLink(), $id);
 }
 /**
  * Удаляет блокировки с заданным IP-адресом.
@@ -313,7 +313,7 @@ function bans_delete_by_id($id)
  */
 function bans_delete_by_ip($ip)
 {
-	db_bans_delete_by_ip(DataExchange::getDBLink(), $ip);
+    db_bans_delete_by_ip(DataExchange::getDBLink(), $ip);
 }
 /**
  * Получает все блокировки.
@@ -327,43 +327,43 @@ function bans_delete_by_ip($ip)
  */
 function bans_get_all()
 {
-	return db_bans_get_all(DataExchange::getDBLink());
+    return db_bans_get_all(DataExchange::getDBLink());
 }
 
-/*******************************************************
- * Работа со связями досок и типов загружаемых файлов. *
- *******************************************************/
+/********************************************************
+ * Работа со связями досок с типами загружаемых файлов. *
+ ********************************************************/
 
 /**
  * Добавляет связь доски с типом загружаемых файлов.
  * @param board_id mixed <p>Идентификатор доски.</p>
- * @param upload_type_id mixed <p>Идентификатор типа загружаемого файла.</p>
+ * @param upload_type_id mixed <p>Идентификатор типа загружаемых файлов.</p>
  */
 function board_upload_types_add($board_id, $upload_type_id)
 {
     db_board_upload_types_add(DataExchange::getDBLink(), $board_id,
-        $upload_type_id);
+                              $upload_type_id);
 }
 /**
- *upload_type_id Удаляет связь доски с типом загружаемых файлов.
- * @param board mixed <p>Доска.</p>
- * @param upload_type mixed <p>Тип загружаемого файла.</p>
+ * Удаляет связь доски с типом загружаемых файлов.
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param upload_type_id mixed <p>Идентификатор типа загружаемых файлов.</p>
  */
-function board_upload_types_delete($board, $upload_type)
+function board_upload_types_delete($board_id, $upload_type_id)
 {
-	db_board_upload_types_delete(DataExchange::getDBLink(), $board,
-			$upload_type);
+    db_board_upload_types_delete(DataExchange::getDBLink(), $board_id,
+                                 $upload_type_id);
 }
 /**
  * Получает все связи досок с типами загружаемых файлов.
  * @return array
- * Возвращает связи:<p>
- * 'board' - Доска.<br>
- * 'upload_type' - Тип загружаемого файла.</p>
+ * Возвращает связи досок с типами загружаемых файлов:<p>
+ * 'board' - Идентификатор доски.<br>
+ * 'upload_type' - Идентификатор типа загружаемых файлов.</p>
  */
 function board_upload_types_get_all()
 {
-	return db_board_upload_types_get_all(DataExchange::getDBLink());
+    return db_board_upload_types_get_all(DataExchange::getDBLink());
 }
 
 /*********************
@@ -530,12 +530,12 @@ function boards_check_title($title)
     return $title;
 }
 /**
- * Удаляет заданную доску.
+ * Удаляет доску с заданным идентификатором.
  * @param id mixed <p>Идентификатор доски.</p>
  */
 function boards_delete($id)
 {
-	db_boards_delete(DataExchange::getDBLink(), $id);
+    db_boards_delete(DataExchange::getDBLink(), $id);
 }
 /**
  * Редактирует доску.
@@ -550,67 +550,70 @@ function boards_delete($id)
  * @param enable_youtube mixed <p>Включение вложения видео с ютуба.</p>
  * @param enable_captcha mixed <p>Включение капчи.</p>
  * @param same_upload string <p>Политика загрузки одинаковых файлов.</p>
- * @param popdown_handler mixed <p>Обработчик автоматического удаления нитей.</p>
- * @param category mixed <p>Категория.</p>
+ * @param popdown_handler mixed <p>Идентификатор обработчика автоматического
+ * удаления нитей.</p>
+ * @param category mixed <p>Идентификатор категории.</p>
  */
 function boards_edit($id, $title, $annotation, $bump_limit, $force_anonymous,
-	$default_name, $with_attachments, $enable_macro, $enable_youtube,
-	$enable_captcha, $same_upload, $popdown_handler, $category)
+    $default_name, $with_attachments, $enable_macro, $enable_youtube,
+    $enable_captcha, $same_upload, $popdown_handler, $category)
 {
 	db_boards_edit(DataExchange::getDBLink(), $id, $title, $annotation,
-		$bump_limit, $force_anonymous, $default_name, $with_attachments,
-		$enable_macro, $enable_youtube, $enable_captcha, $same_upload,
-		$popdown_handler, $category);
+        $bump_limit, $force_anonymous, $default_name, $with_attachments,
+        $enable_macro, $enable_youtube, $enable_captcha, $same_upload,
+        $popdown_handler, $category);
 }
 /**
  * Получает все доски.
  * @return array
  * Возвращает доски:<p>
- * 'id' - идентификатор.<br>
- * 'name' - имя.<br>
- * 'title' - заголовок.<br>
- * 'annotation' - аннотация.<br>
- * 'bump_limit' - специфичный для доски бамплимит.<br>
- * 'force_anonymous' - флаг отображения имени отправителя.<br>
- * 'default_name' - имя отправителя по умолчанию.<br>
- * 'with_attachments' - флаг вложений.<br>
- * 'enable_macro' - включение интеграции с макрочаном.<br>
- * 'enable_youtube' - включение вложения видео с ютуба.<br>
- * 'enable_captcha' - включение капчи.<br>
- * 'same_upload' - политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
- * 'category' - категория.</p>
+ * 'id' - Идентификатор.<br>
+ * 'name' - Имя.<br>
+ * 'title' - Заголовок.<br>
+ * 'annotation' - Аннотация.<br>
+ * 'bump_limit' - Специфичный для доски бамплимит.<br>
+ * 'force_anonymous' - Флаг отображения имени отправителя.<br>
+ * 'default_name' - Имя отправителя по умолчанию.<br>
+ * 'with_attachments' - Флаг вложений.<br>
+ * 'enable_macro' - Включение интеграции с макрочаном.<br>
+ * 'enable_youtube' - Включение вложения видео с ютуба.<br>
+ * 'enable_captcha' - Включение капчи.<br>
+ * 'same_upload' - Политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - Идентификатор обработчика автоматического удаления
+ * нитей.<br>
+ * 'category' - Идентификатор категории.</p>
  */
 function boards_get_all()
 {
-	return db_boards_get_all(DataExchange::getDBLink());
+    return db_boards_get_all(DataExchange::getDBLink());
 }
 /**
- * Получает заданную доску.
+ * Получает доску с заданным идентификатором.
  * @param board_id mixed <p>Идентификатор доски.</p>
  * @return array
  * Возвращает доску:<p>
- * 'id' - идентификатор.<br>
- * 'name' - имя.<br>
- * 'title' - заголовок.<br>
- * 'annotation' - аннотация.<br>
- * 'bump_limit' - специфичный для доски бамплимит.<br>
- * 'force_anonymous' - флаг отображения имени отправителя.<br>
- * 'default_name' - имя отправителя по умолчанию.<br>
- * 'with_attachments' - флаг вложений.<br>
- * 'enable_macro' - включение интеграции с макрочаном.<br>
- * 'enable_youtube' - включение вложения видео с ютуба.<br>
- * 'enable_captcha' - включение капчи.<br>
- * 'same_upload' - политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
- * 'category' - категория.</p>
+ * 'id' - Идентификатор.<br>
+ * 'name' - Имя.<br>
+ * 'title' - Заголовок.<br>
+ * 'annotation' - Аннотация.<br>
+ * 'bump_limit' - Специфичный для доски бамплимит.<br>
+ * 'force_anonymous' - Флаг отображения имени отправителя.<br>
+ * 'default_name' - Имя отправителя по умолчанию.<br>
+ * 'with_attachments' - Флаг вложений.<br>
+ * 'enable_macro' - Включение интеграции с макрочаном.<br>
+ * 'enable_youtube' - Включение вложения видео с ютуба.<br>
+ * 'enable_captcha' - Включение капчи.<br>
+ * 'same_upload' - Политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - Идентификатор обработчика автоматического удаления
+ * нитей.<br>
+ * 'category' - Идентификатор категории.</p>
  */
 function boards_get_by_id($board_id)
 {
-	return db_boards_get_by_id(DataExchange::getDBLink(), $board_id);
+    return db_boards_get_by_id(DataExchange::getDBLink(), $board_id);
 }
 /**
- * Получает заданную доску.
+ * Получает доску с заданным именем.
  * @param board_name string <p>Имя доски.</p>
  * @return array
  * Возвращает доску:<p>
@@ -626,12 +629,13 @@ function boards_get_by_id($board_id)
  * 'enable_youtube' - Включение вложения видео с ютуба.<br>
  * 'enable_captcha' - Включение капчи.<br>
  * 'same_upload' - Политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - Обработчик автоматического удаления нитей.<br>
- * 'category' - Категория.</p>
+ * 'popdown_handler' - Идентификатор обработчика автоматического удаления
+ * нитей.<br>
+ * 'category' - Идентификатор категории.</p>
  */
 function boards_get_by_name($board_name)
 {
-	return db_boards_get_by_name(DataExchange::getDBLink(), $board_name);
+    return db_boards_get_by_name(DataExchange::getDBLink(), $board_name);
 }
 /**
  * Получает доски, доступные для изменения заданному пользователю.
@@ -650,16 +654,17 @@ function boards_get_by_name($board_name)
  * 'enable_youtube' - Включение вложения видео с ютуба.<br>
  * 'enable_captcha' - Включение капчи.<br>
  * 'same_upload' - Политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - Обработчик автоматического удаления нитей.<br>
- * 'category' - Категория.<br>
+ * 'popdown_handler' - Идентификатор обработчика автоматического удаления
+ * нитей.<br>
+ * 'category' - Идентификатор категории.</p>
  * 'category_name' - Имя категории.</p>
  */
 function boards_get_changeable($user_id)
 {
-	return db_boards_get_changeable(DataExchange::getDBLink(), $user_id);
+    return db_boards_get_changeable(DataExchange::getDBLink(), $user_id);
 }
 /**
- * Получает заданную доску, доступную для редактирования заданному
+ * Получает доску с заданным идентификатором, доступную для редактирования
  * пользователю.
  * @param board_id string <p>Идентификатор доски.</p>
  * @param user_id mixed <p>Идентификатор пользователя.</p>
@@ -677,14 +682,15 @@ function boards_get_changeable($user_id)
  * 'enable_youtube' - Включение вложения видео с ютуба.<br>
  * 'enable_captcha' - Включение капчи.<br>
  * 'same_upload' - Политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - Обработчик автоматического удаления нитей.<br>
- * 'category' - Категория.<br>
+ * 'popdown_handler' - Идентификатор обработчика автоматического удаления
+ * нитей.<br>
+ * 'category' - Идентификатор категории.</p>
  * 'category_name' - Имя категории.</p>
  */
 function boards_get_changeable_by_id($board_id, $user_id)
 {
-	return db_boards_get_changeable_by_id(DataExchange::getDBLink(), $board_id,
-		$user_id);
+    return db_boards_get_changeable_by_id(DataExchange::getDBLink(), $board_id,
+        $user_id);
 }
 /**
  * Получает заданную доску, доступную для редактирования заданному

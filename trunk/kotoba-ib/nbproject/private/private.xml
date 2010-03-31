@@ -2,24 +2,9 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/1">
         <file>
-            <url>res/stored%20procedures.sql</url>
-            <line>1</line>
-            <line>117</line>
-            <line>126</line>
-            <line>2319</line>
-        </file>
-        <file>
             <url>securimage/securimage.php</url>
             <line>418</line>
             <line>802</line>
-        </file>
-        <file>
-            <url>modules/cache.php</url>
-            <line>2404</line>
-        </file>
-        <file>
-            <url>modules/db.php</url>
-            <line>2769</line>
         </file>
     </editor-bookmarks>
 </project-private>

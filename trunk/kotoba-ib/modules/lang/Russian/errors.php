@@ -36,6 +36,8 @@ CommonException::$messages['CAPTCHA'] = 'Код подтвержения не в
  * Ошибки отсутствия данных. *
  *****************************/
 
+NodataException::$messages['ACL_NOT_EXIST'] = 'В списке контроля доступа нет ни одного правила.';
+
 NodataException::$messages['BOARD_NOT_FOUND'] = 'Доска не найдена.';
 
 NodataException::$messages['GROUPS_NOT_EXIST'] = 'Не создана ни одна группа пользователей.';
@@ -57,7 +59,6 @@ NodataException::$messages['STYLESHEET_NAME_NOT_SPECIFED'] = 'Не задано 
 // Параметры: идентификатор языка.
 NodataException::$messages['LANGUAGE_NOT_EXIST'] = 'Языка с идентификатором %s не существует.';
 NodataException::$messages['LANGUAGE_NAME_NOT_SPECIFED'] = 'Не задано имя языка.';
-NodataException::$messages['ACL_NOT_EXIST'] = 'В списке контроля доступа нет ни одной записи.';
 NodataException::$messages['THREADS_EDIT'] = 'Нет нитей для редактирования настроек';
 NodataException::$messages['EMPTY_MESSAGE'] = 'Файл не был загружен и пустой текст сообщения.';
 
@@ -65,16 +66,16 @@ NodataException::$messages['EMPTY_MESSAGE'] = 'Файл не был загруж
  * Ошибки формата данных. *
  **************************/
 
+FormatException::$messages['BANS_RANGE_BEG'] = 'Начало диапазона IP-адресов имеет не верный формат.';
+FormatException::$messages['BANS_RANGE_END'] = 'Конец диапазона IP-адресов имеет не верный формат.';
+FormatException::$messages['BANS_REASON'] = 'Причина блокировки имеет не верный формат.';
+FormatException::$messages['BANS_UNTILL'] = 'Время истечения блокировки имеет не верный формат.';
+
 FormatException::$messages['BOARD_ID'] = 'Идентификатор доски имеет не верный формат.';
 FormatException::$messages['BOARD_NAME'] = 'Имя доски имеет не верный формат.';
 FormatException::$messages['BOARD_TITLE'] = 'Заголовок доски имеет не верный формат.';
 FormatException::$messages['BOARD_BUMP_LIMIT'] = 'Специфичный для доски бамплимит имеет не верный формат.';
 FormatException::$messages['BOARD_SAME_UPLOAD'] = 'Политика загрузки одинаковых файлов имеет не верный формат.';
-
-FormatException::$messages['BANS_RANGE_BEG'] = 'Начало диапазона IP-адресов имеет не верный формат.';
-FormatException::$messages['BANS_RANGE_END'] = 'Конец диапазона IP-адресов имеет не верный формат.';
-FormatException::$messages['BANS_REASON'] = 'Причина блокировки имеет не верный формат.';
-FormatException::$messages['BANS_UNTILL'] = 'Время истечения блокировки имеет не верный формат.';
 
 FormatException::$messages['CATEGORY_ID'] = 'Идентификатор категории имеет не верный формат.';
 FormatException::$messages['CATEGORY_NAME'] = 'Имя категории имеет не верный формат.';
@@ -158,6 +159,8 @@ UploadException::$messages['UNKNOWN'] = 'Неизвестное вложение
  * Нарушение ограничений. *
  **************************/
 
+LimitException::$messages['MAX_ANNOTATION'] = 'Аннотация слишком длинная.';
+
 LimitException::$messages['MAX_NAME_LENGTH'] = 'Имя отправителя слишком длинное.';
 LimitException::$messages['MAX_SUBJECT_LENGTH'] = 'Тема сообщения слишком длинная.';
 LimitException::$messages['MAX_TEXT_LENGTH'] = 'Текст сообщения слишком длинный.';
@@ -166,6 +169,5 @@ LimitException::$messages['MIN_IMG_SIZE'] = 'Размер изображения
 LimitException::$messages['MIN_IMG_DIMENTIONS'] = 'Размеры изображения слишком малы.';
 LimitException::$messages['MAX_SMALL_IMG_SIZE'] = 'Слишком большой размер в байтах для такого маленького изображения.';
 LimitException::$messages['MAX_PAGE'] = 'Номер страницы слишком большой. Такой страницы не существует.';
-LimitException::$messages['MAX_ANNOTATION'] = 'Аннотация слишком длинная.';
 LimitException::$messages['MAX_FILE_LINK'] = 'Слишком длинная сслыка на файл, имя загружаемого файла или код видео.';
 ?>

@@ -129,90 +129,93 @@ drop procedure if exists sp_uploads_delete_by_id|*/
 --  Работа со списком контроля доступа. --
 -- ---------------------------------------
 
--- Добавляет правило в список контроля доступа.
+-- Добавляет правило.
 --
+-- Аргументы:
 -- group_id - Идентификатор группы.
 -- board_id - Идентификатор доски.
--- thread_id - Идентификатор нить.
+-- thread_id - Идентификатор нити.
 -- post_id - Идентификатор сообщения.
 -- _view - Право на просмотр.
 -- _change - Право на изменение.
 -- _moderate - Право на модерирование.
 create procedure sp_acl_add
 (
-	group_id int,
-	board_id int,
-	thread_id int,
-	post_id int,
-	_view bit,
-	_change bit,
-	_moderate bit
+    group_id int,
+    board_id int,
+    thread_id int,
+    post_id int,
+    _view bit,
+    _change bit,
+    _moderate bit
 )
 begin
-	insert into acl (`group`, board, thread, post, `view`, `change`, moderate)
-	values (group_id, board_id, thread_id, post_id, _view, _change, _moderate);
+    insert into acl (`group`, board, thread, post, `view`, `change`, moderate)
+    values (group_id, board_id, thread_id, post_id, _view, _change, _moderate);
 end|
 
--- Удаляет правило из списка контроля доступа.
+-- Удаляет правило.
 --
--- group_id - Группа.
--- board_id - Доска.
--- thread_id - Нить.
--- post_id - Сообщение.
+-- Аргументы:
+-- group_id - Идентификатор группы.
+-- board_id - Идентификатор доски.
+-- thread_id - Идентификатор нити.
+-- post_id - Идентификатор сообщения.
 create procedure sp_acl_delete
 (
-	group_id int,
-	board_id int,
-	thread_id int,
-	post_id int
+    group_id int,
+    board_id int,
+    thread_id int,
+    post_id int
 )
 begin
-	delete from acl
-	where ((`group` = group_id) or (coalesce(`group`, group_id) is null))
-		and ((board = board_id) or (coalesce(board, board_id) is null))
-		and ((thread = thread_id) or (coalesce(thread, thread_id) is null))
-		and ((post = post_id) or (coalesce(post, post_id) is null));
+    delete from acl
+    where ((`group` = group_id) or (coalesce(`group`, group_id) is null))
+        and ((board = board_id) or (coalesce(board, board_id) is null))
+        and ((thread = thread_id) or (coalesce(thread, thread_id) is null))
+        and ((post = post_id) or (coalesce(post, post_id) is null));
 end|
 
--- Редактирует правило в списке контроля доступа.
+-- Редактирует правило.
 --
--- group_id - Группа.
--- board_id - Доска.
--- thread_id - Нить.
--- post_id - Сообщение.
--- view - Право на просмотр.
--- change - Право на изменение.
--- moderate - Право на модерирование.
+-- Аргументы:
+-- group_id - Идентификатор группы.
+-- board_id - Идентификатор доски.
+-- thread_id - Идентификатор нити.
+-- post_id - Идентификатор сообщения.
+-- _view - Право на просмотр.
+-- _change - Право на изменение.
+-- _moderate - Право на модерирование.
 create procedure sp_acl_edit
 (
-	group_id int,
-	board_id int,
-	thread_id int,
-	post_id int,
-	_view bit,
-	_change bit,
-	_moderate bit
+    group_id int,
+    board_id int,
+    thread_id int,
+    post_id int,
+    _view bit,
+    _change bit,
+    _moderate bit
 )
 begin
-	update acl set `view` = _view, `change` = _change, moderate = _moderate
-	where ((`group` = group_id) or (coalesce(`group`, group_id) is null))
-		and ((board = board_id) or (coalesce(board, board_id) is null))
-		and ((thread = thread_id) or (coalesce(thread, thread_id) is null))
-		and ((post = post_id) or (coalesce(post, post_id) is null));
+    update acl set `view` = _view, `change` = _change, moderate = _moderate
+    where ((`group` = group_id) or (coalesce(`group`, group_id) is null))
+        and ((board = board_id) or (coalesce(board, board_id) is null))
+        and ((thread = thread_id) or (coalesce(thread, thread_id) is null))
+        and ((post = post_id) or (coalesce(post, post_id) is null));
 end|
 
--- Выбирает список контроля доступа.
+-- Выбирает все правила.
 create procedure sp_acl_get_all ()
 begin
-	select `group`, board, thread, post, `view`, `change`, moderate
-	from acl order by `group`, board, thread, post;
+    select `group`, board, thread, post, `view`, `change`, moderate
+    from acl order by `group`, board, thread, post;
 end|
 
 -- --------------------------
 --  Работа с блокировками. --
 -- --------------------------
 
--- Блокирует заданный диапазон IP-адресов.
+-- Блокирует диапазон IP-адресов.
 --
 -- Аргументы:
 -- _range_beg - Начало диапазона IP-адресов.
@@ -221,15 +224,15 @@ end|
 -- _untill - Время истечения блокировки.
 create procedure sp_bans_add
 (
-	_range_beg int,
-	_range_end int,
-	_reason text,
-	_untill datetime
+    _range_beg int,
+    _range_end int,
+    _reason text,
+    _untill datetime
 )
 begin
-	call sp_refresh_banlist();
-	insert into bans (range_beg, range_end, reason, untill)
-	values (_range_beg, _range_end, _reason, _untill);
+    call sp_refresh_banlist();
+    insert into bans (range_beg, range_end, reason, untill)
+        values (_range_beg, _range_end, _reason, _untill);
 end|
 
 -- Проверяет, заблокирован ли IP-адрес. Если да, то возвращает запись с самым
@@ -239,14 +242,14 @@ end|
 -- ip - IP-адрес.
 create procedure sp_bans_check
 (
-	ip int
+    ip int
 )
 begin
-	call sp_bans_refresh();
-	select range_beg, range_end, untill, reason
-	from bans
-	where range_beg <= ip and range_end >= ip
-	order by range_end desc limit 1;
+    call sp_bans_refresh();
+    select range_beg, range_end, untill, reason
+        from bans
+        where range_beg <= ip and range_end >= ip
+        order by range_end desc limit 1;
 end|
 
 -- Удаляет блокировку с заданным идентификатором.
@@ -255,10 +258,10 @@ end|
 -- _id - Идентификатор блокировки.
 create procedure sp_bans_delete_by_id
 (
-	_id int
+    _id int
 )
 begin
-	delete from bans where id = _id;
+    delete from bans where id = _id;
 end|
 
 -- Удаляет блокировки с заданным IP-адресом.
@@ -267,62 +270,62 @@ end|
 -- ip - IP-адрес.
 create procedure sp_bans_delete_by_ip
 (
-	ip int
+    ip int
 )
 begin
-	delete from bans where range_beg <= ip and range_end >= ip;
+    delete from bans where range_beg <= ip and range_end >= ip;
 end|
 
 -- Выбирает все блокировки.
 create procedure sp_bans_get_all ()
 begin
-	select id, range_beg, range_end, reason, untill from bans;
+    select id, range_beg, range_end, reason, untill from bans;
 end|
 
 -- Удаляет все истекшие блокировки.
 create procedure sp_bans_refresh ()
 begin
-	delete from bans where untill <= now();
+    delete from bans where untill <= now();
 end|
 
--- -------------------------------------------------------
---  Работа со связями досок и типов загружаемых файлов. --
--- -------------------------------------------------------
+-- --------------------------------------------------------
+--  Работа со связями досок с типами загружаемых файлов. --
+-- --------------------------------------------------------
 
 -- Добавляет связь доски с типом загружаемых файлов.
 --
 -- Аргументы:
 -- board_id - Идентификатор доски.
--- upload_type_id - Идентификатор типа загружаемого файла.
+-- upload_type_id - Идентификатор типа загружаемых файлов.
 create procedure sp_board_upload_types_add
 (
-	board_id int,
-	upload_type_id int
+    board_id int,
+    upload_type_id int
 )
 begin
-	insert into board_upload_types (board, upload_type)
-	values (board_id, upload_type_id);
+    insert into board_upload_types (board, upload_type)
+        values (board_id, upload_type_id);
 end|
 
 -- Удаляет связь доски с типом загружаемых файлов.
 --
 -- Аргументы:
--- _board - Доска.
--- _upload_type - Тип загружаемого файла.
+-- _board - Идентификатор доски.
+-- _upload_type - Идентификатор типа загружаемых файлов.
 create procedure sp_board_upload_types_delete
 (
-	_board int,
-	_upload_type int
+    _board int,
+    _upload_type int
 )
 begin
-	delete from board_upload_types
-	where board = _board and upload_type = _upload_type;
+    delete from board_upload_types
+        where board = _board and upload_type = _upload_type;
 end|
 
 -- Выбирает все связи досок с типами загружаемых файлов.
 create procedure sp_board_upload_types_get_all ()
 begin
-	select board, upload_type from board_upload_types;
+    select board, upload_type from board_upload_types;
 end|
 
 -- ---------------------
@@ -347,30 +350,33 @@ end|
 -- _category - Идентификатор категории.
 create procedure sp_boards_add
 (
-	_name varchar(16),
-	_title varchar(50),
-	_annotation text,
-	_bump_limit int,
-	_force_anonymous bit,
-	_default_name varchar(128),
-	_with_attachments bit,
-	_enable_macro bit,
-	_enable_youtube bit,
-	_enable_captcha bit,
-	_same_upload varchar(32),
-	_popdown_handler int,
-	_category int
+    _name varchar(16),
+    _title varchar(50),
+    _annotation text,
+    _bump_limit int,
+    _force_anonymous bit,
+    _default_name varchar(128),
+    _with_attachments bit,
+    _enable_macro bit,
+    _enable_youtube bit,
+    _enable_captcha bit,
+    _same_upload varchar(32),
+    _popdown_handler int,
+    _category int
 )
 begin
-	insert into boards (name, title, annotation, bump_limit, force_anonymous,
-		default_name, with_attachments, enable_macro, enable_youtube,
-		enable_captcha, same_upload, popdown_handler, category)
-	values (_name, _title, _annotation, _bump_limit, _force_anonymous,
-		_default_name, _with_attachments, _enable_macro, _enable_youtube,
-		_enable_captcha, _same_upload, _popdown_handler, _category);
+    insert into boards (name, title, annotation, bump_limit, force_anonymous,
+            default_name, with_attachments, enable_macro, enable_youtube,
+            enable_captcha, same_upload, popdown_handler, category)
+        values (_name, _title, _annotation, _bump_limit, _force_anonymous,
+            _default_name, _with_attachments, _enable_macro, _enable_youtube,
+            _enable_captcha, _same_upload, _popdown_handler, _category);
 end|
 
--- Удаляет заданную доску.
+-- Удаляет доску с заданным идентификатором.
+--
+-- Аргументы:
+-- _id - Идентификатор доски.
 create procedure sp_boards_delete
 (
 	_id int
@@ -393,71 +399,71 @@ end|
 -- _enable_youtube - Включение вложения видео с ютуба.
 -- _enable_captcha - Включение капчи.
 -- _same_upload - Политика загрузки одинаковых файлов.
--- _popdown_handler - Обработчик автоматического удаления нитей.
--- _category - Категория.
+-- _popdown_handler - Идентификатор обработчика автоматического удаления нитей.
+-- _category - Идентификатор категории.
 create procedure sp_boards_edit
 (
-	_id int,
-	_title varchar(50),
-	_annotation text,
-	_bump_limit int,
-	_force_anonymous bit,
-	_default_name varchar(128),
-	_with_attachments bit,
-	_enable_macro bit,
-	_enable_youtube bit,
-	_enable_captcha bit,
-	_same_upload varchar(32),
-	_popdown_handler int,
-	_category int
+    _id int,
+    _title varchar(50),
+    _annotation text,
+    _bump_limit int,
+    _force_anonymous bit,
+    _default_name varchar(128),
+    _with_attachments bit,
+    _enable_macro bit,
+    _enable_youtube bit,
+    _enable_captcha bit,
+    _same_upload varchar(32),
+    _popdown_handler int,
+    _category int
 )
 begin
-	update boards set title = _title, annotation = _annotation,
-		bump_limit = _bump_limit, force_anonymous = _force_anonymous,
-		default_name = _default_name, with_attachments = _with_attachments,
-		enable_macro = _enable_macro, enable_youtube = _enable_youtube,
-		enable_captcha = _enable_captcha, same_upload = _same_upload,
-		popdown_handler = _popdown_handler, category = _category
-	where id = _id;
+    update boards set title = _title, annotation = _annotation,
+            bump_limit = _bump_limit, force_anonymous = _force_anonymous,
+            default_name = _default_name, with_attachments = _with_attachments,
+            enable_macro = _enable_macro, enable_youtube = _enable_youtube,
+            enable_captcha = _enable_captcha, same_upload = _same_upload,
+            popdown_handler = _popdown_handler, category = _category
+        where id = _id;
 end|
 
 -- Выбирает все доски.
 create procedure sp_boards_get_all ()
 begin
-	select id, name, title, annotation, bump_limit, force_anonymous, default_name,
-		with_attachments, enable_macro, enable_youtube, enable_captcha,
-		same_upload, popdown_handler, category
-	from boards;
+    select id, name, title, annotation, bump_limit, force_anonymous,
+            default_name, with_attachments, enable_macro, enable_youtube,
+            enable_captcha, same_upload, popdown_handler, category
+        from boards;
 end|
 
--- Выбирает заданную доску.
+-- Выбирает доску с заданным идентификатором.
 --
 -- Аргументы:
 -- board_id - Идентификатор доски.
 create procedure sp_boards_get_by_id
 (
-	board_id int
+    board_id int
 )
 begin
-	select id, name, title, annotation, bump_limit, force_anonymous,
-		default_name, with_attachments, enable_macro, enable_youtube,
-		enable_captcha, same_upload, popdown_handler, category
-	from boards where id = board_id;
+    select id, name, title, annotation, bump_limit, force_anonymous,
+            default_name, with_attachments, enable_macro, enable_youtube,
+            enable_captcha, same_upload, popdown_handler, category
+        from boards where id = board_id;
 end|
 
--- Выбирает заданную доску.
+-- Выбирает доску с заданным именем.
 --
 -- Аргументы:
 -- board_name - Имя доски.
 create procedure sp_boards_get_by_name
 (
-	board_name varchar(16)
+    board_name varchar(16)
 )
 begin
-	select id, name, title, annotation, bump_limit, force_anonymous, default_name,
-		with_attachments, enable_macro, enable_youtube, enable_captcha,
-		same_upload, popdown_handler, category
-	from boards where name = board_name;
+    select id, name, title, annotation, bump_limit, force_anonymous,
+            default_name, with_attachments, enable_macro, enable_youtube,
+            enable_captcha, same_upload, popdown_handler, category
+        from boards where name = board_name;
 end|
 
 -- Выбирает доски, доступные для изменения заданному пользователю.
@@ -466,37 +472,37 @@ end|
 -- user_id - Идентификатор пользователя.
 create procedure sp_boards_get_changeable
 (
-	user_id int
+    user_id int
 )
 begin
-	select b.id, b.name, b.title, b.annotation, b.bump_limit, b.force_anonymous,
-		b.default_name, b.with_attachments, b.enable_macro, b.enable_youtube,
-		b.enable_captcha, b.same_upload, b.popdown_handler, b.category,
-		ct.name as category_name
-	from boards b
-	join categories ct on ct.id = b.category
-	join user_groups ug on ug.user = user_id
-	left join acl a1 on ug.`group` = a1.`group` and b.id = a1.board
-	left join acl a2 on a2.`group` is null and b.id = a2.board
-	left join acl a3 on ug.`group` = a3.`group` and a3.board is null
-		and a3.thread is null and a3.post is null
-	where
-			-- Доска не запрещена для просмотра группе и
-		((a1.`view` = 1 or a1.`view` is null)
-			-- доска не запрещена для просмотра всем и
-			and (a2.`view` = 1 or a2.`view` is null)
-			-- группе разрешен просмотр.
-			and a3.`view` = 1)
-			-- Редактирование доски разрешено конкретной группе или
-		and (a1.change = 1
-			-- редактирование доски не запрещено конкретной группе и разрешено
-			-- всем группам или
-			or (a1.change is null and a2.change = 1)
-			-- редактирование доски не запрещено ни конкретной группе ни всем, и
-			-- конкретной группе редактирование разрешено.
-			or (a1.change is null and a2.change is null and a3.change = 1))
-	group by b.id
-	order by b.category, b.name;
+    select b.id, b.name, b.title, b.annotation, b.bump_limit, b.force_anonymous,
+            b.default_name, b.with_attachments, b.enable_macro,
+            b.enable_youtube, b.enable_captcha, b.same_upload,
+            b.popdown_handler, b.category, ct.name as category_name
+        from boards b
+        join categories ct on ct.id = b.category
+        join user_groups ug on ug.user = user_id
+        left join acl a1 on ug.`group` = a1.`group` and b.id = a1.board
+        left join acl a2 on a2.`group` is null and b.id = a2.board
+        left join acl a3 on ug.`group` = a3.`group` and a3.board is null
+            and a3.thread is null and a3.post is null
+        where
+            -- Доска не запрещена для просмотра группе и
+            ((a1.`view` = 1 or a1.`view` is null)
+                -- доска не запрещена для просмотра всем и
+                and (a2.`view` = 1 or a2.`view` is null)
+                -- группе разрешен просмотр.
+                and a3.`view` = 1)
+            -- Редактирование доски разрешено конкретной группе или
+            and (a1.change = 1
+                -- редактирование доски не запрещено конкретной группе и
+                -- разрешено всем группам или
+                or (a1.change is null and a2.change = 1)
+                -- редактирование доски не запрещено ни конкретной группе ни
+                -- всем, и конкретной группе редактирование разрешено.
+                or (a1.change is null and a2.change is null and a3.change = 1))
+        group by b.id
+        order by b.category, b.name;
 end|
 
 -- Выбирает заданную доску, доступную для редактирования заданному

@@ -56,11 +56,11 @@ function db_cleanup_link($link)
  ***************************************/
 
 /**
- * Добавляет правило в список контроля доступа.
+ * Добавляет правило.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param group_id mixed <p>Идентификатор группы.</p>
  * @param board_id mixed <p>Идентификатор доски.</p>
- * @param thread_id mixed <p>Идентификатор нить.</p>
+ * @param thread_id mixed <p>Идентификатор нити.</p>
  * @param post_id mixed <p>Идентификатор сообщения.</p>
  * @param view mixed <p>Право на просмотр.</p>
  * @param change mixed <p>Право на изменение.</p>
@@ -85,27 +85,31 @@ function db_acl_add($link, $group_id, $board_id, $thread_id, $post_id, $view,
     db_cleanup_link($link);
 }
 /**
- * Удаляет правило из списка контроля доступа.
+ * Удаляет правило.
  * @param link MySQLi <p>Связь с базой данных.</p>
- * @param group_id mixed <p>Группа.</p>
- * @param board_id mixed <p>Доска.</p>
- * @param thread_id mixed <p>Нить.</p>
- * @param post_id mixed <p>Сообщение.</p>
+ * @param group_id mixed <p>Идентификатор группы.</p>
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param thread_id mixed <p>Идентификатор нити.</p>
+ * @param post_id mixed <p>Идентификатор сообщения.</p>
  */
 function db_acl_delete($link, $group_id, $board_id, $thread_id, $post_id)
 {
-	$group_id = ($group_id === null ? 'null' : $group_id);
-	$board_id = ($board_id === null ? 'null' : $board_id);
-	$thread_id = ($thread_id === null ? 'null' : $thread_id);
-	$post_id = ($post_id === null ? 'null' : $post_id);
-	$result = mysqli_query($link, 'call sp_acl_delete(' . $group_id . ', '
-			. $board_id . ', ' . $thread_id . ', ' . $post_id . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+    if($group_id === null)
+        $group_id = 'null';
+    if($board_id === null)
+        $board_id = 'null';
+    if($thread_id === null)
+        $thread_id = 'null';
+    if($post_id === null)
+        $post_id = 'null';
+    $result = mysqli_query($link, 'call sp_acl_delete(' . $group_id . ', '
+        . $board_id . ', ' . $thread_id . ', ' . $post_id . ')');
+    if(!$result)
+        throw new CommonException(mysqli_error($link));
+    db_cleanup_link($link);
 }
 /**
- * Редактирует правило в списке контроля доступа.
+ * Редактирует правило.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param group_id mixed <p>Группа.</p>
  * @param board_id mixed <p>Доска.</p>
@@ -130,37 +134,37 @@ function db_acl_edit($link, $group_id, $board_id, $thread_id, $post_id, $view,
 	db_cleanup_link($link);
 }
 /**
- * Получает список контроля доступа.
+ * Получает все правила.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @return array
- * Возвращает список контроля доступа:<p>
- * 'group' - Группа.<br>
- * 'board' - Доска.<br>
- * 'thread' - Нить.<br>
- * 'post' - Сообщение.<br>
+ * Возвращает правила:<p>
+ * 'group' - Идентификатор группы.<br>
+ * 'board' - Идентификатор доски.<br>
+ * 'thread' - Идентификатор нити.<br>
+ * 'post' - Идентификатор сообщения.<br>
  * 'view' - Право на просмотр.<br>
  * 'change' - Право на изменение.<br>
  * 'moderate' - Право на модерирование.</p>
  */
 function db_acl_get_all($link)
 {
-	if(($result = mysqli_query($link, 'call sp_acl_get_all()')) == false)
-		throw new CommonException(mysqli_error($link));
-	$acl = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) != null)
-			array_push($acl, array(	'group' => $row['group'],
-									'board' => $row['board'],
-									'thread' => $row['thread'],
-									'post' => $row['post'],
-									'view' => $row['view'],
-									'change' => $row['change'],
-									'moderate' => $row['moderate']));
-	else
-		throw new NodataException(NodataException::$messages['ACL_NOT_EXIST']);
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $acl;
+    if(($result = mysqli_query($link, 'call sp_acl_get_all()')) == false)
+        throw new CommonException(mysqli_error($link));
+    $acl = array();
+    if(mysqli_affected_rows($link) > 0)
+        while(($row = mysqli_fetch_assoc($result)) !== null)
+            array_push($acl, array('group' => $row['group'],
+                                   'board' => $row['board'],
+                                   'thread' => $row['thread'],
+                                   'post' => $row['post'],
+                                   'view' => $row['view'],
+                                   'change' => $row['change'],
+                                   'moderate' => $row['moderate']));
+    else
+        throw new NodataException(NodataException::$messages['ACL_NOT_EXIST']);
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $acl;
 }
 
 /**************************
@@ -168,7 +172,7 @@ function db_acl_get_all($link)
  **************************/
 
 /**
- * Блокирует заданный диапазон IP-адресов.
+ * Блокирует диапазон IP-адресов.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param range_beg int <p>Начало диапазона IP-адресов.</p>
  * @param range_end int <p>Конец диапазона IP-адресов.</p>
@@ -222,9 +226,9 @@ function db_bans_check($link, $ip)
  */
 function db_bans_delete_by_id($link, $id)
 {
-	if(!mysqli_query($link, 'call sp_bans_delete_by_id(' . $id . ')'))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+    if(!mysqli_query($link, 'call sp_bans_delete_by_id(' . $id . ')'))
+        throw new CommonException(mysqli_error($link));
+    db_cleanup_link($link);
 }
 /**
  * Удаляет блокировки с заданным IP-адресом.
@@ -233,9 +237,9 @@ function db_bans_delete_by_id($link, $id)
  */
 function db_bans_delete_by_ip($link, $ip)
 {
-	if(!mysqli_query($link, 'call sp_bans_delete_by_ip(' . $ip . ')'))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+    if(!mysqli_query($link, 'call sp_bans_delete_by_ip(' . $ip . ')'))
+        throw new CommonException(mysqli_error($link));
+    db_cleanup_link($link);
 }
 /**
  * Получает все блокировки.
@@ -250,36 +254,37 @@ function db_bans_delete_by_ip($link, $ip)
  */
 function db_bans_get_all($link)
 {
-	$result = mysqli_query($link, 'call sp_bans_get_all()');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$bans = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) != null)
-			array_push($bans, array('id' => $row['id'],
-									'range_beg' => $row['range_beg'],
-									'range_end' => $row['range_end'],
-									'reason' => $row['reason'],
-									'untill' => $row['untill']));
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $bans;
+    $result = mysqli_query($link, 'call sp_bans_get_all()');
+    if(!$result)
+        throw new CommonException(mysqli_error($link));
+    $bans = array();
+    if(mysqli_affected_rows($link) > 0)
+        while(($row = mysqli_fetch_assoc($result)) != null)
+            array_push($bans, array('id' => $row['id'],
+                                    'range_beg' => $row['range_beg'],
+                                    'range_end' => $row['range_end'],
+                                    'reason' => $row['reason'],
+                                    'untill' => $row['untill']));
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $bans;
 }
 
-/*******************************************************
- * Работа со связями досок и типов загружаемых файлов. *
- *******************************************************/
+/********************************************************
+ * Работа со связями досок с типами загружаемых файлов. *
+ ********************************************************/
 
 /**
  * Добавляет связь доски с типом загружаемых файлов.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param board_id mixed <p>Идентификатор доски.</p>
- * @param upload_type_id mixed <p>Идентификатор типа загружаемого файла.</p>
+ * @param upload_type_id mixed <p>Идентификатор типа загружаемых файлов.</p>
  */
 function db_board_upload_types_add($link, $board, $upload_type)
 {
-	if(!mysqli_query($link, 'call sp_board_upload_types_add(' . $board . ', '
-        . $upload_type . ')'))
+	if(!mysqli_query($link,
+        'call sp_board_upload_types_add(' . $board . ', '
+                                          . $upload_type . ')'))
     {
 		throw new CommonException(mysqli_error($link));
     }
@@ -288,37 +293,41 @@ function db_board_upload_types_add($link, $board, $upload_type)
 /**
  * Удаляет связь доски с типом загружаемых файлов.
  * @param link MySQLi <p>Связь с базой данных.</p>
- * @param board mixed <p>Доска.</p>
- * @param upload_type mixed <p>Тип загружаемого файла.</p>
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param upload_type_id mixed <p>Идентификатор типа загружаемых файлов.</p>
  */
-function db_board_upload_types_delete($link, $board, $upload_type)
+function db_board_upload_types_delete($link, $board_id, $upload_type_id)
 {
-	if(!mysqli_query($link, 'call sp_board_upload_types_delete(' . $board . ', '
-			. $upload_type . ')'))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+    if(!mysqli_query($link,
+        'call sp_board_upload_types_delete(' . $board_id . ', '
+                                             . $upload_type_id . ')'))
+    {
+        throw new CommonException(mysqli_error($link));
+    }
+    db_cleanup_link($link);
 }
 /**
  * Получает все связи досок с типами загружаемых файлов.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @return array
- * Возвращает связи:<p>
- * 'board' - Доска.<br>
- * 'upload_type' - Тип загружаемого файла.</p>
+ * Возвращает связи досок с типами загружаемых файлов:<p>
+ * 'board' - Идентификатор доски.<br>
+ * 'upload_type' - Идентификатор типа загружаемых файлов.</p>
  */
 function db_board_upload_types_get_all($link)
 {
-	$result = mysqli_query($link, 'call sp_board_upload_types_get_all()');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$board_upload_types = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) !== null)
-			array_push($board_upload_types, array('board' => $row['board'],
-					'upload_type' => $row['upload_type']));
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $board_upload_types;
+    $result = mysqli_query($link, 'call sp_board_upload_types_get_all()');
+    if(!$result)
+        throw new CommonException(mysqli_error($link));
+    $board_upload_types = array();
+    if(mysqli_affected_rows($link) > 0)
+        while(($row = mysqli_fetch_assoc($result)) !== null)
+            array_push($board_upload_types,
+                array('board' => $row['board'],
+                      'upload_type' => $row['upload_type']));
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $board_upload_types;
 }
 
 /*********************
@@ -359,27 +368,35 @@ function db_boards_add($link, $name, $title, $annotation, $bump_limit,
         $enable_youtube = 'null';
     if($enable_captcha === null)
         $enable_captcha = 'null';
-    if(!mysqli_query($link, 'call sp_boards_add(\'' . $name . '\', \''
-        . $title . '\', \'' . $annotation . '\', ' . $bump_limit . ', '
-        . $force_anonymous . ', \'' . $default_name . '\', '
-        . $with_attachments . ', ' . $enable_macro . ', ' . $enable_youtube . ', '
-        . $enable_captcha . ', \'' . $same_upload . '\', ' . $popdown_handler . ', '
-        . $category . ')'))
+    if(!mysqli_query($link,
+        'call sp_boards_add(\'' . $name . '\', \''
+                                . $title . '\', \''
+                                . $annotation . '\', '
+                                . $bump_limit . ', '
+                                . $force_anonymous. ', \''
+                                . $default_name . '\', '
+                                . $with_attachments . ', '
+                                . $enable_macro . ', '
+                                . $enable_youtube . ', '
+                                . $enable_captcha . ', \''
+                                . $same_upload . '\', '
+                                . $popdown_handler . ', '
+                                . $category . ')'))
     {
         throw new CommonException(mysqli_error($link));
     }
     db_cleanup_link($link);
 }
 /**
- * Удаляет заданную доску.
+ * Удаляет доску с заданным идентификатором.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param id mixed <p>Идентификатор доски.</p>
  */
 function db_boards_delete($link, $id)
 {
-	if(!mysqli_query($link, "call sp_boards_delete($id)"))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+    if(!mysqli_query($link, 'call sp_boards_delete(' . $id . ')'))
+        throw new CommonException(mysqli_error($link));
+    db_cleanup_link($link);
 }
 /**
  * Редактирует доску.
@@ -395,50 +412,61 @@ function db_boards_delete($link, $id)
  * @param enable_youtube mixed <p>Включение вложения видео с ютуба.</p>
  * @param enable_captcha mixed <p>Включение капчи.</p>
  * @param same_upload string <p>Политика загрузки одинаковых файлов.</p>
- * @param popdown_handler mixed <p>Обработчик автоматического удаления нитей.</p>
- * @param category mixed <p>Категория.</p>
+ * @param popdown_handler mixed <p>Идентификатор обработчика автоматического
+ * удаления нитей.</p>
+ * @param category mixed <p>Идентификатор категории.</p>
  */
 function db_boards_edit($link, $id, $title, $annotation, $bump_limit,
-	$force_anonymous, $default_name, $with_attachments, $enable_macro,
-	$enable_youtube, $enable_captcha, $same_upload, $popdown_handler, $category)
+    $force_anonymous, $default_name, $with_attachments, $enable_macro,
+    $enable_youtube, $enable_captcha, $same_upload, $popdown_handler, $category)
 {
-	if($title === null)
-		$title = 'null';
-	if($annotation === null)
-		$annotation = 'null';
-	if($default_name === null)
-		$default_name = 'null';
-	if($enable_macro === null)
-		$enable_macro = 'null';
-	if($enable_youtube === null)
-		$enable_youtube = 'null';
-	if($enable_captcha === null)
-		$enable_captcha = 'null';
-	if(!mysqli_query($link, "call sp_boards_edit($id, $title, $bump_limit,
-			$force_anonymous, $default_name, $with_files, '$same_upload',
-			$popdown_handler, $category)"))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+    if($title === null)
+        $title = 'null';
+    if($annotation === null)
+        $annotation = 'null';
+    if($default_name === null)
+        $default_name = 'null';
+    if($enable_macro === null)
+        $enable_macro = 'null';
+    if($enable_youtube === null)
+        $enable_youtube = 'null';
+    if($enable_captcha === null)
+        $enable_captcha = 'null';
+    if(!mysqli_query($link,
+        'call sp_boards_edit(' . $id . ', '
+                               . $title . ', '
+                               . $bump_limit . ', '
+                               . $force_anonymous . ', '
+                               . $default_name . ', '
+                               . $with_files . ', \''
+                               . $same_upload . '\', '
+                               . $popdown_handler . ', '
+                               . $category . ')'))
+    {
+        throw new CommonException(mysqli_error($link));
+    }
+    db_cleanup_link($link);
 }
 /**
  * Получает все доски.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @return array
  * Возвращает доски:<p>
- * 'id' - идентификатор.<br>
- * 'name' - имя.<br>
- * 'title' - заголовок.<br>
- * 'annotation' - аннотация.<br>
- * 'bump_limit' - специфичный для доски бамплимит.<br>
- * 'force_anonymous' - флаг отображения имени отправителя.<br>
- * 'default_name' - имя отправителя по умолчанию.<br>
- * 'with_attachments' - флаг вложений.<br>
- * 'enable_macro' - включение интеграции с макрочаном.<br>
- * 'enable_youtube' - включение вложения видео с ютуба.<br>
- * 'enable_captcha' - включение капчи.<br>
- * 'same_upload' - политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
- * 'category' - категория.</p>
+ * 'id' - Идентификатор.<br>
+ * 'name' - Имя.<br>
+ * 'title' - Заголовок.<br>
+ * 'annotation' - Аннотация.<br>
+ * 'bump_limit' - Специфичный для доски бамплимит.<br>
+ * 'force_anonymous' - Флаг отображения имени отправителя.<br>
+ * 'default_name' - Имя отправителя по умолчанию.<br>
+ * 'with_attachments' - Флаг вложений.<br>
+ * 'enable_macro' - Включение интеграции с макрочаном.<br>
+ * 'enable_youtube' - Включение вложения видео с ютуба.<br>
+ * 'enable_captcha' - Включение капчи.<br>
+ * 'same_upload' - Политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - Идентификатор обработчика автоматического удаления
+ * нитей.<br>
+ * 'category' - Идентификатор категории.</p>
  */
 function db_boards_get_all($link)
 {
@@ -468,56 +496,57 @@ function db_boards_get_all($link)
 	return $boards;
 }
 /**
- * Получает заданную доску.
+ * Получает доску с заданным идентификатором.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param board_id mixed <p>Идентификатор доски.</p>
  * @return array
- * Возвращает доски:<p>
- * 'id' - идентификатор.<br>
- * 'name' - имя.<br>
- * 'title' - заголовок.<br>
- * 'annotation' - аннотация.<br>
- * 'bump_limit' - специфичный для доски бамплимит.<br>
- * 'force_anonymous' - флаг отображения имени отправителя.<br>
- * 'default_name' - имя отправителя по умолчанию.<br>
- * 'with_attachments' - флаг вложений.<br>
- * 'enable_macro' - включение интеграции с макрочаном.<br>
- * 'enable_youtube' - включение вложения видео с ютуба.<br>
- * 'enable_captcha' - включение капчи.<br>
- * 'same_upload' - политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
- * 'category' - категория.</p>
+ * Возвращает доску:<p>
+ * 'id' - Идентификатор.<br>
+ * 'name' - Имя.<br>
+ * 'title' - Заголовок.<br>
+ * 'annotation' - Аннотация.<br>
+ * 'bump_limit' - Специфичный для доски бамплимит.<br>
+ * 'force_anonymous' - Флаг отображения имени отправителя.<br>
+ * 'default_name' - Имя отправителя по умолчанию.<br>
+ * 'with_attachments' - Флаг вложений.<br>
+ * 'enable_macro' - Включение интеграции с макрочаном.<br>
+ * 'enable_youtube' - Включение вложения видео с ютуба.<br>
+ * 'enable_captcha' - Включение капчи.<br>
+ * 'same_upload' - Политика загрузки одинаковых файлов.<br>
+ * 'popdown_handler' - Идентификатор обработчика автоматического удаления
+ * нитей.<br>
+ * 'category' - Идентификатор категории.</p>
  */
 function db_boards_get_by_id($link, $board_id)
 {
-	$result = mysqli_query($link, 'call sp_boards_get_by_id(' . $board_id . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$board = null;
-	if(mysqli_affected_rows($link) > 0
-		&& ($row = mysqli_fetch_assoc($result)) !== null)
-	{
-		$board['id'] = $row['id'];
-		$board['name'] = $row['name'];
-		$board['title'] = $row['title'];
-		$board['annotation'] = $row['annotation'];
-		$board['bump_limit'] = $row['bump_limit'];
-		$board['force_anonymous'] = $row['force_anonymous'];
-		$board['default_name'] = $row['default_name'];
-		$board['with_attachments'] = $row['with_files'];
-		$board['enable_macro'] = $row['enable_macro'];
-		$board['enable_youtube'] = $row['enable_youtube'];
-		$board['enable_captcha'] = $row['enable_captcha'];
-		$board['same_upload'] = $row['same_upload'];
-		$board['popdown_handler'] = $row['popdown_handler'];
-		$board['category'] = $row['category'];
-	}
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $board;
+    $result = mysqli_query($link, 'call sp_boards_get_by_id(' . $board_id . ')');
+    if(!$result)
+        throw new CommonException(mysqli_error($link));
+    $board = null;
+    if(mysqli_affected_rows($link) > 0
+        && ($row = mysqli_fetch_assoc($result)) !== null)
+    {
+        $board['id'] = $row['id'];
+        $board['name'] = $row['name'];
+        $board['title'] = $row['title'];
+        $board['annotation'] = $row['annotation'];
+        $board['bump_limit'] = $row['bump_limit'];
+        $board['force_anonymous'] = $row['force_anonymous'];
+        $board['default_name'] = $row['default_name'];
+        $board['with_attachments'] = $row['with_files'];
+        $board['enable_macro'] = $row['enable_macro'];
+        $board['enable_youtube'] = $row['enable_youtube'];
+        $board['enable_captcha'] = $row['enable_captcha'];
+        $board['same_upload'] = $row['same_upload'];
+        $board['popdown_handler'] = $row['popdown_handler'];
+        $board['category'] = $row['category'];
+    }
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $board;
 }
 /**
- * Получает заданную доску.
+ * Получает доску с заданным именем.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param board_name string <p>Имя доски.</p>
  * @return array
@@ -534,39 +563,40 @@ function db_boards_get_by_id($link, $board_id)
  * 'enable_youtube' - Включение вложения видео с ютуба.<br>
  * 'enable_captcha' - Включение капчи.<br>
  * 'same_upload' - Политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - Обработчик автоматического удаления нитей.<br>
- * 'category' - Категория.</p>
+ * 'popdown_handler' - Идентификатор обработчика автоматического удаления
+ * нитей.<br>
+ * 'category' - Идентификатор категории.</p>
  */
 function db_boards_get_by_name($link, $board_name)
 {
-	$result = mysqli_query($link, 'call sp_boards_get_by_name(\''
-		. $board_name . '\')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$board = null;
-	if(mysqli_affected_rows($link) > 0
-		&& ($row = mysqli_fetch_assoc($result)) !== null)
-	{
-		$board['id'] = $row['id'];
-		$board['name'] = $row['name'];
-		$board['title'] = $row['title'];
-		$board['annotation'] = $row['annotation'];
-		$board['bump_limit'] = $row['bump_limit'];
-		$board['force_anonymous'] = $row['force_anonymous'];
-		$board['default_name'] = $row['default_name'];
-		$board['with_attachments'] = $row['with_attachments'];
-		$board['enable_macro'] = $row['enable_macro'];
-		$board['enable_youtube'] = $row['enable_youtube'];
-		$board['enable_captcha'] = $row['enable_captcha'];
-		$board['same_upload'] = $row['same_upload'];
-		$board['popdown_handler'] = $row['popdown_handler'];
-		$board['category'] = $row['category'];
-	}
-	if($board === null)
-		throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']);
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $board;
+    $result = mysqli_query($link,
+        'call sp_boards_get_by_name(\'' . $board_name . '\')');
+    if(!$result)
+        throw new CommonException(mysqli_error($link));
+    $board = null;
+    if(mysqli_affected_rows($link) > 0
+        && ($row = mysqli_fetch_assoc($result)) !== null)
+    {
+        $board['id'] = $row['id'];
+        $board['name'] = $row['name'];
+        $board['title'] = $row['title'];
+        $board['annotation'] = $row['annotation'];
+        $board['bump_limit'] = $row['bump_limit'];
+        $board['force_anonymous'] = $row['force_anonymous'];
+        $board['default_name'] = $row['default_name'];
+        $board['with_attachments'] = $row['with_attachments'];
+        $board['enable_macro'] = $row['enable_macro'];
+        $board['enable_youtube'] = $row['enable_youtube'];
+        $board['enable_captcha'] = $row['enable_captcha'];
+        $board['same_upload'] = $row['same_upload'];
+        $board['popdown_handler'] = $row['popdown_handler'];
+        $board['category'] = $row['category'];
+    }
+    if($board === null)
+        throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']);
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $board;
 }
 /**
  * Получает доски, доступные для изменения заданному пользователю.
@@ -586,36 +616,38 @@ function db_boards_get_by_name($link, $board_name)
  * 'enable_youtube' - Включение вложения видео с ютуба.<br>
  * 'enable_captcha' - Включение капчи.<br>
  * 'same_upload' - Политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - Обработчик автоматического удаления нитей.<br>
- * 'category' - Категория.<br>
+ * 'popdown_handler' - Идентификатор обработчика автоматического удаления
+ * нитей.<br>
+ * 'category' - Идентификатор категории.</p>
  * 'category_name' - Имя категории.</p>
  */
 function db_boards_get_changeable($link, $user_id)
 {
-	$result = mysqli_query($link, 'call sp_boards_get_changeable(' . $user_id . ')');
-	if($result == false)
-		throw new CommonException(mysqli_error($link));
-	$boards = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) !== null)
-			array_push($boards, array('id' => $row['id'],
-					'name' => $row['name'],
-					'title' => $row['title'],
-					'annotation' => $row['annotation'],
-					'bump_limit' => $row['bump_limit'],
-					'force_anonymous' => $row['force_anonymous'],
-					'default_name' => $row['default_name'],
-					'with_attachments' => $row['with_attachments'],
-					'enable_macro' => $row['enable_macro'],
-					'enable_youtube' => $row['enable_youtube'],
-					'enable_captcha' => $row['enable_captcha'],
-					'same_upload' => $row['same_upload'],
-					'popdown_handler' => $row['popdown_handler'],
-					'category' => $row['category'],
-					'category_name' => $row['category_name']));
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $boards;
+    $result = mysqli_query($link, 'call sp_boards_get_changeable(' . $user_id . ')');
+    if($result == false)
+        throw new CommonException(mysqli_error($link));
+    $boards = array();
+    if(mysqli_affected_rows($link) > 0)
+        while(($row = mysqli_fetch_assoc($result)) !== null)
+            array_push($boards,
+                array('id' => $row['id'],
+                      'name' => $row['name'],
+                      'title' => $row['title'],
+                      'annotation' => $row['annotation'],
+                      'bump_limit' => $row['bump_limit'],
+                      'force_anonymous' => $row['force_anonymous'],
+                      'default_name' => $row['default_name'],
+                      'with_attachments' => $row['with_attachments'],
+                      'enable_macro' => $row['enable_macro'],
+                      'enable_youtube' => $row['enable_youtube'],
+                      'enable_captcha' => $row['enable_captcha'],
+                      'same_upload' => $row['same_upload'],
+                      'popdown_handler' => $row['popdown_handler'],
+                      'category' => $row['category'],
+                      'category_name' => $row['category_name']));
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $boards;
 }
 /**
  * Получает заданную доску, доступную для редактирования заданному
