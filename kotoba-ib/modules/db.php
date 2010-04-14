@@ -111,10 +111,10 @@ function db_acl_delete($link, $group_id, $board_id, $thread_id, $post_id)
 /**
  * Редактирует правило.
  * @param link MySQLi <p>Связь с базой данных.</p>
- * @param group_id mixed <p>Группа.</p>
- * @param board_id mixed <p>Доска.</p>
- * @param thread_id mixed <p>Нить.</p>
- * @param post_id mixed <p>Сообщение.</p>
+ * @param group_id mixed <p>Идентификатор группы.</p>
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param thread_id mixed <p>Идентификатор нити.</p>
+ * @param post_id mixed <p>Идентификатор сообщения.</p>
  * @param view mixed <p>Право на просмотр.</p>
  * @param change mixed <p>Право на изменение.</p>
  * @param moderate mixed <p>Право на модерирование.</p>
@@ -122,16 +122,20 @@ function db_acl_delete($link, $group_id, $board_id, $thread_id, $post_id)
 function db_acl_edit($link, $group_id, $board_id, $thread_id, $post_id, $view,
 	$change, $moderate)
 {
-	$group_id = ($group_id === null ? 'null' : $group_id);
-	$board_id = ($board_id === null ? 'null' : $board_id);
-	$thread_id = ($thread_id === null ? 'null' : $thread_id);
-	$post_id = ($post_id === null ? 'null' : $post_id);
-	$result = mysqli_query($link, 'call sp_acl_edit(' . $group_id . ', '
-			. $board_id . ', ' . $thread_id . ', ' . $post_id . ', '
-			. $view . ', ' . $change . ', ' . $moderate . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+    if($group_id === null)
+        $group_id = 'null';
+    if($board_id === null)
+        $board_id = 'null';
+    if($thread_id === null)
+        $thread_id = 'null';
+    if($post_id === null)
+        $post_id = 'null';
+    $result = mysqli_query($link, 'call sp_acl_edit(' . $group_id . ', '
+            . $board_id . ', ' . $thread_id . ', ' . $post_id . ', '
+            . $view . ', ' . $change . ', ' . $moderate . ')');
+    if(!$result)
+        throw new CommonException(mysqli_error($link));
+    db_cleanup_link($link);
 }
 /**
  * Получает все правила.
@@ -203,21 +207,21 @@ function db_bans_add($link, $range_beg, $range_end, $reason, $untill)
  */
 function db_bans_check($link, $ip)
 {
-	$result = mysqli_query($link, 'call sp_bans_check(' . $ip . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$row = false;
-	if(mysqli_affected_rows($link) > 0)
-	{
-		$row = mysqli_fetch_assoc($result);
-		$row = array('range_beg' => $row['range_beg'],
-			'range_end' => $row['range_end'],
-			'untill' => $row['untill'],
-			'reason' => $row['reason']);
-	}
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $row;
+    $result = mysqli_query($link, 'call sp_bans_check(' . $ip . ')');
+    if(!$result)
+        throw new CommonException(mysqli_error($link));
+    $row = false;
+    if(mysqli_affected_rows($link) > 0)
+    {
+        $row = mysqli_fetch_assoc($result);
+        $row = array('range_beg' => $row['range_beg'],
+                     'range_end' => $row['range_end'],
+                     'untill' => $row['untill'],
+                     'reason' => $row['reason']);
+    }
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $row;
 }
 /**
  * Удаляет блокировку с заданным идентификатором.
