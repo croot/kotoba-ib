@@ -149,29 +149,29 @@ function acl_get_all()
  *********************************************************************/
 
 /**
- * Получает связи сообщений с их вложениями.
+ * Получает связи заданных сообщений с вложениями.
  * @param posts array <p>Сообщения.</p>
  * @return array
- * Возвращает вложения:<p>
+ * Возвращает связи сообщений с вложениями:<p>
  * 'post' - Идентификатор сообщения.<br>
  * 'attachment_type' - Тип вложения.<br>
  * ... - Идентификатор, зависящий от конкретного типа вложения.</p>
  */
 function posts_attachments_get_by_posts($posts)
 {
-	$posts_attachments = array();
-	foreach($posts as $post)
-	{
-		foreach(db_posts_files_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_file)
-			array_push($posts_attachments, $post_file);
-		foreach(db_posts_images_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_image)
-			array_push($posts_attachments, $post_image);
-		foreach(db_posts_links_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_link)
-			array_push($posts_attachments, $post_link);
-		foreach(db_posts_videos_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_video)
-			array_push($posts_attachments, $post_video);
-	}
-	return $posts_attachments;
+    $posts_attachments = array();
+    foreach($posts as $post)
+    {
+        foreach(db_posts_files_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_file)
+            array_push($posts_attachments, $post_file);
+        foreach(db_posts_images_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_image)
+            array_push($posts_attachments, $post_image);
+        foreach(db_posts_links_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_link)
+            array_push($posts_attachments, $post_link);
+        foreach(db_posts_videos_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_video)
+            array_push($posts_attachments, $post_video);
+    }
+    return $posts_attachments;
 }
 /**
  * Получает вложения заданных сообщений.
@@ -180,23 +180,23 @@ function posts_attachments_get_by_posts($posts)
  * Возвращает вложения:<p>
  * 'id' - Идентификатор.<br>
  * 'attachment_type' - Тип вложения.<br>
- * ... - Атрибуты, зависимые от конкретного типа вложения.</p>
+ * ... - Атрибуты, зависящие от конкретного типа вложения.</p>
  */
 function attachments_get_by_posts($posts)
 {
-	$attachments = array();
-	foreach($posts as $post)
-	{
-		foreach(db_files_get_by_post(DataExchange::getDBLink(), $post['id']) as $file)
-			array_push($attachments, $file);
-		foreach(db_images_get_by_post(DataExchange::getDBLink(), $post['id']) as $image)
-			array_push($attachments, $image);
-		foreach(db_links_get_by_post(DataExchange::getDBLink(), $post['id']) as $link)
-			array_push($attachments, $link);
-		foreach(db_videos_get_by_post(DataExchange::getDBLink(), $post['id']) as $video)
-			array_push($attachments, $video);
-	}
-	return $attachments;
+    $attachments = array();
+    foreach($posts as $post)
+    {
+        foreach(db_files_get_by_post(DataExchange::getDBLink(), $post['id']) as $file)
+            array_push($attachments, $file);
+        foreach(db_images_get_by_post(DataExchange::getDBLink(), $post['id']) as $image)
+            array_push($attachments, $image);
+        foreach(db_links_get_by_post(DataExchange::getDBLink(), $post['id']) as $link)
+            array_push($attachments, $link);
+        foreach(db_videos_get_by_post(DataExchange::getDBLink(), $post['id']) as $video)
+            array_push($attachments, $video);
+    }
+    return $attachments;
 }
 
 /**************************

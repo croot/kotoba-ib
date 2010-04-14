@@ -1,5 +1,5 @@
-acl_add()
-acl_delete()
+acl_add() | db_acl_add() | sp_acl_add()
+acl_delete() | db_acl_delete() | sp_acl_delete()
 acl_edit()
 acl_get_all()
 
