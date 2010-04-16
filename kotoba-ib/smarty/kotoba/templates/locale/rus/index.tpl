@@ -13,7 +13,7 @@
 
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-	$STYLESHEET - стиль оформления.
+    $STYLESHEET - стиль (см. config.default).
     $boards - досоки.
 *}
 {include file='header.tpl' page_title='Главная страница' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
@@ -21,6 +21,4 @@
 {if isset($boards_exist)}
 <div class="navbar">{include file='board_list.tpl' boards=$boards DIR_PATH=$DIR_PATH} [<a href="{$DIR_PATH}/">Главная</a>]</div>
 {/if}
-
-<p><a href="{$DIR_PATH}/edit_settings.php">Мои настройки</a><br></p>
 {include file='footer.tpl'}

@@ -8,7 +8,7 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
-// Фукнции общего назначения, не попавшие в другие модули или эксперементальные.
+// Фукнции не попавшие в другие модули или эксперементальные.
 
 /****************************
  * Начальная инициализация. *
@@ -47,9 +47,9 @@ class SmartyKotobaSetup extends Smarty
 	}
 }
 /**
- * Возобновляет сессию пользователя или начинает новую. Восстанавливает
- * настройки пользователя или устанавливает настройки по умолчанию. Изменяет
- * язык сообщений об ошибках, если язык пользователя отличается от языка по
+ * Возобновляет сессию или начинает новую. Восстанавливает настройки
+ * пользователя или устанавливает настройки по умолчанию. Изменяет язык
+ * сообщений об ошибках, если язык пользователя отличается от языка по
  * умолчанию.
  */
 function kotoba_session_start()
@@ -58,9 +58,7 @@ function kotoba_session_start()
 	ini_set('session.gc_maxlifetime', Config::SESSION_LIFETIME);
 	ini_set('session.cookie_lifetime', Config::SESSION_LIFETIME);
 	if(!session_start())
-	{
 		throw new CommonException(CommonException::$messages['SESSION_START']);
-	}
 	// По умолчанию пользователь является Гостем.
 	if(!isset($_SESSION['user']) || $_SESSION['user'] == Config::GUEST_ID)
 	{
@@ -75,8 +73,7 @@ function kotoba_session_start()
 		$_SESSION['goto'] = 'b';	// Переход к доске.
 	}
 	// Язык мог измениться на язык пользователя.
-	require Config::ABS_PATH
-		. "/modules/lang/{$_SESSION['language']}/errors.php";
+	require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
 }
 /**
  * Устанавливает язык и кодировку для фукнций работы с многобайтовыми
@@ -87,9 +84,7 @@ function locale_setup()
 	mb_language(Config::MB_LANGUAGE);
 	mb_internal_encoding(Config::MB_ENCODING);
 	if(!setlocale(LC_ALL, Config::$LOCALE_NAMES))
-	{
 		throw new CommonException(CommonException::$messages['SETLOCALE']);
-	}
 }
 
 /***********

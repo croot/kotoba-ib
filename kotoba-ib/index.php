@@ -11,17 +11,17 @@
 // Скрипт главной страницы имейджборды.
 
 require 'config.php';
-require 'modules/errors.php';
-require 'modules/lang/' . Config::LANGUAGE . '/errors.php';
-require 'modules/db.php';
-require 'modules/cache.php';
-require 'modules/common.php';
+require 'lib/errors.php';
+require 'locale/' . Config::LANGUAGE . '/errors.php';
+require 'lib/mysql.php';
+require 'lib/db.php';
+require 'lib/misc.php';
 try
 {
 	kotoba_session_start();
 	locale_setup();
 	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
-	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
+	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));
 	$boards = boards_get_visible($_SESSION['user']);
 	if(count($boards) > 0)
 	{
