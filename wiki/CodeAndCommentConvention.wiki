@@ -248,3 +248,27 @@ function posts_check_name_size($name) { ... }
  * *name* - имя аргумента, оно же имя атрибута.
  * *Имя отправителя* - описание аргумента, оно же описание атрибута.
  * *size* - дополнение.
+
+= 2. Именивание файлов и директорий =
+
+{{{
+my_dir
+file.tpl
+my_file.php
+}}}
+
+= 3. Именование переменных и фукнций =
+
+{{{
+function_name_style($arg_style);
+}}}
+
+= 4. Именование классов, полей и методов =
+
+{{{
+class MyClass
+{
+	public $myVar;
+	public function myFunction($anotherVar) {}
+}
+}}}
