@@ -24,6 +24,7 @@ class Config
 	/*
 	 * Абсолютный путь к директории, в которую установлена Котоба.
 	 * Например: c:/Apache/htdocs/kotoba
+	 * или 
 	 */
 	const ABS_PATH = 'c:/Apache/htdocs/kotoba';
 
@@ -100,9 +101,7 @@ class Config
 	 */
 	const LINES_PER_POST = 15;
 
-	/*
-	 * Стиль оформления страниц.
-	 */
+	//Стиль оформления страниц.
 	const STYLESHEET = 'kotoba.css';
 
 	/*

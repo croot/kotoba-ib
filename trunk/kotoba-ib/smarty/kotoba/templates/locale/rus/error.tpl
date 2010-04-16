@@ -12,9 +12,9 @@
 Код, выводящийся при возникновении критических ошибок.
 
 Описание переменных:
-	$DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-	$STYLESHEET - стиль оформления (см. config.default).
-	$msg - текст сообщения об ошибке.
+    $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
+    $STYLESHEET - стиль (см. config.default).
+    $msg - текст сообщения об ошибке.
 *}
 {include file='header.tpl' page_title='Ошибка' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
 <span class="error">{$msg}</span>
