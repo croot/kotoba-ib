@@ -36,8 +36,8 @@ class SmartyKotobaSetup extends Smarty
 		$this->language = $language;
 		$this->stylesheet = $stylesheet;
 
-		$this->template_dir = Config::ABS_PATH . "/smarty/kotoba/templates/$language/";
-		$this->compile_dir = Config::ABS_PATH . "/smarty/kotoba/templates_c/$language/";
+		$this->template_dir = Config::ABS_PATH . "/smarty/kotoba/templates/locale/$language/";
+		$this->compile_dir = Config::ABS_PATH . "/smarty/kotoba/templates_c/locale/$language/";
 		$this->config_dir = Config::ABS_PATH . "/smarty/kotoba/config/$language/";
 		$this->cache_dir = Config::ABS_PATH . "/smarty/kotoba/cache/$language/";
 		$this->caching = 0;
@@ -54,7 +54,8 @@ class SmartyKotobaSetup extends Smarty
  */
 function kotoba_session_start()
 {
-	ini_set('session.save_path', Config::ABS_PATH . '/sessions/');
+	//ini_set('session.save_path', Config::ABS_PATH . '/sessions/');
+	ini_set('session.save_path', Config::ABS_PATH . '/sessions');
 	ini_set('session.gc_maxlifetime', Config::SESSION_LIFETIME);
 	ini_set('session.cookie_lifetime', Config::SESSION_LIFETIME);
 	if(!session_start())
