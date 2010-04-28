@@ -1407,15 +1407,15 @@ end|
 -- --------------------------------------------------
 
 -- Выбирает связи заданного сообщения с вложенными файлами.
-
+--
 -- Аргументы:
 -- post_id - Идентификатор сообщения.
 create procedure sp_posts_files_get_by_post
 (
-	post_id int
+    post_id int
 )
 begin
-	select post, file from posts_files where post = post_id;
+    select post, file, deleted from posts_files where post = post_id;
 end|
 
 -- -------------------------------------------------------
@@ -1423,15 +1423,15 @@ end|
 -- -------------------------------------------------------
 
 -- Выбирает связи заданного сообщения с вложенными изображениями.
-
+--
 -- Аргументы:
 -- post_id - Идентификатор сообщения.
 create procedure sp_posts_images_get_by_post
 (
-	post_id int
+    post_id int
 )
 begin
-	select post, image from posts_images where post = post_id;
+    select post, image, deleted from posts_images where post = post_id;
 end|
 
 -- -----------------------------------------------------------------
@@ -1439,15 +1439,15 @@ end|
 -- -----------------------------------------------------------------
 
 -- Выбирает связи заданного сообщения с вложенными ссылками на изображения.
-
+--
 -- Аргументы:
 -- post_id - Идентификатор сообщения.
 create procedure sp_posts_links_get_by_post
 (
-	post_id int
+    post_id int
 )
 begin
-	select post, link from posts_links where post = post_id;
+    select post, link, deleted from posts_links where post = post_id;
 end|
 
 -- --------------------------------------------------
@@ -1455,15 +1455,15 @@ end|
 -- --------------------------------------------------
 
 -- Выбирает связи заданного сообщения с вложенным видео.
-
+--
 -- Аргументы:
 -- post_id - Идентификатор сообщения.
 create procedure sp_posts_videos_get_by_post
 (
-	post_id int
+    post_id int
 )
 begin
-	select post, video from posts_videos where post = post_id;
+    select post, video, deleted from posts_videos where post = post_id;
 end|
 
 -- ----------------------
@@ -2276,20 +2276,20 @@ create procedure sp_users_get_by_keyword
 	_keyword varchar(32)
 )
 begin
-	declare user_id int;
+    declare user_id int;
 
-	select id into user_id from users where keyword = _keyword;
+    select id into user_id from users where keyword = _keyword;
 
-	select u.id, u.posts_per_thread, u.threads_per_page, u.lines_per_post,
-		l.name as language, s.name as stylesheet, u.password, u.`goto`
-	from users u
-	join stylesheets s on u.stylesheet = s.id
-	join languages l on u.language = l.id
-	where u.keyword = _keyword;
+    select u.id, u.posts_per_thread, u.threads_per_page, u.lines_per_post,
+            l.name as language, s.name as stylesheet, u.password, u.`goto`
+        from users u
+        join stylesheets s on u.stylesheet = s.id
+        join languages l on u.language = l.id
+        where u.keyword = _keyword;
 
-	select g.name from user_groups ug
-	join users u on ug.user = u.id and u.id = user_id
-	join groups g on ug.`group` = g.id;
+    select g.name from user_groups ug
+        join users u on ug.user = u.id and u.id = user_id
+        join groups g on ug.`group` = g.id;
 end|
 
 -- Устанавливает пароль для удаления сообщений заданному пользователю.
@@ -2319,7 +2319,7 @@ create procedure sp_videos_get_by_post
 	post_id int
 )
 begin
-	select v.id, v.code, v.widht, v.height, v.deleted
+	select v.id, v.code, v.widht, v.height
 	from posts_videos pv
 	join videos v on v.id = pv.video and pv.post = post_id;
 end|

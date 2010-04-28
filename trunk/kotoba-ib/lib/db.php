@@ -10,6 +10,14 @@
  *********************************/
 // Скрипт, предоставляющий прослойку из фукнций для фукнций работы с БД.
 
+// Конечный скрипт должен загрузить конфигурацию!
+if(!class_exists("Config"))
+    throw new Exception("User-end script MUST load a configuraion!");
+require_once Config::ABS_PATH . '/lib/errors.php';
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
+require_once Config::ABS_PATH . '/lib/mysql.php';
+// TODO Может быть ещё что-то?
+
 /**********
  * Разное *
  **********/
@@ -64,16 +72,16 @@ function create_directories($name) {
 }
 /**
  * Создаёт необходимые директории при добавлении нового языка.
- * @param name string <p>Имя нового языка.</p>
+ * @param code string <p>ISO_639-2 код языка.</p>
  */
-function create_language_directories($name) {
-	$dir = Config::ABS_PATH . "/smarty/kotoba/templates/$name";
+function create_language_directories($code) {
+	$dir = Config::ABS_PATH . "/smarty/kotoba/templates/locale/$code";
 	@mkdir($dir);		// Hide warning when directory exists.
 	chmod($dir, 0777);
-	$dir = Config::ABS_PATH . "/smarty/kotoba/templates_c/$name";
+	$dir = Config::ABS_PATH . "/smarty/kotoba/templates_c/locale/$code";
 	@mkdir($dir);		// Hide warning when directory exists.
 	chmod($dir, 0777);
-	$dir = Config::ABS_PATH . "/modules/lang/$name";
+	$dir = Config::ABS_PATH . "/locale/$code";
 	@mkdir($dir);		// Hide warning when directory exists.
 	chmod($dir, 0777);
 }
@@ -151,10 +159,11 @@ function acl_get_all()
  * Получает связи сообщений с их вложениями.
  * @param posts array <p>Сообщения.</p>
  * @return array
- * Возвращает вложения:<p>
+ * Возвращает связи:<p>
  * 'post' - Идентификатор сообщения.<br>
- * 'attachment_type' - Тип вложения.<br>
- * ... - Идентификатор, зависящий от конкретного типа вложения.</p>
+ * ... - Идентификатор, зависящий от конкретного типа вложения.<br>
+ * 'deleted' - Флаг удаления.<br>
+ * 'attachment_type' - Тип вложения.</p>
  */
 function posts_attachments_get_by_posts($posts)
 {
@@ -1988,274 +1997,6 @@ function upload_handlers_get_all()
 	return db_upload_handlers_get_all(DataExchange::getDBLink());
 }
 
-/****************************
- * Работа с пользователями. *
- ****************************/
-
-/**
- * Проверяет корректность идентификатора $id пользователя.
- *
- * Аргументы:
- * $id - идентификатор пользователя.
- *
- * Возвращает безопасный для использования идентификатор пользователя.
- */
-function users_check_id($id)
-{
-	if(!isset($id))
-		throw new NodataException(NodataException::$messages['USER_ID_NOT_SPECIFED']);
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['USER_ID']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['USER_ID']);
-	return $id;
-}
-/**
- * Проверяет корректность ключевого слова $keyword.
- *
- * Аргументы:
- * $keyword - ключевое слово.
- *
- * Возвращает безопасное для использования ключевое слово.
- */
-function users_check_keyword($keyword)
-{
-	if(!isset($keyword))
-		throw new NodataException(NodataException::$messages['KEYWORD_NOT_SPECIFED']);
-	$length = strlen($keyword);
-	if($length <= 32 && $length >= 16)
-	{
-		$keyword = RawUrlEncode($keyword);
-		$length = strlen($keyword);
-		if($length > 32 || (strpos($keyword, '%') !== false) || $length < 16)
-			throw new FormatException(FormatException::$messages['KEYWORD']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['KEYWORD']);
-	return $keyword;
-}
-/**
- * Получает настройки ползователя по заданному ключевому слову.
- * @param keyword string <p>Хеш ключевого слова.</p>
- * @return array
- * Возвращает настройки:<p>
- * 'id' - идентификатор пользователя.<br>
- * 'posts_per_thread' - количество последних сообщений в нити при просмотре доски.<br>
- * 'threads_per_page' - количество нитей на странице при просмотре доски.<br>
- * 'lines_per_post' - количество строк в урезанном сообщении при просмотре доски.<br>
- * 'language' - язык.<br>
- * 'stylesheet' - стиль оформления.<br>
- * 'password' - пароль для удаления сообщений.<br>
- * 'goto' - перенаправление при постинге.<br>
- * 'groups' - группы, в которые входит пользователь.</p>
- */
-function users_get_by_keyword($keyword)
-{
-	return db_users_get_by_keyword(DataExchange::getDBLink(), $keyword);
-}
-/**
- * Проверяет корректность количества нитей $threads_per_page на странице
- * просмотра доски.
- *
- * Аргументы:
- * $threads_per_page - количество нитей на странице просмотра доски.
- *
- * Возвращает безопасное для использования количество нитей на странице
- * просмотра доски.
- */
-function users_check_threads_per_page($threads_per_page)
-{
-	if(!isset($threads_per_page))
-		throw new NodataException(NodataException::$messages['THREADS_PER_PAGE_NOT_SPECIFED']);
-	$length = strlen($threads_per_page);
-	if($length <= 2 && $length >= 1)
-	{
-		$threads_per_page = RawUrlEncode($threads_per_page);
-		$length = strlen($threads_per_page);
-		if($length > 2 || (ctype_digit($threads_per_page) === false)
-			|| $length < 1)
-			throw new FormatException(sprintf(FormatException::$messages['THREADS_PER_PAGE'],
-					Config::MIN_THREADSPERPAGE, Config::MAX_THREADSPERPAGE));
-	}
-	else
-		throw new FormatException(sprintf(FormatException::$messages['THREADS_PER_PAGE'],
-				Config::MIN_THREADSPERPAGE, Config::MAX_THREADSPERPAGE));
-	return $threads_per_page;
-}
-/**
- * Проверяет корректность количества сообщений $posts_per_thread в нити на
- * странице просмотра доски.
- *
- * Аргументы:
- * $posts_per_thread - количество сообщений в нити на странице просмотра доски.
- *
- * Возвращает безопасное для использования количество сообщений в нити на
- * странице просмотра доски.
- */
-function users_check_posts_per_thread($posts_per_thread)
-{
-	if(!isset($posts_per_thread))
-		throw new NodataException(NodataException::$messages['POSTS_PER_THREAD_NOT_SPECIFED']);
-	$length = strlen($posts_per_thread);
-	if($length <= 2 && $length >= 1)
-	{
-		$posts_per_thread = RawUrlEncode($posts_per_thread);
-		$length = strlen($posts_per_thread);
-		if($length > 2 || (ctype_digit($posts_per_thread) === false)
-			|| $length < 1)
-			throw new FormatException(sprintf(FormatException::$messages['POSTS_PER_THREAD'],
-					Config::MIN_POSTSPERTHREAD, Config::MAX_POSTSPERTHREAD));
-	}
-	else
-		throw new FormatException(sprintf(FormatException::$messages['POSTS_PER_THREAD'],
-				Config::MIN_POSTSPERTHREAD, Config::MAX_POSTSPERTHREAD));
-	return $posts_per_thread;
-}
-/**
- * Проверяет корректность количества строк $lines_per_post в сообщении на
- * странице просмотра доски.
- *
- * Аргументы:
- * $lines_per_post - количество строк в сообщении на странице просмотра доски.
- *
- * Возвращает безопасное для использования количество строк в сообщении на
- * странице просмотра доски.
- */
-function users_check_lines_per_post($lines_per_post)
-{
-	if(!isset($lines_per_post))
-		throw new NodataException(NodataException::$messages['LINES_PER_POST_NOT_SPECIFED']);
-	$length = strlen($lines_per_post);
-	if($length <= 2 && $length >= 1)
-	{
-		$lines_per_post = RawUrlEncode($lines_per_post);
-		$length = strlen($lines_per_post);
-		if($length > 2 || (ctype_digit($lines_per_post) === false)
-			|| $length < 1)
-			throw new FormatException(sprintf(FormatException::$messages['LINES_PER_POST'],
-					Config::MIN_LINESPERPOST, Config::MAX_LINESPERPOST));
-	}
-	else
-		throw new FormatException(sprintf(FormatException::$messages['LINES_PER_POST'],
-				Config::MIN_LINESPERPOST, Config::MAX_LINESPERPOST));
-	return $lines_per_post;
-}
-/**
- * Проверяет корректность перенаправления при постинге.
- * @param goto string <p>Перенаправление при постинге.</p>
- * Возвращает безопасное для использования перенаправление при постинге.
- */
-function users_check_goto($goto)
-{
-	if($goto == 'b' || $goto == 't')
-	{
-		return $goto;
-	}
-	else
-	{
-		throw new FormatException(FormatException::$messages['GOTO']);
-	}
-}
-/**
- * Редактирует настройки пользователя с заданным ключевым словом или добавляет
- * нового.
- * @param keyword string <p>Хеш ключевого слова.</p>
- * @param threads_per_page mixed <p>Количество нитей на странице предпросмотра доски.</p>
- * @param posts_per_thread mixed <p>Количество сообщений в предпросмотре треда.</p>
- * @param lines_per_post mixed <p>Максимальное количество строк в предпросмотре сообщения.</p>
- * @param stylesheet mixed <p>Стиль оформления.</p>
- * @param language mixed <p>Язык.</p>
- * @param password mixed <p>Пароль для удаления сообщений.</p>
- * @param goto string <p>Перенаправление при постинге.</p>
- */
-function users_edit_bykeyword($keyword, $threads_per_page, $posts_per_thread,
-	$lines_per_post, $stylesheet, $language, $password, $goto)
-{
-	db_users_edit_bykeyword(DataExchange::getDBLink(), $keyword,
-		$threads_per_page, $posts_per_thread, $lines_per_post, $stylesheet,
-		$language, $password, $goto);
-}
-/**
- * Устанавливает пароль для удаления сообщений заданному пользователю.
- * @param id mixed <p>Идентификатор пользователя.</p>
- * @param password mixed <p>Пароль для удаления сообщений.</p>
- */
-function users_set_password($id, $password)
-{
-	db_users_set_password(DataExchange::getDBLink(), $id, $password);
-}
-/**
- * Получает всех пользователей.
- * @return array
- * Возвращает идентификаторы пользователей:<p>
- * 'id' - идентификатор пользователя.</p>
- */
-function users_get_all()
-{
-	return db_users_get_all(DataExchange::getDBLink());
-}
-
-/*****************************************************
- * Работа с закреплениями пользователей за группами. *
- *****************************************************/
-
-/**
- * Получает закрепления пользователей за группами.
- *
- * Возвращает массив закреплений:
- * 'user' - идентификатор пользователя.
- * 'group' - идентификатор группы.
- */
-function user_groups_get_all()
-{
-	return db_user_groups_get_all(DataExchange::getDBLink());
-}
-/**
- * Добавляет пользователя с идентификатором $user в группу с идентификатором
- * $group.
- *
- * Аргументы:
- * $user - идентификатор пользователя.
- * $group - идентификатор группы.
- */
-function user_groups_add($user, $group)
-{
-	db_user_groups_add(DataExchange::getDBLink(), $user, $group);
-}
-/**
- * Переносит пользователя с идентификатором $user_id из группы с идентификатором
- * $old_group_id в группу с идентификатором $new_group_id.
- *
- * Аргументы:
- * $user_id - идентификатор пользователя.
- * $old_group_id - идентификатор старой группы.
- * $new_group_id - идентификатор новой группы.
- */
-function user_groups_edit($user_id, $old_group_id, $new_group_id)
-{
-	db_user_groups_edit(DataExchange::getDBLink(), $user_id, $old_group_id,
-		$new_group_id);
-}
-/**
- * Удаляет пользователя с идентификатором $user_id из группы с идентификатором
- * $group_id.
- *
- * Аргументы:
- * $user_id - идентификатор пользователя.
- * $group_id - идентификатор группы.
- */
-function user_groups_delete($user_id, $group_id)
-{
-	db_user_groups_delete(DataExchange::getDBLink(), $user_id, $group_id);
-}
-
 /***************************************
  * Работа с типами загружаемых файлов. *
  ***************************************/
@@ -2270,10 +2011,10 @@ function user_groups_delete($user_id, $group_id)
  * @param thumbnail_image string <p>Уменьшенная копия.</p>
  */
 function upload_types_add($extension, $store_extension, $is_image,
-	$upload_handler_id, $thumbnail_image)
+    $upload_handler_id, $thumbnail_image)
 {
-	db_upload_types_add(DataExchange::getDBLink(), $extension, $store_extension,
-		$is_image, $upload_handler_id, $thumbnail_image);
+    db_upload_types_add(DataExchange::getDBLink(), $extension, $store_extension,
+        $is_image, $upload_handler_id, $thumbnail_image);
 }
 /**
  * Проверяет корректность расширения загружаемого файла.
@@ -2283,17 +2024,17 @@ function upload_types_add($extension, $store_extension, $is_image,
  */
 function upload_types_check_extension($ext)
 {
-	$length = strlen($ext);
-	if($length <= 10 && $length >= 1)
-	{
-		$ext = RawUrlEncode($ext);
-		$length = strlen($ext);
-		if($length > 10 || (strpos($ext, '%') !== false) || $length < 1)
-			throw new FormatException(FormatException::$messages['UPLOAD_TYPE_EXTENSION']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['UPLOAD_TYPE_EXTENSION']);
-	return $ext;
+    $length = strlen($ext);
+    if($length <= 10 && $length >= 1)
+    {
+        $ext = RawUrlEncode($ext);
+        $length = strlen($ext);
+        if($length > 10 || (strpos($ext, '%') !== false) || $length < 1)
+            throw new FormatException(FormatException::$messages['UPLOAD_TYPE_EXTENSION']);
+    }
+    else
+        throw new FormatException(FormatException::$messages['UPLOAD_TYPE_EXTENSION']);
+    return $ext;
 }
 /**
  * Проверяет корректность идентификатора типа загружаемых файлов.
@@ -2303,21 +2044,21 @@ function upload_types_check_extension($ext)
  */
 function upload_types_check_id($id)
 {
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false)
-			|| $length < 1)
-		{
-			throw new FormatException(FormatException::$messages['UPLOAD_TYPE_ID']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['UPLOAD_TYPE_ID']);
-	return $id;
+    $length = strlen($id);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if($length <= $max_int_length && $length >= 1)
+    {
+        $id = RawUrlEncode($id);
+        $length = strlen($id);
+        if($length > $max_int_length || (ctype_digit($id) === false)
+            || $length < 1)
+        {
+            throw new FormatException(FormatException::$messages['UPLOAD_TYPE_ID']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['UPLOAD_TYPE_ID']);
+    return $id;
 }
 /**
  * Проверяет корректность сохраняемого расширения загружаемого файла.
@@ -2328,17 +2069,17 @@ function upload_types_check_id($id)
  */
 function upload_types_check_store_extension($store_ext)
 {
-	$length = strlen($store_ext);
-	if($length <= 10 && $length >= 1)
-	{
-		$store_ext = RawUrlEncode($store_ext);
-		$length = strlen($store_ext);
-		if($length > 10 || (strpos($store_ext, '%') !== false) || $length < 1)
-			throw new FormatException(FormatException::$messages['UPLOAD_TYPE_STORE_EXTENSION']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['UPLOAD_TYPE_STORE_EXTENSION']);
-	return $store_ext;
+    $length = strlen($store_ext);
+    if($length <= 10 && $length >= 1)
+    {
+        $store_ext = RawUrlEncode($store_ext);
+        $length = strlen($store_ext);
+        if($length > 10 || (strpos($store_ext, '%') !== false) || $length < 1)
+            throw new FormatException(FormatException::$messages['UPLOAD_TYPE_STORE_EXTENSION']);
+    }
+    else
+        throw new FormatException(FormatException::$messages['UPLOAD_TYPE_STORE_EXTENSION']);
+    return $store_ext;
 }
 /**
  * Проверяет корректность имени файла уменьшенной копии типа загружаемых файлов.
@@ -2350,20 +2091,20 @@ function upload_types_check_store_extension($store_ext)
  */
 function upload_types_check_thumbnail_image($thumbnail_image)
 {
-	$length = strlen($thumbnail_image);
-	if($length <= 256 && $length >= 1)
-	{
-		$thumbnail_image = RawUrlEncode($thumbnail_image);
-		$length = strlen($thumbnail_image);
-		if($length > 256 || (strpos($thumbnail_image, '%') !== false)
-			|| $length < 1)
-		{
-			throw new FormatException(FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE']);
-	return $thumbnail_image;
+    $length = strlen($thumbnail_image);
+    if($length <= 256 && $length >= 1)
+    {
+        $thumbnail_image = RawUrlEncode($thumbnail_image);
+        $length = strlen($thumbnail_image);
+        if($length > 256 || (strpos($thumbnail_image, '%') !== false)
+            || $length < 1)
+        {
+            throw new FormatException(FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE']);
+    return $thumbnail_image;
 }
 /**
  * Удаляет тип загружаемых файлов.
@@ -2371,53 +2112,307 @@ function upload_types_check_thumbnail_image($thumbnail_image)
  */
 function upload_types_delete($id)
 {
-	db_upload_types_delete(DataExchange::getDBLink(), $id);
+    db_upload_types_delete(DataExchange::getDBLink(), $id);
 }
 /**
  * Редактирует тип загружаемых файлов.
- * @param id mixed <p>Идентификатор типа.</p>
- * @param store_extension string <p>Сохраняемое расширение файла.</p>
- * @param is_image mixed <p>Флаг типа файлов изображений.</p>
+ * @param id mixed <p>Идентификатор.</p>
+ * @param store_extension string <p>Сохраняемое расширение.</p>
+ * @param is_image mixed <p>Флаг изображения.</p>
  * @param upload_handler_id mixed <p>Идентификатор обработчика загружаемых
  * файлов.</p>
- * @param thumbnail_image string <p>Имя картинки для файлов, не являющихся
- * изображением.</p>
+ * @param thumbnail_image string <p>Имя файла уменьшенной копии.</p>
  */
 function upload_types_edit($id, $store_extension, $is_image,
-	$upload_handler_id, $thumbnail_image)
+    $upload_handler_id, $thumbnail_image)
 {
-	db_upload_types_edit(DataExchange::getDBLink(), $id, $store_extension,
-		$is_image, $upload_handler_id, $thumbnail_image);
+    db_upload_types_edit(DataExchange::getDBLink(), $id, $store_extension,
+        $is_image, $upload_handler_id, $thumbnail_image);
 }
 /**
  * Получает все типы загружаемых файлов.
  * @return array
  * Возвращает типы загружаемых файлов:<p>
- * 'id' - идентификатор.<br>
- * 'extension' - расширение файла.<br>
- * 'store_extension' - сохраняемое расширение файла.<br>
- * 'upload_handler' - обработчик загружаемых файлов, обслуживающий данный тип.<br>
- * 'thumbnail_image' - имя картинки для файлов, не являющихся изображением.</p>
+ * 'id' - Идентификатор.<br>
+ * 'extension' - Расширение.<br>
+ * 'store_extension' - Сохраняемое расширение.<br>
+ * 'is_image' - Флаг изображения.<br>
+ * 'upload_handler' - Идентификатор обработчика загружаемых файлов.<br>
+ * 'thumbnail_image' - Имя файла уменьшенной копии.</p>
  */
 function upload_types_get_all()
 {
-	return db_upload_types_get_all(DataExchange::getDBLink());
+    return db_upload_types_get_all(DataExchange::getDBLink());
 }
 /**
- * Получает типы файлов, доступных для загрузки на заданной доске.
+ * Получает типы загружаемых файлов, доступных для загрузки на заданной доске.
  * @param board_id mixed <p>Идентификатор доски.</p>
  * @return array
- * Возвращает массив типов загружаемых файлов:<p>
- * 'id' - идентификатор.<br>
- * 'extension' - расширение.<br>
- * 'store_extension' - сохраняемое расширение.<br>
- * 'upload_handler' - идентификатор обработчика загружаемых файлов.<br>
- * 'upload_handler_name' - имя обработчика загружаемых файлов.<br>
- * 'thumbnail_image' - картинка для файлов, не являющихся изображением.</p>
+ * Возвращает типы загружаемых файлов:<p>
+ * 'id' - Идентификатор.<br>
+ * 'extension' - Расширение.<br>
+ * 'store_extension' - Сохраняемое расширение.<br>
+ * 'is_image' - Флаг изображения.<br>
+ * 'upload_handler' - Идентификатор обработчика загружаемых файлов.<br>
+ * 'upload_handler_name' - Имя обработчика загружаемых файлов.<br>
+ * 'thumbnail_image' - Имя файла уменьшенной копии.</p>
  */
 function upload_types_get_board($board_id)
 {
-	return db_upload_types_get_board(DataExchange::getDBLink(), $board_id);
+    return db_upload_types_get_board(DataExchange::getDBLink(), $board_id);
+}
+
+/***********************************************
+ * Работа со связями пользователей с группами. *
+ ***********************************************/
+
+/**
+ * Добавляет пользователя в группу.
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param group_id mixed <p>Идентификатор группы.</p>
+ */
+function user_groups_add($user_id, $group_id)
+{
+    db_user_groups_add(DataExchange::getDBLink(), $user_id, $group_id);
+}
+/**
+ * Удаляет заданного пользователя из заданной группы.
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param group_id mixed <p>Идентификатор группы.</p>
+ */
+function user_groups_delete($user_id, $group_id)
+{
+    db_user_groups_delete(DataExchange::getDBLink(), $user_id, $group_id);
+}
+/**
+ * Переносит заданного пользователя из одной группы в другую.
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param old_group_id mixed <p>Идентификатор старой группы.</p>
+ * @param new_group_id mixed <p>Идентификатор новой группы.</p>
+ */
+function user_groups_edit($user_id, $old_group_id, $new_group_id)
+{
+    db_user_groups_edit(DataExchange::getDBLink(), $user_id, $old_group_id,
+        $new_group_id);
+}
+/**
+ * Получает все связи пользователей с группами.
+ * @return array
+ * Возвращает связи:<p>
+ * 'user' - Идентификатор пользователя.<br>
+ * 'group' - Идентификатор группы.</p>
+ */
+function user_groups_get_all()
+{
+    return db_user_groups_get_all(DataExchange::getDBLink());
+}
+
+/****************************
+ * Работа с пользователями. *
+ ****************************/
+
+/**
+ * Проверяет корректность перенаправления.
+ * @param goto string <p>Перенаправление.</p>
+ * @return string
+ * Возвращает безопасное для использования перенаправление.
+ */
+function users_check_goto($goto)
+{
+	if($goto === 'b' || $goto === 't')
+		return $goto;
+	else
+		throw new FormatException(FormatException::$messages['GOTO']);
+}
+/**
+ * Проверяет корректность идентификатора пользователя.
+ * @param id mixed <p>Идентификатор пользователя.</p>
+ * @return string
+ * Возвращает безопасный для использования идентификатор пользователя.
+ */
+function users_check_id($id)
+{
+    if(!isset($id))
+        throw new NodataException(NodataException::$messages['USER_ID_NOT_SPECIFED']);
+    $length = strlen($id);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if($length <= $max_int_length && $length >= 1)
+    {
+        $id = RawUrlEncode($id);
+        $length = strlen($id);
+        if($length > $max_int_length || (ctype_digit($id) === false)
+            || $length < 1)
+        {
+            throw new FormatException(FormatException::$messages['USER_ID']);
+        }
+    }
+    else
+        throw new FormatException(FormatException::$messages['USER_ID']);
+    return $id;
+}
+/**
+ * Проверяет корректность хеша ключевого слова.
+ * @param keyword string <p>Хеш ключевого слова.</p>
+ * @return string
+ * Возвращает безопасный для использования хеш ключевого слова.
+ */
+function users_check_keyword($keyword)
+{
+    if(!isset($keyword))
+        throw new NodataException(NodataException::$messages['KEYWORD_NOT_SPECIFED']);
+    $length = strlen($keyword);
+    if($length <= 32 && $length >= 16)
+    {
+        $keyword = RawUrlEncode($keyword);
+        $length = strlen($keyword);
+        if($length > 32 || (strpos($keyword, '%') !== false) || $length < 16)
+            throw new FormatException(FormatException::$messages['KEYWORD']);
+    }
+    else
+        throw new FormatException(FormatException::$messages['KEYWORD']);
+    return $keyword;
+}
+/**
+ * Проверяет корректность количества строк в предпросмотре сообщения.
+ * @param lines_per_post mixed <p>Количество строк в предпросмотре
+ * сообщения.</p>
+ * @return string
+ * Возвращает безопасное для использования количество строк в предпросмотре
+ * сообщения.
+ */
+function users_check_lines_per_post($lines_per_post)
+{
+    if(!isset($lines_per_post))
+        throw new NodataException(NodataException::$messages['LINES_PER_POST_NOT_SPECIFED']);
+    $length = strlen($lines_per_post);
+    if($length <= 2 && $length >= 1)
+    {
+        $lines_per_post = RawUrlEncode($lines_per_post);
+        $length = strlen($lines_per_post);
+        if($length > 2 || (ctype_digit($lines_per_post) === false)
+            || $length < 1)
+        {
+            throw new FormatException(sprintf(FormatException::$messages['LINES_PER_POST'],
+                Config::MIN_LINESPERPOST, Config::MAX_LINESPERPOST));
+        }
+    }
+    else
+        throw new FormatException(sprintf(FormatException::$messages['LINES_PER_POST'],
+            Config::MIN_LINESPERPOST, Config::MAX_LINESPERPOST));
+    return $lines_per_post;
+}
+/**
+ * Проверяет корректность числа сообщений в нити на странице просмотра доски.
+ * @param posts_per_thread mixed <p>Число сообщений в нити на странице просмотра
+ * доски.</p>
+ * @return string
+ * Возвращает безопасное для использования число сообщений в нити на странице
+ * просмотра доски.
+ */
+function users_check_posts_per_thread($posts_per_thread)
+{
+    if(!isset($posts_per_thread))
+        throw new NodataException(NodataException::$messages['POSTS_PER_THREAD_NOT_SPECIFED']);
+    $length = strlen($posts_per_thread);
+    if($length <= 2 && $length >= 1)
+    {
+        $posts_per_thread = RawUrlEncode($posts_per_thread);
+        $length = strlen($posts_per_thread);
+        if($length > 2 || (ctype_digit($posts_per_thread) === false)
+            || $length < 1)
+        {
+            throw new FormatException(sprintf(FormatException::$messages['POSTS_PER_THREAD'],
+                Config::MIN_POSTSPERTHREAD, Config::MAX_POSTSPERTHREAD));
+        }
+    }
+    else
+        throw new FormatException(sprintf(FormatException::$messages['POSTS_PER_THREAD'],
+            Config::MIN_POSTSPERTHREAD, Config::MAX_POSTSPERTHREAD));
+    return $posts_per_thread;
+}
+/**
+ * Проверяет корректность числа нитей на странице просмотра доски.
+ * @param threads_per_page mixed <p>Число нитей на странице просмотра доски.</p>
+ * @return string
+ * Возвращает безопасное для использования число нитей на странице просмотра
+ * доски.
+ */
+function users_check_threads_per_page($threads_per_page)
+{
+    if(!isset($threads_per_page))
+        throw new NodataException(NodataException::$messages['THREADS_PER_PAGE_NOT_SPECIFED']);
+    $length = strlen($threads_per_page);
+    if($length <= 2 && $length >= 1)
+    {
+        $threads_per_page = RawUrlEncode($threads_per_page);
+        $length = strlen($threads_per_page);
+        if($length > 2 || (ctype_digit($threads_per_page) === false)
+            || $length < 1)
+        {
+            throw new FormatException(sprintf(FormatException::$messages['THREADS_PER_PAGE'],
+                Config::MIN_THREADSPERPAGE, Config::MAX_THREADSPERPAGE));
+        }
+    }
+    else
+        throw new FormatException(sprintf(FormatException::$messages['THREADS_PER_PAGE'],
+            Config::MIN_THREADSPERPAGE, Config::MAX_THREADSPERPAGE));
+    return $threads_per_page;
+}
+/**
+ * Редактирует пользователя с заданным ключевым словом или добавляет нового.
+ * @param keyword string <p>Хеш ключевого слова.</p>
+ * @param posts_per_thread mixed <p>Число сообщений в нити на странице просмотра доски.</p>
+ * @param threads_per_page mixed <p>Число нитей на странице просмотра доски.</p>
+ * @param lines_per_post mixed <p>Количество строк в предпросмотре сообщения.</p>
+ * @param language mixed <p>Идентификатор языка.</p>
+ * @param stylesheet mixed <p>Идентификатор стиля.</p>
+ * @param password mixed <p>Пароль для удаления сообщений.</p>
+ * @param goto string <p>Перенаправление.</p>
+ */
+function users_edit_by_keyword($keyword, $posts_per_thread, $threads_per_page,
+    $lines_per_post, $language, $stylesheet, $password, $goto)
+{
+    db_users_edit_by_keyword(DataExchange::getDBLink(), $keyword,
+        $posts_per_thread, $threads_per_page, $lines_per_post, $language,
+        $stylesheet, $password, $goto);
+}
+/**
+ * Получает всех пользователей.
+ * @return array
+ * Возвращает идентификаторы пользователей:<p>
+ * 'id' - Идентификатор пользователя.</p>
+ */
+function users_get_all()
+{
+	return db_users_get_all(DataExchange::getDBLink());
+}
+/**
+ * Получает ползователя с заданным ключевым словом.
+ * @param keyword string <p>Хеш ключевого слова.</p>
+ * @return array
+ * Возвращает настройки:<p>
+ * 'id' - Идентификатор.<br>
+ * 'posts_per_thread' - Число сообщений в нити на странице просмотра доски.<br>
+ * 'threads_per_page' - Число нитей на странице просмотра доски.<br>
+ * 'lines_per_post' - Количество строк в предпросмотре сообщения.<br>
+ * 'language' - Идентификатор языка.<br>
+ * 'stylesheet' - Идентификатор стиля.<br>
+ * 'password' - Пароль для удаления сообщений.<br>
+ * 'goto' - Перенаправление.<br>
+ * 'groups' - Группы, в которые входит пользователь.</p>
+ */
+function users_get_by_keyword($keyword)
+{
+    return db_users_get_by_keyword(DataExchange::getDBLink(), $keyword);
+}
+/**
+ * Устанавливает пароль для удаления сообщений заданному пользователю.
+ * @param id mixed <p>Идентификатор пользователя.</p>
+ * @param password mixed <p>Пароль для удаления сообщений.</p>
+ */
+function users_set_password($id, $password)
+{
+    db_users_set_password(DataExchange::getDBLink(), $id, $password);
 }
 
 /***************************************************
@@ -2432,27 +2427,27 @@ function upload_types_get_board($board_id)
  * 'post' - идентификатор сообщения.<br>
  * 'upload' - идентификатор загрузки.</p>
  */
-function posts_uploads_get_by_posts($posts)
+/*function posts_uploads_get_by_posts($posts)
 {
 	return db_posts_uploads_get_by_posts(DataExchange::getDBLink(), $posts);
-}
+}*/
 /**
  * Связывает сообщение с информацией о загрузке.
  * @param post_id mixed <p>идентификатор сообщения.</p>
  * @param upload_id mixed <p>идентификатор записи с информацией о загрузке.</p>
  */
-function posts_uploads_add($post_id, $upload_id)
+/*function posts_uploads_add($post_id, $upload_id)
 {
 	db_posts_uploads_add(DataExchange::getDBLink(), $post_id, $upload_id);
-}
+}*/
 /**
  * Удаляет закрепления загрузок за заданным сообщением.
  * @param post_id mixed <p>Идентификатор сообщения.</p>
  */
-function posts_uploads_delete_by_post($post_id)
+/*function posts_uploads_delete_by_post($post_id)
 {
 	db_posts_uploads_delete_by_post(DataExchange::getDBLink(), $post_id);
-}
+}*/
 
 /************************
  * Работа с загрузками. *
@@ -2473,30 +2468,30 @@ function posts_uploads_delete_by_post($post_id)
  * @return string
  * Возвращает идентификатор загрузки.
  */
-function uploads_add($hash, $is_image, $upload_type, $file, $image_w, $image_h,
+/*function uploads_add($hash, $is_image, $upload_type, $file, $image_w, $image_h,
 	$size, $thumbnail, $thumbnail_w, $thumbnail_h)
 {
 	return db_uploads_add(DataExchange::getDBLink(), $hash, $is_image,
 		$upload_type, $file, $image_w, $image_h, $size, $thumbnail,
 		$thumbnail_w, $thumbnail_h);
-}
+}*/
 /**
  * Проверяет, удовлетворяет ли загружаемое изображение ограничениям по размеру.
  * @param img_size mixed <p>Размер изображения в байтах.</p>
  */
-function uploads_check_image_size($img_size)
+/*function uploads_check_image_size($img_size)
 {
 	if($img_size < Config::MIN_IMGSIZE)
 		throw new LimitException(LimitException::$messages['MIN_IMG_SIZE']);
-}
+}*/
 /**
  * Удаляет заданную загрузку.
  * @param id string <p>Идентификатор загрузки.</p>
  */
-function uploads_delete_by_id($id)
+/*function uploads_delete_by_id($id)
 {
 	db_uploads_delete_by_id(DataExchange::getDBLink(), $id);
-}
+}*/
 /**
  * Получает загрузки для заданных сообщений.
  * @param posts array <p>Массив сообщений.</p>
@@ -2514,10 +2509,10 @@ function uploads_delete_by_id($id)
  * 'thumbnail_w' - ширина уменьшенной копии.<br>
  * 'thumbnail_h' - высота уменьшенной копии.</p>
  */
-function uploads_get_by_posts($posts)
+/*function uploads_get_by_posts($posts)
 {
 	return db_uploads_get_by_posts(DataExchange::getDBLink(), $posts);
-}
+}*/
 /**
  * Получает информацию о висячих загрузках (не связанных с сообщениями).
  * @return array
@@ -2534,10 +2529,10 @@ function uploads_get_by_posts($posts)
  * 'thumbnail_w' - ширина уменьшенной копии.<br>
  * 'thumbnail_h' - высота уменьшенной копии.</p>
  */
-function uploads_get_dangling()
+/*function uploads_get_dangling()
 {
 	return db_uploads_get_dangling(DataExchange::getDBLink());
-}
+}*/
 /**
  * Получает одинаковые загрузки для заданной доски.
  * @param board_id mixed <p>Идентификатор доски.</p>
@@ -2561,9 +2556,9 @@ function uploads_get_dangling()
  *		загрузка.<br>
  * 'view' - видно ли сообщение пользователю.</p>
  */
-function uploads_get_same($board_id, $hash, $user_id)
+/*function uploads_get_same($board_id, $hash, $user_id)
 {
 	return db_uploads_get_same(DataExchange::getDBLink(), $board_id, $hash,
 		$user_id);
-}
+}*/
 ?>
