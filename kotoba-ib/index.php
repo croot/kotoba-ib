@@ -9,13 +9,9 @@
  * See license.txt for more info.*
  *********************************/
 // Скрипт главной страницы имейджборды.
-
-require 'config.php';
-require 'lib/errors.php';
-require 'locale/' . Config::LANGUAGE . '/errors.php';
-require 'lib/mysql.php';
-require 'lib/db.php';
-require 'lib/misc.php';
+require_once 'config.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
 try
 {
 	kotoba_session_start();
