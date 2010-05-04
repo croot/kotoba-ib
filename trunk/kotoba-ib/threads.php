@@ -9,14 +9,13 @@
  * See license.txt for more info.*
  *********************************/
 // Скрипт просмотра нити.
-require 'config.php';
-require 'modules/errors.php';
-require 'modules/lang/' . Config::LANGUAGE . '/errors.php';
-require 'modules/db.php';
-require 'modules/cache.php';
-require 'modules/common.php';
-require 'modules/popdown_handlers.php';
-require 'modules/events.php';
+require_once 'config.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
+require_once Config::ABS_PATH . '/lib/events.php';
 try
 {
 	kotoba_session_start();

@@ -2281,7 +2281,7 @@ begin
     select id into user_id from users where keyword = _keyword;
 
     select u.id, u.posts_per_thread, u.threads_per_page, u.lines_per_post,
-            l.name as language, s.name as stylesheet, u.password, u.`goto`
+            l.code as language, s.name as stylesheet, u.password, u.`goto`
         from users u
         join stylesheets s on u.stylesheet = s.id
         join languages l on u.language = l.id

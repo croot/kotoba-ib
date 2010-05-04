@@ -1240,7 +1240,7 @@ function db_languages_get_all($link)
 	if(mysqli_affected_rows($link) > 0)
 		while(($row = mysqli_fetch_assoc($result)) != null)
 			array_push($languages, array('id' => $row['id'],
-					'name' => $row['name']));
+					'code' => $row['code']));
 	else
 		throw new NodataException(NodataException::$messages['LANGUAGES_NOT_EXIST']);
 	mysqli_free_result($result);
