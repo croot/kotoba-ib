@@ -44,7 +44,7 @@
     </table>
 <b>Другое:</b>
     <table border="0">
-        <tr valign="top"><td>Язык: </td><td><select name="language_id">{section name=j loop=$languages}<option value="{$languages[j].id}"{if $language == $languages[j].name} selected{/if}>{$languages[j].name}</option>{/section}</select></td></tr>
+        <tr valign="top"><td>Язык: </td><td><select name="language_id">{section name=j loop=$languages}<option value="{$languages[j].id}"{if $language == $languages[j].code} selected{/if}>{$languages[j].code}</option>{/section}</select></td></tr>
         <tr valign="top"><td>Стиль оформления: </td><td><select name="stylesheet_id">{section name=i loop=$stylesheets}<option value="{$stylesheets[i].id}"{if $STYLESHEET == $stylesheets[i].name} selected{/if}>{$stylesheets[i].name}</option>{/section}</select></td></tr>
     </table>
 <i>Введите ключевое слово, чтобы сохранить эти настройки.<br>

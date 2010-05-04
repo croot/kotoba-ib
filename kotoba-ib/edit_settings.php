@@ -8,17 +8,12 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
-
-/*
- * Скрипт редактирование настроек пользователя.
- */
-
-require 'config.php';
-require 'modules/errors.php';
-require 'modules/lang/' . Config::LANGUAGE . '/errors.php';
-require 'modules/db.php';
-require 'modules/cache.php';
-require 'modules/common.php';
+//крипт редактирование настроек пользователя.
+require_once 'config.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
 try
 {
 	kotoba_session_start();
@@ -59,7 +54,7 @@ try
 		if(!$found)
 			throw new NodataException(sprintf(NodataException::$messages['LANGUAGE_NOT_EXIST']), $language_id);
 		$goto = users_check_goto($_POST['goto']);
-		users_edit_bykeyword($keyword_hash, $threads_per_page,
+		users_edit_by_keyword($keyword_hash, $threads_per_page,
 			$posts_per_thread, $lines_per_post, $stylesheet_id, $language_id,
 			(!isset($_SESSION['password']) || $_SESSION['password'] == ''
 				? null : $_SESSION['password']), $goto);

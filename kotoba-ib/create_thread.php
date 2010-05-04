@@ -9,16 +9,15 @@
  * See license.txt for more info.*
  *********************************/
 // Скрипт создания нитей.
-require 'config.php';
-require 'modules/errors.php';
-require 'modules/lang/' . Config::LANGUAGE . '/errors.php';
-require 'modules/db.php';
-require 'modules/cache.php';
-require 'modules/common.php';
-require 'modules/popdown_handlers.php';
-require 'modules/upload_handlers.php';
-require 'modules/mark.php';
-include 'securimage/securimage.php';
+require_once 'config.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
+require_once Config::ABS_PATH . '/lib/upload_handlers.php';
+require_once Config::ABS_PATH . '/lib/mark.php';
+include Config::ABS_PATH . '/securimage/securimage.php';
 try
 {
 // 0. Инициализация.
