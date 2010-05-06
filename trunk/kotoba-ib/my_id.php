@@ -9,12 +9,11 @@
  * See license.txt for more info.*
  *********************************/
 //Скрипт, показывающий id пользователя и группы, в которые он входит.
-require '../config.php';
-require Config::ABS_PATH. '/modules/errors.php';
-require Config::ABS_PATH . '/modules/lang/' . Config::LANGUAGE . '/errors.php';
-require Config::ABS_PATH . '/modules/db.php';
-require Config::ABS_PATH . '/modules/cache.php';
-require Config::ABS_PATH . '/modules/common.php';
+require_once 'config.php';
+require Config::ABS_PATH. '/lib/errors.php';
+require_once Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
 try
 {
 	kotoba_session_start();

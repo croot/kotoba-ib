@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 5.1.33, for Win32 (ia32)
+-- MySQL dump 10.13  Distrib 5.1.45, for redhat-linux-gnu (i386)
 --
 -- Host: localhost    Database: kotoba2
 -- ------------------------------------------------------
--- Server version	5.1.33-community
+-- Server version	5.1.45
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -99,7 +99,10 @@ CREATE TABLE `boards` (
   `bump_limit` int(11) NOT NULL,
   `force_anonymous` bit(1) NOT NULL,
   `default_name` varchar(128) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `with_files` bit(1) NOT NULL,
+  `with_attachments` bit(1) NOT NULL,
+  `enable_macro` bit(1) DEFAULT NULL,
+  `enable_youtube` bit(1) DEFAULT NULL,
+  `enable_captcha` bit(1) DEFAULT NULL,
   `same_upload` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
   `popdown_handler` int(11) NOT NULL,
   `category` int(11) NOT NULL,
@@ -124,6 +127,25 @@ CREATE TABLE `categories` (
   `name` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `files`
+--
+
+DROP TABLE IF EXISTS `files`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `files` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `hash` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `name` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
+  `size` int(11) NOT NULL,
+  `thumbnail` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
+  `thumbnail_w` int(11) NOT NULL,
+  `thumbnail_h` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -159,6 +181,27 @@ CREATE TABLE `hidden_threads` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `images`
+--
+
+DROP TABLE IF EXISTS `images`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `images` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `hash` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `name` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
+  `widht` int(11) NOT NULL,
+  `height` int(11) NOT NULL,
+  `size` int(11) NOT NULL,
+  `thumbnail` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
+  `thumbnail_w` int(11) NOT NULL,
+  `thumbnail_h` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=431 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `languages`
 --
 
@@ -167,9 +210,29 @@ DROP TABLE IF EXISTS `languages`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `languages` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+  `code` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `links`
+--
+
+DROP TABLE IF EXISTS `links`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `links` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `url` varchar(2048) COLLATE utf8_unicode_ci NOT NULL,
+  `widht` int(11) NOT NULL,
+  `height` int(11) NOT NULL,
+  `size` int(11) NOT NULL,
+  `thumbnail` varchar(2048) COLLATE utf8_unicode_ci NOT NULL,
+  `thumbnail_w` int(11) NOT NULL,
+  `thumbnail_h` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -215,7 +278,61 @@ CREATE TABLE `posts` (
   CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`),
   CONSTRAINT `posts_ibfk_2` FOREIGN KEY (`user`) REFERENCES `users` (`id`),
   CONSTRAINT `posts_ibfk_3` FOREIGN KEY (`thread`) REFERENCES `threads` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=918 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=919 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `posts_files`
+--
+
+DROP TABLE IF EXISTS `posts_files`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `posts_files` (
+  `post` int(11) NOT NULL,
+  `file` int(11) NOT NULL,
+  `deleted` bit(1) NOT NULL,
+  UNIQUE KEY `post` (`post`,`file`),
+  KEY `file` (`file`),
+  CONSTRAINT `posts_files_ibfk_1` FOREIGN KEY (`post`) REFERENCES `posts` (`id`),
+  CONSTRAINT `posts_files_ibfk_2` FOREIGN KEY (`file`) REFERENCES `files` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `posts_images`
+--
+
+DROP TABLE IF EXISTS `posts_images`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `posts_images` (
+  `post` int(11) NOT NULL,
+  `image` int(11) NOT NULL,
+  `deleted` bit(1) NOT NULL,
+  UNIQUE KEY `post` (`post`,`image`),
+  KEY `image` (`image`),
+  CONSTRAINT `posts_images_ibfk_1` FOREIGN KEY (`post`) REFERENCES `posts` (`id`),
+  CONSTRAINT `posts_images_ibfk_2` FOREIGN KEY (`image`) REFERENCES `images` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `posts_links`
+--
+
+DROP TABLE IF EXISTS `posts_links`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `posts_links` (
+  `post` int(11) NOT NULL,
+  `link` int(11) NOT NULL,
+  `deleted` bit(1) NOT NULL,
+  UNIQUE KEY `post` (`post`,`link`),
+  KEY `link` (`link`),
+  CONSTRAINT `posts_links_ibfk_1` FOREIGN KEY (`post`) REFERENCES `posts` (`id`),
+  CONSTRAINT `posts_links_ibfk_2` FOREIGN KEY (`link`) REFERENCES `links` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -232,6 +349,24 @@ CREATE TABLE `posts_uploads` (
   KEY `upload` (`upload`),
   CONSTRAINT `posts_uploads_ibfk_2` FOREIGN KEY (`post`) REFERENCES `posts` (`id`),
   CONSTRAINT `posts_uploads_ibfk_3` FOREIGN KEY (`upload`) REFERENCES `uploads` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `posts_videos`
+--
+
+DROP TABLE IF EXISTS `posts_videos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `posts_videos` (
+  `post` int(11) NOT NULL,
+  `video` int(11) NOT NULL,
+  `deleted` bit(1) NOT NULL,
+  UNIQUE KEY `post` (`post`,`video`),
+  KEY `video` (`video`),
+  CONSTRAINT `posts_videos_ibfk_1` FOREIGN KEY (`post`) REFERENCES `posts` (`id`),
+  CONSTRAINT `posts_videos_ibfk_2` FOREIGN KEY (`video`) REFERENCES `videos` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -265,7 +400,7 @@ CREATE TABLE `threads` (
   `archived` bit(1) NOT NULL,
   `sticky` bit(1) NOT NULL DEFAULT b'0',
   `sage` bit(1) NOT NULL,
-  `with_files` bit(1) DEFAULT NULL,
+  `with_attachments` bit(1) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `board` (`board`),
   CONSTRAINT `threads_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`)
@@ -370,7 +505,23 @@ CREATE TABLE `users` (
   KEY `stylesheet` (`stylesheet`),
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`language`) REFERENCES `languages` (`id`),
   CONSTRAINT `users_ibfk_2` FOREIGN KEY (`stylesheet`) REFERENCES `stylesheets` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `videos`
+--
+
+DROP TABLE IF EXISTS `videos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `videos` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `code` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
+  `widht` int(11) NOT NULL,
+  `height` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -384,22 +535,20 @@ CREATE TABLE `users` (
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_acl_add`(
-	group_id int,
-	board_id int,
-	thread_num int,
-	post_num int,
-	_view bit,
-	_change bit,
-	_moderate bit
+    group_id int,
+    board_id int,
+    thread_id int,
+    post_id int,
+    _view bit,
+    _change bit,
+    _moderate bit
 )
 begin
-	insert into acl (`group`, `board`, `thread`, `post`, `view`, `change`,
-		`moderate`)
-	values (group_id, board_id, thread_num, post_num, _view, _change,
-		_moderate);
+    insert into acl (`group`, board, thread, post, `view`, `change`, moderate)
+    values (group_id, board_id, thread_id, post_id, _view, _change, _moderate);
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -414,20 +563,20 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_acl_delete`(
-	group_id int,
-	board_id int,
-	thread_id int,
-	post_id int
+    group_id int,
+    board_id int,
+    thread_id int,
+    post_id int
 )
 begin
-	delete from acl
-	where ((`group` = group_id) or (coalesce(`group`, group_id) is null))
-		and ((`board` = board_id) or (coalesce(`board`, board_id) is null))
-		and ((`thread` = thread_id) or (coalesce(`thread`, thread_id) is null))
-		and ((`post` = post_id) or (coalesce(`post`, post_id) is null));
+    delete from acl
+    where ((`group` = group_id) or (coalesce(`group`, group_id) is null))
+        and ((board = board_id) or (coalesce(board, board_id) is null))
+        and ((thread = thread_id) or (coalesce(thread, thread_id) is null))
+        and ((post = post_id) or (coalesce(post, post_id) is null));
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -442,23 +591,23 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_acl_edit`(
-	group_id int,
-	board_id int,
-	thread_num int,
-	post_num int,
-	_view bit,
-	_change bit,
-	_moderate bit
+    group_id int,
+    board_id int,
+    thread_id int,
+    post_id int,
+    _view bit,
+    _change bit,
+    _moderate bit
 )
 begin
-	update acl set `view` = _view, `change` = _change, `moderate` = _moderate
-	where ((`group` = group_id) or (coalesce(`group`, group_id) is null))
-		and ((`board` = board_id) or (coalesce(`board`, board_id) is null))
-		and ((`thread` = thread_num) or (coalesce(`thread`, thread_num) is null))
-		and ((`post` = post_num) or (coalesce(`post`, post_num) is null));
+    update acl set `view` = _view, `change` = _change, moderate = _moderate
+    where ((`group` = group_id) or (coalesce(`group`, group_id) is null))
+        and ((board = board_id) or (coalesce(board, board_id) is null))
+        and ((thread = thread_id) or (coalesce(thread, thread_id) is null))
+        and ((post = post_id) or (coalesce(post, post_id) is null));
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -473,12 +622,12 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_acl_get_all`()
 begin
-	select `group`, `board`, `thread`, `post`, `view`, `change`, `moderate`
-	from acl order by `group`, `board`, `thread`, `post`;
+    select `group`, board, thread, post, `view`, `change`, moderate
+    from acl order by `group`, board, thread, post;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -493,18 +642,18 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_bans_add`(
-	_range_beg int,
-	_range_end int,
-	_reason text,
-	_untill datetime
+    _range_beg int,
+    _range_end int,
+    _reason text,
+    _untill datetime
 )
 begin
-	call sp_refresh_banlist();
-	insert into bans (range_beg, range_end, reason, untill)
-	values (_range_beg, _range_end, _reason, _untill);
+    call sp_refresh_banlist();
+    insert into bans (range_beg, range_end, reason, untill)
+        values (_range_beg, _range_end, _reason, _untill);
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -519,17 +668,17 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_bans_check`(
-	ip int
+    ip int
 )
 begin
-	call sp_bans_refresh();
-	select range_beg, range_end, untill, reason
-	from bans
-	where range_beg <= ip and range_end >= ip
-	order by range_end desc limit 1;
+    call sp_bans_refresh();
+    select range_beg, range_end, untill, reason
+        from bans
+        where range_beg <= ip and range_end >= ip
+        order by range_end desc limit 1;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -578,6 +727,48 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_bans_delete_by_id` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_bans_delete_by_id`(
+    _id int
+)
+begin
+    delete from bans where id = _id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_bans_delete_by_ip` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_bans_delete_by_ip`(
+    ip int
+)
+begin
+    delete from bans where range_beg <= ip and range_end >= ip;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_bans_get_all` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -586,11 +777,11 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_bans_get_all`()
 begin
-	select id, range_beg, range_end, reason, untill from bans;
+    select id, range_beg, range_end, reason, untill from bans;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -605,11 +796,11 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_bans_refresh`()
 begin
-	delete from bans where untill <= now();
+    delete from bans where untill <= now();
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -624,24 +815,30 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_boards_add`(
-	_name varchar(16),
-	_title varchar(50),
-	_bump_limit int,
-	_force_anonymous bit,
-	_default_name varchar(128),
-	_with_files bit,
-	_same_upload varchar(32),
-	_popdown_handler int,
-	_category int
+    _name varchar(16),
+    _title varchar(50),
+    _annotation text,
+    _bump_limit int,
+    _force_anonymous bit,
+    _default_name varchar(128),
+    _with_attachments bit,
+    _enable_macro bit,
+    _enable_youtube bit,
+    _enable_captcha bit,
+    _same_upload varchar(32),
+    _popdown_handler int,
+    _category int
 )
 begin
-	insert into boards (`name`, title, bump_limit, force_anonymous,
-		default_name, with_files, same_upload, popdown_handler, category)
-	values (_name, _title, _bump_limit, _force_anonymous, _default_name,
-		_with_files, _same_upload, _popdown_handler, _category);
+    insert into boards (name, title, annotation, bump_limit, force_anonymous,
+            default_name, with_attachments, enable_macro, enable_youtube,
+            enable_captcha, same_upload, popdown_handler, category)
+        values (_name, _title, _annotation, _bump_limit, _force_anonymous,
+            _default_name, _with_attachments, _enable_macro, _enable_youtube,
+            _enable_captcha, _same_upload, _popdown_handler, _category);
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -656,7 +853,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_boards_delete`(
 	_id int
@@ -677,25 +874,31 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_boards_edit`(
-	_id int,
-	_title varchar(50),
-	_bump_limit int,
-	_force_anonymous bit,
-	_default_name varchar(128),
-	_with_files bit,
-	_same_upload varchar(32),
-	_popdown_handler int,
-	_category int
+    _id int,
+    _title varchar(50),
+    _annotation text,
+    _bump_limit int,
+    _force_anonymous bit,
+    _default_name varchar(128),
+    _with_attachments bit,
+    _enable_macro bit,
+    _enable_youtube bit,
+    _enable_captcha bit,
+    _same_upload varchar(32),
+    _popdown_handler int,
+    _category int
 )
 begin
-	update boards set title = _title, bump_limit = _bump_limit,
-		force_anonymous = _force_anonymous, default_name = _default_name,
-		with_files = _with_files, same_upload = _same_upload,
-		popdown_handler = _popdown_handler, category = _category
-	where id = _id;
+    update boards set title = _title, annotation = _annotation,
+            bump_limit = _bump_limit, force_anonymous = _force_anonymous,
+            default_name = _default_name, with_attachments = _with_attachments,
+            enable_macro = _enable_macro, enable_youtube = _enable_youtube,
+            enable_captcha = _enable_captcha, same_upload = _same_upload,
+            popdown_handler = _popdown_handler, category = _category
+        where id = _id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -732,13 +935,14 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_boards_get_all`()
 begin
-	select id, `name`, title, annotation, bump_limit, force_anonymous,
-		default_name, with_files, same_upload, popdown_handler, category
-	from boards;
+    select id, name, title, annotation, bump_limit, force_anonymous,
+            default_name, with_attachments, enable_macro, enable_youtube,
+            enable_captcha, same_upload, popdown_handler, category
+        from boards;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -839,15 +1043,208 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_boards_get_by_id`(
-	_id int
+    board_id int
 )
 begin
-	select id, `name`, title, bump_limit, force_anonymous, default_name,
-		with_files, same_upload, popdown_handler, category
-	from boards where id = _id;
+    select id, name, title, annotation, bump_limit, force_anonymous,
+            default_name, with_attachments, enable_macro, enable_youtube,
+            enable_captcha, same_upload, popdown_handler, category
+        from boards where id = board_id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_boards_get_by_name` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_boards_get_by_name`(
+    board_name varchar(16)
+)
+begin
+    select id, name, title, annotation, bump_limit, force_anonymous,
+            default_name, with_attachments, enable_macro, enable_youtube,
+            enable_captcha, same_upload, popdown_handler, category
+        from boards where name = board_name;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_boards_get_changeable` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_boards_get_changeable`(
+    user_id int
+)
+begin
+    select b.id, b.name, b.title, b.annotation, b.bump_limit, b.force_anonymous,
+            b.default_name, b.with_attachments, b.enable_macro,
+            b.enable_youtube, b.enable_captcha, b.same_upload,
+            b.popdown_handler, b.category, ct.name as category_name
+        from boards b
+        join categories ct on ct.id = b.category
+        join user_groups ug on ug.user = user_id
+        left join acl a1 on ug.`group` = a1.`group` and b.id = a1.board
+        left join acl a2 on a2.`group` is null and b.id = a2.board
+        left join acl a3 on ug.`group` = a3.`group` and a3.board is null
+            and a3.thread is null and a3.post is null
+        where
+            
+            ((a1.`view` = 1 or a1.`view` is null)
+                
+                and (a2.`view` = 1 or a2.`view` is null)
+                
+                and a3.`view` = 1)
+            
+            and (a1.change = 1
+                
+                
+                or (a1.change is null and a2.change = 1)
+                
+                
+                or (a1.change is null and a2.change is null and a3.change = 1))
+        group by b.id
+        order by b.category, b.name;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_boards_get_changeable_by_id` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_boards_get_changeable_by_id`(
+	_board_id int,
+	user_id int
+)
+begin
+	declare board_id int;
+	select id into board_id from boards where id = _board_id;
+	if(board_id is null) then
+		select 'NOT_FOUND' as error;
+	else
+		select b.id, b.name, b.title, b.annotation, b.bump_limit, b.force_anonymous,
+			b.default_name, b.with_attachments, b.enable_macro, b.enable_youtube,
+			b.enable_captcha, b.same_upload, b.popdown_handler, b.category,
+			ct.name as category_name
+		from boards b
+		join categories ct on ct.id = b.category
+		join user_groups ug on ug.user = user_id
+		
+		left join acl a1 on ug.`group` = a1.`group` and b.id = a1.board
+		
+		left join acl a2 on a2.`group` is null and b.id = a2.board
+		
+		left join acl a3 on ug.`group` = a3.`group` and a3.board is null
+			and a3.thread is null and a3.post is null
+		where
+			b.id = board_id
+			and
+				
+			((a1.`view` = 1 or a1.`view` is null)
+				
+				and (a2.`view` = 1 or a2.`view` is null)
+				
+				and a3.`view` = 1)
+				
+			and (a1.change = 1
+				
+				
+				or (a1.change is null and a2.change = 1)
+				
+				
+				or (a1.change is null and a2.change is null and a3.change = 1))
+		group by b.id
+		order by b.category, b.name;
+	end if;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_boards_get_changeable_by_name` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_boards_get_changeable_by_name`(
+	board_name varchar(16),
+	user_id int
+)
+begin
+	declare board_id int;
+	select id into board_id from boards where name = board_name;
+	if(board_id is null) then
+		select 'NOT_FOUND' as error;
+	else
+		select b.id, b.name, b.title, b.annotation, b.bump_limit, b.force_anonymous,
+			b.default_name, b.with_attachments, b.enable_macro, b.enable_youtube,
+			b.enable_captcha, b.same_upload, b.popdown_handler, b.category,
+			ct.name as category_name
+		from boards b
+		join categories ct on ct.id = b.category
+		join user_groups ug on ug.user = user_id
+		
+		left join acl a1 on ug.`group` = a1.`group` and b.id = a1.board
+		
+		left join acl a2 on a2.`group` is null and b.id = a2.board
+		
+		left join acl a3 on ug.`group` = a3.`group` and a3.board is null
+			and a3.thread is null and a3.post is null
+		where
+			b.id = board_id
+			and
+				
+			((a1.`view` = 1 or a1.`view` is null)
+				
+				and (a2.`view` = 1 or a2.`view` is null)
+				
+				and a3.`view` = 1)
+				
+			and (a1.change = 1
+				
+				
+				or (a1.change is null and a2.change = 1)
+				
+				
+				or (a1.change is null and a2.change is null and a3.change = 1))
+		group by b.id
+		order by b.category, b.name;
+	end if;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -862,15 +1259,15 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_boards_get_moderatable`(
 	user_id int
 )
 begin
-	select b.id, b.`name`, b.title, b.bump_limit, b.force_anonymous,
-		b.default_name, b.with_files, b.same_upload, b.popdown_handler,
-		b.category
+	select b.id, b.name, b.title, b.annotation, b.bump_limit, b.force_anonymous,
+		b.default_name, b.with_attachments, b.enable_macro, b.enable_youtube,
+		b.enable_captcha, b.same_upload, b.popdown_handler, b.category
 	from boards b
 	join user_groups ug on ug.user = user_id
 	
@@ -897,7 +1294,7 @@ begin
 			or (a1.moderate is null and a2.moderate is null
 				and a3.moderate = 1))
 	group by b.id
-	order by b.`name`;
+	order by b.name;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1068,6 +1465,46 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_boards_get_visible` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_boards_get_visible`(
+	user_id int
+)
+begin
+	select b.id, b.name, b.title, b.annotation, b.bump_limit, b.force_anonymous,
+		b.default_name, b.with_attachments, b.enable_macro, b.enable_youtube,
+		b.enable_captcha, b.same_upload, b.popdown_handler, b.category,
+		ct.name as category_name
+	from boards b
+	join categories ct on ct.id = b.category
+	join user_groups ug on ug.user = user_id
+	left join acl a1 on ug.`group` = a1.`group` and b.id = a1.board
+	left join acl a2 on a2.`group` is null and b.id = a2.board
+	left join acl a3 on ug.`group` = a3.`group` and a3.board is null
+		and a3.thread is null and a3.post is null
+	where
+		
+		(a1.`view` = 1 or a1.`view` is null)
+		
+		and (a2.`view` = 1 or a2.`view` is null)
+		
+		and a3.`view` = 1
+	group by b.id
+	order by b.category, b.name;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_board_upload_types_add` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -1076,15 +1513,15 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_board_upload_types_add`(
-	_board int,
-	_upload_type int
+    board_id int,
+    upload_type_id int
 )
 begin
-	insert into board_upload_types (board, upload_type)
-	values (_board, _upload_type);
+    insert into board_upload_types (board, upload_type)
+        values (board_id, upload_type_id);
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1099,15 +1536,15 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_board_upload_types_delete`(
-	_board int,
-	_upload_type int
+    _board int,
+    _upload_type int
 )
 begin
-	delete from board_upload_types
-	where board = _board and upload_type = _upload_type;
+    delete from board_upload_types
+        where board = _board and upload_type = _upload_type;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1122,11 +1559,11 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_board_upload_types_get_all`()
 begin
-	select board, upload_type from board_upload_types;
+    select board, upload_type from board_upload_types;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1141,13 +1578,13 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_categories_add`(
 	_name varchar(50)
 )
 begin
-	insert into categories (`name`) values (_name);
+	insert into categories (name) values (_name);
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1162,7 +1599,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_categories_delete`(
 	_id int
@@ -1183,11 +1620,35 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_categories_get_all`()
 begin
-	select id, `name` from categories;
+	select id, name from categories;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_files_get_by_post` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_files_get_by_post`(
+	post_id int
+)
+begin
+	select f.id, f.hash, f.name, f.size, f.thumbnail, f.thumbnail_w,
+		f.thumbnail_h
+	from posts_files pf
+	join files f on f.id = pf.file and pf.post = post_id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1202,17 +1663,16 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_groups_add`(
 	_name varchar(50)
 )
 begin
-	declare group_id int;
-	insert into groups (`name`) values (_name);
-	select id into group_id from groups where name = _name;
+	insert into groups (name) values (_name);
+	select id from groups where name = _name;
 	
-	insert into acl (`group`, `view`, `change`, moderate) values (group_id, 1, 0, 0);
+	
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1227,15 +1687,12 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_groups_delete`(
 	_id int
 )
 begin
-	
-	delete from acl where `group` = _id;
-	delete from user_groups where `group` = _id;
 	delete from groups where id = _id;
 end */;;
 DELIMITER ;
@@ -1251,11 +1708,11 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_groups_get_all`()
 begin
-	select id, `name` from groups order by id;
+	select id, name from groups order by id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1270,14 +1727,14 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_hidden_threads_add`(
 	thread_id int,
 	user_id int
 )
 begin
-	insert into hidden_threads (`user`, thread) values (user_id, thread_id);
+	insert into hidden_threads (user, thread) values (user_id, thread_id);
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1292,14 +1749,14 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_hidden_threads_delete`(
 	thread_id int,
 	user_id int
 )
 begin
-	delete from hidden_threads where `user` = user_id and thread = thread_id;
+	delete from hidden_threads where user = user_id and thread = thread_id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1314,15 +1771,178 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_hidden_threads_get_by_board`(
 	board_id int
 )
 begin
-	select ht.thread, t.original_post, ht.`user`
+	select ht.thread, t.original_post, ht.user
 	from hidden_threads ht
 	join threads t on t.id = ht.thread and t.board = board_id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_hidden_threads_get_visible` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_hidden_threads_get_visible`(
+	board_id int,
+	thread_num int,
+	user_id int
+)
+begin
+	declare thread_id int;
+	select id into thread_id from threads
+	where original_post = thread_num and board = board_id;
+	if thread_id is null
+	then
+		select 'NOT_FOUND' as error;
+	else
+		select t.id, t.original_post, t.bump_limit, t.archived, t.sage,
+			t.sticky, t.with_attachments, count(p.id) as posts_count
+		from posts p
+		join threads t on t.id = p.thread
+		join user_groups ug on ug.`user` = user_id
+		left join hidden_threads ht on t.id = ht.thread
+			and ug.`user` = ht.`user`
+		
+		left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+		
+		left join acl a2 on a2.`group` is null and a2.post = p.id
+		
+		left join acl a3 on a3.`group` = ug.`group` and a3.thread = t.id
+		
+		left join acl a4 on a4.`group` is null and a4.thread = t.id
+		
+		left join acl a5 on a5.`group` = ug.`group` and a5.board = t.board
+		
+		left join acl a6 on a6.`group` is null and a6.board = t.board
+		
+		left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+			and a7.thread is null and a7.post is null
+		where t.id = thread_id
+			and t.deleted = 0
+			and ht.thread is not null
+			and p.deleted = 0
+			
+				
+			and ((a3.`view` = 1 or a3.`view` is null)
+				
+				and (a4.`view` = 1 or a4.`view` is null)
+				
+				and (a5.`view` = 1 or a5.`view` is null)
+				
+				and (a6.`view` = 1 or a6.`view` is null)
+				
+				and a7.`view` = 1)
+			
+			
+				
+			and ((a1.`view` = 1 or a1.`view` is null)
+				
+				and (a2.`view` = 1 or a2.`view` is null)
+				
+				and (a3.`view` = 1 or a3.`view` is null)
+				
+				and (a4.`view` = 1 or a4.`view` is null)
+				
+				and (a5.`view` = 1 or a5.`view` is null)
+				
+				and (a6.`view` = 1 or a6.`view` is null)
+				
+				and a7.`view` = 1)
+		group by t.id;
+	end if;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_images_get_by_post` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_images_get_by_post`(
+	post_id int
+)
+begin
+	select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail,
+		i.thumbnail_w, i.thumbnail_h
+	from posts_images pi
+	join images i on i.id = pi.image and pi.post = post_id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_images_get_same` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_images_get_same`(
+	board_id int,
+	image_hash varchar(32),
+	user_id int
+)
+begin
+	select i.id, i.hash, i.name, i.width, i.height, i.size, i.thumbnail,
+		i.thumbnail_w, i.thumbnail_h, p.number, t.original_post,
+		max(case
+			when a1.`view` = 0 then 0
+			when a2.`view` = 0 then 0
+			when a3.`view` = 0 then 0
+			when a4.`view` = 0 then 0
+			when a5.`view` = 0 then 0
+			when a6.`view` = 0 then 0
+			when a7.`view` = 0 then 0
+			else 1 end) as `view`
+	from images i
+	join posts_images pi on pi.image = i.id
+	join posts p on p.id = pi.post and p.board = board_id
+	join threads t on t.id = p.thread
+	join user_groups ug on ug.`user` = user_id
+	
+	left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+	
+	left join acl a2 on a2.`group` is null and a2.post = p.id
+	
+	left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+	
+	left join acl a4 on a4.`group` is null and a4.thread = p.thread
+	
+	left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+	
+	left join acl a6 on a6.`group` is null and a6.board = p.board
+	
+	left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+		and a7.thread is null and a7.post is null
+	where i.hash = image_hash
+	group by i.id, p.id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1337,13 +1957,13 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_languages_add`(
-	_name varchar(50)
+	_code char(3)
 )
 begin
-	insert into languages (`name`) values (_name);
+	insert into languages (code) values (_code);
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1358,7 +1978,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_languages_delete`(
 	_id int
@@ -1379,11 +1999,35 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_languages_get_all`()
 begin
-	select id, `name` from languages;
+	select id, code from languages;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_links_get_by_post` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_links_get_by_post`(
+	post_id int
+)
+begin
+	select l.id, l.url, l.widht, l.height, l.size, l.thumbnail, l.thumbnail_w,
+		l.thumbnail_h
+	from posts_links pl
+	join links l on l.id = pl.link and pl.post = post_id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1398,13 +2042,13 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_popdown_handlers_add`(
 	_name varchar(50)
 )
 begin
-	insert into popdown_handlers (`name`) values (_name);
+	insert into popdown_handlers (name) values (_name);
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1419,7 +2063,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_popdown_handlers_delete`(
 	_id int
@@ -1440,11 +2084,11 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_popdown_handlers_get_all`()
 begin
-	select id, `name` from popdown_handlers;
+	select id, name from popdown_handlers;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1459,18 +2103,18 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_add`(
-	_board_id int,
-	_thread_id int,
-	_user_id int,
+	board_id int,
+	thread_id int,
+	user_id int,
 	_password varchar(128),
 	_name varchar(128),
 	_tripcode varchar(128),
 	_ip bigint,
 	_subject varchar(128),
-	_datetime datetime,
+	_date_time datetime,
 	_text text,
 	_sage bit
 )
@@ -1480,16 +2124,16 @@ begin
 	declare bumplimit int;		
 	declare threadsage bit;		
 	declare post_id int;
-	select max(`number`) into post_number from posts where board = _board_id;
+	select max(number) into post_number from posts where board = board_id;
 	if(post_number is null)
 	then
 		set post_number = 1;
 	else
 		set post_number = post_number + 1;
 	end if;
-	select bump_limit into bumplimit from threads where id = _thread_id;
-	select count(id) into count_posts from posts where thread = _thread_id;
-	select sage into threadsage from threads where id = _thread_id;
+	select bump_limit into bumplimit from threads where id = thread_id;
+	select count(id) into count_posts from posts where thread = thread_id;
+	select sage into threadsage from threads where id = thread_id;
 	if(threadsage is not null and threadsage = 1)
 	then
 		set _sage = 1;
@@ -1498,16 +2142,18 @@ begin
 	then
 		set _sage = 1;
 	end if;
-	if(_datetime is null)
+	if(_date_time is null)
 	then
-		set _datetime = now();
+		set _date_time = now();
 	end if;
-	insert into posts (board, thread, `number`, `user`, password, `name`,
+	insert into posts (board, thread, number, user, password, name,
 		tripcode, ip, subject, date_time, text, sage, deleted)
-	values (_board_id, _thread_id, post_number, _user_id, _password, _name,
-		_tripcode, _ip, _subject, _datetime, _text, _sage, 0);
+	values (board_id, thread_id, post_number, user_id, _password, _name,
+		_tripcode, _ip, _subject, _date_time, _text, _sage, 0);
 	select last_insert_id() into post_id;
-	select * from posts where id = post_id;
+	select id, board, thread, number, user, password, name, tripcode, ip,
+		subject, date_time, `text`, sage
+	from posts where id = post_id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1522,7 +2168,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_delete`(
 	_id int
@@ -1535,7 +2181,7 @@ begin
 	select p.thread into thread_id
 	from posts p
 	join threads t on t.id = p.thread and p.id = _id
-		and p.`number` = t.original_post;
+		and p.number = t.original_post;
 	if(thread_id is null) then
 		update posts set deleted = 1 where id = _id;
 	else
@@ -1589,7 +2235,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_delete_last`(
 	_id int,
@@ -1610,7 +2256,7 @@ begin
 	repeat
 	fetch `c` into thread_id;
 	if(not done) then
-		call sp_threads_delete_specifed(thread_id);
+		call sp_threads_edit_deleted(thread_id);
 	end if;
 	until done end repeat;
 	close `c`;
@@ -1618,6 +2264,39 @@ begin
 	if(_ip is not null) then
 		update posts set deleted = 1 where ip = _ip and `date_time` > _date_time;
 	end if;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_posts_delete_marked` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_delete_marked`()
+begin
+	delete pu from posts_uploads pu
+	join posts p on p.id = pu.post
+	where p.deleted = 1;
+
+	delete a from acl a
+	join posts p on p.id = a.post
+	where p.deleted = 1;
+
+	delete from posts where deleted = 1;
+
+	delete ht from hidden_threads ht
+	join threads t on t.id = ht.thread
+	where t.deleted = 1;
+
+	delete from threads where deleted = 1;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1646,6 +2325,49 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_posts_edit_text_by_id` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_edit_text_by_id`(
+	_id int,
+	_text text
+)
+begin
+	update posts set text = concat(text, _text) where id = _id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_posts_files_get_by_post` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_files_get_by_post`(
+    post_id int
+)
+begin
+    select post, file, deleted from posts_files where post = post_id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_posts_get_all` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -1654,13 +2376,13 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_get_all`()
 begin
-	select p.id, p.thread, t.original_post as thread_number, p.board,
-		b.name as board_name, p.`number`, p.password, p.`name`, p.tripcode,
-		p.ip, p.subject, p.date_time, p.text, p.sage
+	select p.id, p.board, b.name as board_name, p.thread,
+		t.original_post as thread_number, p.number, p.password, p.name,
+		p.tripcode, p.ip, p.subject, p.date_time, p.text, p.sage
 	from posts p
 	join threads t on t.id = p.thread
 	join boards b on b.id = p.board
@@ -1704,14 +2426,14 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_get_by_board`(
 	board_id int
 )
 begin
 	select p.id, p.thread, t.original_post as thread_number, p.board,
-		b.name as board_name, p.`number`, p.password, p.`name`, p.tripcode,
+		b.name as board_name, p.number, p.password, p.name, p.tripcode,
 		p.ip, p.subject, p.date_time, p.text, p.sage
 	from posts p
 	join threads t on t.id = p.thread
@@ -1719,6 +2441,30 @@ begin
 	where p.deleted = 0 and t.deleted = 0 and t.archived = 0
 		and p.board = board_id
 	order by p.date_time desc;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_posts_get_by_thread` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_get_by_thread`(
+	thread_id int
+)
+begin
+	select id, thread, number, password, name, tripcode, ip, subject,
+		date_time, text, sage
+	from posts p
+	where thread = thread_id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1817,18 +2563,18 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_get_visible_by_id`(
 	post_id int,
 	user_id int
 )
 begin
-	select p.id, p.thread, p.board, p.`number`, p.password, p.`name`,
+	select p.id, p.thread, p.board, p.number, p.password, p.name,
 		p.tripcode, p.ip, p.subject, p.date_time, p.text, p.sage
 	from posts p
 	left join threads t on t.id = p.thread
-	join user_groups ug on ug.`user` = user_id
+	join user_groups ug on ug.user = user_id
 	
 	left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
 	
@@ -1867,6 +2613,66 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_posts_get_visible_by_number` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_get_visible_by_number`(
+	board_id int,
+	post_number int,
+	user_id int
+)
+begin
+	select p.id, p.thread, p.number, p.password, p.name, p.tripcode, p.ip,
+		p.subject, p.date_time, p.text, p.sage
+	from posts p
+	join user_groups ug on ug.`user` = user_id
+	
+	left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+	
+	left join acl a2 on a2.`group` is null and a2.post = p.id
+	
+	left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+	
+	left join acl a4 on a4.`group` is null and a4.thread = p.thread
+	
+	left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+	
+	left join acl a6 on a6.`group` is null and a6.board = p.board
+	
+	left join acl a7 on a7.`group` = ug.`group` and a7.board is null and
+		a7.thread is null and a7.post is null
+	where p.board = board_id
+		and p.number = post_number
+		and p.deleted = 0
+		
+			
+		and ((a1.`view` = 1 or a1.`view` is null)
+			
+			and (a2.`view` = 1 or a2.`view` is null)
+			
+			and (a3.`view` = 1 or a3.`view` is null)
+			
+			and (a4.`view` = 1 or a4.`view` is null)
+			
+			and (a5.`view` = 1 or a5.`view` is null)
+			
+			and (a6.`view` = 1 or a6.`view` is null)
+			
+			and a7.`view` = 1)
+	group by p.id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_posts_get_visible_by_thread` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -1875,14 +2681,14 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_get_visible_by_thread`(
 	thread_id int,
 	user_id int
 )
 begin
-	select p.id, p.thread, p.`number`, p.password, p.`name`, p.tripcode,
+	select p.id, p.thread, p.number, p.password, p.name, p.tripcode,
 			p.ip, p.subject, p.date_time, p.text, p.sage
 	from posts p
 	join threads t on t.board = p.board and t.id = p.thread
@@ -1920,7 +2726,49 @@ begin
 			
 			and a7.`view` = 1)
 	group by p.id
-	order by p.`number` asc;
+	order by p.number asc;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_posts_images_get_by_post` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_images_get_by_post`(
+    post_id int
+)
+begin
+    select post, image, deleted from posts_images where post = post_id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_posts_links_get_by_post` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_links_get_by_post`(
+    post_id int
+)
+begin
+    select post, link, deleted from posts_links where post = post_id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1991,6 +2839,27 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_posts_videos_get_by_post` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_videos_get_by_post`(
+    post_id int
+)
+begin
+    select post, video, deleted from posts_videos where post = post_id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_stylesheets_add` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -1999,13 +2868,13 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_stylesheets_add`(
 	_name varchar(50)
 )
 begin
-	insert into stylesheets (`name`) values (_name);
+	insert into stylesheets (name) values (_name);
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -2020,7 +2889,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_stylesheets_delete`(
 	_id int
@@ -2041,11 +2910,11 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_stylesheets_get_all`()
 begin
-	select id, `name` from stylesheets;
+	select id, name from stylesheets;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -2082,23 +2951,24 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_threads_add`(
-	_board_id int,
+	board_id int,
 	_original_post int,
 	_bump_limit int,
 	_sage bit,
-	_with_files bit
+	_with_attachments bit
 )
 begin
 	declare thread_id int;
 	insert into threads (board, original_post, bump_limit, deleted, archived,
-		sage, with_files)
+		sage, sticky, with_attachments)
 	values (_board_id, _original_post, _bump_limit, 0, 0,
-		_sage, _with_files);
+		_sage, 0, _with_attachments);
 	select last_insert_id() into thread_id;
-	select * from threads where id = thread_id;
+	select id, board, original_post, bump_limit, sage, sticky, with_attachments
+	from threads where id = thread_id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -2201,18 +3071,18 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_threads_edit`(
 	_id int,
 	_bump_limit int,
 	_sticky bit,
 	_sage bit,
-	_with_files bit
+	_with_attachments bit
 )
 begin
 	update threads set bump_limit = _bump_limit, sticky = _sticky, sage = _sage,
-		with_files = _with_files
+		with_attachments = _with_attachments
 	where id = _id;
 end */;;
 DELIMITER ;
@@ -2228,7 +3098,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_threads_edit_archived_postlimit`(
 	board_id int,
@@ -2276,6 +3146,28 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_threads_edit_deleted` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_threads_edit_deleted`(
+	_id int
+)
+begin
+	update threads set deleted = 1 where id = _id;
+	update posts set deleted = 1 where thread = _id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_threads_edit_originalpost` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -2299,6 +3191,28 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_threads_edit_original_post` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_threads_edit_original_post`(
+	_id int,
+	_original_post int
+)
+begin
+	update threads set original_post = _original_post where id = _id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_threads_get_all` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -2307,11 +3221,11 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_threads_get_all`()
 begin
-	select id, board, original_post, bump_limit, sticky, sage, with_files
+	select id, board, original_post, bump_limit, sage, sticky, with_attachments
 	from threads
 	where deleted = 0 and archived = 0
 	order by id desc;
@@ -2406,6 +3320,224 @@ begin
 			or (a1.moderate is null and a2.moderate is null and a5.moderate = 1))
 	group by t.id
 	order by t.id desc;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_threads_get_archived` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_threads_get_archived`()
+begin
+	select id, board, original_post, bump_limit, sage, sticky, with_attachments
+	from threads
+	where deleted = 0 and archived = 1;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_threads_get_changeable_by_id` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_threads_get_changeable_by_id`(
+	thread_id int,
+	user_id int
+)
+begin
+	select t.id, t.board, t.original_post, t.bump_limit, t.archived, t.sage,
+		t.with_attachments
+	from threads t
+	join user_groups ug on ug.user = user_id
+	left join hidden_threads ht on t.id = ht.thread and ug.user = ht.user
+	
+	left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+	
+	left join acl a2 on a2.`group` is null and a2.thread = t.id
+	
+	left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
+	
+	left join acl a4 on a4.`group` is null and a4.board = t.board
+	
+	left join acl a5 on a5.`group` = ug.`group` and a5.board is null
+		and a5.thread is null and a5.post is null
+	where t.id = thread_id
+		and (t.deleted = 0 or t.deleted is null)
+		and ht.thread is null
+		
+			
+		and ((a1.`view` = 1 or a1.`view` is null)
+			
+			and (a2.`view` = 1 or a2.`view` is null)
+			
+			and (a3.`view` = 1 or a3.`view` is null)
+			
+			and (a4.`view` = 1 or a4.`view` is null)
+			
+			and a5.`view` = 1)
+		
+			
+		and (a1.change = 1
+				
+				
+				or (a1.change is null and a2.change = 1)
+				
+				
+				or (a1.change is null and a2.change is null and a5.change = 1))
+	group by t.id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_threads_get_moderatable` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_threads_get_moderatable`(
+	user_id int
+)
+begin
+	select t.id, t.board, t.original_post, t.bump_limit, t.sage, t.sticky,
+		t.with_attachments
+	from threads t
+	join user_groups ug on ug.user = user_id
+	left join hidden_threads ht on t.id = ht.thread and ug.user = ht.user
+	
+	left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+	
+	left join acl a2 on a2.`group` is null and a2.thread = t.id
+	
+	left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
+	
+	left join acl a4 on a4.`group` is null and a4.board = t.board
+	
+	left join acl a5 on a5.`group` = ug.`group` and a5.board is null
+		and a5.thread is null and a5.post is null
+	where t.deleted = 0
+		and t.archived = 0
+		and ht.thread is null
+		
+			
+		and ((a1.`view` = 1 or a1.`view` is null)
+			
+			and (a2.`view` = 1 or a2.`view` is null)
+			
+			and (a3.`view` = 1 or a3.`view` is null)
+			
+			and (a4.`view` = 1 or a4.`view` is null)
+			
+			and a5.`view` = 1)
+		
+			
+		and (a1.change = 1
+			
+			
+			or (a1.change is null and a2.change = 1)
+			
+			
+			or (a1.change is null and a2.change is null and a5.change = 1))
+		
+			
+		and (a1.moderate = 1
+			
+			
+			or (a1.moderate is null and a2.moderate = 1)
+			
+			
+			or (a1.moderate is null and a2.moderate is null and a5.moderate = 1))
+	group by t.id
+	order by t.id desc;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_threads_get_moderatable_by_id` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_threads_get_moderatable_by_id`(
+	thread_id int,
+	user_id int
+)
+begin
+	select t.id
+	from threads t
+	join user_groups ug on ug.user = user_id
+	left join hidden_threads ht on t.id = ht.thread and ug.user = ht.user
+	
+	left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+	
+	left join acl a2 on a2.`group` is null and a2.thread = t.id
+	
+	left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
+	
+	left join acl a4 on a4.`group` is null and a4.board = t.board
+	
+	left join acl a5 on a5.`group` = ug.`group` and a5.board is null
+		and a5.thread is null and a5.post is null
+	where t.id = thread_id
+		and (t.deleted = 0 or t.deleted is null)
+		and	(t.archived = 0 or t.archived is null)
+		and ht.thread is null
+		
+			
+		and ((a1.`view` = 1 or a1.`view` is null)
+			
+			and (a2.`view` = 1 or a2.`view` is null)
+			
+			and (a3.`view` = 1 or a3.`view` is null)
+			
+			and (a4.`view` = 1 or a4.`view` is null)
+			
+			and a5.`view` = 1)
+		
+			
+		and (a1.change = 1
+				
+				or (a1.change is null and a2.change = 1)
+				
+				or (a1.change is null and a2.change is null and a5.change = 1))
+		
+			
+		and (a1.moderate = 1
+			
+			or (a1.moderate is null and a2.moderate = 1)
+			
+			or (a1.moderate is null and a2.moderate is null and a5.moderate = 1))
+	group by t.id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -2702,7 +3834,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_threads_get_visible_by_board`(
 	board_id int,
@@ -2710,21 +3842,21 @@ DELIMITER ;;
 )
 begin
 	select q1.id, q1.original_post, q1.bump_limit, q1.sticky, q1.sage,
-		q1.with_files, q1.posts_count, q1.last_post_num
+		q1.with_attachments, q1.posts_count, q1.last_post_num
 	from (
 		
 		select q.id, q.original_post, q.bump_limit, q.sticky, q.sage,
-			q.with_files, q.posts_count, max(p.`number`) as last_post_num
+			q.with_attachments, q.posts_count, max(p.number) as last_post_num
 		from posts p
 		join (
 			
 			select t.id, t.original_post, t.bump_limit, t.sticky, t.sage,
-				t.with_files, count(distinct p.id) as posts_count
+				t.with_attachments, count(distinct p.id) as posts_count
 			from posts p
 			join threads t on t.id = p.thread and t.board = board_id
 			join user_groups ug on ug.`user` = user_id
 			left join hidden_threads ht on ht.thread = t.id
-				and ht.`user` = ug.`user`
+				and ht.user = ug.user
 			
 			left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
 			
@@ -2773,6 +3905,143 @@ begin
 				and (p.sage = 0 or p.sage is null) and p.deleted = 0
 		group by q.id) q1
 	order by q1.last_post_num desc;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_threads_get_visible_by_id` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_threads_get_visible_by_id`(
+	board_id int,
+	thread_num int,
+	user_id int
+)
+begin
+	declare thread_id int;
+	select id into thread_id from threads
+	where original_post = thread_num and board = board_id;
+	if thread_id is null
+	then
+		select 'NOT_FOUND' as error;
+	else
+		select t.id, t.original_post, t.bump_limit, t.sticky, t.archived, t.sage,
+			t.with_attachments, count(p.id) as visible_posts_count
+		from posts p
+		join threads t on t.id = p.thread
+		join user_groups ug on ug.`user` = user_id
+		left join hidden_threads ht on t.id = ht.thread
+			and ug.user = ht.user
+		
+		left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+		
+		left join acl a2 on a2.`group` is null and a2.post = p.id
+		
+		left join acl a3 on a3.`group` = ug.`group` and a3.thread = t.id
+		
+		left join acl a4 on a4.`group` is null and a4.thread = t.id
+		
+		left join acl a5 on a5.`group` = ug.`group` and a5.board = t.board
+		
+		left join acl a6 on a6.`group` is null and a6.board = t.board
+		
+		left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+			and a7.thread is null and a7.post is null
+		where t.id = thread_id
+			and (t.deleted = 0 or t.deleted is null)
+			and ht.thread is null
+			and (p.deleted = 0 or p.deleted is null)
+			
+				
+			and ((a3.`view` = 1 or a3.`view` is null)
+				
+				and (a4.`view` = 1 or a4.`view` is null)
+				
+				and (a5.`view` = 1 or a5.`view` is null)
+				
+				and (a6.`view` = 1 or a6.`view` is null)
+				
+				and a7.`view` = 1)
+			
+			
+				
+			and ((a1.`view` = 1 or a1.`view` is null)
+				
+				and (a2.`view` = 1 or a2.`view` is null)
+				
+				and (a3.`view` = 1 or a3.`view` is null)
+				
+				and (a4.`view` = 1 or a4.`view` is null)
+				
+				and (a5.`view` = 1 or a5.`view` is null)
+				
+				and (a6.`view` = 1 or a6.`view` is null)
+				
+				and a7.`view` = 1)
+		group by t.id;
+	end if;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_threads_get_visible_count` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_threads_get_visible_count`(
+	user_id int,
+	board_id int
+)
+begin
+	select count(q.id) as threads_count
+	from (select t.id
+	from threads t
+	join user_groups ug on ug.user = user_id
+	left join hidden_threads ht on ht.thread = t.id and ht.user = ug.user
+	
+	left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+	
+	left join acl a2 on a2.`group` is null and a2.thread = t.id
+	
+	left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
+	
+	left join acl a4 on a4.`group` is null and a4.board = t.board
+	
+	left join acl a5 on a5.`group` = ug.`group` and a5.board is null
+		and a5.thread is null and a5.post is null
+	where t.board = board_id
+		and t.deleted = 0
+		and t.archived = 0
+		and ht.thread is null
+		
+			
+		and ((a1.`view` = 1 or a1.`view` is null)
+			
+			and (a2.`view` = 1 or a2.`view` is null)
+			
+			and (a3.`view` = 1 or a3.`view` is null)
+			
+			and (a4.`view` = 1 or a4.`view` is null)
+			
+			and a5.`view` = 1)
+	group by t.id) q;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -2945,13 +4214,13 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_upload_handlers_add`(
 	_name varchar(50)
 )
 begin
-	insert into upload_handlers (`name`) values (_name);
+	insert into upload_handlers (name) values (_name);
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -2966,7 +4235,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_upload_handlers_delete`(
 	_id int
@@ -2987,11 +4256,11 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_upload_handlers_get_all`()
 begin
-	select id, `name` from upload_handlers;
+	select id, name from upload_handlers;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -3006,7 +4275,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_upload_types_add`(
 	_extension varchar(10),
@@ -3034,7 +4303,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_upload_types_delete`(
 	_id int
@@ -3055,7 +4324,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_upload_types_edit`(
 	_id int,
@@ -3083,7 +4352,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_upload_types_get_all`()
 begin
@@ -3112,6 +4381,31 @@ DELIMITER ;;
 begin
 	select ut.id, ut.extension, ut.store_extension, ut.is_image, ut.upload_handler,
 		uh.`name` as upload_handler_name, ut.thumbnail_image
+	from upload_types ut
+	join board_upload_types but on ut.id = but.upload_type and but.board = board_id
+	join upload_handlers uh on uh.id = ut.upload_handler;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_upload_types_get_by_board` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_upload_types_get_by_board`(
+	board_id int
+)
+begin
+	select ut.id, ut.extension, ut.store_extension, ut.is_image, ut.upload_handler,
+		uh.name as upload_handler_name, ut.thumbnail_image
 	from upload_types ut
 	join board_upload_types but on ut.id = but.upload_type and but.board = board_id
 	join upload_handlers uh on uh.id = ut.upload_handler;
@@ -3172,6 +4466,57 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_users_edit_by_keyword` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_users_edit_by_keyword`(
+	_keyword varchar(32),
+	_posts_per_thread int,
+	_threads_per_page int,
+	_lines_per_post int,
+	_language int,
+	_stylesheet int,
+	_password varchar(12),
+	_goto varchar(32)
+)
+begin
+	declare user_id int;
+	set @user_id = null;
+	select id into user_id from users where keyword = _keyword;
+	if(user_id is null)
+	then
+		
+		insert into users (keyword, threads_per_page, posts_per_thread,
+			lines_per_post, stylesheet, language, password, `goto`)
+		values (_keyword, _threads_per_page, _posts_per_thread,
+			_lines_per_post, _stylesheet, _language, _password, _goto);
+		select last_insert_id() into user_id;
+		insert into user_groups (user, `group`) select user_id, id from groups
+			where name = 'Users';
+	else
+		
+		update users set threads_per_page = _threads_per_page,
+			posts_per_thread = _posts_per_thread,
+			lines_per_post = _lines_per_post,
+			stylesheet = _stylesheet,
+			language = _language,
+			password = _password,
+			`goto` = _goto
+		where id = user_id;
+	end if;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_users_get_all` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -3180,7 +4525,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_users_get_all`()
 begin
@@ -3199,26 +4544,26 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_users_get_by_keyword`(
 	_keyword varchar(32)
 )
 begin
-	declare user_id int;
+    declare user_id int;
 
-	select id into user_id from users where keyword = _keyword;
+    select id into user_id from users where keyword = _keyword;
 
-	select u.id, u.posts_per_thread, u.threads_per_page, u.lines_per_post,
-		l.`name` as `language`, s.`name` as `stylesheet`, u.password, u.`goto`
-	from users u
-	join stylesheets s on u.stylesheet = s.id
-	join languages l on u.`language` = l.id
-	where u.keyword = _keyword;
+    select u.id, u.posts_per_thread, u.threads_per_page, u.lines_per_post,
+            l.code as language, s.name as stylesheet, u.password, u.`goto`
+        from users u
+        join stylesheets s on u.stylesheet = s.id
+        join languages l on u.language = l.id
+        where u.keyword = _keyword;
 
-	select g.`name` from user_groups ug
-	join users u on ug.`user` = u.id and u.id = user_id
-	join groups g on ug.`group` = g.id;
+    select g.name from user_groups ug
+        join users u on ug.user = u.id and u.id = user_id
+        join groups g on ug.`group` = g.id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -3233,14 +4578,14 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_users_set_password`(
 	_id int,
 	_password varchar(12)
 )
 begin
-	update users set `password` = _password where id = _id;
+	update users set password = _password where id = _id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -3255,14 +4600,14 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_user_groups_add`(
 	user_id int,
 	group_id int
 )
 begin
-	insert into user_groups (`user`, `group`) values (user_id, group_id);
+	insert into user_groups (user, `group`) values (user_id, group_id);
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -3277,14 +4622,14 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_user_groups_delete`(
 	user_id int,
 	group_id int
 )
 begin
-	delete from user_groups where `user` = user_id and `group` = group_id;
+	delete from user_groups where user = user_id and `group` = group_id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -3299,7 +4644,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_user_groups_edit`(
 	user_id int,
@@ -3308,7 +4653,7 @@ DELIMITER ;;
 )
 begin
 	update user_groups set `group` = new_group_id
-	where `user` = user_id and `group` = old_group_id;
+	where user = user_id and `group` = old_group_id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -3323,11 +4668,34 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_user_groups_get_all`()
 begin
-	select `user`, `group` from user_groups order by `user`, `group`;
+	select user, `group` from user_groups order by user, `group`;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_videos_get_by_post` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_videos_get_by_post`(
+	post_id int
+)
+begin
+	select v.id, v.code, v.widht, v.height
+	from posts_videos pv
+	join videos v on v.id = pv.video and pv.post = post_id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -3344,4 +4712,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2010-01-08 22:24:40
+-- Dump completed on 2010-05-05 16:54:28

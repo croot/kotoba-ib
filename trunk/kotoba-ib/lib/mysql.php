@@ -2506,9 +2506,9 @@ function db_upload_types_get_all($link)
  * 'upload_handler_name' - Имя обработчика загружаемых файлов.<br>
  * 'thumbnail_image' - Имя файла уменьшенной копии.</p>
  */
-function db_upload_types_get_board($link, $board_id)
+function db_upload_types_get_by_board($link, $board_id)
 {
-    $result = mysqli_query($link, "call sp_upload_types_get_board($board_id)");
+    $result = mysqli_query($link, "call sp_upload_types_get_by_board($board_id)");
     if(!$result)
         throw new CommonException(mysqli_error($link));
     $upload_types = array();
