@@ -1522,14 +1522,14 @@ create procedure sp_threads_add
 	_with_attachments bit
 )
 begin
-	declare thread_id int;
-	insert into threads (board, original_post, bump_limit, deleted, archived,
-		sage, sticky, with_attachments)
-	values (_board_id, _original_post, _bump_limit, 0, 0,
-		_sage, 0, _with_attachments);
-	select last_insert_id() into thread_id;
-	select id, board, original_post, bump_limit, sage, sticky, with_attachments
-	from threads where id = thread_id;
+    declare thread_id int;
+    insert into threads (board, original_post, bump_limit, deleted, archived,
+            sage, sticky, with_attachments)
+        values (board_id, _original_post, _bump_limit, 0, 0,
+            _sage, 0, _with_attachments);
+    select last_insert_id() into thread_id;
+    select id, board, original_post, bump_limit, sage, sticky, with_attachments
+        from threads where id = thread_id;
 end|
 
 -- Редактирует заданную нить.

@@ -206,6 +206,31 @@ function attachments_get_by_posts($posts)
 	}
 	return $attachments;
 }
+/**
+ * Получает вложения заданных сообщений.
+ * @param posts array <p>Сообщения.</p>
+ * @return array
+ * Возвращает вложения:<p>
+ * 'id' - Идентификатор.<br>
+ * 'attachment_type' - Тип вложения.<br>
+ * ... - Атрибуты, зависимые от конкретного типа вложения.</p>
+ */
+function attachments_get_same($posts)
+{
+	$attachments = array();
+	foreach($posts as $post)
+	{
+		foreach(db_files_get_by_post(DataExchange::getDBLink(), $post['id']) as $file)
+			array_push($attachments, $file);
+		foreach(db_images_get_by_post(DataExchange::getDBLink(), $post['id']) as $image)
+			array_push($attachments, $image);
+		foreach(db_links_get_by_post(DataExchange::getDBLink(), $post['id']) as $link)
+			array_push($attachments, $link);
+		foreach(db_videos_get_by_post(DataExchange::getDBLink(), $post['id']) as $video)
+			array_push($attachments, $video);
+	}
+	return $attachments;
+}
 
 /**************************
  * Работа с блокировками. *
@@ -2157,9 +2182,9 @@ function upload_types_get_all()
  * 'upload_handler_name' - Имя обработчика загружаемых файлов.<br>
  * 'thumbnail_image' - Имя файла уменьшенной копии.</p>
  */
-function upload_types_get_board($board_id)
+function upload_types_get_by_board($board_id)
 {
-    return db_upload_types_get_board(DataExchange::getDBLink(), $board_id);
+    return db_upload_types_get_by_board(DataExchange::getDBLink(), $board_id);
 }
 
 /***********************************************
