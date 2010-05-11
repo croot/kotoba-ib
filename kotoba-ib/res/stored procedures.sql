@@ -32,7 +32,9 @@ drop procedure if exists sp_categories_add|
 drop procedure if exists sp_categories_delete|
 drop procedure if exists sp_categories_get_all|
 
+drop procedure if exists sp_files_add|
 drop procedure if exists sp_files_get_by_post|
+drop procedure if exists sp_files_get_same|
 
 drop procedure if exists sp_groups_add|
 drop procedure if exists sp_groups_delete|
@@ -68,6 +70,7 @@ drop procedure if exists sp_posts_get_visible_by_id|
 drop procedure if exists sp_posts_get_visible_by_number|
 drop procedure if exists sp_posts_get_visible_by_thread|
 
+drop procedure if exists sp_posts_files_add|
 drop procedure if exists sp_posts_files_get_by_post|
 
 drop procedure if exists sp_posts_images_get_by_post|
@@ -112,6 +115,7 @@ drop procedure if exists sp_user_groups_get_all|
 drop procedure if exists sp_users_edit_by_keyword|
 drop procedure if exists sp_users_get_all|
 drop procedure if exists sp_users_get_by_keyword|
+drop procedure if exists sp_users_set_goto|
 drop procedure if exists sp_users_set_password|
 
 drop procedure if exists sp_videos_get_by_post|
@@ -717,6 +721,95 @@ begin
 	select id, name from categories;
 end|
 
+-- -------------------------------
+-- Работа с вложенными файлами. --
+-- -------------------------------
+
+-- Добавляет файл.
+--
+-- Аргументы:
+-- _hash - Хеш.
+-- _name - Имя.
+-- _size - Размер в байтах.
+-- _thumbnail - Уменьшенная копия.
+-- _thumbnail_w - Ширина уменьшенной копии.
+-- _thumbnail_h - Высота уменьшенной копии.
+create procedure sp_files_add
+(
+	_hash varchar(32),
+	_name varchar(256),
+	_size int,
+	_thumbnail varchar(256),
+	_thumbnail_w int,
+	_thumbnail_h int
+)
+begin
+    insert into files (hash, name, size, thumbnail, thumbnail_w, thumbnail_h)
+        values (_hash, _name, _size, _thumbnail, _thumbnail_w, _thumbnail_h);
+    select last_insert_id() as id;
+end|
+
+-- Выбирает файлы, вложенные в заданное сообщение.
+
+-- Аргументы:
+-- post_id - Идентификатор сообщения.
+create procedure sp_files_get_by_post
+(
+	post_id int
+)
+begin
+	select f.id, f.hash, f.name, f.size, f.thumbnail, f.thumbnail_w,
+		f.thumbnail_h
+	from posts_files pf
+	join files f on f.id = pf.file and pf.post = post_id;
+end|
+
+-- Выбирает одинаковые файлы, вложенные в сообщения на заданной доске.
+--
+-- Аргументы:
+-- board_id - Идентификатор доски.
+-- user_id - Идентификатор пользователя.
+-- hash - Хеш файла.
+create procedure sp_files_get_same
+(
+    board_id int,
+    user_id int,
+    file_hash varchar(32)
+)
+begin
+	select f.id, f.hash, f.name, f.size, f.thumbnail, f.thumbnail_w,
+            f.thumbnail_h, max(case when a1.`view` = 0 then 0
+                                    when a2.`view` = 0 then 0
+                                    when a3.`view` = 0 then 0
+                                    when a4.`view` = 0 then 0
+                                    when a5.`view` = 0 then 0
+                                    when a6.`view` = 0 then 0
+                                    when a7.`view` = 0 then 0
+                                    else 1 end) as `view`
+        from posts_files pf
+        join files f on f.id = pf.file
+        join posts p on p.id = pf.post and p.board = board_id
+        join threads t on t.id = p.thread
+        join user_groups ug on ug.user = user_id
+        -- Правило для конкретной группы и сообщения.
+        left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+        -- Правило для всех групп и конкретного сообщения.
+        left join acl a2 on a2.`group` is null and a2.post = p.id
+        -- Правила для конкретной группы и нити.
+        left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+        -- Правило для всех групп и конкретной нити.
+        left join acl a4 on a4.`group` is null and a4.thread = p.thread
+        -- Правила для конкретной группы и доски.
+        left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+        -- Правило для всех групп и конкретной доски.
+        left join acl a6 on a6.`group` is null and a6.board = p.board
+        -- Правило для конкретной групы.
+        left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+            and a7.thread is null and a7.post is null
+        where f.`hash` = file_hash and pf.deleted is null
+        group by f.id, p.id;
+end|
+
 -- ----------------------
 --  Работа с группами. --
 -- ----------------------
@@ -897,20 +990,20 @@ begin
 	join images i on i.id = pi.image and pi.post = post_id;
 end|
 
--- Выбирает одинаковые вложенные изображения на заданной доски.
+-- Выбирает одинаковые изображения, вложенные в сообщения на заданной доске.
 --
 -- Аргументы:
 -- board_id - Идентификатор доски.
--- image_hash - Хеш вложенного изображения.
 -- user_id - Идентификатор пользователя.
+-- image_hash - Хеш вложенного изображения.
 create procedure sp_images_get_same
 (
 	board_id int,
-	image_hash varchar(32),
-	user_id int
+	user_id int,
+	image_hash varchar(32)
 )
 begin
-	select i.id, i.hash, i.name, i.width, i.height, i.size, i.thumbnail,
+	select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail,
 		i.thumbnail_w, i.thumbnail_h, p.number, t.original_post,
 		max(case
 			when a1.`view` = 0 then 0
@@ -941,7 +1034,7 @@ begin
 	-- Правило для конкретной групы.
 	left join acl a7 on a7.`group` = ug.`group` and a7.board is null
 		and a7.thread is null and a7.post is null
-	where i.hash = image_hash
+	where i.hash = image_hash and pi.deleted is null
 	group by i.id, p.id;
 end|
 
@@ -1406,6 +1499,23 @@ end|
 -- Работа со связями сообщений и вложенных файлов. --
 -- --------------------------------------------------
 
+-- Добавляет связь сообщения с вложенным файлом.
+--
+-- Аргументы:
+-- _post - Идентификатор сообщения.
+-- _file - Идентификатор вложенного файла.
+-- _deleted - Флаг удаления.
+create procedure sp_posts_files_add
+(
+    _post int,
+    _file int,
+    _deleted bit
+)
+begin
+    insert into posts_files (post, file, deleted)
+        values (_post, _file, _deleted);
+end|
+
 -- Выбирает связи заданного сообщения с вложенными файлами.
 --
 -- Аргументы:
@@ -1476,10 +1586,10 @@ end|
 -- _name - Имя файла стиля.
 create procedure sp_stylesheets_add
 (
-	_name varchar(50)
+    _name varchar(50)
 )
 begin
-	insert into stylesheets (name) values (_name);
+    insert into stylesheets (name) values (_name);
 end|
 
 -- Удаляет заданный стиль.
@@ -2134,25 +2244,6 @@ begin
 	join upload_handlers uh on uh.id = ut.upload_handler;
 end|
 
--- -------------------------------
--- Работа с вложенными файлами. --
--- -------------------------------
-
--- Выбирает файлы, вложенные в заданное сообщение.
-
--- Аргументы:
--- post_id - Идентификатор сообщения.
-create procedure sp_files_get_by_post
-(
-	post_id int
-)
-begin
-	select f.id, f.hash, f.name, f.size, f.thumbnail, f.thumbnail_w,
-		f.thumbnail_h
-	from posts_files pf
-	join files f on f.id = pf.file and pf.post = post_id;
-end|
-
 -- -----------------------------------------------
 --  Работа со связями пользователей с группами. --
 -- -----------------------------------------------
@@ -2290,6 +2381,20 @@ begin
     select g.name from user_groups ug
         join users u on ug.user = u.id and u.id = user_id
         join groups g on ug.`group` = g.id;
+end|
+
+-- Устанавливает перенаправление заданному пользователю.
+--
+-- Аргументы:
+-- _id - Идентификатор пользователя.
+-- _goto - Перенаправление.
+create procedure sp_users_set_goto
+(
+	_id int,
+	_goto varchar(32)
+)
+begin
+	update users set `goto` = _goto where id = _id;
 end|
 
 -- Устанавливает пароль для удаления сообщений заданному пользователю.
@@ -2438,54 +2543,6 @@ begin
 	from uploads u
 	left join posts_uploads pu on pu.upload = u.id
 	where pu.upload is null;
-end|
-
--- Выбирает одинаковые загрузки для заданной доски.
---
--- Аргументы:
--- board_id - Идентификатор доски.
--- hash - Хеш файла.
--- user_id - Идентификатор пользователя.
-create procedure sp_uploads_get_same
-(
-	_board_id int,
-	_hash varchar(32),
-	_user_id int
-)
-begin
-	select u.id, u.`hash`, u.is_image, u.upload_type, u.`file`, u.image_w,
-		u.image_h, u.`size`, u.thumbnail, u.thumbnail_w, u.thumbnail_h,
-		p.`number`, t.original_post, max(case
-		when a1.`view` = 0 then 0
-		when a2.`view` = 0 then 0
-		when a3.`view` = 0 then 0
-		when a4.`view` = 0 then 0
-		when a5.`view` = 0 then 0
-		when a6.`view` = 0 then 0
-		when a7.`view` = 0 then 0
-		else 1 end) as `view`
-	from uploads u
-	join posts_uploads pu on pu.upload = u.id
-	join posts p on p.id = pu.post and p.board = _board_id
-	join threads t on t.id = p.thread
-	join user_groups ug on ug.`user` = _user_id
-	-- Правило для конкретной группы и сообщения.
-	left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
-	-- Правило для всех групп и конкретного сообщения.
-	left join acl a2 on a2.`group` is null and a2.post = p.id
-	-- Правила для конкретной группы и нити.
-	left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
-	-- Правило для всех групп и конкретной нити.
-	left join acl a4 on a4.`group` is null and a4.thread = p.thread
-	-- Правила для конкретной группы и доски.
-	left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
-	-- Правило для всех групп и конкретной доски.
-	left join acl a6 on a6.`group` is null and a6.board = p.board
-	-- Правило для конкретной групы.
-	left join acl a7 on a7.`group` = ug.`group` and a7.board is null
-		and a7.thread is null and a7.post is null
-	where u.`hash` = _hash
-	group by u.id, p.id;
 end|
 
 -- Proc for test mysql bit type support

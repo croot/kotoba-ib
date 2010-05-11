@@ -845,9 +845,9 @@ function db_boards_get_visible($link, $user_id)
  */
 function db_categories_add($link, $name)
 {
-	if(!mysqli_query($link, 'call sp_categories_add(\'' . $name . '\')'))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+    if(!mysqli_query($link, 'call sp_categories_add(\'' . $name . '\')'))
+        throw new CommonException(mysqli_error($link));
+    db_cleanup_link($link);
 }
 /**
  * Удаляет заданную категорию.
@@ -887,6 +887,32 @@ function db_categories_get_all($link)
  ********************************/
 
 /**
+ * Добавляет файл.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param hash string <p>Хеш.</p>
+ * @param name string <p>Имя.</p>
+ * @param size mixed <p>Размер в байтах.</p>
+ * @param thumbnail string <p>Уменьшенная копия.</p>
+ * @param thumbnail_w mixed <p>Ширина уменьшенной копии.</p>
+ * @param thumbnail_h mixed <p>Высота уменьшенной копии.</p>
+ * @return string
+ * Возвращает идентификатор вложенного файла.
+ */
+function db_files_add($link, $hash, $name, $size, $thumbnail, $thumbnail_w,
+    $thumbnail_h)
+{
+    $result = mysqli_query($link, 'call sp_files_add(\'' . $hash . '\', \'' . $name
+        . '\', ' . $size . ', \'' . $thumbnail . '\', ' . $thumbnail_w . ', '
+        . $thumbnail_h . ')');
+    if(!$result)
+		throw new CommonException(mysqli_error($link));
+	$row = mysqli_fetch_assoc($result);
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $row['id'];
+}
+
+/**
  * Получает файлы, вложенные в заданное сообщение.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param post_id mixed <p>Идентификатор сообщения.</p>
@@ -923,6 +949,47 @@ function db_files_get_by_post($link, $post_id)
     db_cleanup_link($link);
     return $files;
 }
+/**
+ * Получает одинаковые файлы, вложенные в сообщения на заданной доске.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param file_hash string <p>Хеш файла.</p>
+ * @return array
+ * Возвращает вложенные файлы:<p>
+ * 'id' - Идентификатор.<br>
+ * 'hash' - Хеш.<br>
+ * 'name' - Имя.<br>
+ * 'size' - Размер в байтах.<br>
+ * 'thumbnail' - Уменьшенная копия.<br>
+ * 'thumbnail_w' - Ширина уменьшенной копии.<br>
+ * 'thumbnail_h' - Высота уменьшенной копии.<br>
+ * 'attachment_type' - Тип вложения.<br>
+ * 'view' - Право на просмотр сообщения, в которое вложено изображение.</p>
+ */
+ function db_files_get_same($link, $board_id, $user_id, $file_hash)
+ {
+    $result = mysqli_query($link, 'call sp_files_get_same(' . $board_id . ', '
+        . $user_id . ', \'' . $file_hash . '\')');
+    if(!$result)
+        throw new CommonException(mysqli_error($link));
+    $files = array();
+    if(mysqli_affected_rows($link) > 0)
+        while(($row = mysqli_fetch_assoc($result)) !== null)
+            array_push($files,
+                array('id' => $row['id'],
+                      'hash' => $row['hash'],
+                      'name' => $row['name'],
+                      'size' => $row['size'],
+                      'thumbnail' => $row['thumbnail'],
+                      'thumbnail_w' => $row['thumbnail_w'],
+                      'thumbnail_h' => $row['thumbnail_h'],
+                      'attachment_type' => Config::ATTACHMENT_TYPE_FILE,
+                      'view' => $row['view']));
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $files;
+ }
 
 /**********************
  * Работа с группами. *
@@ -1149,11 +1216,11 @@ function db_images_get_by_post($link, $post_id)
 	return $images;
 }
 /**
- * Получает одинаковые вложенные изображения на заданной доски.
+ * Получает одинаковые изображения, вложенные в сообщения на заданной доске.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param board_id mixed <p>Идентификатор доски.</p>
- * @param image_hash string <p>Хеш вложенного изображения.</p>
  * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param image_hash string <p>Хеш вложенного изображения.</p>
  * @return array
  * Возвращает изображения:<p>
  * 'id' - Идентификатор.
@@ -1167,33 +1234,35 @@ function db_images_get_by_post($link, $post_id)
  * 'thumbnail_h' - Высота уменьшенной копии.</p>
  * 'post_number' - Номер сообщения, в которое вложено изображение.<br>
  * 'thread_number' - Номер нити с сообщением, в которое вложено	изображение.<br>
+ * 'attachment_type' - Тип вложения.<br>
  * 'view' - Право на просмотр сообщения, в которое вложено изображение.</p>
  */
-function db_images_get_same($link, $board_id, $image_hash, $user_id)
+function db_images_get_same($link, $board_id, $user_id, $image_hash)
 {
-	$result = mysqli_query($link, 'call sp_images_get_same(' . $board_id
-			. ', \'' . $image_hash . '\', ' . $user_id . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$images = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) !== null)
-			array_push($images,
-				array('id' => $row['id'],
-						'hash' => $row['hash'],
-						'name' => $row['name'],
-						'widht' => $row['widht'],
-						'height' => $row['height'],
-						'size' => $row['size'],
-						'thumbnail' => $row['thumbnail'],
-						'thumbnail_w' => $row['thumbnail_w'],
-						'thumbnail_h' => $row['thumbnail_h'],
-						'post_number' => $row['number'],
-						'thread_number' => $row['original_post'],
-						'view' => $row['view']));
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $images;
+    $result = mysqli_query($link, 'call sp_images_get_same(' . $board_id
+        . ', ' . $user_id . ', \'' . $image_hash . '\')');
+    if(!$result)
+        throw new CommonException(mysqli_error($link));
+    $images = array();
+    if(mysqli_affected_rows($link) > 0)
+        while(($row = mysqli_fetch_assoc($result)) !== null)
+            array_push($images,
+                array('id' => $row['id'],
+                      'hash' => $row['hash'],
+                      'name' => $row['name'],
+                      'widht' => $row['widht'],
+                      'height' => $row['height'],
+                      'size' => $row['size'],
+                      'thumbnail' => $row['thumbnail'],
+                      'thumbnail_w' => $row['thumbnail_w'],
+                      'thumbnail_h' => $row['thumbnail_h'],
+                      'post_number' => $row['number'],
+                      'thread_number' => $row['original_post'],
+                      'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE,
+                      'view' => $row['view']));
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $images;
 }
 
 /*********************
@@ -1378,37 +1447,39 @@ function db_popdown_handlers_get_all($link)
  * 'sage' - Флаг поднятия нити.</p>
  */
 function db_posts_add($link, $board_id, $thread_id, $user_id, $password, $name,
-	$tripcode, $ip, $subject, $date_time, $text, $sage)
+    $tripcode, $ip, $subject, $date_time, $text, $sage)
 {
-	$sage = $sage === null ? 'null' : $sage;
-	$password = $password == null ? 'null' : $password;
-	$result = mysqli_query($link, 'call sp_posts_add(' . $board_id . ', '
-		. $thread_id . ', ' . $user_id . ', \'' . $password . '\', \''
-		. $name . '\', \'' . $tripcode . '\', ' . $ip . ', \''
-		. $subject . '\', \'' . $date_time . '\', \'' . $text . '\', '
-		. $sage . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$post = null;
-	if(mysqli_affected_rows($link) > 0
-		&& ($row = mysqli_fetch_assoc($result)) !== null)
-	{
-		$post['id'] = $row['id'];
-		$post['board'] = $row['board'];
-		$post['thread'] = $row['thread'];
-		$post['number'] = $row['number'];
-		$post['password'] = $row['password'];
-		$post['name'] = $row['name'];
-		$post['tripcode'] = $row['tripcode'];
-		$post['ip'] = $row['ip'];
-		$post['subject'] = $row['subject'];
-		$post['date_time'] = $row['date_time'];
-		$post['text'] = $row['text'];
-		$post['sage'] = $row['sage'];
-	}
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $post;
+    if($sage === null)
+        $sage = 'null';
+    if($password == null)
+        $password = 'null';
+    $result = mysqli_query($link, 'call sp_posts_add(' . $board_id . ', '
+        . $thread_id . ', ' . $user_id . ', \'' . $password . '\', \''
+        . $name . '\', \'' . $tripcode . '\', ' . $ip . ', \''
+        . $subject . '\', \'' . $date_time . '\', \'' . $text . '\', '
+        . $sage . ')');
+    if(!$result)
+        throw new CommonException(mysqli_error($link));
+    $post = null;
+    if(mysqli_affected_rows($link) > 0
+        && ($row = mysqli_fetch_assoc($result)) !== null)
+    {
+        $post['id'] = $row['id'];
+        $post['board'] = $row['board'];
+        $post['thread'] = $row['thread'];
+        $post['number'] = $row['number'];
+        $post['password'] = $row['password'];
+        $post['name'] = $row['name'];
+        $post['tripcode'] = $row['tripcode'];
+        $post['ip'] = $row['ip'];
+        $post['subject'] = $row['subject'];
+        $post['date_time'] = $row['date_time'];
+        $post['text'] = $row['text'];
+        $post['sage'] = $row['sage'];
+    }
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $post;
 }
 /**
  * Добавляет текст в конец текста заданного сообщения.
@@ -1766,6 +1837,22 @@ function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id,
  ***************************************************/
 
 /**
+ * Добавляет связь сообщения с вложенным файлом.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param post mixed <p>Идентификатор сообщения.</p>
+ * @param file mixed <p>Идентификатор вложенного файла.</p>
+ * @param deleted mixed <p>Флаг удаления.</p>
+ */
+function db_posts_files_add($link, $post, $file, $deleted)
+{
+    if(!mysqli_query($link, 'call sp_posts_files_add(' . $post . ', ' . $file
+        . ', ' . $deleted . ')'))
+    {
+        throw new CommonException(mysqli_error($link));
+    }
+    db_cleanup_link($link);
+}
+/**
  * Получает связи заданного сообщения с вложенными файлами.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param post_id mixed <p>Идентификатор сообщения.</p>
@@ -1973,32 +2060,35 @@ function db_stylesheets_get_all($link)
  * Или null, если что-то пошло не так.
  */
 function db_threads_add($link, $board_id, $original_post, $bump_limit, $sage,
-	$with_files)
+	$with_attachments)
 {
-	$original_post = ($original_post === null ? 'null' : $original_post);
-	$bump_limit = ($bump_limit === null ? 'null' : $bump_limit);
-	$sage = $sage ? '1' : '0';
-	$with_files = $with_files === null ? 'null' : $with_files;
-	$result = mysqli_query($link, 'call sp_threads_add(' . $board_id . ', '
-		. $original_post . ', ' . $bump_limit . ', ' . $sage . ', '
-		. $with_files . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$thread = null;
-	if(mysqli_affected_rows($link) > 0
-		&& ($row = mysqli_fetch_assoc($result)) !== null)
-	{
-			$thread['id'] = $row['id'];
-			$thread['board'] = $row['board'];
-			$thread['original_post'] = $row['original_post'];
-			$thread['bump_limit'] = $row['bump_limit'];
-			$thread['sage'] = $row['sage'];
-			$thread['sticky'] = $row['sticky'];
-			$thread['with_attachments'] = $row['with_attachments'];
-	}
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $thread;
+    if($original_post === null)
+        $original_post = 'null';
+    if($bump_limit === null)
+        $bump_limit = 'null';
+    $sage = $sage ? '1' : '0';
+    if($with_attachments === null)
+        $with_attachments = 'null';
+    $result = mysqli_query($link, 'call sp_threads_add(' . $board_id . ', '
+        . $original_post . ', ' . $bump_limit . ', ' . $sage . ', '
+        . $with_attachments . ')');
+    if(!$result)
+        throw new CommonException(mysqli_error($link));
+    $thread = null;
+    if(mysqli_affected_rows($link) > 0
+        && ($row = mysqli_fetch_assoc($result)) !== null)
+    {
+        $thread['id'] = $row['id'];
+        $thread['board'] = $row['board'];
+        $thread['original_post'] = $row['original_post'];
+        $thread['bump_limit'] = $row['bump_limit'];
+        $thread['sage'] = $row['sage'];
+        $thread['sticky'] = $row['sticky'];
+        $thread['with_attachments'] = $row['with_attachments'];
+    }
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $thread;
 }
 /**
  * Редактирует заданную нить.
@@ -2707,6 +2797,21 @@ function db_users_get_by_keyword($link, $keyword)
     return $user_settings;
 }
 /**
+ * Устанавливает перенаправление заданному пользователю.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param id mixed <p>Идентификатор пользователя.</p>
+ * @param goto mixed <p>Перенаправление.</p>
+ */
+function db_users_set_goto($link, $id, $goto)
+{
+    if(!mysqli_query($link, 'call sp_users_set_goto(' . $id . ', \''
+        . $goto . '\')'))
+    {
+        throw new CommonException(mysqli_error($link));
+    }
+    db_cleanup_link($link);
+}
+/**
  * Устанавливает пароль для удаления сообщений заданному пользователю.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param id mixed <p>Идентификатор пользователя.</p>
@@ -2714,9 +2819,10 @@ function db_users_get_by_keyword($link, $keyword)
  */
 function db_users_set_password($link, $id, $password)
 {
-    $password = ($password === null? 'null' : "'$password'");
-    if(!mysqli_query($link, 'call sp_users_set_password(' . $id . ', '
-        . $password . ')'))
+    if($password === null)
+        $password = 'null';
+    if(!mysqli_query($link, 'call sp_users_set_password(' . $id . ', \''
+        . $password . '\')'))
     {
         throw new CommonException(mysqli_error($link));
     }

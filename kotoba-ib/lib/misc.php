@@ -267,14 +267,14 @@ function calculate_file_hash($path)
 	return $hash;
 }
 /**
- * Выводит информацию о загруженых ранее файлах.
+ * Выводит информацию об одинаковых вложениях.
  * @param smarty SmartyKotobaSetup <p>Шаблонизатор.</p>
  * @param board_name string <p>Имя доски.</p>
- * @param same_uploads array <p>Файлы.</p>
+ * @param same_attachments array <p>Одинаковые вложения.</p>
  */
-function show_same_uploads($smarty, $board_name, $same_uploads)
+function show_same_attachments($smarty, $board_name, $same_attachments)
 {
-	$smarty->assign('same_uploads', $same_uploads);
+	$smarty->assign('same_uploads', $same_attachments);
 	$smarty->assign('board_name', $board_name);
 	$smarty->display('same_uploads.tpl');
 }

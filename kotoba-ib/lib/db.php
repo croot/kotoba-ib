@@ -187,8 +187,8 @@ function posts_attachments_get_by_posts($posts)
  * @return array
  * Возвращает вложения:<p>
  * 'id' - Идентификатор.<br>
- * 'attachment_type' - Тип вложения.<br>
- * ... - Атрибуты, зависимые от конкретного типа вложения.</p>
+ * ... - Атрибуты, зависимые от конкретного типа вложения.<br>
+ * 'attachment_type' - Тип вложения.</p>
  */
 function attachments_get_by_posts($posts)
 {
@@ -207,28 +207,28 @@ function attachments_get_by_posts($posts)
 	return $attachments;
 }
 /**
- * Получает вложения заданных сообщений.
- * @param posts array <p>Сообщения.</p>
+ * Получает одинаковые вложения на заданной доске.
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param hash string <p>Хеш файла.</p>
  * @return array
  * Возвращает вложения:<p>
  * 'id' - Идентификатор.<br>
+ * ... - Атрибуты, зависимые от конкретного типа вложения.<br>
  * 'attachment_type' - Тип вложения.<br>
- * ... - Атрибуты, зависимые от конкретного типа вложения.</p>
+ * 'visible' - Право на просмотр сообщения, в которое вложено изображение.</p>
  */
-function attachments_get_same($posts)
+function attachments_get_same($board_id, $user_id, $hash)
 {
 	$attachments = array();
-	foreach($posts as $post)
-	{
-		foreach(db_files_get_by_post(DataExchange::getDBLink(), $post['id']) as $file)
-			array_push($attachments, $file);
-		foreach(db_images_get_by_post(DataExchange::getDBLink(), $post['id']) as $image)
-			array_push($attachments, $image);
-		foreach(db_links_get_by_post(DataExchange::getDBLink(), $post['id']) as $link)
-			array_push($attachments, $link);
-		foreach(db_videos_get_by_post(DataExchange::getDBLink(), $post['id']) as $video)
-			array_push($attachments, $video);
-	}
+    $files = db_files_get_same(DataExchange::getDBLink(), $board_id, $user_id,
+        $hash);
+    $images = db_images_get_same(DataExchange::getDBLink(), $board_id, $user_id,
+        $hash);
+    foreach($files as $file)
+        array_push($attachments, $file);
+    foreach($images as $image)
+        array_push($attachments, $image);
 	return $attachments;
 }
 
@@ -862,6 +862,28 @@ function categories_get_all()
 	return db_categories_get_all(DataExchange::getDBLink());
 }
 
+/********************************
+ * Работа с вложенными файлами. *
+ ********************************/
+
+/**
+ * Добавляет файл.
+ * @param hash string <p>Хеш.</p>
+ * @param name string <p>Имя.</p>
+ * @param size mixed <p>Размер в байтах.</p>
+ * @param thumbnail string <p>Уменьшенная копия.</p>
+ * @param thumbnail_w mixed <p>Ширина уменьшенной копии.</p>
+ * @param thumbnail_h mixed <p>Высота уменьшенной копии.</p>
+ * @return string
+ * Возвращает идентификатор вложенного файла.
+ */
+function files_add($hash, $name, $size, $thumbnail, $thumbnail_w,
+    $thumbnail_h)
+{
+    return db_files_add(DataExchange::getDBLink(), $hash, $name, $size, $thumbnail,
+        $thumbnail_w, $thumbnail_h);
+}
+
 /**********************
  * Работа с группами. *
  **********************/
@@ -1239,11 +1261,11 @@ function popdown_handlers_get_all()
  * 'sage' - Флаг поднятия нити.</p>
  */
 function posts_add($board_id, $thread_id, $user_id, $password, $name, $tripcode,
-	$ip, $subject, $date_time, $text, $sage)
+    $ip, $subject, $date_time, $text, $sage)
 {
-	return db_posts_add(DataExchange::getDBLink(), $board_id, $thread_id,
-		$user_id, $password, $name, $tripcode, $ip, $subject, $date_time, $text,
-		$sage);
+    return db_posts_add(DataExchange::getDBLink(), $board_id, $thread_id,
+        $user_id, $password, $name, $tripcode, $ip, $subject, $date_time, $text,
+        $sage);
 }
 /**
  * Добавляет текст в конец текста заданного сообщения.
@@ -1600,6 +1622,21 @@ function posts_prepare_text(&$text, $board)
 	$text = preg_replace('/\n/', '<br>', $text);
 }
 
+/***************************************************
+ * Работа со связями сообщений и вложенных файлов. *
+ ***************************************************/
+
+/**
+ * Добавляет связь сообщения с вложенным файлом.
+ * @param post mixed <p>Идентификатор сообщения.</p>
+ * @param file mixed <p>Идентификатор вложенного файла.</p>
+ * @param deleted mixed <p>Флаг удаления.</p>
+ */
+function posts_files_add($post, $file, $deleted)
+{
+    db_posts_files_add(DataExchange::getDBLink(), $post, $file, $deleted);
+}
+
 /**********************
  * Работа со стилями. *
  **********************/
@@ -1699,10 +1736,11 @@ function stylesheets_get_all()
  * 'with_attachments' - Флаг вложений.</p>
  * Или null, если что-то пошло не так.
  */
-function threads_add($board_id, $original_post, $bump_limit, $sage, $with_files)
+function threads_add($board_id, $original_post, $bump_limit, $sage,
+    $with_attachments)
 {
-	return db_threads_add(DataExchange::getDBLink(), $board_id, $original_post,
-		$bump_limit, $sage, $with_files);
+    return db_threads_add(DataExchange::getDBLink(), $board_id, $original_post,
+        $bump_limit, $sage, $with_attachments);
 }
 /**
  * Проверяет корректность специфичного для нити бамплимита.
@@ -2429,6 +2467,15 @@ function users_get_all()
 function users_get_by_keyword($keyword)
 {
     return db_users_get_by_keyword(DataExchange::getDBLink(), $keyword);
+}
+/**
+ * Устанавливает перенаправление заданному пользователю.
+ * @param id mixed <p>Идентификатор пользователя.</p>
+ * @param goto mixed <p>Перенаправление.</p>
+ */
+function users_set_goto($id, $goto)
+{
+    db_users_set_goto(DataExchange::getDBLink(), $id, $goto);
 }
 /**
  * Устанавливает пароль для удаления сообщений заданному пользователю.
