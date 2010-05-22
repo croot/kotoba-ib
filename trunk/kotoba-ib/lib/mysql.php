@@ -398,15 +398,17 @@ function db_boards_edit($link, $id, $title, $annotation, $bump_limit,
 		$annotation = 'null';
 	if($default_name === null)
 		$default_name = 'null';
+	if($with_attachments === null)
+		$with_attachments = 0;
 	if($enable_macro === null)
-		$enable_macro = 'null';
+		$enable_macro = 0;
 	if($enable_youtube === null)
-		$enable_youtube = 'null';
+		$enable_youtube = 0;
 	if($enable_captcha === null)
-		$enable_captcha = 'null';
-	if(!mysqli_query($link, "call sp_boards_edit($id, $title, $bump_limit,
-			$force_anonymous, $default_name, $with_files, '$same_upload',
-			$popdown_handler, $category)"))
+		$enable_captcha = 0;
+	if(!mysqli_query($link, "call sp_boards_edit($id, '$title', '$annotation', $bump_limit,
+			$force_anonymous, '$default_name', $with_attachments, $enable_macro,
+			$enable_youtube, $enable_captcha, $same_upload, $popdown_handler, $category)"))
 		throw new CommonException(mysqli_error($link));
 	db_cleanup_link($link);
 }
@@ -2711,7 +2713,7 @@ function db_users_edit_by_keyword($link, $keyword, $posts_per_thread,
 {
     $password = $password === null? 'null' : '\'' . $password . '\'';
     $goto = $goto === null? 'null' : '\'' . $goto . '\'';
-    if(!mysqli_query($link, 'call sp_users_edit_bykeyword(\'' . $keyword
+    if(!mysqli_query($link, 'call sp_users_edit_by_keyword(\'' . $keyword
          . '\', ' . $posts_per_thread . ', ' . $threads_per_page . ', '
          . $lines_per_post . ', ' . $language . ', ' . $stylesheet . ', '
          . $password . ', ' . $goto . ')'))

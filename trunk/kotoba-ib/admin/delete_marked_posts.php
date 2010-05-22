@@ -8,15 +8,14 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
-// Скприпт удаления помеченных на удаление сообщений и нитей.
+// Скрипт удаления помеченных на удаление сообщений и нитей.
 require '../config.php';
-require Config::ABS_PATH . '/modules/errors.php';
-require Config::ABS_PATH . '/modules/lang/' . Config::LANGUAGE . '/errors.php';
-require Config::ABS_PATH . '/modules/logging.php';
-require Config::ABS_PATH . '/modules/lang/' . Config::LANGUAGE . '/logging.php';
-require Config::ABS_PATH . '/modules/db.php';
-require Config::ABS_PATH . '/modules/cache.php';
-require Config::ABS_PATH . '/modules/common.php';
+require Config::ABS_PATH . '/lib/errors.php';
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
+require Config::ABS_PATH . '/lib/logging.php';
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
+require Config::ABS_PATH . '/lib/db.php';
+require Config::ABS_PATH . '/lib/misc.php';
 try
 {
 	kotoba_session_start();
@@ -28,7 +27,7 @@ try
 	Logging::write_message(sprintf(Logging::$messages['ADMIN_FUNCTIONS_DELETE_MARKED_POSTS'],
 				$_SESSION['user'], $_SERVER['REMOTE_ADDR']),
 			Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log');
-	posts_delete_all_marked();
+	posts_delete_marked();
 	DataExchange::releaseResources();
 	header('Location: ' . Config::DIR_PATH . '/manage.php');
 	exit;
