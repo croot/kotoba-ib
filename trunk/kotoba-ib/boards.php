@@ -85,6 +85,7 @@ try
 	$upload_types = upload_types_get_by_board($board['id']);
 	$macrochan_tags = array('orgasm_face');
 // Формирование вывода.
+	$board['annotation'] = html_entity_decode($board['annotation']);
 	$smarty->assign('board', $board);
 	$smarty->assign('boards', $boards);
 	$smarty->assign('is_admin', is_admin());

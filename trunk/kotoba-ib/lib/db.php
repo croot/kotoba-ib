@@ -434,7 +434,7 @@ function boards_check_annotation($annotation)
 {
 	if(strlen($annotation) > Config::MAX_ANNOTATION_LENGTH)
 		throw new LimitException(LimitException::$messages['MAX_ANNOTATION']);
-	return $annotation;
+	return htmlentities($annotation);
 }
 /**
  * Проверяет корректность специфичного для доски бамплимита.
