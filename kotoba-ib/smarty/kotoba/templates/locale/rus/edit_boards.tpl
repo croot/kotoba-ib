@@ -22,17 +22,21 @@
 <form action="{$DIR_PATH}/admin/edit_boards.php" method="post">
 <table border="1">
 <tr>
-	<td colspan="10">Чтобы добавить доску, введите все необходимые параметры.
+	<td colspan="14">Чтобы добавить доску, введите все необходимые параметры.
 	Чтобы отредактировать параметры существующих досок, отредактируйте
 	соотвествующие поля таблицы. Чтобы удалить доску, отметьте её.</td>
 </tr>
 <tr>
 	<td>Имя</td>
 	<td>Заголовок</td>
+	<td>Аннотация</td>
 	<td>Бамплимит</td>
 	<td>Не отображать имя отправителя</td>
 	<td>Имя отправителя по умолчанию</td>
 	<td>Разрешить загрузку файлов</td>
+	<td>Интеграция с макрочаном</td>
+	<td>Разрешить видео с ютуба</td>
+	<td>Включить капчу</td>
 	<td>Одинаковые загрузки</td>
 	<td>Обработчик тредов</td>
 	<td>Категория</td>
@@ -42,10 +46,14 @@
 <tr>
 	<td>{$boards[i].name}</td>
 	<td><input type="text" name="title_{$boards[i].id}" value="{$boards[i].title}"></td>
+	<td><input type="text" name="annotation_{$boards[i].id}" value="{$boards[i].annotation}"></td>
 	<td><input type="text" name="bump_limit_{$boards[i].id}" value="{$boards[i].bump_limit}"></td>
 	<td><input type="checkbox" name="force_anonymous_{$boards[i].id}" value="1"{if $boards[i].force_anonymous} checked{/if}></td>
 	<td><input type="text" name="default_name_{$boards[i].id}" value="{$boards[i].default_name}"></td>
-	<td><input type="checkbox" name="with_files_{$boards[i].id}" value="1"{if $boards[i].with_files} checked{/if}></td>
+	<td><input type="checkbox" name="with_files_{$boards[i].id}" value="1"{if $boards[i].with_attachments} checked{/if}></td>
+	<td><input type="checkbox" name="macro_{$boards[i].id}" value="1"{if $boards[i].enable_macro} checked{/if}></td>
+	<td><input type="checkbox" name="youtube_{$boards[i].id}" value="1"{if $boards[i].enable_youtube} checked{/if}></td>
+	<td><input type="checkbox" name="captcha_{$boards[i].id}" value="1"{if $boards[i].enable_captcha} checked{/if}></td>
 	<td><input type="text" name="same_upload_{$boards[i].id}" value="{$boards[i].same_upload}"></td>
 	<td>
 		<select name="popdown_handler_{$boards[i].id}">
@@ -67,10 +75,14 @@
 <tr>
 	<td><input type="text" name="new_name" value=""></td>
 	<td><input type="text" name="new_title" value=""></td>
+	<td><input type="text" name="new_annotation" value=""></td>
 	<td><input type="text" name="new_bump_limit" value=""></td>
 	<td><input type="checkbox" name="new_force_anonymous" value="1"></td>
 	<td><input type="text" name="new_default_name" value=""></td>
 	<td><input type="checkbox" name="new_with_files" value="1"></td>
+	<td><input type="checkbox" name="new_macro" value="1"></td>
+	<td><input type="checkbox" name="new_youtube" value="1"></td>
+	<td><input type="checkbox" name="new_captcha" value="1"></td>
 	<td><input type="text" name="new_same_upload" value=""></td>
 	<td>
 		<select name="new_popdown_handler">

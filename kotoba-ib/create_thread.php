@@ -99,7 +99,7 @@ try
     posts_check_text_size($text);
 
     $attachment_type = null;
-    if($board['with_attachments'])
+    if($board['with_attachments']==1)
     {
         if($_FILES['file']['error'] != UPLOAD_ERR_NO_FILE)
         {

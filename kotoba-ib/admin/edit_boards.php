@@ -10,13 +10,12 @@
  *********************************/
 // Скрипт редактирования досок.
 require '../config.php';
-require Config::ABS_PATH . '/modules/errors.php';
-require Config::ABS_PATH . '/modules/lang/' . Config::LANGUAGE . '/errors.php';
-require Config::ABS_PATH . '/modules/logging.php';
-require Config::ABS_PATH . '/modules/lang/' . Config::LANGUAGE . '/logging.php';
-require Config::ABS_PATH . '/modules/db.php';
-require Config::ABS_PATH . '/modules/cache.php';
-require Config::ABS_PATH . '/modules/common.php';
+require Config::ABS_PATH . '/lib/errors.php';
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
+require Config::ABS_PATH . '/lib/logging.php';
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
+require Config::ABS_PATH . '/lib/db.php';
+require Config::ABS_PATH . '/lib/misc.php';
 try
 {
 	kotoba_session_start();
@@ -25,7 +24,7 @@ try
 		$_SESSION['stylesheet']);
 	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));
 	if(!in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
-		throw new PremissionException(PremissionException::$messages['NOT_ADMIN']);
+		throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
 	Logging::write_message(sprintf(Logging::$messages['ADMIN_FUNCTIONS_EDIT_BOARDS'],
 				$_SESSION['user'], $_SERVER['REMOTE_ADDR']),
 			Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log');
@@ -38,6 +37,7 @@ try
 // Создание новой доски.
 		if(isset($_POST['new_name'])
 			&& isset($_POST['new_title'])
+			&& isset($_POST['new_annotation'])
 			&& isset($_POST['new_bump_limit'])
 			&& isset($_POST['new_default_name'])
 			&& isset($_POST['new_same_upload'])
@@ -54,6 +54,7 @@ try
 				$new_title = null;
 			else
 				$new_title = boards_check_title($_POST['new_title']);
+			$new_annotation = boards_check_annotation($_POST['new_annotation']);
 			$new_bump_limit = boards_check_bump_limit($_POST['new_bump_limit']);
 			if(isset($_POST['new_force_anonymous']))
 				$new_force_anonymous = '1';
@@ -67,6 +68,18 @@ try
 				$new_with_files = '1';
 			else
 				$new_with_files = '0';
+			if(isset($_POST['new_macro']))
+				$new_macro = '1';
+			else
+				$new_macro = '0';
+			if(isset($_POST['new_youtube']))
+				$new_youtube = '1';
+			else
+				$new_youtube = '0';
+			if(isset($_POST['new_captcha']))
+				$new_captcha = '1';
+			else
+				$new_captcha = '0';
 			$new_same_upload = boards_check_same_upload($_POST['new_same_upload']);
 			$new_popdown_handler = popdown_handlers_check_id($_POST['new_popdown_handler']);
 			$new_category = categories_check_id($_POST['new_category']);
@@ -78,18 +91,19 @@ try
 			foreach($boards as $board)
 				if($board['name'] == $new_name && $found = true)
 				{
-					boards_edit($board['id'], $new_title, $new_bump_limit,
+					boards_edit($board['id'], $new_title, $new_annotation, $new_bump_limit,
 						$new_force_anonymous, $new_default_name,
-						$new_with_files, $new_same_upload, $new_popdown_handler,
+						$new_with_files, $new_macro, $new_youtube, $new_captcha, $new_same_upload, $new_popdown_handler,
 						$new_category);
 					$reload_boards = true;
 					break;
 				}
 			if(!$found)
 			{
-				boards_add($new_name, $new_title, $new_bump_limit,
-					$new_force_anonymous, $new_default_name, $new_with_files,
-					$new_same_upload, $new_popdown_handler, $new_category);
+				boards_add($new_name, $new_title, $new_annotation, $new_bump_limit,
+					$new_force_anonymous, $new_default_name,
+					$new_with_files, $new_macro, $new_youtube, $new_captcha, $new_same_upload, $new_popdown_handler,
+					$new_category);
 				create_directories($new_name);
 				$reload_boards = true;
 			}
@@ -107,6 +121,16 @@ try
 					$new_title = null;
 				else
 					$new_title = boards_check_title($_POST[$param_name]);
+			}
+			$param_name = "annotation_{$board['id']}";
+			$new_annotation = $board['annotation'];
+			if(isset($_POST[$param_name])
+				&& $_POST[$param_name] != $board['annotation'])
+			{
+				if($_POST[$param_name] == '')
+					$new_annotation = null;
+				else
+					$new_annotation = boards_check_annotation($_POST[$param_name]);
 			}
 			// Был ли изменён специфичный для доски бамплимит?
 			$param_name = "bump_limit_{$board['id']}";
@@ -148,12 +172,54 @@ try
 					&& $_POST[$param_name] != $board['with_files'])
 			{
 				// Флаг был установлен 0 -> 1
-				$new_with_files = '1';
+				$new_with_files = 1;
 			}
 			if(!isset($_POST[$param_name]) && $board['with_files'])
 			{
 				// Флаг был снят 1 -> 0
-				$new_with_files = '0';
+				$new_with_files = 0;
+			}
+			// Была ли включена интеграция с макрочаном?
+			$param_name = "macro_{$board['id']}";
+			$new_macro = $board['enabled_macro'];
+			if(isset($_POST[$param_name])
+					&& $_POST[$param_name] != $board['enable_macro'])
+			{
+				// Флаг был установлен 0 -> 1
+				$new_macro = 1;
+			}
+			if(!isset($_POST[$param_name]) && $board['enable_macro'])
+			{
+				// Флаг был снят 1 -> 0
+				$new_macro = 0;
+			}
+			// Было ли разрешено видео с ютуба?
+			$param_name = "youtube_{$board['id']}";
+			$new_youtube = $board['enabled_youtube'];
+			if(isset($_POST[$param_name])
+					&& $_POST[$param_name] != $board['enable_youtube'])
+			{
+				// Флаг был установлен 0 -> 1
+				$new_youtube = 1;
+			}
+			if(!isset($_POST[$param_name]) && $board['enable_youtube'])
+			{
+				// Флаг был снят 1 -> 0
+				$new_youtube = 0;
+			}
+			// Была ли включена капча?
+			$param_name = "captcha_{$board['id']}";
+			$new_captcha = $board['enabled_captcha'];
+			if(isset($_POST[$param_name])
+					&& $_POST[$param_name] != $board['enable_captcha'])
+			{
+				// Флаг был установлен 0 -> 1
+				$new_captcha = 1;
+			}
+			if(!isset($_POST[$param_name]) && $board['enable_captcha'])
+			{
+				// Флаг был снят 1 -> 0
+				$new_captcha = 0;
 			}
 			// Была ли изменена политика загрузки одинаковых файлов?
 			$param_name = "same_upload_{$board['id']}";
@@ -181,17 +247,22 @@ try
 			}
 			// Были ли произведены какие-либо изменения?
 			if($new_title != $board['title']
+				|| $new_annotation != $board['annotation']
 				|| $new_bump_limit != $board['bump_limit']
 				|| $new_force_anonymous != $board['force_anonymous']
 				|| $new_default_name != $board['default_name']
 				|| $new_with_files != $board['with_files']
+				|| $new_macro != $board['enable_macro']
+				|| $new_youtube != $board['enable_youtube']
+				|| $new_captcha != $board['enable_captcha']
 				|| $new_same_upload != $board['same_upload']
 				|| $new_popdown_handler != $board['popdown_handler']
 				|| $new_category != $board['category'])
 			{
-				boards_edit($board['id'], $new_title, $new_bump_limit,
-					$new_force_anonymous, $new_default_name, $new_with_files,
-					$new_same_upload, $new_popdown_handler, $new_category);
+				boards_edit($board['id'], $new_title, $new_annotation, $new_bump_limit,
+					$new_force_anonymous, $new_default_name,
+					$new_with_files, $new_macro, $new_youtube, $new_captcha, $new_same_upload, $new_popdown_handler,
+					$new_category);
 				$reload_boards = true;
 			}
 		}// Изменение параметров существующих досок.

@@ -34,8 +34,8 @@ try {
                 $_SESSION['user'], $_SERVER['REMOTE_ADDR']),
             Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log');
     } else {
-        throw new PremissionException(PremissionException::$messages['NOT_ADMIN']
-             . ' ' . PremissionException::$messages['NOT_MOD']);
+        throw new PermissionException(PermissionException::$messages['NOT_ADMIN']
+             . ' ' . PermissionException::$messages['NOT_MOD']);
     }
 
     if (is_mod()) {
