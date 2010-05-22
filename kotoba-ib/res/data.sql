@@ -1,6 +1,6 @@
 delimiter |
-insert into languages (`id`, `name`) values (1, 'Russian')|
-insert into languages (`name`) values ('English')|
+insert into languages (`id`, `code`) values (1, 'rus')|
+insert into languages (`code`) values ('en')|
 insert into categories (`name`) values ('default')|
 -- insert into categories (`name`) values ('rule 34')|
 insert into popdown_handlers (`name`) values ('popdown_default_handler')|
