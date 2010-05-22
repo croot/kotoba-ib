@@ -150,19 +150,19 @@ engine=InnoDB|
 
 create table users						-- Пользователи.
 (
-	id int not null auto_increment,		-- Идентификатор.
-	keyword varchar(32) default null,	-- Хеш ключевого слова.
-	posts_per_thread int default null,	-- Число сообщений в нити на странице просмотра доски.
-	threads_per_page int default null,	-- Число нитей на странице просмотра доски.
-	lines_per_post int default null,	-- Количество строк в предпросмотре сообщения.
-	language int not null,				-- Идентификатор языка.
-	stylesheet int not null,			-- Идентификатор стиля.
-	password varchar(12) default null,	-- Пароль для удаления сообщений.
-	`goto` varchar(32) default null,	-- Перенаправление.
-	primary key (id),
-	unique key (keyword),
-	constraint foreign key (language) references languages (id) on delete restrict on update restrict,
-	constraint foreign key (stylesheet) references stylesheets (id) on delete restrict on update restrict
+    id int not null auto_increment,     -- Идентификатор.
+    keyword varchar(32) default null,   -- Хеш ключевого слова.
+    posts_per_thread int default null,  -- Число сообщений в нити на странице просмотра доски.
+    threads_per_page int default null,  -- Число нитей на странице просмотра доски.
+    lines_per_post int default null,    -- Количество строк в предпросмотре сообщения.
+    language int not null,              -- Идентификатор языка.
+    stylesheet int not null,            -- Идентификатор стиля.
+    password varchar(12) default null,  -- Пароль для удаления сообщений.
+    `goto` varchar(32) default null,    -- Перенаправление.
+    primary key (id),
+    unique key (keyword),
+    constraint foreign key (language) references languages (id) on delete restrict on update restrict,
+    constraint foreign key (stylesheet) references stylesheets (id) on delete restrict on update restrict
 )
 engine=InnoDB|
 
