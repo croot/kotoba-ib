@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 5.1.45, for redhat-linux-gnu (i386)
+-- MySQL dump 10.13  Distrib 5.1.32, for Win32 (ia32)
 --
 -- Host: localhost    Database: kotoba2
 -- ------------------------------------------------------
--- Server version	5.1.45
+-- Server version	5.1.32-community
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -28,8 +28,8 @@ USE `kotoba2`;
 --
 
 DROP TABLE IF EXISTS `acl`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `acl` (
   `group` int(11) DEFAULT NULL,
   `board` int(11) DEFAULT NULL,
@@ -47,15 +47,15 @@ CREATE TABLE `acl` (
   CONSTRAINT `acl_ibfk_3` FOREIGN KEY (`thread`) REFERENCES `threads` (`id`),
   CONSTRAINT `acl_ibfk_4` FOREIGN KEY (`post`) REFERENCES `posts` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `bans`
 --
 
 DROP TABLE IF EXISTS `bans`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `bans` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `range_beg` bigint(11) NOT NULL,
@@ -65,15 +65,15 @@ CREATE TABLE `bans` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `ip_range` (`range_beg`,`range_end`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `board_upload_types`
 --
 
 DROP TABLE IF EXISTS `board_upload_types`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `board_upload_types` (
   `board` int(11) NOT NULL,
   `upload_type` int(11) NOT NULL,
@@ -82,15 +82,15 @@ CREATE TABLE `board_upload_types` (
   CONSTRAINT `board_upload_types_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`),
   CONSTRAINT `board_upload_types_ibfk_2` FOREIGN KEY (`upload_type`) REFERENCES `upload_types` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `boards`
 --
 
 DROP TABLE IF EXISTS `boards`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `boards` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(16) COLLATE utf8_unicode_ci NOT NULL,
@@ -113,29 +113,29 @@ CREATE TABLE `boards` (
   CONSTRAINT `boards_ibfk_1` FOREIGN KEY (`category`) REFERENCES `categories` (`id`),
   CONSTRAINT `boards_ibfk_2` FOREIGN KEY (`popdown_handler`) REFERENCES `popdown_handlers` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `categories`
 --
 
 DROP TABLE IF EXISTS `categories`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `categories` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `files`
 --
 
 DROP TABLE IF EXISTS `files`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `files` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `hash` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -145,31 +145,31 @@ CREATE TABLE `files` (
   `thumbnail_w` int(11) NOT NULL,
   `thumbnail_h` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `groups`
 --
 
 DROP TABLE IF EXISTS `groups`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `groups` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `hidden_threads`
 --
 
 DROP TABLE IF EXISTS `hidden_threads`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `hidden_threads` (
   `user` int(11) DEFAULT NULL,
   `thread` int(11) DEFAULT NULL,
@@ -178,15 +178,15 @@ CREATE TABLE `hidden_threads` (
   CONSTRAINT `hidden_threads_ibfk_1` FOREIGN KEY (`user`) REFERENCES `users` (`id`),
   CONSTRAINT `hidden_threads_ibfk_2` FOREIGN KEY (`thread`) REFERENCES `threads` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `images`
 --
 
 DROP TABLE IF EXISTS `images`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `images` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `hash` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -199,29 +199,29 @@ CREATE TABLE `images` (
   `thumbnail_h` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=431 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `languages`
 --
 
 DROP TABLE IF EXISTS `languages`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `languages` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `code` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `links`
 --
 
 DROP TABLE IF EXISTS `links`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `links` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `url` varchar(2048) COLLATE utf8_unicode_ci NOT NULL,
@@ -233,29 +233,29 @@ CREATE TABLE `links` (
   `thumbnail_h` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `popdown_handlers`
 --
 
 DROP TABLE IF EXISTS `popdown_handlers`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `popdown_handlers` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `posts`
 --
 
 DROP TABLE IF EXISTS `posts`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `posts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `board` int(11) NOT NULL,
@@ -278,16 +278,16 @@ CREATE TABLE `posts` (
   CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`),
   CONSTRAINT `posts_ibfk_2` FOREIGN KEY (`user`) REFERENCES `users` (`id`),
   CONSTRAINT `posts_ibfk_3` FOREIGN KEY (`thread`) REFERENCES `threads` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=919 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB AUTO_INCREMENT=924 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `posts_files`
 --
 
 DROP TABLE IF EXISTS `posts_files`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `posts_files` (
   `post` int(11) NOT NULL,
   `file` int(11) NOT NULL,
@@ -297,15 +297,15 @@ CREATE TABLE `posts_files` (
   CONSTRAINT `posts_files_ibfk_1` FOREIGN KEY (`post`) REFERENCES `posts` (`id`),
   CONSTRAINT `posts_files_ibfk_2` FOREIGN KEY (`file`) REFERENCES `files` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `posts_images`
 --
 
 DROP TABLE IF EXISTS `posts_images`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `posts_images` (
   `post` int(11) NOT NULL,
   `image` int(11) NOT NULL,
@@ -315,15 +315,15 @@ CREATE TABLE `posts_images` (
   CONSTRAINT `posts_images_ibfk_1` FOREIGN KEY (`post`) REFERENCES `posts` (`id`),
   CONSTRAINT `posts_images_ibfk_2` FOREIGN KEY (`image`) REFERENCES `images` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `posts_links`
 --
 
 DROP TABLE IF EXISTS `posts_links`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `posts_links` (
   `post` int(11) NOT NULL,
   `link` int(11) NOT NULL,
@@ -333,15 +333,15 @@ CREATE TABLE `posts_links` (
   CONSTRAINT `posts_links_ibfk_1` FOREIGN KEY (`post`) REFERENCES `posts` (`id`),
   CONSTRAINT `posts_links_ibfk_2` FOREIGN KEY (`link`) REFERENCES `links` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `posts_uploads`
 --
 
 DROP TABLE IF EXISTS `posts_uploads`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `posts_uploads` (
   `post` int(11) NOT NULL,
   `upload` int(11) NOT NULL,
@@ -350,15 +350,15 @@ CREATE TABLE `posts_uploads` (
   CONSTRAINT `posts_uploads_ibfk_2` FOREIGN KEY (`post`) REFERENCES `posts` (`id`),
   CONSTRAINT `posts_uploads_ibfk_3` FOREIGN KEY (`upload`) REFERENCES `uploads` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `posts_videos`
 --
 
 DROP TABLE IF EXISTS `posts_videos`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `posts_videos` (
   `post` int(11) NOT NULL,
   `video` int(11) NOT NULL,
@@ -368,29 +368,29 @@ CREATE TABLE `posts_videos` (
   CONSTRAINT `posts_videos_ibfk_1` FOREIGN KEY (`post`) REFERENCES `posts` (`id`),
   CONSTRAINT `posts_videos_ibfk_2` FOREIGN KEY (`video`) REFERENCES `videos` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `stylesheets`
 --
 
 DROP TABLE IF EXISTS `stylesheets`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `stylesheets` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `threads`
 --
 
 DROP TABLE IF EXISTS `threads`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `threads` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `board` int(11) NOT NULL,
@@ -404,30 +404,30 @@ CREATE TABLE `threads` (
   PRIMARY KEY (`id`),
   KEY `board` (`board`),
   CONSTRAINT `threads_ibfk_1` FOREIGN KEY (`board`) REFERENCES `boards` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=835 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB AUTO_INCREMENT=840 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `upload_handlers`
 --
 
 DROP TABLE IF EXISTS `upload_handlers`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `upload_handlers` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `upload_types`
 --
 
 DROP TABLE IF EXISTS `upload_types`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `upload_types` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `extension` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
@@ -440,15 +440,15 @@ CREATE TABLE `upload_types` (
   KEY `upload_handler` (`upload_handler`),
   CONSTRAINT `upload_types_ibfk_1` FOREIGN KEY (`upload_handler`) REFERENCES `upload_handlers` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `uploads`
 --
 
 DROP TABLE IF EXISTS `uploads`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `uploads` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `hash` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -463,15 +463,15 @@ CREATE TABLE `uploads` (
   `thumbnail_h` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=441 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `user_groups`
 --
 
 DROP TABLE IF EXISTS `user_groups`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `user_groups` (
   `user` int(11) NOT NULL,
   `group` int(11) NOT NULL,
@@ -480,15 +480,15 @@ CREATE TABLE `user_groups` (
   CONSTRAINT `user_groups_ibfk_1` FOREIGN KEY (`group`) REFERENCES `groups` (`id`),
   CONSTRAINT `user_groups_ibfk_2` FOREIGN KEY (`user`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `users`
 --
 
 DROP TABLE IF EXISTS `users`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `keyword` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -505,16 +505,16 @@ CREATE TABLE `users` (
   KEY `stylesheet` (`stylesheet`),
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`language`) REFERENCES `languages` (`id`),
   CONSTRAINT `users_ibfk_2` FOREIGN KEY (`stylesheet`) REFERENCES `stylesheets` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `videos`
 --
 
 DROP TABLE IF EXISTS `videos`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
 CREATE TABLE `videos` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `code` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
@@ -522,7 +522,7 @@ CREATE TABLE `videos` (
   `height` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Dumping routines for database 'kotoba2'
@@ -1631,6 +1631,34 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_files_add` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_files_add`(
+	_hash varchar(32),
+	_name varchar(256),
+	_size int,
+	_thumbnail varchar(256),
+	_thumbnail_w int,
+	_thumbnail_h int
+)
+begin
+    insert into files (hash, name, size, thumbnail, thumbnail_w, thumbnail_h)
+        values (_hash, _name, _size, _thumbnail, _thumbnail_w, _thumbnail_h);
+    select last_insert_id() as id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_files_get_by_post` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -1649,6 +1677,59 @@ begin
 		f.thumbnail_h
 	from posts_files pf
 	join files f on f.id = pf.file and pf.post = post_id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_files_get_same` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_files_get_same`(
+    board_id int,
+    user_id int,
+    file_hash varchar(32)
+)
+begin
+	select f.id, f.hash, f.name, f.size, f.thumbnail, f.thumbnail_w,
+            f.thumbnail_h, max(case when a1.`view` = 0 then 0
+                                    when a2.`view` = 0 then 0
+                                    when a3.`view` = 0 then 0
+                                    when a4.`view` = 0 then 0
+                                    when a5.`view` = 0 then 0
+                                    when a6.`view` = 0 then 0
+                                    when a7.`view` = 0 then 0
+                                    else 1 end) as `view`
+        from posts_files pf
+        join files f on f.id = pf.file
+        join posts p on p.id = pf.post and p.board = board_id
+        join threads t on t.id = p.thread
+        join user_groups ug on ug.user = user_id
+        
+        left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+        
+        left join acl a2 on a2.`group` is null and a2.post = p.id
+        
+        left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+        
+        left join acl a4 on a4.`group` is null and a4.thread = p.thread
+        
+        left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+        
+        left join acl a6 on a6.`group` is null and a6.board = p.board
+        
+        left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+            and a7.thread is null and a7.post is null
+        where f.`hash` = file_hash and pf.deleted is null
+        group by f.id, p.id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1906,11 +1987,11 @@ DELIMITER ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_images_get_same`(
 	board_id int,
-	image_hash varchar(32),
-	user_id int
+	user_id int,
+	image_hash varchar(32)
 )
 begin
-	select i.id, i.hash, i.name, i.width, i.height, i.size, i.thumbnail,
+	select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail,
 		i.thumbnail_w, i.thumbnail_h, p.number, t.original_post,
 		max(case
 			when a1.`view` = 0 then 0
@@ -1941,7 +2022,7 @@ begin
 	
 	left join acl a7 on a7.`group` = ug.`group` and a7.board is null
 		and a7.thread is null and a7.post is null
-	where i.hash = image_hash
+	where i.hash = image_hash and pi.deleted is null
 	group by i.id, p.id;
 end */;;
 DELIMITER ;
@@ -2341,6 +2422,30 @@ DELIMITER ;;
 )
 begin
 	update posts set text = concat(text, _text) where id = _id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_posts_files_add` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_posts_files_add`(
+    _post int,
+    _file int,
+    _deleted bit
+)
+begin
+    insert into posts_files (post, file, deleted)
+        values (_post, _file, _deleted);
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -2871,10 +2976,10 @@ DELIMITER ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_stylesheets_add`(
-	_name varchar(50)
+    _name varchar(50)
 )
 begin
-	insert into stylesheets (name) values (_name);
+    insert into stylesheets (name) values (_name);
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -2961,14 +3066,14 @@ DELIMITER ;;
 	_with_attachments bit
 )
 begin
-	declare thread_id int;
-	insert into threads (board, original_post, bump_limit, deleted, archived,
-		sage, sticky, with_attachments)
-	values (_board_id, _original_post, _bump_limit, 0, 0,
-		_sage, 0, _with_attachments);
-	select last_insert_id() into thread_id;
-	select id, board, original_post, bump_limit, sage, sticky, with_attachments
-	from threads where id = thread_id;
+    declare thread_id int;
+    insert into threads (board, original_post, bump_limit, deleted, archived,
+            sage, sticky, with_attachments)
+        values (board_id, _original_post, _bump_limit, 0, 0,
+            _sage, 0, _with_attachments);
+    select last_insert_id() into thread_id;
+    select id, board, original_post, bump_limit, sage, sticky, with_attachments
+        from threads where id = thread_id;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -4570,6 +4675,28 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_users_set_goto` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`root`@`localhost`*/ /*!50003 PROCEDURE `sp_users_set_goto`(
+	_id int,
+	_goto varchar(32)
+)
+begin
+	update users set `goto` = _goto where id = _id;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_users_set_password` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -4712,4 +4839,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2010-05-05 16:54:28
+-- Dump completed on 2010-05-23  7:05:54

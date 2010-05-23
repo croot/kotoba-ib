@@ -391,25 +391,38 @@ function db_boards_delete($link, $id)
 function db_boards_edit($link, $id, $title, $annotation, $bump_limit,
 	$force_anonymous, $default_name, $with_attachments, $enable_macro,
 	$enable_youtube, $enable_captcha, $same_upload, $popdown_handler, $category)
-{
-	if($title === null)
+{ // Java CC.
+	if ($title === null) {
 		$title = 'null';
-	if($annotation === null)
+    }
+	if ($annotation === null) {
 		$annotation = 'null';
-	if($default_name === null)
+    }
+	if ($default_name === null) {
 		$default_name = 'null';
-	if($with_attachments === null)
+    }
+	if ($with_attachments === null) {
 		$with_attachments = 0;
-	if($enable_macro === null)
+    }
+	if ($enable_macro === null) {
 		$enable_macro = 0;
-	if($enable_youtube === null)
+    }
+	if ($enable_youtube === null) {
 		$enable_youtube = 0;
-	if($enable_captcha === null)
+    }
+	if ($enable_captcha === null) {
 		$enable_captcha = 0;
-	if(!mysqli_query($link, "call sp_boards_edit($id, '$title', '$annotation', $bump_limit,
-			$force_anonymous, '$default_name', $with_attachments, $enable_macro,
-			$enable_youtube, $enable_captcha, $same_upload, $popdown_handler, $category)"))
+    }
+    
+	if (!mysqli_query($link, 'call sp_boards_edit(' . $id . ', \''
+            . $title . '\', \'' . $annotation . '\', ' . $bump_limit . ', '
+            . $force_anonymous . ', \'' . $default_name . '\', '
+            . $with_attachments . ', ' . $enable_macro . ', '
+            . $enable_youtube . ', ' . $enable_captcha . ', \''
+            . $same_upload . '\', ' . $popdown_handler . ', '
+            . $category . ')')) {
 		throw new CommonException(mysqli_error($link));
+    }
 	db_cleanup_link($link);
 }
 /**
