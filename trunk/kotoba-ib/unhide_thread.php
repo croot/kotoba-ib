@@ -10,13 +10,12 @@
  *********************************/
 // Скрипт отмены скрытия нити.
 require 'config.php';
-require 'modules/errors.php';
-require 'modules/lang/' . Config::LANGUAGE . '/errors.php';
-require 'modules/db.php';
-require 'modules/cache.php';
-require 'modules/common.php';
-require 'modules/popdown_handlers.php';
-require 'modules/events.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
+require_once Config::ABS_PATH . '/lib/logging.php';
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
 try
 {
 	kotoba_session_start();
@@ -26,7 +25,7 @@ try
 	// Возможно завершение работы скрипта.
 	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));
 	if(is_guest())
-		throw new PremissionException(PremissionException::$messages['GUEST']);
+		throw new PermissionException(PermissionException::$messages['GUEST']);
 // Проверка входных параметров и отмена скрытия нити.
 	if(isset($_POST['thread']) && isset($_POST['board_name']))
 	{

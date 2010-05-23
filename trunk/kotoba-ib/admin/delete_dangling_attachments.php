@@ -24,7 +24,7 @@ try
 	// Возможно завершение работы скрипта.
 	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));
 	if(!in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
-		throw new PremissionException(PremissionException::$messages['NOT_ADMIN']);
+		throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
 	Logging::write_message(sprintf(Logging::$messages['ADMIN_FUNCTIONS_DELETE_DANGLING_FILES'],
 				$_SESSION['user'], $_SERVER['REMOTE_ADDR']),
 			Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log');

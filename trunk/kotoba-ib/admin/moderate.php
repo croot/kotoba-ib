@@ -31,8 +31,8 @@ try
 	}
 	if(!$is_admin && !is_mod())
 	{
-		throw new PremissionException(PremissionException::$messages['NOT_ADMIN']
-			 . ' ' . PremissionException::$messages['NOT_MOD']);
+		throw new PermissionException(PermissionException::$messages['NOT_ADMIN']
+			 . ' ' . PermissionException::$messages['NOT_MOD']);
 	}
 	Logging::write_message(sprintf(Logging::$messages['MOD_FUNCTIONS_MODERATE'],
 				$_SESSION['user'], $_SERVER['REMOTE_ADDR']),
@@ -56,7 +56,7 @@ try
 			if($is_admin)
 				$filter_boards = $boards;
 			else
-				throw new PremissionException(PremissionException::$messages['NOT_ADMIN']);
+				throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
 		}
 		else
 		{
