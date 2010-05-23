@@ -10,13 +10,12 @@
  *********************************/
 // Скрипт удаления закреплений файлов за сообщением.
 require 'config.php';
-require 'modules/errors.php';
-require 'modules/lang/' . Config::LANGUAGE . '/errors.php';
-require 'modules/db.php';
-require 'modules/cache.php';
-require 'modules/common.php';
-require 'modules/popdown_handlers.php';
-require 'modules/events.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
+require_once Config::ABS_PATH . '/lib/logging.php';
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
 try
 {
 	kotoba_session_start();
