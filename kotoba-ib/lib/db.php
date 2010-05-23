@@ -430,11 +430,13 @@ function boards_add($name, $title, $annotation, $bump_limit, $force_anonymous,
  * @return string
  * Возвращает аннотацию.
  */
-function boards_check_annotation($annotation)
-{
-	if(strlen($annotation) > Config::MAX_ANNOTATION_LENGTH)
+function boards_check_annotation($annotation) { // Java CC.
+    $tmp = htmlentities($annotation, ENT_QUOTES, Config::MB_ENCODING);
+    
+	if (strlen($tmp) > Config::MAX_ANNOTATION_LENGTH) {
 		throw new LimitException(LimitException::$messages['MAX_ANNOTATION']);
-	return htmlentities($annotation, ENT_QUOTES, Config::MB_ENCODING);
+    }
+	return $tmp;
 }
 /**
  * Проверяет корректность специфичного для доски бамплимита.
