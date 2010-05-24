@@ -96,7 +96,7 @@ drop procedure if exists sp_threads_get_moderatable_by_id|
 drop procedure if exists sp_threads_get_visible_by_board|
 drop procedure if exists sp_threads_get_visible_by_id|
 drop procedure if exists sp_threads_get_visible_count|
-drop procedure if exists sp_threads_search_by_board|
+drop procedure if exists sp_threads_search_visible_by_board|
 
 drop procedure if exists sp_upload_handlers_add|
 drop procedure if exists sp_upload_handlers_delete|
