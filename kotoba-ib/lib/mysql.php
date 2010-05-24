@@ -2454,6 +2454,7 @@ function db_threads_search_visible_by_board($link, $board_id, $page, $user_id,
 		if($page == 1)
 			$threads = array_merge($sticky_threads, $threads);
 		mysqli_free_result($result);
+        db_cleanup_link($link);
 	}
 	db_cleanup_link($link);
 	return $threads;
