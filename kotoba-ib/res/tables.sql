@@ -75,17 +75,17 @@ create table languages				-- Языки.
 )
 engine=InnoDB|
 
-create table links						-- Вложенные ссылки на изображения.
+create table links                      -- Вложенные ссылки на изображения.
 (
-	id int not null auto_increment,		-- Идентификатор.
-	url varchar(2048) not null,			-- URL.
-	widht int not null,					-- Ширина.
-	height int not null,				-- Высота.
-	size int not null,					-- Размер в байтах.
-	thumbnail varchar(2048) not null,	-- URL уменьшенной копии.
-	thumbnail_w int not null,			-- Ширина уменьшенной копии.
-	thumbnail_h int not null,			-- Высота уменьшенной копии.
-	primary key (id)
+    id int not null auto_increment,     -- Идентификатор.
+    url varchar(2048) not null,         -- URL.
+    widht int not null,                 -- Ширина.
+    height int not null,                -- Высота.
+    size int not null,                  -- Размер в байтах.
+    thumbnail varchar(2048) not null,   -- URL уменьшенной копии.
+    thumbnail_w int not null,           -- Ширина уменьшенной копии.
+    thumbnail_h int not null,           -- Высота уменьшенной копии.
+    primary key (id)
 )
 engine=InnoDB|
 
