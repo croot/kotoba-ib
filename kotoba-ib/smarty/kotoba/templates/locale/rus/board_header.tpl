@@ -39,9 +39,14 @@
 <div class="navbar">{include file='board_list.tpl' boards=$boards DIR_PATH=$DIR_PATH} [<a href="{$DIR_PATH}/">Главная</a>]</div>
 
 <div class="logo">{$ib_name} — /{$board.name}/ {$board.title}</div>
+<div class="search">
+<form name="searchform" id="searchform" action="{$DIR_PATH}/search.php" method="post">
+<input type="text" name="search">&nbsp;<input type="submit" value="Искать">
+<input type="hidden" name="board" value="{$board.name}">
+</form>
+</div>
 {include file='pages_list.tpl' board_name=$board.name pages=$pages page=$page}
 <hr>
-
 <div class="postarea">
 <form name="postform" id="postform" action="{$DIR_PATH}/create_thread.php" method="post" enctype="multipart/form-data">
 <input type="hidden" name="MAX_FILE_SIZE" value="1560576">
