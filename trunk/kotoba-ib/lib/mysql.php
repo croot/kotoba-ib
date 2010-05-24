@@ -2415,7 +2415,7 @@ function db_threads_search_visible_by_board($link, $board_id, $page, $user_id,
 	foreach($words as $word)
 	{
 		if(strlen($word) > 60)
-			throw new SearchException(SearchException::$message['LONG_WORD']);
+			throw new SearchException(SearchException::$messages['LONG_WORD']);
 		$result = mysqli_query($link, 'call sp_threads_search_visible_by_board('
 			. $board_id . ', ' . $user_id . ', "' . $word . '")');
 		if(!$result)
