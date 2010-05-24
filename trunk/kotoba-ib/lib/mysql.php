@@ -2402,7 +2402,9 @@ function db_threads_search_visible_by_board($link, $board_id, $page, $user_id,
 	$threads_per_page, $string)
 {
 	$threads = array();
+	$threads_ids = array(); //Для проверки уже добавленых нитей
 	$sticky_threads = array();
+	$sticky_threads_ids = array(); //Для проверки уже добавленых нитей
 	/*
 	 * Количество нитей, которое нужно пропустить, чтобы выбирать нити только
 	 * для нужной страницы.
@@ -2423,9 +2425,10 @@ function db_threads_search_visible_by_board($link, $board_id, $page, $user_id,
 		if(mysqli_affected_rows($link) > 0)
 			while(($row = mysqli_fetch_assoc($result)) != null)
 			{
-				if($row['sticky'])
+				if($row['sticky'] && !in_array($row['id'], $sticky_threads_ids))
 				{
 					if($page == 1)
+					{
 						// Закреплённые нити будут показаны только на 1 странице.
 						array_push($sticky_threads,
 							array('id' => $row['id'],
@@ -2435,10 +2438,12 @@ function db_threads_search_visible_by_board($link, $board_id, $page, $user_id,
 									'sage' => $row['sage'],
 									'with_attachments' => $row['with_attachments'],
 									'posts_count' => $row['posts_count']));
+						array_push($sticky_threads_ids, $row['id']);
+					}
 					continue;
 				}
 				$number++;
-				if($number > $skip && $received < $threads_per_page)
+				if($number > $skip && $received < $threads_per_page && !in_array($row['id'], $threads_ids))
 				{
 					array_push($threads,
 						array('id' => $row['id'],
@@ -2448,15 +2453,13 @@ function db_threads_search_visible_by_board($link, $board_id, $page, $user_id,
 								'sage' => $row['sage'],
 								'with_attachments' => $row['with_attachments'],
 								'posts_count' => $row['posts_count']));
+					array_push($threads_ids, $row['id']);
 					$received++;
 				}
 			}
-		if($page == 1)
-			$threads = array_merge($sticky_threads, $threads);
 		mysqli_free_result($result);
         db_cleanup_link($link);
 	}
-	db_cleanup_link($link);
 	return $threads;
 }
 /**
