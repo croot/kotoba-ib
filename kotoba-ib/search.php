@@ -110,7 +110,7 @@ try
 	$smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
 	$smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
 	//event_daynight($smarty);	// EVENT HERE! (not default kotoba function)
-	$boards_html = $smarty->fetch('board_header.tpl');
+	$boards_html = $smarty->fetch('search_header.tpl');
 	$boards_thread_html = '';		// Код предпросмотра нити.
 	$boards_posts_html = '';		// Код сообщений из препдпросмотра нитей.
 	$recived_posts_count = 0;		// Количество показанных сообщений в предпросмотре нити.
@@ -252,9 +252,9 @@ try
 		$smarty->assign('skipped', ($t['posts_count'] - $recived_posts_count));
 		$smarty->assign('original_post', $original_post);
 		$smarty->assign('original_attachments', $original_attachments);
-		$boards_thread_html .= $smarty->fetch('board_thread_header.tpl');
+		$boards_thread_html .= $smarty->fetch('search_thread_header.tpl');
 		$boards_thread_html .= $boards_posts_html;
-		$boards_thread_html .= $smarty->fetch('board_thread_footer.tpl');
+		$boards_thread_html .= $smarty->fetch('search_thread_footer.tpl');
 		$boards_html .= $boards_thread_html;
 		$boards_thread_html = '';
 		$boards_posts_html = '';
@@ -263,7 +263,7 @@ try
 		$original_attachments = array();
 	}
 	$smarty->assign('hidden_threads', $hidden_threads);
-	$boards_html .= $smarty->fetch('board_footer.tpl');
+	$boards_html .= $smarty->fetch('search_footer.tpl');
 	DataExchange::releaseResources();
 	echo $boards_html;
 	exit;
