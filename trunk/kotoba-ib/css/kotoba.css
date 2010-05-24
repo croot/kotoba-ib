@@ -257,3 +257,8 @@ form {display: inline;
 	margin: 0px 0px 0px 31%;
 	text-align: left;
 }
+
+.search
+{
+	float: right;
+}

@@ -38,6 +38,37 @@ class CommonException extends Exception
 	}
 }
 /**
+ * Ошибки поиска.
+ */
+class SearchException extends Exception
+{
+	static $messages;
+	private $reason;
+	/**
+	 * Создаёт новое исключение с заданным сообщением.
+	 * @param message string <p>Сообщение.</p>
+	 */
+	public function __construct($message)
+	{
+		$this->reason = $message;
+		parent::__construct($message);
+	}
+	/**
+	 * Возвращает данные об исключении.
+	 */
+	public function __toString()
+	{
+		return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
+	}
+	/**
+	 * Возвращает причину произошедшей ошибки.
+	 */
+	public function getReason()
+	{
+		return $this->reason;
+	}
+}
+/**
  * Ошибки отсутствия данных.
  */
 class NodataException extends Exception

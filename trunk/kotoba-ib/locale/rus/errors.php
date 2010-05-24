@@ -32,6 +32,13 @@ CommonException::$messages['ACL_RULE_EXCESS'] = 'Получена избыточ
 CommonException::$messages['ACL_RULE_CONFLICT'] = 'Конфликт разрешений для правила. Читайте в res/notes.txt раздел, посвященный правилам.';
 CommonException::$messages['CAPTCHA'] = 'Код подтвержения не верен.';
 
+/******************
+ * Ошибки поиска. *
+ ******************/
+
+SearchException::$messages['NO_WORDS'] = 'Введите слова для поиска.';
+SearchException::$messages['LONG_WORD'] = 'Одно из слов имеет длинну более 60 символов.';
+
 /*****************************
  * Ошибки отсутствия данных. *
  *****************************/

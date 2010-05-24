@@ -1946,6 +1946,30 @@ function threads_get_visible_by_board($board_id, $page, $user_id,
 		$page, $user_id, $threads_per_page);
 }
 /**
+ * Ищет с заданной страницы доски доступные для просмотра пользователю нити
+ * и количество сообщений в них.
+ * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param page mixed <p>Номер страницы.</p>
+ * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param threads_per_page mixed <p>Количество нитей на странице.</p>
+ * @param string mixed <p>Слова для поиска.</p>
+ * @return array
+ * Возвращает нити:<p>
+ * 'id' - Идентификатор.<br>
+ * 'original_post' - Номер оригинального сообщения.<br>
+ * 'bump_limit' - Специфичный для нити бамплимит.<br>
+ * 'sage' - Флаг поднятия нити.<br>
+ * 'sticky' - Флаг закрепления.<br>
+ * 'with_attachments' - Флаг вложений.<br>
+ * 'posts_count' - Число доступных для просмотра сообщений.</p>
+ */
+function threads_search_visible_by_board($board_id, $page, $user_id,
+	$threads_per_page, $string)
+{
+	return db_threads_search_visible_by_board(DataExchange::getDBLink(), $board_id,
+		$page, $user_id, $threads_per_page, $string);
+}
+/**
  * Получает заданную нить, доступную для просмотра заданному пользователю.
  * @param board_id mixed <p>Идентификатор доски.</p>
  * @param thread_num mixed <p>Номер нити.</p>

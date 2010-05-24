@@ -96,6 +96,7 @@ drop procedure if exists sp_threads_get_moderatable_by_id|
 drop procedure if exists sp_threads_get_visible_by_board|
 drop procedure if exists sp_threads_get_visible_by_id|
 drop procedure if exists sp_threads_get_visible_count|
+drop procedure if exists sp_threads_search_by_board|
 
 drop procedure if exists sp_upload_handlers_add|
 drop procedure if exists sp_upload_handlers_delete|
@@ -2128,6 +2129,88 @@ begin
 			-- просмотр разрешен конкретной группе.
 			and a5.`view` = 1)
 	group by t.id) q;
+end|
+
+-- Ищет с заданной доски доступные для просмотра пользователю нити и
+-- количество сообщений в них.
+--
+-- Аргументы:
+-- board_id - Идентификатор доски.
+-- user_id - Идентификатор пользователя.
+-- word - Слово для поиска.
+create procedure sp_threads_search_visible_by_board
+(	
+	board_id int,
+	user_id int,
+	word varchar(60)
+)
+begin
+	select q1.id, q1.original_post, q1.bump_limit, q1.sticky, q1.sage,
+		q1.with_attachments, q1.posts_count, q1.last_post_num
+	from (
+		-- Без учёта сообщений с сажей вычислим последнее сообщение в нити.
+		select q.id, q.original_post, q.bump_limit, q.sticky, q.sage,
+			q.with_attachments, q.posts_count, max(p.number) as last_post_num
+		from posts p
+		join (
+			-- Выберем видимые нити и подсчитаем количество видимых сообщений.
+			select t.id, t.original_post, t.bump_limit, t.sticky, t.sage,
+				t.with_attachments, count(distinct p.id) as posts_count
+			from posts p
+			join threads t on t.id = p.thread and t.board = board_id
+			join user_groups ug on ug.`user` = user_id
+			left join hidden_threads ht on ht.thread = t.id
+				and ht.user = ug.user
+			-- Правило для конкретной группы и сообщения.
+			left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+			-- Правило для всех групп и конкретного сообщения.
+			left join acl a2 on a2.`group` is null and a2.post = p.id
+			-- Правила для конкретной группы и нити.
+			left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+			-- Правило для всех групп и конкретной нити.
+			left join acl a4 on a4.`group` is null and a4.thread = p.thread
+			-- Правила для конкретной группы и доски.
+			left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+			-- Правило для всех групп и конкретной доски.
+			left join acl a6 on a6.`group` is null and a6.board = p.board
+			-- Правило для конкретной групы.
+			left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+				and a7.thread is null and a7.post is null
+			where t.deleted = 0 and t.archived = 0 and ht.thread is null
+				and p.deleted = 0
+				-- Нить должна быть доступна для просмотра.
+					-- Просмотр нити не запрещен конкретной группе и
+				and ((a3.`view` = 1 or a3.`view` is null)
+					-- просмотр нити не запрещен всем группам и
+					and (a4.`view` = 1 or a4.`view` is null)
+					-- просмотр доски не запрещен конкретной группе и
+					and (a5.`view` = 1 or a5.`view` is null)
+					-- просмотр доски не запрещен всем группам и
+					and (a6.`view` = 1 or a6.`view` is null)
+					-- просмотр разрешен конкретной группе.
+					and a7.`view` = 1)
+				-- Сообщение должно быть доступно для просмотра, чтобы правильно
+				-- подсчитать их количество в нити.
+					-- Просмотр сообщения не запрещен конкретной группе и
+				and ((a1.`view` = 1 or a1.`view` is null)
+					-- просмотр сообщения не запрещен всем группам и
+					and (a2.`view` = 1 or a2.`view` is null)
+					-- просмотр нити не запрещен конкретной группе и
+					and (a3.`view` = 1 or a3.`view` is null)
+					-- просмотр нити не запрещен всем группам и
+					and (a4.`view` = 1 or a4.`view` is null)
+					-- просмотр доски не запрещен конкретной группе и
+					and (a5.`view` = 1 or a5.`view` is null)
+					-- просмотр доски не запрещен всем группам и
+					and (a6.`view` = 1 or a6.`view` is null)
+					-- просмотр разрешен конкретной группе.
+					and a7.`view` = 1)
+				and p.text like concat(concat("%", word), "%")
+				-- Ищем нити и сообщения в них
+			group by t.id) q on q.id = p.thread
+				and (p.sage = 0 or p.sage is null) and p.deleted = 0
+		group by q.id) q1
+	order by q1.last_post_num desc;
 end|
 
 -- ----------------------------------------------
