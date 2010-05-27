@@ -18,26 +18,26 @@ require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
 require_once Config::ABS_PATH . '/lib/upload_handlers.php';
 require_once Config::ABS_PATH . '/lib/mark.php';
 include Config::ABS_PATH . '/securimage/securimage.php';
-try
-{
+
+try {
     kotoba_session_start();
     locale_setup();
     $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
     bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
-
-    if(!is_admin())
-    {
-        $securimage = new Securimage();
-        if(!isset($_POST['captcha_code'])
-            || $securimage->check($_POST['captcha_code']) == false)
-        {
-            throw new CommonException(CommonException::$messages['CAPTCHA']);
-        }
-    }
     /* TODO: Логичней было бы если бы проверка была вне фунции. */
     $board = boards_get_changeable_by_id(boards_check_id($_POST['board']),
         $_SESSION['user']);
+
+    if (!is_admin()
+            && (($board['enable_captcha'] === null && Config::ENABLE_CAPTCHA)
+            || $board['enable_captcha'])) {
+        $securimage = new Securimage();
+        if (!isset($_POST['captcha_code'])
+                || $securimage->check($_POST['captcha_code']) == false) {
+            throw new CommonException(CommonException::$messages['CAPTCHA']);
+        }
+    }
 
     $goto = null;
     $should_update_goto = false;

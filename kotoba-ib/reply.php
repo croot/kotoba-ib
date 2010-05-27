@@ -18,29 +18,30 @@ require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
 require_once Config::ABS_PATH . '/lib/upload_handlers.php';
 require_once Config::ABS_PATH . '/lib/mark.php';
 include Config::ABS_PATH . '/securimage/securimage.php';
-try
-{
-// 0. Инициализация.
-	kotoba_session_start();
-	locale_setup();
-	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
-	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
-// 1. Проверка входных параметров.
-	$thread = threads_get_changeable_by_id(threads_check_id($_POST['t']),
-		$_SESSION['user']);
-	if($thread['archived'])
-		throw new CommonException(CommonException::$messages['THREAD_ARCHIVED']);
-	$board = boards_get_by_id($thread['board']);
-	if(!is_admin()
-		&& (($board['enable_captcha'] === null && Config::ENABLE_CAPTCHA) || $board['enable_captcha']))
-	{
-		$securimage = new Securimage();
-		if(!isset($_POST['captcha_code'])
-			|| $securimage->check($_POST['captcha_code']) == false)
-		{
-			throw new CommonException(CommonException::$messages['CAPTCHA']);
-		}
-	}
+
+try {
+    kotoba_session_start();
+    locale_setup();
+    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+
+    bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
+
+    $thread = threads_get_changeable_by_id(threads_check_id($_POST['t']),
+        $_SESSION['user']);
+    if ($thread['archived']) {
+        throw new CommonException(CommonException::$messages['THREAD_ARCHIVED']);
+    }
+
+    $board = boards_get_by_id($thread['board']);
+    if (!is_admin()
+            && (($board['enable_captcha'] === null && Config::ENABLE_CAPTCHA)
+            || $board['enable_captcha'])) {
+        $securimage = new Securimage();
+        if (!isset($_POST['captcha_code'])
+                || $securimage->check($_POST['captcha_code']) == false) {
+            throw new CommonException(CommonException::$messages['CAPTCHA']);
+        }
+    }
 	$password = null;
 	$update_password = false;
 	if(isset($_POST['password']) && $_POST['password'] != '')
