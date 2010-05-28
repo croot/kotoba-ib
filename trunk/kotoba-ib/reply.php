@@ -25,7 +25,7 @@ try {
     $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
     bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
-
+    /* TODO: Логичней было бы если бы проверка была вне фунции. */
     $thread = threads_get_changeable_by_id(threads_check_id($_POST['t']),
         $_SESSION['user']);
     if ($thread['archived']) {
@@ -42,20 +42,112 @@ try {
             throw new CommonException(CommonException::$messages['CAPTCHA']);
         }
     }
+    
+    $goto = null;
+    $should_update_goto = false;
+    if (isset($_POST['goto'])) {
+        $goto = users_check_goto($_POST['goto']);
+        if (!isset($_SESSION['goto']) || $_SESSION['goto'] != $goto) {
+            $_SESSION['goto'] = $goto;
+            $should_update_goto = true;
+        }
+    } else {
+		throw new FormatException(FormatException::$messages['GOTO']);
+    }
+
 	$password = null;
-	$update_password = false;
-	if(isset($_POST['password']) && $_POST['password'] != '')
-	{
-		$password = posts_check_password($_POST['password']);
-		if(!isset($_SESSION['password']) || $_SESSION['password'] != $password)
-		{
-			$_SESSION['password'] = $password;
-			$update_password = true;
-		}
+	$should_update_password = false;
+	if (isset($_POST['password']) && $_POST['password'] != '') {
+        $password = posts_check_password($_POST['password']);
+        if (!isset($_SESSION['password'])
+                || $_SESSION['password'] != $password) {
+            $_SESSION['password'] = $password;
+            $should_update_password = true;
+        }
+    }
+
+    $sage = $thread['sage'];
+	if (isset($_POST['sage']) && $_POST['sage'] === 'sage') {
+		$sage = 1;
+    }
+
+    $name = null;
+    $tripcode = null;
+	if ($board['force_anonymous']) {
+        $name = '';
+    } else {
+		posts_check_name_size($_POST['name']);
+		$name = htmlentities($_POST['name'], ENT_QUOTES, Config::MB_ENCODING);
+		$name = str_replace('\\', '\\\\', $name);
+        posts_check_name_size($name);
+		$name = str_replace("\n", '', $name);
+		$name = str_replace("\r", '', $name);
+		posts_check_name_size($name);
+		$name_tripcode = calculate_tripcode($name);
+		$name = $name_tripcode[0];
+		$tripcode = $name_tripcode[1];
 	}
-	$with_attachment = false;	// Сообщение с вложением.
+
+    posts_check_subject_size($_POST['subject']);
+	$subject = htmlentities($_POST['subject'], ENT_QUOTES, Config::MB_ENCODING);
+	$subject = str_replace('\\', '\\\\', $subject);
+	posts_check_subject_size($subject);
+	$subject = str_replace("\n", '', $subject);
+	$subject = str_replace("\r", '', $subject);
+
+    posts_check_text_size($_POST['text']);
+	$text = htmlentities($_POST['text'], ENT_QUOTES, Config::MB_ENCODING);
+	$text = str_replace('\\', '\\\\', $text);
+	posts_check_text_size($text);
+	posts_check_text($text);
+	posts_prepare_text($text, $board);
+	posts_check_text_size($text);
+
+	/*$with_attachment = false;	// Сообщение с вложением.*/
 	$attachment_type = null;	// Тип вложения.
-	if($thread['with_attachments']
+    if ($thread['with_attachments']
+            || ($thread['with_attachments'] === null
+                    && $board['with_attachments'])) {
+        if ($_FILES['file']['error'] != UPLOAD_ERR_NO_FILE) {
+            check_upload_error($_FILES['file']['error']);
+            $uploaded_file_size = $_FILES['file']['size'];
+            $uploaded_file_path = $_FILES['file']['tmp_name'];
+            $uploaded_file_name = $_FILES['file']['name'];
+            $uploaded_file_ext = get_extension($uploaded_file_name);
+            $upload_types = upload_types_get_by_board($board['id']);
+            $found = false;
+            $upload_type = null;
+            foreach ($upload_types as $ut) {
+                if ($ut['extension'] == $uploaded_file_ext) {
+                    $found = true;
+                    $upload_type = $ut;
+                    break;
+                }
+            }
+            if (!$found) {
+                throw new UploadException(UploadException::$messages['UPLOAD_FILETYPE_NOT_SUPPORTED']);
+            }
+            if ($upload_type['is_image']) {
+                $attachment_type = Config::ATTACHMENT_TYPE_IMAGE;
+                uploads_check_image_size($uploaded_file_size);
+            } else {
+                $attachment_type = Config::ATTACHMENT_TYPE_FILE;
+            }
+        } elseif (($board['enable_macro'] === null && Config::ENABLE_MACRO || $board['enable_macro'])
+                && isset($_POST['macrochan_tag'])
+                && $_POST['macrochan_tag'] != '') {
+            $attachment_type = Config::ATTACHMENT_TYPE_LINK;
+        } elseif (($board['enable_youtube'] === null && Config::ENABLE_YOUTUBE || $board['enable_youtube'])
+                && isset($_POST['youtube_video_code'])
+                && $_POST['youtube_video_code'] != '') {
+            $youtube_video_code = check_youtube_video_code($_POST['youtube_video_code']);
+            $attachment_type = Config::ATTACHMENT_TYPE_VIDEO;
+        } else {
+            throw new UploadException(UploadException::$messages['UNKNOWN']);
+        }
+    }
+    exit; // Rework in progress.
+	/*if($thread['with_attachments']
 		|| ($thread['with_attachments'] === null && $board['with_attachments']))	// Можно отвечать с вложением.
 	{
 		if($_FILES['file']['error'] == UPLOAD_ERR_NO_FILE	// Ни файл ни изображение не были загржены.
@@ -95,13 +187,12 @@ try {
 			else
 				$attachment_type = Config::ATTACHMENT_TYPE_FILE;
 		}
-		elseif((($board['enable_macro'] === null && Config::ENABLE_MACRO) || $board['enable_macro'])
-			&& isset($_POST['macrochan_tag']) && $_POST['macrochan_tag'] != '')
-		{
+		elseif (($board['enable_macro'] === null && Config::ENABLE_MACRO || $board['enable_macro'])
+			&& isset($_POST['macrochan_tag']) && $_POST['macrochan_tag'] != '') {
 			$with_attachment = true;
 			$attachment_type = Config::ATTACHMENT_TYPE_LINK;
 		}
-		elseif((($board['enable_youtube'] === null && Config::ENABLE_YOUTUBE) || $board['enable_youtube'])
+		elseif (($board['enable_youtube'] === null && Config::ENABLE_YOUTUBE || $board['enable_youtube'])
 			&& isset($_POST['youtube_video_code']) && $_POST['youtube_video_code'] != '')
 		{
 			$youtube_video_code = check_youtube_video_code($_POST['youtube_video_code']);
@@ -112,43 +203,7 @@ try {
 		{
 			throw new UploadException(UploadException::$messages['UNKNOWN']);
 		}
-	}
-	posts_check_text_size($_POST['text']);
-	posts_check_subject_size($_POST['subject']);
-	$name = null;
-	if(!$board['force_anonymous'])
-	{
-		posts_check_name_size($_POST['name']);
-		$name = htmlentities($_POST['name'], ENT_QUOTES, Config::MB_ENCODING);
-		$name = str_replace('\\', '\\\\', $name);
-		$name = str_replace("\n", '', $name);
-		$name = str_replace("\r", '', $name);
-		posts_check_name_size($name);
-		$name_tripcode = calculate_tripcode($name);
-		$name = $name_tripcode[0];
-		$tripcode = $name_tripcode[1];
-	}
-	else
-		// Подписывать сообщения запрещено на этой доске.
-		$name = '';
-	$text = htmlentities($_POST['text'], ENT_QUOTES, Config::MB_ENCODING);
-	$text = str_replace('\\', '\\\\', $text);
-	$subject = htmlentities($_POST['subject'], ENT_QUOTES, Config::MB_ENCODING);
-	$subject = str_replace('\\', '\\\\', $subject);
-	posts_check_text_size($text);
-	posts_check_subject_size($subject);
-	posts_check_text($text);
-	posts_prepare_text($text, $board);
-	posts_check_text_size($text);
-	$subject = str_replace("\n", '', $subject);
-	$subject = str_replace("\r", '', $subject);
-	$sage = null;	// Наследует от нити.
-	if(isset($_POST['sage']) && $_POST['sage'] == 'sage')
-		$sage = '1';
-	if(isset($_POST['goto'])
-		&& ($_POST['goto'] == 't' || $_POST['goto'] == 'b')
-		&& $_POST['goto'] != $_SESSION['goto'])
-			$_SESSION['goto'] = $_POST['goto'];
+	}*/
 // 2. Подготовка и сохранение файла.
 	if($with_attachment)
 	{
@@ -285,7 +340,7 @@ try {
 				throw new CommonException('Not supported.');
 				break;
 		}
-	if($_SESSION['user'] != Config::GUEST_ID && $update_password)
+	if($_SESSION['user'] != Config::GUEST_ID && $should_update_password)
 		users_set_password($_SESSION['user'], $password);
 // 4. Запуск обработчика автоматического удаления нитей.
 	foreach(popdown_handlers_get_all() as $popdown_handler)
