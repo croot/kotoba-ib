@@ -41,11 +41,9 @@ try {
 
     $goto = null;
     $should_update_goto = false;
-    if(isset($_POST['goto']))
-    {
+    if (isset($_POST['goto'])) {
         $goto = users_check_goto($_POST['goto']);
-        if(!isset($_SESSION['goto']) || $_SESSION['goto'] != $goto)
-        {
+        if (!isset($_SESSION['goto']) || $_SESSION['goto'] != $goto) {
             $_SESSION['goto'] = $goto;
             $should_update_goto = true;
         }
@@ -55,11 +53,10 @@ try {
 
     $password = null;
     $should_update_password = false;
-    if(isset($_POST['password']) && $_POST['password'] != '')
-    {
+    if (isset($_POST['password']) && $_POST['password'] != '') {
         $password = posts_check_password($_POST['password']);
-        if(!isset($_SESSION['password']) || $_SESSION['password'] != $password)
-        {
+        if (!isset($_SESSION['password'])
+                || $_SESSION['password'] != $password) {
             $_SESSION['password'] = $password;
             $should_update_password = true;
         }
@@ -67,10 +64,9 @@ try {
 
     $name = null;
     $tripcode = null;
-    if($board['force_anonymous'])
+    if ($board['force_anonymous']) {
         $name = '';
-    else
-    {
+    } else {
         posts_check_name_size($_POST['name']);
         $name = htmlentities($_POST['name'], ENT_QUOTES, Config::MB_ENCODING);
         $name = str_replace('\\', '\\\\', $name);
@@ -99,10 +95,8 @@ try {
     posts_check_text_size($text);
 
     $attachment_type = null;
-    if($board['with_attachments']==1)
-    {
-        if($_FILES['file']['error'] != UPLOAD_ERR_NO_FILE)
-        {
+    if ($board['with_attachments']) {
+        if ($_FILES['file']['error'] != UPLOAD_ERR_NO_FILE) {
             check_upload_error($_FILES['file']['error']);
             $uploaded_file_size = $_FILES['file']['size'];
             $uploaded_file_path = $_FILES['file']['tmp_name'];
@@ -111,36 +105,31 @@ try {
             $upload_types = upload_types_get_by_board($board['id']);
             $found = false;
             $upload_type = null;
-            foreach($upload_types as $ut)
-                if($ut['extension'] == $uploaded_file_ext)
-                {
+            foreach ($upload_types as $ut) {
+                if ($ut['extension'] == $uploaded_file_ext) {
                     $found = true;
                     $upload_type = $ut;
                     break;
                 }
-            if(!$found)
+            }
+            if (!$found) {
                 throw new UploadException(UploadException::$messages['UPLOAD_FILETYPE_NOT_SUPPORTED']);
-            if($upload_type['is_image'])
-            {
+            }
+            if ($upload_type['is_image']) {
                 $attachment_type = Config::ATTACHMENT_TYPE_IMAGE;
                 uploads_check_image_size($uploaded_file_size);
-            }
-            else
+            } else {
                 $attachment_type = Config::ATTACHMENT_TYPE_FILE;
-        }
-        elseif(Config::ENABLE_MACRO && isset($_POST['macrochan_tag'])
-            && $_POST['macrochan_tag'] != '')
-        {
+            }
+        } elseif (($board['enable_macro'] === null && Config::ENABLE_MACRO || $board['enable_macro'])
+                && isset($_POST['macrochan_tag']) && $_POST['macrochan_tag'] != '') {
             $attachment_type = Config::ATTACHMENT_TYPE_LINK;
-        }
-        elseif(Config::ENABLE_YOUTUBE && isset($_POST['youtube_video_code'])
-            && $_POST['youtube_video_code'] != '')
-        {
+        } elseif (($board['enable_youtube'] === null && Config::ENABLE_YOUTUBE || $board['enable_youtube'])
+                && isset($_POST['youtube_video_code'])
+                && $_POST['youtube_video_code'] != '') {
             $youtube_video_code = check_youtube_video_code($_POST['youtube_video_code']);
             $attachment_type = Config::ATTACHMENT_TYPE_VIDEO;
-        }
-        else
-        {
+        } else {
             throw new UploadException(UploadException::$messages['UNKNOWN']);
         }
     }
