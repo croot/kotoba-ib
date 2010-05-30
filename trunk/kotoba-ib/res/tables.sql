@@ -322,3 +322,12 @@ create table posts_videos	-- Связь сообщений и вложенног
 	constraint foreign key (video) references videos (id) on delete restrict on update restrict
 )
 engine=InnoDB|
+
+create table words			-- Таблица вордфильтра
+(
+	id int not null auto_increment,
+	word varchar(100) not null,
+	`replace` varchar(100) not null,
+	unique key (id)
+)
+engine=InnoDB|

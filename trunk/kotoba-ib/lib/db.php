@@ -395,6 +395,49 @@ function board_upload_types_get_all()
 	return db_board_upload_types_get_all(DataExchange::getDBLink());
 }
 
+/**************************
+ * Работа с вордфильтром. *
+ **************************/
+
+/**
+ * Добавляет слово.
+ * @param word mixed <p>Слово.</p>
+ * @param replace string <p>Слово-замена.</p>
+ */
+function words_add($word, $replace)
+{
+	db_words_add(DataExchange::getDBLink(), $word, $replace);
+}
+/**
+ * Удаляет заданное слово.
+ * @param id mixed <p>Идентификатор доски.</p>
+ */
+function words_delete($id)
+{
+	db_words_delete(DataExchange::getDBLink(), $id);
+}
+/**
+ * Редактирует слово.
+ * @param word mixed <p>Слово.</p>
+ * @param replace string <p>Слово-замена.</p>
+ */
+function words_edit($id, $word, $replace)
+{
+	db_words_edit(DataExchange::getDBLink(), $id, $word, $replace);
+}
+/**
+ * Получает все слова.
+ * @return array
+ * Возвращает слова:<p>
+ * 'id' - идентификатор.<br>
+ * 'word' - слово для замены.<br>
+ * 'replace' - замена.</p>
+ */
+function words_get_all()
+{
+	return db_words_get_all(DataExchange::getDBLink());
+}
+
 /*********************
  * Работа с досками. *
  *********************/

@@ -31,6 +31,9 @@ CommonException::$messages['THREAD_ARCHIVED'] = 'Нить заархивиров
 CommonException::$messages['ACL_RULE_EXCESS'] = 'Получена избыточная информация. Доска, нить и сообщение определяются однозначно своими идентификаторами. Читайте в res/notes.txt раздел, посвященный правилам.';
 CommonException::$messages['ACL_RULE_CONFLICT'] = 'Конфликт разрешений для правила. Читайте в res/notes.txt раздел, посвященный правилам.';
 CommonException::$messages['CAPTCHA'] = 'Код подтвержения не верен.';
+CommonException::$messages['WORD_FOR_REPLACE'] = 'Введите слово для замены.';
+CommonException::$messages['REPLACE_FOR_WORD'] = 'Введите замену для слова.';
+CommonException::$messages['TOO_LONG'] = 'Одно из слов имеет длинну более 100 символов.';
 
 /******************
  * Ошибки поиска. *
