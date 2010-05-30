@@ -43,6 +43,8 @@ try {
         }
     }
     
+	$words = words_get_all();
+	
     $goto = null;
     $should_update_goto = false;
     if (isset($_POST['goto'])) {
@@ -97,6 +99,10 @@ try {
 
     posts_check_text_size($_POST['text']);
 	$text = htmlentities($_POST['text'], ENT_QUOTES, Config::MB_ENCODING);
+	foreach($words as $word)
+	{
+		$text = preg_replace("#".$word['word']."#iu", $word['replace'], $text); //Замена регистронезависима
+	}
 	$text = str_replace('\\', '\\\\', $text);
 	posts_check_text_size($text);
 	posts_check_text($text);

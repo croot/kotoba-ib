@@ -17,6 +17,7 @@
 *}
 <a href="{$DIR_PATH}/admin/edit_boards_annotation.php">Аннотации досок.</a><br>
 <a href="{$DIR_PATH}/admin/edit_bans.php">Баны.</a><br>
+<a href="{$DIR_PATH}/admin/edit_words.php">Фильтрация слов.</a><br>
 <a href="{$DIR_PATH}/admin/edit_groups.php">Группы пользователей.</a><br>
 <a href="{$DIR_PATH}/admin/edit_boards.php">Доски.</a><br>
 <a href="{$DIR_PATH}/admin/edit_user_groups.php">Закрепления пользователей за группами.</a><br>

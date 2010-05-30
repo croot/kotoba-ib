@@ -121,6 +121,11 @@ drop procedure if exists sp_users_set_password|
 
 drop procedure if exists sp_videos_get_by_post|
 
+drop procedure if exists sp_words_add|
+drop procedure if exists sp_words_delete|
+drop procedure if exists sp_words_edit|
+drop procedure if exists sp_words_get_all|
+
 /*drop procedure if exists sp_posts_uploads_get_by_post|
 drop procedure if exists sp_posts_uploads_add|
 drop procedure if exists sp_posts_uploads_delete_by_post|
@@ -2510,6 +2515,74 @@ begin
 	select v.id, v.code, v.widht, v.height
 	from posts_videos pv
 	join videos v on v.id = pv.video and pv.post = post_id;
+end|
+
+-- ---------------------------------
+-- Добавление слова в вордфильтр. --
+-- ---------------------------------
+
+-- Добавляет слово и его замену в таблицу вордфильтра.
+
+-- Аргументы:
+-- word - Слово для замены.
+-- replace - Слово-замена.
+create procedure sp_words_add
+(
+    _word varchar(100),
+    _replace varchar(100)
+)
+begin
+    insert into words (word, `replace`)
+	values (_word, _replace);
+end|
+
+-- ---------------------------------
+-- Удаление слова из вордфильтра. --
+-- ---------------------------------
+
+-- Удаляет слово и его замену из таблицы вордфильтра.
+
+-- Аргументы:
+-- id - Идентификатор.
+create procedure sp_words_delete
+(
+	_id int
+)
+begin
+	delete from words
+	where id = _id;
+end|
+
+-- ------------------------------------
+-- Редактирование слова вордфильтра. --
+-- ------------------------------------
+
+-- Изменяет слово и его замену.
+
+-- Аргументы:
+-- id - Идентификатор.
+-- word - Слово для замены.
+-- replace - Слово-замена.
+create procedure sp_words_edit
+(
+    _id int,
+	_word varchar(100),
+    _replace varchar(100)
+)
+begin
+    update words set word = _word, `replace` = _replace
+	where id = _id;
+end|
+
+-- -------------------------------
+-- Выбор всех слов вордфильтра. --
+-- -------------------------------
+
+-- Выбирает все слова, их замени и идентификаторы из таблицы вордфильтра.
+create procedure sp_words_get_all ()
+begin
+    select id, word, `replace`
+    from words;
 end|
 
 /*
