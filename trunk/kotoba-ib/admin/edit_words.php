@@ -8,7 +8,7 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
-// Скрипт редактирования досок.
+// Скрипт вордфильтра.
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
