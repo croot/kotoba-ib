@@ -94,8 +94,6 @@ try {
 	{
 		$text = preg_replace("#".$word['word']."#iu", $word['replace'], $text); //Замена регистронезависима
 	}
-	echo $text;
-	exit;
     $text = str_replace('\\', '\\\\', $text);
     posts_check_text_size($text);
     posts_check_text($text);
