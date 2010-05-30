@@ -109,8 +109,8 @@ try
 				words_edit($word['id'], $new_word, $new_replace);
 				$reload_words = true;
 			}
-		}// Изменение параметров существующих досок.
-// Удаление выбранных досок.
+		}// Изменение параметров существующих слов.
+// Удаление выбранных слов.
 		foreach($words as $word)
 			if(isset($_POST["delete_{$word['id']}"]))
 			{
