@@ -401,12 +401,13 @@ function board_upload_types_get_all()
 
 /**
  * Добавляет слово.
+ * @param board_id int <p>Идентификатор доски.</p>
  * @param word mixed <p>Слово.</p>
  * @param replace string <p>Слово-замена.</p>
  */
-function words_add($word, $replace)
+function words_add($board_id, $word, $replace)
 {
-	db_words_add(DataExchange::getDBLink(), $word, $replace);
+	db_words_add(DataExchange::getDBLink(), $board_id, $word, $replace);
 }
 /**
  * Удаляет заданное слово.
@@ -418,6 +419,8 @@ function words_delete($id)
 }
 /**
  * Редактирует слово.
+ * @param id int <p>Идентификатор.</p>
+ * @param board_id int <p>Идентификатор доски.</p>
  * @param word mixed <p>Слово.</p>
  * @param replace string <p>Слово-замена.</p>
  */
@@ -436,6 +439,19 @@ function words_edit($id, $word, $replace)
 function words_get_all()
 {
 	return db_words_get_all(DataExchange::getDBLink());
+}
+/**
+ * Получает все слова по идентификатору доски.
+ * @param board_id int <p>Идентификатор доски.</p>
+ * @return array
+ * Возвращает слова:<p>
+ * 'id' - идентификатор.<br>
+ * 'word' - слово для замены.<br>
+ * 'replace' - замена.</p>
+ */
+function words_get_all_by_board($board_id)
+{
+	return db_words_get_all_by_board(DataExchange::getDBLink(), $board_id);
 }
 
 /*********************
