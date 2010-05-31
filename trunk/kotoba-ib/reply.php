@@ -98,7 +98,7 @@ try {
 
     posts_check_text_size($_POST['text']);
 	$text = htmlentities($_POST['text'], ENT_QUOTES, Config::MB_ENCODING);
-    $words = words_get_all();
+    $words = words_get_all_by_board(boards_check_id($_POST['board']));
     foreach ($words as $word) { //Замена регистронезависима
         $text = preg_replace("#".$word['word']."#iu", $word['replace'], $text);
     }

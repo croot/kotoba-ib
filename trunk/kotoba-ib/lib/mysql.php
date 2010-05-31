@@ -323,14 +323,14 @@ function db_board_upload_types_get_all($link)
  * @param word mixed <p>Слово.</p>
  * @param replace string <p>Слово-замена.</p>
  */
-function db_words_add($link, $word, $replace)
+function db_words_add($link, $board_id, $word, $replace)
 {
 	if($word === null)
 		$word = 'null';
 	if($replace === null)
 		$replace = 'null';
 
-	if(!mysqli_query($link, 'call sp_words_add(\'' . $word . '\', \''
+	if(!mysqli_query($link, 'call sp_words_add(' . $board_id . ', \'' . $word . '\', \''
 		. $replace . '\')'))
 		throw new CommonException(mysqli_error($link));
 	db_cleanup_link($link);
@@ -360,7 +360,7 @@ function db_words_edit($link, $id, $word, $replace)
 		$replace = 'null';
     }
 
-	if (!mysqli_query($link, 'call sp_words_edit('. $id .', \'' . $word . '\', \''
+	if (!mysqli_query($link, 'call sp_words_edit(' . $id . ', \'' . $word . '\', \''
             . $replace . '\')')) {
 		throw new CommonException(mysqli_error($link));
     }
@@ -377,6 +377,32 @@ function db_words_edit($link, $id, $word, $replace)
 function db_words_get_all($link)
 {
 	$result = mysqli_query($link, 'call sp_words_get_all()');
+	if(!$result)
+		throw new CommonException(mysqli_error($link));
+	$words = array();
+	if(mysqli_affected_rows($link) > 0)
+		while(($row = mysqli_fetch_assoc($result)) !== null)
+			array_push($words,
+				array('id' => $row['id'],
+						'board_id' => $row['board_id'],
+						'word' => $row['word'],
+						'replace' => $row['replace']));
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $words;
+}
+/**
+ * Получает все слова по идентификатору доски.
+ * @param board_id int <p>Идентификатор доски.</p>
+ * @return array
+ * Возвращает слова:<p>
+ * 'id' - идентификатор.<br>
+ * 'word' - слово для замены.<br>
+ * 'replace' - замена.</p>
+ */
+function db_words_get_all_by_board($link, $board_id)
+{
+	$result = mysqli_query($link, "call sp_words_get_all_by_board($board_id)");
 	if(!$result)
 		throw new CommonException(mysqli_error($link));
 	$words = array();

@@ -8,7 +8,7 @@
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
-// Скрипт вордфильтра.
+// Скрипт вордфильтра. Няшка-кун был здесь :3
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
@@ -28,6 +28,7 @@ try
 	Logging::write_message(sprintf(Logging::$messages['ADMIN_FUNCTIONS_EDIT_WORDFILTER'],
 				$_SESSION['user'], $_SERVER['REMOTE_ADDR']),
 			Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log');
+	$boards = boards_get_all();
 	$words = words_get_all();
 	$reload_words = false;	// Были ли произведены изменения.
 	if(isset($_POST['submited']))
@@ -35,6 +36,8 @@ try
 // Добавление нового слова.
 		if(isset($_POST['new_word'])
 			&& isset($_POST['new_replace'])
+			&& isset($_POST['new_bind_board'])
+			&& $_POST['new_bind_board'] !== ''
 			&& $_POST['new_word'] != ''
 			&& $_POST['new_replace'] != '')
 		{
@@ -50,8 +53,8 @@ try
 			 if(strlen($_POST['new_replace'])>100)
 				throw new CommonException(CommonException::$messages['TOO_LONG']);
 			/*
-			 * Проверим, нет ли уже такого слова. Если есть, то изменим
-			 * параметры существующей.
+			 * Проверим, нет ли уже такого слова. Если есть, то изменим его
+			 * параметры.
 			 */
 			/*
 			 * Присваиваем переменным пост данные, хотя можно было бы обойтись и без этого.
@@ -60,16 +63,19 @@ try
 			$new_replace = $_POST['new_replace'];
 			
 			$found = false;
-			foreach($words as $word)
-				if($word['word'] == $new_word && $found = true)
-				{
-					words_edit($word['id'], $new_word, $new_replace);
-					$reload_words = true;
-					break;
+			foreach ($boards as $board) {
+				foreach ($words as $word) {
+					if($board['id'] == $id && $board['id'] == $word['board_id'] && $word['word'] == $new_word)
+					{
+						words_edit($word['id'], $new_word, $new_replace);
+						$reload_words = true;
+						break;
+					}
 				}
+			}
 			if(!$found)
 			{
-				words_add($new_word, $new_replace);
+				words_add(boards_check_id($_POST['new_bind_board']), $new_word, $new_replace);
 				$reload_words = true;
 			}
 		}// Создание нового слова.
@@ -122,6 +128,7 @@ try
 	if($reload_words)
 		$words = words_get_all();
 	DataExchange::releaseResources();
+	$smarty->assign('boards', $boards);
 	$smarty->assign('words', $words);
 	$smarty->display('edit_words.tpl');
 }

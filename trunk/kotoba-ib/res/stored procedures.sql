@@ -2577,12 +2577,13 @@ end|
 -- replace - Слово-замена.
 create procedure sp_words_add
 (
+	_board_id int,
     _word varchar(100),
     _replace varchar(100)
 )
 begin
-    insert into words (word, `replace`)
-        values (_word, _replace);
+    insert into words (board_id, word, `replace`)
+        values (_board_id, _word, _replace);
 end|
 
 -- Удаляет слово и его замену из таблицы вордфильтра.
@@ -2620,6 +2621,17 @@ create procedure sp_words_get_all ()
 begin
     select id, word, `replace`
     from words;
+end|
+
+-- Выбирает все слова, их замени и идентификаторы из таблицы вордфильтра.
+create procedure sp_words_get_all_by_board
+(
+	_board_id int
+)
+begin
+    select id, word, `replace`
+    from words
+    where board_id = _board_id;
 end|
 
 /*
