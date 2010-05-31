@@ -317,7 +317,7 @@ function db_board_upload_types_get_all($link)
 /**************************
  * Работа с вордфильтром. *
  **************************/
- 
+
 /**
  * Добавляет слово.
  * @param word mixed <p>Слово.</p>
@@ -329,7 +329,7 @@ function db_words_add($link, $word, $replace)
 		$word = 'null';
 	if($replace === null)
 		$replace = 'null';
-		
+
 	if(!mysqli_query($link, 'call sp_words_add(\'' . $word . '\', \''
 		. $replace . '\')'))
 		throw new CommonException(mysqli_error($link));
@@ -359,7 +359,7 @@ function db_words_edit($link, $id, $word, $replace)
 	if ($replace === null) {
 		$replace = 'null';
     }
-	
+
 	if (!mysqli_query($link, 'call sp_words_edit('. $id .', \'' . $word . '\', \''
             . $replace . '\')')) {
 		throw new CommonException(mysqli_error($link));
@@ -469,38 +469,44 @@ function db_boards_edit($link, $id, $title, $annotation, $bump_limit,
 	$force_anonymous, $default_name, $with_attachments, $enable_macro,
 	$enable_youtube, $enable_captcha, $same_upload, $popdown_handler, $category)
 { // Java CC.
-	if ($title === null) {
-		$title = 'null';
+    if ($title == null) { // Пустая строка тоже NULL.
+        $title = 'null';
+    } else {
+        $title = '\'' . $title . '\'';
     }
-	if ($annotation === null) {
-		$annotation = 'null';
+    if ($annotation == null) { // Пустая строка тоже NULL.
+        $annotation = 'null';
+    } else {
+        $annotation = '\'' . $annotation . '\'';
     }
-	if ($default_name === null) {
-		$default_name = 'null';
+    if ($default_name == null) { // Пустая строка тоже NULL.
+        $default_name = 'null';
+    } else {
+        $default_name = '\'' . $default_name . '\'';
     }
-	if ($with_attachments === null) {
-		$with_attachments = 0;
+    if ($with_attachments === null) {
+        $with_attachments = 0;
     }
-	if ($enable_macro === null) {
-		$enable_macro = 0;
+    if ($enable_macro === null) {
+        $enable_macro = 0;
     }
-	if ($enable_youtube === null) {
-		$enable_youtube = 0;
+    if ($enable_youtube === null) {
+        $enable_youtube = 0;
     }
-	if ($enable_captcha === null) {
-		$enable_captcha = 0;
+    if ($enable_captcha === null) {
+        $enable_captcha = 0;
     }
-    
-	if (!mysqli_query($link, 'call sp_boards_edit(' . $id . ', \''
-            . $title . '\', \'' . $annotation . '\', ' . $bump_limit . ', '
-            . $force_anonymous . ', \'' . $default_name . '\', '
+
+    if (!mysqli_query($link, 'call sp_boards_edit(' . $id . ', '
+            . $title . ', ' . $annotation . ', ' . $bump_limit . ', '
+            . $force_anonymous . ', ' . $default_name . ', '
             . $with_attachments . ', ' . $enable_macro . ', '
             . $enable_youtube . ', ' . $enable_captcha . ', \''
             . $same_upload . '\', ' . $popdown_handler . ', '
             . $category . ')')) {
-		throw new CommonException(mysqli_error($link));
+        throw new CommonException(mysqli_error($link));
     }
-	db_cleanup_link($link);
+    db_cleanup_link($link);
 }
 /**
  * Получает все доски.
@@ -586,7 +592,7 @@ function db_boards_get_by_id($link, $board_id)
 		$board['bump_limit'] = $row['bump_limit'];
 		$board['force_anonymous'] = $row['force_anonymous'];
 		$board['default_name'] = $row['default_name'];
-		$board['with_attachments'] = $row['with_files'];
+		$board['with_attachments'] = $row['with_attachments'];
 		$board['enable_macro'] = $row['enable_macro'];
 		$board['enable_youtube'] = $row['enable_youtube'];
 		$board['enable_captcha'] = $row['enable_captcha'];
@@ -991,17 +997,18 @@ function db_categories_get_all($link)
  * Возвращает идентификатор вложенного файла.
  */
 function db_files_add($link, $hash, $name, $size, $thumbnail, $thumbnail_w,
-    $thumbnail_h)
-{
+        $thumbnail_h) {
     $result = mysqli_query($link, 'call sp_files_add(\'' . $hash . '\', \'' . $name
         . '\', ' . $size . ', \'' . $thumbnail . '\', ' . $thumbnail_w . ', '
         . $thumbnail_h . ')');
-    if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$row = mysqli_fetch_assoc($result);
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $row['id'];
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+    
+    $row = mysqli_fetch_assoc($result);
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $row['id'];
 }
 
 /**
@@ -1266,6 +1273,38 @@ function db_hidden_threads_get_visible($link, $board_id, $thread_num, $user_id)
  * Работа с вложенными изображениями. *
  **************************************/
 
+/**
+ * Добавляет вложенное изображение.
+ * @param hash string <p>Хеш.</p>
+ * @param name string <p>Имя.</p>
+ * @param widht mixed <p>Ширина.</p>
+ * @param height mixed <p>Высота.</p>
+ * @param size mixed <p>Размер в байтах.</p>
+ * @param thumbnail string <p>Уменьшенная копия.</p>
+ * @param thumbnail_w mixed <p>Ширина уменьшенной копии.</p>
+ * @param thumbnail_h mixed <p>Высота уменьшенной копии.</p>
+ * @return string
+ * Возвращает идентификатор вложенного изображения.
+ */
+function db_images_add($link, $hash, $name, $widht, $height, $size, $thumbnail,
+        $thumbnail_w, $thumbnail_h) {
+    if ($hash == null) {
+        $hash = 'null';
+    } else {
+        $hash = '\'' . $hash . '\'';
+    }
+    $result = mysqli_query($link, 'call sp_images_add(' . $hash . ', \'' . $name
+        . '\', ' . $widht . ', ' . $height . ', ' . $size . ', \''
+        . $thumbnail . '\', ' . $thumbnail_w . ', ' . $thumbnail_h . ')');
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+    
+    $row = mysqli_fetch_assoc($result);
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $row['id'];
+}
 /**
  * Получает вложенные в заданное сообщение изображения.
  * @param link MySQLi <p>Связь с базой данных.</p>
@@ -1540,22 +1579,46 @@ function db_popdown_handlers_get_all($link)
  */
 function db_posts_add($link, $board_id, $thread_id, $user_id, $password, $name,
     $tripcode, $ip, $subject, $date_time, $text, $sage)
-{
-    if($sage === null)
+{ // Java CC
+    if ($sage === null) {
         $sage = 'null';
-    if($password == null)
+    }
+    if ($password == null) { // Пустая строка тоже NULL!
         $password = 'null';
+    } else {
+        $password = '\'' . $password . '\'';
+    }
+    if ($subject == null) { // Пустая строка тоже NULL!
+        $subject = 'null';
+    } else {
+        $subject = '\'' . $subject . '\'';
+    }
+    if ($name == null) { // Пустая строка тоже NULL!
+        $name = 'null';
+    } else {
+        $name = '\'' . $name . '\'';
+    }
+    if ($tripcode == null) { // Пустая строка тоже NULL!
+        $tripcode = 'null';
+    } else {
+        $tripcode = '\'' . $tripcode . '\'';
+    }
+    if ($text == null) { // Пустая строка тоже NULL!
+        $text = 'null';
+    } else {
+        $text = '\'' . $text . '\'';
+    }
     $result = mysqli_query($link, 'call sp_posts_add(' . $board_id . ', '
-        . $thread_id . ', ' . $user_id . ', \'' . $password . '\', \''
-        . $name . '\', \'' . $tripcode . '\', ' . $ip . ', \''
-        . $subject . '\', \'' . $date_time . '\', \'' . $text . '\', '
+        . $thread_id . ', ' . $user_id . ', ' . $password . ', '
+        . $name . ', ' . $tripcode . ', ' . $ip . ', '
+        . $subject . ', \'' . $date_time . '\', ' . $text . ', '
         . $sage . ')');
-    if(!$result)
+    if (!$result) {
         throw new CommonException(mysqli_error($link));
+    }
     $post = null;
     if(mysqli_affected_rows($link) > 0
-        && ($row = mysqli_fetch_assoc($result)) !== null)
-    {
+            && ($row = mysqli_fetch_assoc($result)) !== null) {
         $post['id'] = $row['id'];
         $post['board'] = $row['board'];
         $post['thread'] = $row['thread'];
@@ -1887,41 +1950,39 @@ function db_posts_get_visible_by_number($link, $board_id, $post_number,
  * 'sage' - Флаг поднятия нити.</p>
  */
 function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id,
-	$filter, $args)
-{
-	$posts = array();
-	$arg = count($args);
-	foreach($threads as $t)
-	{
-		$result = mysqli_query($link, 'call sp_posts_get_visible_by_thread('
-			. $t['id'] . ', ' . $user_id . ')');
-		if(!$result)
-			throw new CommonException(mysqli_error($link));
-		if(mysqli_affected_rows($link) > 0)
-		{
-			$args[$arg + 1] = $t;
-			while(($row = mysqli_fetch_assoc($result)) != null)
-			{
-				$args[$arg + 2] = $row;
-				if(call_user_func_array($filter, $args))
-					array_push($posts,
-						array('id' => $row['id'],
-								'thread' => $row['thread'],
-								'number' => $row['number'],
-								'password' => $row['password'],
-								'name' => $row['name'],
-								'tripcode' => $row['tripcode'],
-								'ip' => $row['ip'],
-								'subject' => $row['subject'],
-								'date_time' => $row['date_time'],
-								'text' => $row['text'],
-								'sage' => $row['sage']));
-			}
-		}
-		mysqli_free_result($result);
-		db_cleanup_link($link);
-	}
-	return $posts;
+        $filter, $args) {
+    $posts = array();
+    $arg = count($args);
+    foreach ($threads as $t) {
+        $result = mysqli_query($link, 'call sp_posts_get_visible_by_thread('
+            . $t['id'] . ', ' . $user_id . ')');
+        if (!$result) {
+            throw new CommonException(mysqli_error($link));
+        }
+        if (mysqli_affected_rows($link) > 0) {
+            $args[$arg + 1] = $t;
+            while (($row = mysqli_fetch_assoc($result)) != null) {
+                $args[$arg + 2] = $row;
+                if (call_user_func_array($filter, $args)) {
+                    array_push($posts,
+                        array('id' => $row['id'],
+                              'thread' => $row['thread'],
+                              'number' => $row['number'],
+                              'password' => $row['password'],
+                              'name' => $row['name'],
+                              'tripcode' => $row['tripcode'],
+                              'ip' => $row['ip'],
+                              'subject' => $row['subject'],
+                              'date_time' => $row['date_time'],
+                              'text' => $row['text'],
+                              'sage' => $row['sage']));
+                }
+            }
+        }
+        mysqli_free_result($result);
+        db_cleanup_link($link);
+    }
+    return $posts;
 }
 
 /***************************************************
@@ -1935,11 +1996,9 @@ function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id,
  * @param file mixed <p>Идентификатор вложенного файла.</p>
  * @param deleted mixed <p>Флаг удаления.</p>
  */
-function db_posts_files_add($link, $post, $file, $deleted)
-{
+function db_posts_files_add($link, $post, $file, $deleted) { // Java CC
     if(!mysqli_query($link, 'call sp_posts_files_add(' . $post . ', ' . $file
-        . ', ' . $deleted . ')'))
-    {
+            . ', ' . $deleted . ')')) {
         throw new CommonException(mysqli_error($link));
     }
     db_cleanup_link($link);
@@ -1977,6 +2036,21 @@ function db_posts_files_get_by_post($link, $post_id)
 /********************************************************
  * Работа со связями сообщений и вложенных изображений. *
  ********************************************************/
+
+/**
+ * Добавляет связь сообщения с вложенным изображением.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param post mixed <p>Идентификатор сообщения.</p>
+ * @param image mixed <p>Идентификатор вложенного изображения.</p>
+ * @param deleted mixed <p>Флаг удаления.</p>
+ */
+function db_posts_images_add($link, $post, $image, $deleted) { // Java CC
+    if(!mysqli_query($link, 'call sp_posts_images_add(' . $post . ', ' . $image
+            . ', ' . $deleted . ')')) {
+        throw new CommonException(mysqli_error($link));
+    }
+    db_cleanup_link($link);
+}
 
 /**
  * Получает связи заданного сообщения с вложенными изображениями.
