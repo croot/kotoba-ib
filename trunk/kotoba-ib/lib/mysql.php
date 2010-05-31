@@ -2147,6 +2147,20 @@ function db_posts_links_get_by_post($link, $post_id)
  ***************************************************/
 
 /**
+ * Добавляет связь сообщения с вложенным видео.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param post mixed <p>Идентификатор сообщения.</p>
+ * @param video mixed <p>Идентификатор вложенного видео.</p>
+ * @param deleted mixed <p>Флаг удаления.</p>
+ */
+function db_posts_videos_add($link, $post, $video, $deleted) { // Java CC
+    if(!mysqli_query($link, 'call sp_posts_videos_add(' . $post . ', ' . $video
+            . ', ' . $deleted . ')')) {
+        throw new CommonException(mysqli_error($link));
+    }
+    db_cleanup_link($link);
+}
+/**
  * Получает связи заданного сообщения с вложенным видео.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param post_id mixed <p>Идентификатор сообщения.</p>
@@ -3108,6 +3122,32 @@ function db_users_set_password($link, $id, $password)
  * Работа с вложенным видео. *
  *****************************/
 
+/**
+ * Добавляет вложенное видео.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param code string <p>HTML-код.</p>
+ * @param widht mixed <p>Ширина.</p>
+ * @param height mixed <p>Высота.</p>
+ * @return string
+ * Возвращает идентификатор вложенного видео.
+ */
+function db_videos_add($link, $code, $widht, $height) {
+    if ($hash == null) {
+        $hash = 'null';
+    } else {
+        $hash = '\'' . $hash . '\'';
+    }
+    $result = mysqli_query($link, 'call sp_videos_add(\'' . $code . '\', '
+        . $widht . ', ' . $height . ')');
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $row = mysqli_fetch_assoc($result);
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $row['id'];
+}
 /**
  * Получает видео, вложенные в заданное сообщение.
  * @param link MySQLi <p>Связь с базой данных.</p>

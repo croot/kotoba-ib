@@ -113,13 +113,13 @@ create table upload_handlers		-- Обработчики загружаемых �
 )
 engine = InnoDB|
 
-create table videos					-- Вложенные видео.
+create table videos                 -- Вложенные видео.
 (
-	id int not null auto_increment,	-- Идентификатор.
-	code varchar(256) not null,		-- HTML-код.
-	widht int not null,				-- Ширина.
-	height int not null,			-- Высота.
-	primary key (id)
+    id int not null auto_increment, -- Идентификатор.
+    code varchar(256) not null,     -- HTML-код.
+    widht int not null,             -- Ширина.
+    height int not null,            -- Высота.
+    primary key (id)
 )
 engine=InnoDB|
 
@@ -312,21 +312,21 @@ create table posts_links	-- Связь сообщений и вложенных 
 )
 engine=InnoDB|
 
-create table posts_videos	-- Связь сообщений и вложенного видео.
+create table posts_videos   -- Связь сообщений и вложенного видео.
 (
-	post int not null,		-- Идентификатор сообщения.
-	video int not null,		-- Идентификатор вложенного видео.
-	deleted bit not null,	-- Флаг удаления.
-	unique key (post, video),
-	constraint foreign key (post) references posts (id) on delete restrict on update restrict,
-	constraint foreign key (video) references videos (id) on delete restrict on update restrict
+    post int not null,      -- Идентификатор сообщения.
+    video int not null,     -- Идентификатор вложенного видео.
+    deleted bit not null,   -- Флаг удаления.
+    unique key (post, video),
+    constraint foreign key (post) references posts (id) on delete restrict on update restrict,
+    constraint foreign key (video) references videos (id) on delete restrict on update restrict
 )
 engine=InnoDB|
 
 create table words                      -- Таблица вордфильтра.
 (
     id int not null auto_increment,     -- Идентификатор замены.
-	board_id int not null,				-- Идентификатор доски.
+    board_id int not null,              -- Идентификатор доски.
     word varchar(100) not null,         -- Слово для замены.
     `replace` varchar(100) not null,    -- Замена.
     unique key (id)

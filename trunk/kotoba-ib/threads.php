@@ -95,8 +95,10 @@ try
 	$smarty->assign('goto', $_SESSION['goto']);
 	$smarty->assign('macrochan_tags', $macrochan_tags);
 	$smarty->assign('ib_name', Config::IB_NAME);
-	$smarty->assign('enable_macro', Config::ENABLE_MACRO);
-	$smarty->assign('enable_youtube', Config::ENABLE_YOUTUBE);
+	$smarty->assign('enable_macro', $board['enable_macro'] === null
+        && Config::ENABLE_MACRO || $board['enable_macro']);
+	$smarty->assign('enable_youtube', $board['enable_youtube'] === null
+        && Config::ENABLE_YOUTUBE || $board['enable_youtube']);
 	$smarty->assign('ATTACHMENT_TYPE_FILE', Config::ATTACHMENT_TYPE_FILE);
 	$smarty->assign('ATTACHMENT_TYPE_LINK', Config::ATTACHMENT_TYPE_LINK);
 	$smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);

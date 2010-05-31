@@ -1719,8 +1719,7 @@ function posts_prepare_text(&$text, $board)
  * @param file mixed <p>Идентификатор вложенного файла.</p>
  * @param deleted mixed <p>Флаг удаления.</p>
  */
-function posts_files_add($post, $file, $deleted)
-{
+function posts_files_add($post, $file, $deleted) { // Java CC
     db_posts_files_add(DataExchange::getDBLink(), $post, $file, $deleted);
 }
 
@@ -1735,10 +1734,22 @@ function posts_files_add($post, $file, $deleted)
  * @param image mixed <p>Идентификатор вложенного изображения.</p>
  * @param deleted mixed <p>Флаг удаления.</p>
  */
-function posts_images_add($post, $image, $deleted)
-{
-    return db_posts_images_add(DataExchange::getDBLink(), $post, $image,
-        $deleted);
+function posts_images_add($post, $image, $deleted) { // Java CC
+    db_posts_images_add(DataExchange::getDBLink(), $post, $image, $deleted);
+}
+
+/***************************************************
+ * Работа со связями сообщений и вложенного видео. *
+ ***************************************************/
+
+/**
+ * Добавляет связь сообщения с вложенным видео.
+ * @param post mixed <p>Идентификатор сообщения.</p>
+ * @param video mixed <p>Идентификатор вложенного видео.</p>
+ * @param deleted mixed <p>Флаг удаления.</p>
+ */
+function posts_videos_add($post, $video, $deleted) { // Java CC
+    db_posts_videos_add(DataExchange::getDBLink(), $post, $video, $deleted);
 }
 
 /**********************
@@ -2613,6 +2624,22 @@ function users_set_goto($id, $goto)
 function users_set_password($id, $password)
 {
     db_users_set_password(DataExchange::getDBLink(), $id, $password);
+}
+
+/*****************************
+ * Работа с вложенным видео. *
+ *****************************/
+
+/**
+ * Добавляет вложенное видео.
+ * @param code string <p>HTML-код.</p>
+ * @param widht mixed <p>Ширина.</p>
+ * @param height mixed <p>Высота.</p>
+ * @return string
+ * Возвращает идентификатор вложенного видео.
+ */
+function videos_add($code, $widht, $height) {
+    return db_videos_add(DataExchange::getDBLink(), $code, $widht, $height);
 }
 
 /***************************************************

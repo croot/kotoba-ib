@@ -98,7 +98,7 @@ try {
 
     posts_check_text_size($_POST['text']);
 	$text = htmlentities($_POST['text'], ENT_QUOTES, Config::MB_ENCODING);
-    $words = words_get_all_by_board(boards_check_id($_POST['board']));
+    $words = words_get_all_by_board($board['id']);
     foreach ($words as $word) { //Замена регистронезависима
         $text = preg_replace("#".$word['word']."#iu", $word['replace'], $text);
     }
@@ -140,13 +140,9 @@ try {
                 && isset($_POST['macrochan_tag'])
                 && $_POST['macrochan_tag'] != '') {
             $attachment_type = Config::ATTACHMENT_TYPE_LINK;
-        } elseif (($board['enable_youtube'] === null && Config::ENABLE_YOUTUBE || $board['enable_youtube'])
-                && isset($_POST['youtube_video_code'])
-                && $_POST['youtube_video_code'] != '') {
+        } elseif (($board['enable_youtube'] === null && Config::ENABLE_YOUTUBE || $board['enable_youtube']) && isset($_POST['youtube_video_code']) && $_POST['youtube_video_code'] != '') {
             $youtube_video_code = check_youtube_video_code($_POST['youtube_video_code']);
             $attachment_type = Config::ATTACHMENT_TYPE_VIDEO;
-        } else {
-            throw new UploadException(UploadException::$messages['UNKNOWN']);
         }
     }
 
@@ -233,8 +229,9 @@ try {
             $attachment_id = link_add($file_names[0], '640', '480', 63290,
                 $file_names[1], '192', '144');
         } elseif ($attachment_type == Config::ATTACHMENT_TYPE_VIDEO) {
-            /* TODO Размеры */
-            $attachment_id = video_add($youtube_video_code, null, null);
+            $attachment_id = videos_add($youtube_video_code, 220, 182);
+        } else {
+            throw new CommonException('Not supported.');
         }
     }
 
@@ -281,7 +278,7 @@ try {
 
     if ($_SESSION['goto'] == 't') {
         header('Location: ' . Config::DIR_PATH
-            . "/{$board['name']}/{$post['number']}/");
+            . "/{$board['name']}/{$thread['original_post']}/");
     } else {
         header('Location: ' . Config::DIR_PATH . "/{$board['name']}/");
     }
