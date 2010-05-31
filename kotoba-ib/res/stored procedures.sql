@@ -79,6 +79,7 @@ drop procedure if exists sp_posts_images_get_by_post|
 
 drop procedure if exists sp_posts_links_get_by_post|
 
+drop procedure if exists sp_posts_videos_add|
 drop procedure if exists sp_posts_videos_get_by_post|
 
 drop procedure if exists sp_stylesheets_add|
@@ -121,12 +122,14 @@ drop procedure if exists sp_users_get_by_keyword|
 drop procedure if exists sp_users_set_goto|
 drop procedure if exists sp_users_set_password|
 
+drop procedure if exists sp_videos_add|
 drop procedure if exists sp_videos_get_by_post|
 
 drop procedure if exists sp_words_add|
 drop procedure if exists sp_words_delete|
 drop procedure if exists sp_words_edit|
 drop procedure if exists sp_words_get_all|
+drop procedure if exists sp_words_get_all_by_board|
 
 /*drop procedure if exists sp_posts_uploads_get_by_post|
 drop procedure if exists sp_posts_uploads_add|
@@ -1619,6 +1622,23 @@ end|
 -- Работа со связями сообщений и вложенного видео. --
 -- --------------------------------------------------
 
+-- Добавляет связь сообщения с вложенным видео.
+--
+-- Аргументы:
+-- _post - Идентификатор сообщения.
+-- _video - Идентификатор вложенного видео.
+-- _deleted - Флаг удаления.
+create procedure sp_posts_videos_add
+(
+    _post int,
+    _video int,
+    _deleted bit
+)
+begin
+    insert into posts_videos (post, video, deleted)
+        values (_post, _video, _deleted);
+end|
+
 -- Выбирает связи заданного сообщения с вложенным видео.
 --
 -- Аргументы:
@@ -2552,18 +2572,35 @@ end|
 -- Работа с вложенным видео. --
 -- ----------------------------
 
+-- Добавляет вложенное видео.
+
+-- Аргументы:
+-- _code - HTML-код.
+-- _widht - Ширина.
+-- _height - Высота.
+create procedure sp_videos_add
+(
+    _code varchar(256),
+    _widht int,
+    _height int
+)
+begin
+    insert into videos (code, widht, height) values (_code, _widht, _height);
+    select last_insert_id() as id;
+end|
+
 -- Выбирает видео, вложенные в заданное сообщение.
 
 -- Аргументы:
 -- post_id - Идентификатор сообщения.
 create procedure sp_videos_get_by_post
 (
-	post_id int
+    post_id int
 )
 begin
-	select v.id, v.code, v.widht, v.height
-	from posts_videos pv
-	join videos v on v.id = pv.video and pv.post = post_id;
+    select v.id, v.code, v.widht, v.height
+        from posts_videos pv
+        join videos v on v.id = pv.video and pv.post = post_id;
 end|
 
 -- ---------------------------------

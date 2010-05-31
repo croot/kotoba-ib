@@ -133,8 +133,6 @@ try {
                 && $_POST['youtube_video_code'] != '') {
             $youtube_video_code = check_youtube_video_code($_POST['youtube_video_code']);
             $attachment_type = Config::ATTACHMENT_TYPE_VIDEO;
-        } else {
-            throw new UploadException(UploadException::$messages['UNKNOWN']);
         }
     }
 
@@ -218,11 +216,10 @@ try {
         } elseif ($attachment_type == Config::ATTACHMENT_TYPE_LINK) {
             $file_names[0] = 'http://12ch.ru/macro/index.php/image/3478.jpg';
             $file_names[1] = 'http://12ch.ru/macro/index.php/thumb/3478.jpg';
-            $attachment_id = link_add($file_names[0], '640', '480', 63290,
+            $attachment_id = links_add($file_names[0], '640', '480', 63290,
                 $file_names[1], '192', '144');
         } elseif ($attachment_type == Config::ATTACHMENT_TYPE_VIDEO) {
-            /* TODO Размеры */
-            $attachment_id = video_add($youtube_video_code, null, null);
+            $attachment_id = videos_add($youtube_video_code, 220, 182);
         } else {
             throw new CommonException('Not supported.');
         }
