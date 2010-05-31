@@ -33,6 +33,7 @@ try {
     }
 
     $board = boards_get_by_id($thread['board']);
+    
     if (!is_admin()
             && (($board['enable_captcha'] === null && Config::ENABLE_CAPTCHA)
             || $board['enable_captcha'])) {
@@ -43,8 +44,6 @@ try {
         }
     }
     
-	$words = words_get_all();
-	
     $goto = null;
     $should_update_goto = false;
     if (isset($_POST['goto'])) {
@@ -99,21 +98,19 @@ try {
 
     posts_check_text_size($_POST['text']);
 	$text = htmlentities($_POST['text'], ENT_QUOTES, Config::MB_ENCODING);
-	foreach($words as $word)
-	{
-		$text = preg_replace("#".$word['word']."#iu", $word['replace'], $text); //Замена регистронезависима
-	}
+    $words = words_get_all();
+    foreach ($words as $word) { //Замена регистронезависима
+        $text = preg_replace("#".$word['word']."#iu", $word['replace'], $text);
+    }
 	$text = str_replace('\\', '\\\\', $text);
 	posts_check_text_size($text);
 	posts_check_text($text);
 	posts_prepare_text($text, $board);
 	posts_check_text_size($text);
 
-	/*$with_attachment = false;	// Сообщение с вложением.*/
 	$attachment_type = null;	// Тип вложения.
     if ($thread['with_attachments']
-            || ($thread['with_attachments'] === null
-                    && $board['with_attachments'])) {
+            || ($thread['with_attachments'] === null && $board['with_attachments'])) {
         if ($_FILES['file']['error'] != UPLOAD_ERR_NO_FILE) {
             check_upload_error($_FILES['file']['error']);
             $uploaded_file_size = $_FILES['file']['size'];
@@ -135,7 +132,7 @@ try {
             }
             if ($upload_type['is_image']) {
                 $attachment_type = Config::ATTACHMENT_TYPE_IMAGE;
-                uploads_check_image_size($uploaded_file_size);
+                images_check_size($uploaded_file_size);
             } else {
                 $attachment_type = Config::ATTACHMENT_TYPE_FILE;
             }
@@ -152,228 +149,155 @@ try {
             throw new UploadException(UploadException::$messages['UNKNOWN']);
         }
     }
-    exit; // Rework in progress.
-	/*if($thread['with_attachments']
-		|| ($thread['with_attachments'] === null && $board['with_attachments']))	// Можно отвечать с вложением.
-	{
-		if($_FILES['file']['error'] == UPLOAD_ERR_NO_FILE	// Ни файл ни изображение не были загржены.
-			&& ((($board['enable_macro'] === null && Config::ENABLE_MACRO) || $board['enable_macro'])
-				&& (!isset($_POST['macrochan_tag']) || $_POST['macrochan_tag'] == ''))	// Включена интеграция с макрочаном, но тег не был выбран.
-			&& ((($board['enable_youtube'] === null && Config::ENABLE_YOUTUBE) || $board['enable_youtube'])
-				&& (!isset($_POST['youtube_video_code']) || $_POST['youtube_video_code'] == ''))	// Включено вложение видео с ютуба, но код видео не был введён.
-			&& (!isset($_POST['text']) || $_POST['text'] == ''))	// Текст сообщения отсутствует.
-		{
-			throw new NodataException(NodataException::$messages['EMPTY_MESSAGE']);
-		}
-		if($_FILES['file']['error'] != UPLOAD_ERR_NO_FILE)
-		{
-			$with_attachment = true;
-			check_upload_error($_FILES['file']['error']);
-			$uploaded_file_size = $_FILES['file']['size'];
-			$uploaded_file_path = $_FILES['file']['tmp_name'];
-			$uploaded_file_name = $_FILES['file']['name'];
-			$uploaded_file_ext = get_extension($uploaded_file_name);
-			$upload_types = upload_types_get_board($board['id']);
-			$found = false;
-			$upload_type = null;
-			foreach($upload_types as $ut)
-				if($ut['extension'] == $uploaded_file_ext)
-				{
-					$found = true;
-					$upload_type = $ut;
-					break;
-				}
-			if(!$found)
-				throw new UploadException(UploadException::$messages['UPLOAD_FILETYPE_NOT_SUPPORTED']);
-			if($upload_type['is_image'])
-			{
-				$attachment_type = Config::ATTACHMENT_TYPE_IMAGE;
-				uploads_check_image_size($uploaded_file_size);
-			}
-			else
-				$attachment_type = Config::ATTACHMENT_TYPE_FILE;
-		}
-		elseif (($board['enable_macro'] === null && Config::ENABLE_MACRO || $board['enable_macro'])
-			&& isset($_POST['macrochan_tag']) && $_POST['macrochan_tag'] != '') {
-			$with_attachment = true;
-			$attachment_type = Config::ATTACHMENT_TYPE_LINK;
-		}
-		elseif (($board['enable_youtube'] === null && Config::ENABLE_YOUTUBE || $board['enable_youtube'])
-			&& isset($_POST['youtube_video_code']) && $_POST['youtube_video_code'] != '')
-		{
-			$youtube_video_code = check_youtube_video_code($_POST['youtube_video_code']);
-			$with_attachment = true;
-			$attachment_type = Config::ATTACHMENT_TYPE_VIDEO;
-		}
-		else
-		{
-			throw new UploadException(UploadException::$messages['UNKNOWN']);
-		}
-	}*/
-// 2. Подготовка и сохранение файла.
-	if($with_attachment)
-	{
-		switch($attachment_type)
-		{
-			case Config::ATTACHMENT_TYPE_FILE:
-				$file_hash = calculate_file_hash($uploaded_file_path);
-				$file_already_posted = false;
-				$same_files = null;
-				switch($board['same_upload'])
-				{
-					case 'no':
-						$same_files = files_get_same($board['id'], $file_hash,
-							$_SESSION['user']);
-						if(count($same_files) > 0)
-						{
-							show_same_files($smarty, $board['name'],
-								$same_files);
-							DataExchange::releaseResources();
-							exit;
-						}
-						break;
-					case 'once':
-						$same_files = files_get_same($board['id'], $file_hash,
-							$_SESSION['user']);
-						if(count($same_files) > 0)
-							$file_already_posted = true;
-						break;
-					case 'yes':
-					default:
-						break;
-				}
-				if(!$file_already_posted)
-				{
-					$file_names = create_filenames($upload_type['store_extension']);
-					$abs_file_path = Config::ABS_PATH
-						. "/{$board['name']}/other/{$file_names[0]}";
-					move_uploded_file($uploaded_file_path, $abs_file_path);
-					$file_id = files_add($file_hash, $file_names[0],
-						$uploaded_file_size, $upload_type['thumbnail_image'],
-						Config::THUMBNAIL_WIDTH, Config::THUMBNAIL_HEIGHT, 0);
-				}
-				else
-					$file_id = $same_files[0]['id'];	// Первый попавшийся из одинаковых файлов.
-				break;
-			case Config::ATTACHMENT_TYPE_IMAGE:
-				$image_hash = calculate_file_hash($uploaded_file_path);
-				$image_already_posted = false;
-				$same_images = null;
-				switch($board['same_upload'])
-				{
-					case 'no':
-						$same_images = images_get_same($board['id'],
-							$image_hash, $_SESSION['user']);
-						if(count($same_images) > 0)
-						{
-							show_same_images($smarty, $board['name'],
-								$same_images);
-							DataExchange::releaseResources();
-							exit;
-						}
-						break;
-					case 'once':
-						$same_images = images_get_same($board['id'],
-							$image_hash, $_SESSION['user']);
-						if(count($same_images) > 0)
-							$image_already_posted = true;
-						break;
-					case 'yes':
-					default:
-						break;
-				}
-				if(!$image_already_posted)
-				{
-					$img_dimensions = image_get_dimensions($upload_type,
-						$uploaded_file_path);
-					if($img_dimensions['x'] < Config::MIN_IMGWIDTH
-						&& $img_dimensions['y'] < Config::MIN_IMGHEIGHT)
-					{
-						throw new LimitException(LimitException::$messages['MIN_IMG_DIMENTIONS']);
-					}
-					$file_names = create_filenames($upload_type['store_extension']);
-					$abs_img_path = Config::ABS_PATH
-						. "/{$board['name']}/img/{$file_names[0]}";
-					$abs_thumb_path = Config::ABS_PATH
-						. "/{$board['name']}/thumb/{$file_names[1]}";
-					move_uploded_file($uploaded_file_path, $abs_img_path);
-					$thumb_dimensions = create_thumbnail($abs_img_path,
-						$abs_thumb_path, $img_dimensions, $upload_type,
-						Config::THUMBNAIL_WIDTH, Config::THUMBNAIL_HEIGHT,
-						$upload_type['upload_handler_name'] === 'thumb_internal_png');	// TODO Unhardcode handler name.
-					$image_id = images_add($file_hash, $file_names[0],
-						$img_dimensions['x'], $img_dimensions['y'],
-						$uploaded_file_size, $file_names[1],
-						$thumb_dimensions['x'], $thumb_dimensions['y'], 0);
-				}
-				else
-					$image_id = $same_images[0]['id'];	// Первая попавшаяся из одинаковых картинок.
-				break;
-			case Config::ATTACHMENT_TYPE_LINK:
-				$link_id = links_add('http://12ch.ru/macro/index.php/image/3478.jpg',
-					'640', '480', 63290,
-					'http://12ch.ru/macro/index.php/thumb/3478.jpg',
-					'192', '144', 0);
-				break;
-			case Config::ATTACHMENT_TYPE_VIDEO:
-				$video_id = videos_add($youtube_video_code, null, null, 0);
-				break;
-			default:
-				throw new CommonException('Not supported.');
-				break;
-		}
-	}
-	date_default_timezone_set(Config::DEFAULT_TIMEZONE);
-	$post = posts_add($board['id'], $thread['id'], $_SESSION['user'],
-		$password, $name, $tripcode, ip2long($_SERVER['REMOTE_ADDR']),
-		$subject, date(Config::DATETIME_FORMAT), $text, $sage);
-	if(($board['with_files'] || $thread['with_files']) && $with_attachment)
-		switch($attachment_type)
-		{
-			case Config::ATTACHMENT_TYPE_FILE:
-				posts_files_add($post['id'], $file_id);
-				break;
-			case Config::ATTACHMENT_TYPE_IMAGE:
-				posts_images_add($post['id'], $image_id);
-				break;
-			case Config::ATTACHMENT_TYPE_LINK:
-				posts_links_add($post['id'], $link_id);
-				break;
-			case Config::ATTACHMENT_TYPE_VIDEO:
-				posts_videos_add($post['id'], $video_id);
-				break;
-			default:
-				throw new CommonException('Not supported.');
-				break;
-		}
-	if($_SESSION['user'] != Config::GUEST_ID && $should_update_password)
-		users_set_password($_SESSION['user'], $password);
-// 4. Запуск обработчика автоматического удаления нитей.
-	foreach(popdown_handlers_get_all() as $popdown_handler)
-		if($board['popdown_handler'] == $popdown_handler['id'])
-		{
-			$popdown_handler['name']($board['id']);
-			break;
-		}
-	DataExchange::releaseResources();
-// 5. Перенаправление.
-	if($_SESSION['goto'] == 't')
-		header('Location: ' . Config::DIR_PATH
-			. "/{$board['name']}/{$thread['original_post']}/");
-	else
-		header('Location: ' . Config::DIR_PATH . "/{$board['name']}/");
-	exit;
-}
-catch(Exception $e)
-{
-	$smarty->assign('msg', $e->__toString());
-	DataExchange::releaseResources();
-	if(isset($abs_file_path))	// Удаление загруженного файла.
+
+    /* TODO: А если одни пробелы или другие пустые сущности? */
+    if ($attachment_type === null && $text == '') {
+        throw new NodataException(NodataException::$messages['EMPTY_MESSAGE']);
+    }
+
+    if ($attachment_type !== null) {
+        if ($attachment_type == Config::ATTACHMENT_TYPE_FILE
+                || $attachment_type == Config::ATTACHMENT_TYPE_IMAGE) {
+            $file_hash = calculate_file_hash($uploaded_file_path);
+            $file_exists = false;
+            $same_attachments = null;
+            switch ($board['same_upload']) {
+                case 'once':
+                    $same_attachments = attachments_get_same($board['id'],
+                        $_SESSION['user'], $file_hash);
+                    if (count($same_attachments) > 0) {
+                        $file_exists = true;
+                    }
+                    break;
+
+                case 'no':
+                    $same_attachments = attachments_get_same($board['id'],
+                        $_SESSION['user'], $file_hash);
+                    if (count($same_attachments) > 0) {
+                        show_same_attachments($smarty, $board['name'],
+                            $same_attachments);
+                        DataExchange::releaseResources();
+                        exit;
+                    }
+                    break;
+
+                case 'yes':
+                default:
+                    break;
+            }
+            if (!$file_exists) {
+                $file_names = create_filenames($upload_type['store_extension']);
+            }
+        }
+
+        if ($attachment_type == Config::ATTACHMENT_TYPE_FILE) {
+            if ($file_exists) {
+                $attachment_id = $same_attachments[0]['id'];
+            } else {
+                $abs_file_path = Config::ABS_PATH
+                    . "/{$board['name']}/other/{$file_names[0]}";
+                move_uploded_file($uploaded_file_path, $abs_file_path);
+                $attachment_id = files_add($file_hash, $file_names[0],
+                    $uploaded_file_size, $upload_type['thumbnail_image'],
+                    Config::THUMBNAIL_WIDTH, Config::THUMBNAIL_HEIGHT);
+            }
+        } elseif ($attachment_type === Config::ATTACHMENT_TYPE_IMAGE) {
+            if ($file_exists) {
+                $attachment_id = $same_attachments[0]['id'];
+            } else {
+                $img_dimensions = image_get_dimensions($upload_type,
+                    $uploaded_file_path);
+                if($img_dimensions['x'] < Config::MIN_IMGWIDTH
+                        && $img_dimensions['y'] < Config::MIN_IMGHEIGHT) {
+                    throw new LimitException(LimitException::$messages['MIN_IMG_DIMENTIONS']);
+                }
+                $abs_img_path = Config::ABS_PATH
+                    . "/{$board['name']}/img/{$file_names[0]}";
+                $abs_thumb_path = Config::ABS_PATH
+                    . "/{$board['name']}/thumb/{$file_names[1]}";
+                move_uploded_file($uploaded_file_path, $abs_img_path);
+                $force = $upload_type['upload_handler_name'] === 'thumb_internal_png'
+                    ? true : false;	// TODO Unhardcode handler name.
+                $thumb_dimensions = create_thumbnail($abs_img_path,
+                    $abs_thumb_path, $img_dimensions, $upload_type,
+                    Config::THUMBNAIL_WIDTH, Config::THUMBNAIL_HEIGHT,
+                    $force);
+                $attachment_id = images_add($file_hash, $file_names[0],
+                    $img_dimensions['x'], $img_dimensions['y'],
+                    $uploaded_file_size, $file_names[1], $thumb_dimensions['x'],
+                    $thumb_dimensions['y']);
+            }
+        } elseif ($attachment_type == Config::ATTACHMENT_TYPE_LINK) {
+            $file_names[0] = 'http://12ch.ru/macro/index.php/image/3478.jpg';
+            $file_names[1] = 'http://12ch.ru/macro/index.php/thumb/3478.jpg';
+            $attachment_id = link_add($file_names[0], '640', '480', 63290,
+                $file_names[1], '192', '144');
+        } elseif ($attachment_type == Config::ATTACHMENT_TYPE_VIDEO) {
+            /* TODO Размеры */
+            $attachment_id = video_add($youtube_video_code, null, null);
+        }
+    }
+
+    date_default_timezone_set(Config::DEFAULT_TIMEZONE);
+    $post = posts_add($board['id'], $thread['id'], $_SESSION['user'],
+        $password, $name, $tripcode, ip2long($_SERVER['REMOTE_ADDR']),
+        $subject, date(Config::DATETIME_FORMAT), $text, $sage);
+    
+    if ($attachment_type !== null) {
+        switch ($attachment_type) {
+            case Config::ATTACHMENT_TYPE_FILE:
+                posts_files_add($post['id'], $attachment_id, 0);
+                break;
+            case Config::ATTACHMENT_TYPE_IMAGE:
+                posts_images_add($post['id'], $attachment_id, 0);
+                break;
+            case Config::ATTACHMENT_TYPE_LINK:
+                posts_links_add($post['id'], $attachment_id, 0);
+                break;
+            case Config::ATTACHMENT_TYPE_VIDEO:
+                posts_videos_add($post['id'], $attachment_id, 0);
+                break;
+            default:
+                throw new CommonException('Not supported.');
+                break;
+        }
+    }
+    
+	if ($_SESSION['user'] != Config::GUEST_ID && $should_update_password) {
+        users_set_password($_SESSION['user'], $password);
+    }
+    if ($should_update_goto) {
+        users_set_goto($_SESSION['user'], $goto);
+    }
+
+	foreach (popdown_handlers_get_all() as $popdown_handler) {
+        if ($board['popdown_handler'] == $popdown_handler['id']) {
+            $popdown_handler['name']($board['id']);
+            break;
+        }
+    }
+
+    DataExchange::releaseResources();
+
+    if ($_SESSION['goto'] == 't') {
+        header('Location: ' . Config::DIR_PATH
+            . "/{$board['name']}/{$post['number']}/");
+    } else {
+        header('Location: ' . Config::DIR_PATH . "/{$board['name']}/");
+    }
+    exit;
+} catch (Exception $e) {
+    $smarty->assign('msg', $e->__toString());
+    DataExchange::releaseResources();
+	if (isset($abs_file_path)) { // Удаление загруженного файла.
 		@unlink($abs_file_path);
-	if(isset($abs_img_path))	// Удаление загруженного изображения.
-		@unlink($abs_img_path);
-	if(isset($abs_thumb_path))	// Удаление уменьшенной копии.
-		@unlink($abs_thumb_path);
-	die($smarty->fetch('error.tpl'));
+    }
+    if (isset($abs_img_path)) { // Удаление загруженного файла.
+        @unlink($abs_img_path);
+    }
+    if (isset($abs_thumb_path)) { // Удаление уменьшенной копии.
+        @unlink($abs_thumb_path);
+    }
+    die($smarty->fetch('error.tpl'));
 }
 ?>

@@ -45,6 +45,7 @@ drop procedure if exists sp_hidden_threads_delete|
 drop procedure if exists sp_hidden_threads_get_by_board|
 drop procedure if exists sp_hidden_threads_get_visible|
 
+drop procedure if exists sp_images_add|
 drop procedure if exists sp_images_get_by_post|
 drop procedure if exists sp_images_get_same|
 
@@ -73,6 +74,7 @@ drop procedure if exists sp_posts_get_visible_by_thread|
 drop procedure if exists sp_posts_files_add|
 drop procedure if exists sp_posts_files_get_by_post|
 
+drop procedure if exists sp_posts_images_add|
 drop procedure if exists sp_posts_images_get_by_post|
 
 drop procedure if exists sp_posts_links_get_by_post|
@@ -981,6 +983,36 @@ end|
 -- Работа с вложенными изображениями. --
 -- -------------------------------------
 
+-- Добавляет вложенное изображение.
+--
+-- Аргументы:
+-- _hash - Хеш.
+-- _name - Имя.
+-- _widht - Ширина.
+-- _height - Высота.
+-- _size - Размер в байтах.
+-- _thumbnail - Уменьшенная копия.
+-- _thumbnail_w - Ширина уменьшенной копии.
+-- _thumbnail_h - Высота уменьшенной копии.
+create procedure sp_images_add
+(
+    _hash varchar(32),
+    _name varchar(256),
+    _widht int,
+    _height int,
+    _size int,
+    _thumbnail varchar(256),
+    _thumbnail_w int,
+    _thumbnail_h int
+)
+begin
+    insert into images (hash, name, widht, height, size, thumbnail, thumbnail_w,
+            thumbnail_h)
+        values (_hash, _name, _widht, _height, _size, _thumbnail, _thumbnail_w,
+            _thumbnail_h);
+    select last_insert_id() as id;
+end|
+
 -- Выбирает изображения, вложенные в заданное сообщение.
 --
 -- Аргументы:
@@ -1537,6 +1569,23 @@ end|
 -- -------------------------------------------------------
 -- Работа со связями сообщений и вложенных изображений. --
 -- -------------------------------------------------------
+
+-- Добавляет связь сообщения с вложенным изображением.
+--
+-- Аргументы:
+-- _post - Идентификатор сообщения.
+-- _image - Идентификатор вложенного изображения.
+-- _deleted - Флаг удаления.
+create procedure sp_posts_images_add
+(
+    _post int,
+    _image int,
+    _deleted bit
+)
+begin
+    insert into posts_images (post, image, deleted)
+        values (_post, _image, _deleted);
+end|
 
 -- Выбирает связи заданного сообщения с вложенными изображениями.
 --
@@ -2533,12 +2582,8 @@ create procedure sp_words_add
 )
 begin
     insert into words (word, `replace`)
-	values (_word, _replace);
+        values (_word, _replace);
 end|
-
--- ---------------------------------
--- Удаление слова из вордфильтра. --
--- ---------------------------------
 
 -- Удаляет слово и его замену из таблицы вордфильтра.
 
@@ -2546,16 +2591,12 @@ end|
 -- id - Идентификатор.
 create procedure sp_words_delete
 (
-	_id int
+    _id int
 )
 begin
-	delete from words
-	where id = _id;
+    delete from words
+    where id = _id;
 end|
-
--- ------------------------------------
--- Редактирование слова вордфильтра. --
--- ------------------------------------
 
 -- Изменяет слово и его замену.
 
@@ -2566,17 +2607,13 @@ end|
 create procedure sp_words_edit
 (
     _id int,
-	_word varchar(100),
+    _word varchar(100),
     _replace varchar(100)
 )
 begin
     update words set word = _word, `replace` = _replace
-	where id = _id;
+        where id = _id;
 end|
-
--- -------------------------------
--- Выбор всех слов вордфильтра. --
--- -------------------------------
 
 -- Выбирает все слова, их замени и идентификаторы из таблицы вордфильтра.
 create procedure sp_words_get_all ()

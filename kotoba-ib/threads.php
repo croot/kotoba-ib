@@ -110,12 +110,11 @@ try
 	$simple_attachments = array();		// Массив вложений сообщения.
 	foreach($posts as $p)
 	{
-		// Имя отправителя по умолчанию.
-		if(!$board['force_anonymous'] && $board['default_name']
-			&& !$p['name'])
-		{
-			$p['name'] = $board['default_name'];
-		}
+        // Имя отправителя по умолчанию.
+        if(!$board['force_anonymous'] && $board['default_name'] !== null
+                && $p['name'] === null) {
+            $p['name'] = $board['default_name'];
+        }
 		// Оригинальное сообщение.
 		if($thread['original_post'] == $p['number'])
 		{

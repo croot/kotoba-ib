@@ -1085,6 +1085,33 @@ function hidden_threads_get_visible($board_id, $thread_num, $user_id)
  **************************************/
 
 /**
+ * Добавляет вложенное изображение.
+ * @param hash string <p>Хеш.</p>
+ * @param name string <p>Имя.</p>
+ * @param widht mixed <p>Ширина.</p>
+ * @param height mixed <p>Высота.</p>
+ * @param size mixed <p>Размер в байтах.</p>
+ * @param thumbnail string <p>Уменьшенная копия.</p>
+ * @param thumbnail_w mixed <p>Ширина уменьшенной копии.</p>
+ * @param thumbnail_h mixed <p>Высота уменьшенной копии.</p>
+ * @return string
+ * Возвращает идентификатор вложенного изображения.
+ */
+function images_add($hash, $name, $widht, $height, $size, $thumbnail,
+        $thumbnail_w, $thumbnail_h) {
+    return db_images_add(DataExchange::getDBLink(), $hash, $name, $widht,
+        $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h);
+}
+/**
+ * Проверяет, удовлетворяет ли загружаемое изображение ограничениям по размеру.
+ * @param img_size mixed <p>Размер изображения в байтах.</p>
+ */
+function images_check_size($size) { // Java CC
+	if ($size < Config::MIN_IMGSIZE) {
+		throw new LimitException(LimitException::$messages['MIN_IMG_SIZE']);
+    }
+}
+/**
  * Получает одинаковые вложенные изображения на заданной доски.
  * @param board_id mixed <p>Идентификатор доски.</p>
  * @param image_hash string <p>Хеш вложенного изображения.</p>
@@ -1104,10 +1131,9 @@ function hidden_threads_get_visible($board_id, $thread_num, $user_id)
  * 'thread_number' - Номер нити с сообщением, в которое вложено	изображение.<br>
  * 'view' - Право на просмотр сообщения, в которое вложено изображение.</p>
  */
-function images_get_same($board_id, $image_hash, $user_id)
-{
-	return db_images_get_same(DataExchange::getDBLink(), $board_id, $image_hash,
-		$user_id);
+function images_get_same($board_id, $image_hash, $user_id) { // Java CC
+    return db_images_get_same(DataExchange::getDBLink(), $board_id, $image_hash,
+        $user_id);
 }
 
 /*********************
@@ -1680,6 +1706,23 @@ function posts_prepare_text(&$text, $board)
 function posts_files_add($post, $file, $deleted)
 {
     db_posts_files_add(DataExchange::getDBLink(), $post, $file, $deleted);
+}
+
+
+/********************************************************
+ * Работа со связями сообщений и вложенных изображений. *
+ ********************************************************/
+
+/**
+ * Добавляет связь сообщения с вложенным изображением.
+ * @param post mixed <p>Идентификатор сообщения.</p>
+ * @param image mixed <p>Идентификатор вложенного изображения.</p>
+ * @param deleted mixed <p>Флаг удаления.</p>
+ */
+function posts_images_add($post, $image, $deleted)
+{
+    return db_posts_images_add(DataExchange::getDBLink(), $post, $image,
+        $deleted);
 }
 
 /**********************

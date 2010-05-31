@@ -50,7 +50,7 @@
 {/if}
 <tr valign="top"><td class="postblock">Тема: </td><td><input type="text" name="subject" size="56"> <input type="submit" value="Ответить"></td></tr>
 <tr valign="top"><td class="postblock">Сообщение: </td><td><textarea name="text" rows="7" cols="50"></textarea><img id="resizer" src="{$DIR_PATH}/flower.png"></td></tr>
-{if $thread.with_files || ($thread.with_files === null && $board.with_files)}
+{if $thread.with_attachments || ($thread.with_attachments === null && $board.with_attachments)}
 	<tr valign="top"><td class="postblock">Файл: </td><td><input type="file" name="file" size="54"></td></tr>
 	{if $enable_macro}
 		<tr valign="top"><td class="postblock">Макрос: </td>

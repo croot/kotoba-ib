@@ -39,8 +39,6 @@ try {
         }
     }
 
-	$words = words_get_all();
-	
     $goto = null;
     $should_update_goto = false;
     if (isset($_POST['goto'])) {
@@ -90,10 +88,10 @@ try {
 	
     posts_check_text_size($_POST['text']);
     $text = htmlentities($_POST['text'], ENT_QUOTES, Config::MB_ENCODING);
-	foreach($words as $word)
-	{
-		$text = preg_replace("#".$word['word']."#iu", $word['replace'], $text); //Замена регистронезависима
-	}
+	$words = words_get_all();
+    foreach ($words as $word) { //Замена регистронезависима
+        $text = preg_replace("#".$word['word']."#iu", $word['replace'], $text);
+    }
     $text = str_replace('\\', '\\\\', $text);
     posts_check_text_size($text);
     posts_check_text($text);
@@ -123,7 +121,7 @@ try {
             }
             if ($upload_type['is_image']) {
                 $attachment_type = Config::ATTACHMENT_TYPE_IMAGE;
-                uploads_check_image_size($uploaded_file_size);
+                images_check_size($uploaded_file_size);
             } else {
                 $attachment_type = Config::ATTACHMENT_TYPE_FILE;
             }
@@ -141,31 +139,29 @@ try {
     }
 
     /* TODO: А если одни пробелы или другие пустые сущности? */
-    if($attachment_type === null && $text == '')
+    if ($attachment_type === null && $text == '') {
         throw new NodataException(NodataException::$messages['EMPTY_MESSAGE']);
+    }
 
-    if($attachment_type !== null)
-    {
-        if($attachment_type == Config::ATTACHMENT_TYPE_FILE
-            || $attachment_type == Config::ATTACHMENT_TYPE_IMAGE)
-        {
+    if ($attachment_type !== null) {
+        if ($attachment_type == Config::ATTACHMENT_TYPE_FILE
+                || $attachment_type == Config::ATTACHMENT_TYPE_IMAGE) {
             $file_hash = calculate_file_hash($uploaded_file_path);
             $file_exists = false;
             $same_attachments = null;
-            switch($board['same_upload'])
-            {
+            switch ($board['same_upload']) {
                 case 'once':
                     $same_attachments = attachments_get_same($board['id'],
                         $_SESSION['user'], $file_hash);
-                    if(count($same_attachments) > 0)
+                    if (count($same_attachments) > 0) {
                         $file_exists = true;
+                    }
                     break;
 
                 case 'no':
                     $same_attachments = attachments_get_same($board['id'],
                         $_SESSION['user'], $file_hash);
-                    if(count($same_attachments) > 0)
-                    {
+                    if (count($same_attachments) > 0) {
                         show_same_attachments($smarty, $board['name'],
                             $same_attachments);
                         DataExchange::releaseResources();
@@ -177,37 +173,30 @@ try {
                 default:
                     break;
             }
-            if(!$file_exists)
+            if (!$file_exists) {
                 $file_names = create_filenames($upload_type['store_extension']);
-        }
-        if($attachment_type == Config::ATTACHMENT_TYPE_FILE)
-        {
-            if($file_exists)
-            {
-                $attachment_id = $same_attachments[0]['id'];
             }
-            else
-            {
-                move_uploded_file($uploaded_file_path,
-                    Config::ABS_PATH . "/{$board['name']}/other/{$file_names[0]}");
+        }
+        
+        if ($attachment_type == Config::ATTACHMENT_TYPE_FILE) {
+            if ($file_exists) {
+                $attachment_id = $same_attachments[0]['id'];
+            } else {
+                $abs_file_path = Config::ABS_PATH
+                    . "/{$board['name']}/other/{$file_names[0]}";
+                move_uploded_file($uploaded_file_path, $abs_file_path);
                 $attachment_id = files_add($file_hash, $file_names[0],
                     $uploaded_file_size, $upload_type['thumbnail_image'],
                     Config::THUMBNAIL_WIDTH, Config::THUMBNAIL_HEIGHT);
             }
-        }
-        elseif($attachment_type === Config::ATTACHMENT_TYPE_IMAGE)
-        {
-            if($file_exists)
-            {
+        } elseif ($attachment_type === Config::ATTACHMENT_TYPE_IMAGE) {
+            if ($file_exists) {
                 $attachment_id = $same_attachments[0]['id'];
-            }
-            else
-            {
+            } else {
                 $img_dimensions = image_get_dimensions($upload_type,
                     $uploaded_file_path);
                 if($img_dimensions['x'] < Config::MIN_IMGWIDTH
-                    && $img_dimensions['y'] < Config::MIN_IMGHEIGHT)
-                {
+                        && $img_dimensions['y'] < Config::MIN_IMGHEIGHT) {
                     throw new LimitException(LimitException::$messages['MIN_IMG_DIMENTIONS']);
                 }
                 $abs_img_path = Config::ABS_PATH
@@ -221,86 +210,89 @@ try {
                     $abs_thumb_path, $img_dimensions, $upload_type,
                     Config::THUMBNAIL_WIDTH, Config::THUMBNAIL_HEIGHT,
                     $force);
-                $attachment_id = image_add($file_hash, $file_names[0],
+                $attachment_id = images_add($file_hash, $file_names[0],
                     $img_dimensions['x'], $img_dimensions['y'],
                     $uploaded_file_size, $file_names[1], $thumb_dimensions['x'],
                     $thumb_dimensions['y']);
             }
-        }
-        elseif($attachment_type == Config::ATTACHMENT_TYPE_LINK)
-        {
+        } elseif ($attachment_type == Config::ATTACHMENT_TYPE_LINK) {
             $file_names[0] = 'http://12ch.ru/macro/index.php/image/3478.jpg';
             $file_names[1] = 'http://12ch.ru/macro/index.php/thumb/3478.jpg';
             $attachment_id = link_add($file_names[0], '640', '480', 63290,
                 $file_names[1], '192', '144');
-        }
-        elseif($attachment_type == Config::ATTACHMENT_TYPE_VIDEO)
-        {
+        } elseif ($attachment_type == Config::ATTACHMENT_TYPE_VIDEO) {
             /* TODO Размеры */
             $attachment_id = video_add($youtube_video_code, null, null);
+        } else {
+            throw new CommonException('Not supported.');
         }
     }
 
-	// Create empty thread.
-	$thread = threads_add($board['id'], null, null, 0, null);
-	date_default_timezone_set(Config::DEFAULT_TIMEZONE);
-	$post = posts_add($board['id'], $thread['id'], $_SESSION['user'], $password,
-		$name, $tripcode, ip2long($_SERVER['REMOTE_ADDR']), $subject,
-		date(Config::DATETIME_FORMAT), $text, null);
-	// Закрепляем сообщение как оригинальное сообщение созданной пустой нити.
-	threads_edit_original_post($thread['id'], $post['number']);
-    switch($attachment_type)
-    {
-        case Config::ATTACHMENT_TYPE_FILE:
-            posts_files_add($post['id'], $attachment_id, 0);
-            break;
+    // Create empty thread.
+    $thread = threads_add($board['id'], null, null, 0, null);
+    date_default_timezone_set(Config::DEFAULT_TIMEZONE);
+    $post = posts_add($board['id'], $thread['id'], $_SESSION['user'], $password,
+        $name, $tripcode, ip2long($_SERVER['REMOTE_ADDR']), $subject,
+        date(Config::DATETIME_FORMAT), $text, null);
 
-        case Config::ATTACHMENT_TYPE_IMAGE:
-            posts_images_add($post['id'], $attachment_id, 0);
-            break;
-
-        case Config::ATTACHMENT_TYPE_LINK:
-            posts_links_add($post['id'], $attachment_id, 0);
-            break;
-
-        case Config::ATTACHMENT_TYPE_VIDEO:
-            posts_videos_add($post['id'], $attachment_id, 0);
-            break;
+    // Закрепляем сообщение как оригинальное сообщение созданной пустой нити.
+    threads_edit_original_post($thread['id'], $post['number']);
+    
+    if ($attachment_type !== null) {
+        switch ($attachment_type) {
+            case Config::ATTACHMENT_TYPE_FILE:
+                posts_files_add($post['id'], $attachment_id, 0);
+                break;
+            case Config::ATTACHMENT_TYPE_IMAGE:
+                posts_images_add($post['id'], $attachment_id, 0);
+                break;
+            case Config::ATTACHMENT_TYPE_LINK:
+                posts_links_add($post['id'], $attachment_id, 0);
+                break;
+            case Config::ATTACHMENT_TYPE_VIDEO:
+                posts_videos_add($post['id'], $attachment_id, 0);
+                break;
+            default:
+                throw new CommonException('Not supported.');
+                break;
+        }
     }
 
-    if($_SESSION['user'] != Config::GUEST_ID && $should_update_password)
-    {
+    if ($_SESSION['user'] != Config::GUEST_ID && $should_update_password) {
         users_set_password($_SESSION['user'], $password);
     }
-    if($should_update_goto)
-    {
+    if ($should_update_goto) {
         users_set_goto($_SESSION['user'], $goto);
     }
 
-    foreach(popdown_handlers_get_all() as $popdown_handler)
-        if($board['popdown_handler'] == $popdown_handler['id'])
-        {
+    foreach (popdown_handlers_get_all() as $popdown_handler) {
+        if ($board['popdown_handler'] == $popdown_handler['id']) {
             $popdown_handler['name']($board['id']);
             break;
         }
+    }
 
     DataExchange::releaseResources();
 
-    if($_SESSION['goto'] == 't')
+    if ($_SESSION['goto'] == 't') {
         header('Location: ' . Config::DIR_PATH
             . "/{$board['name']}/{$post['number']}/");
-    else
+    } else {
         header('Location: ' . Config::DIR_PATH . "/{$board['name']}/");
+    }
     exit;
-}
-catch(Exception $e)
-{
+} catch (Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();
-    if(isset($abs_img_path)) // Удаление загруженного файла.
+	if (isset($abs_file_path)) { // Удаление загруженного файла.
+		@unlink($abs_file_path);
+    }
+    if (isset($abs_img_path)) { // Удаление загруженного файла.
         @unlink($abs_img_path);
-    if(isset($abs_thumb_path)) // Удаление уменьшенной копии.
+    }
+    if (isset($abs_thumb_path)) { // Удаление уменьшенной копии.
         @unlink($abs_thumb_path);
+    }
     die($smarty->fetch('error.tpl'));
 }
 ?>

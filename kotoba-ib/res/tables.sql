@@ -52,18 +52,18 @@ engine=InnoDB|
 -- Вложенные изображения - файлы изображений, загруженные пользователями и
 -- сохранённые на сервере. name и thumbnail - имя файла исходного изображения и
 -- файла уменьшенной копии, соответственно. hash - хеш исходного файла.
-create table images						-- Вложенные изображения.
+create table images                     -- Вложенные изображения.
 (
-	id int not null auto_increment,		-- Идентификатор.
-	hash varchar(32) default null,		-- Хеш.
-	name varchar(256) not null,			-- Имя.
-	widht int not null,					-- Ширина.
-	height int not null,				-- Высота.
-	size int not null,					-- Размер в байтах.
-	thumbnail varchar(256) not null,	-- Уменьшенная копия.
-	thumbnail_w int not null,			-- Ширина уменьшенной копии.
-	thumbnail_h int not null,			-- Высота уменьшенной копии.
-	primary key (id)
+    id int not null auto_increment,     -- Идентификатор.
+    hash varchar(32) default null,      -- Хеш.
+    name varchar(256) not null,         -- Имя.
+    widht int not null,                 -- Ширина.
+    height int not null,                -- Высота.
+    size int not null,                  -- Размер в байтах.
+    thumbnail varchar(256) not null,    -- Уменьшенная копия.
+    thumbnail_w int not null,           -- Ширина уменьшенной копии.
+    thumbnail_h int not null,           -- Высота уменьшенной копии.
+    primary key (id)
 )
 engine=InnoDB|
 
@@ -205,22 +205,22 @@ create table board_upload_types -- Связь досок с типами заг�
 )
 engine=InnoDB|
 
-create table threads					-- Нити.
+create table threads                    -- Нити.
 (
-	id int not null auto_increment,		-- Идентификатор.
-	board int not null,					-- Идентификатор доски.
-	original_post int default null,		-- Номер оригинального сообщения.
-	bump_limit int default null,		-- Специфичный для нити бамплимит.
-	deleted bit not null,				-- Пометка на удаление.
-	archived bit not null,				-- Флаг архивирования.
-	-- Этот флаг не может быть null, так как для него нет родительского
-	-- значения, которое можно было бы унаследовать.
-	sage bit not null,					-- Флаг поднятия нити.
-	sticky bit not null default 0,		-- Флаг закрепления.
-	-- Если этот флаг null, то берётся родительский with_attachments доски.
-	with_attachments bit default null,	-- Флаг вложений.
-	primary key (id),
-	constraint foreign key (board) references boards (id) on delete restrict on update restrict
+    id int not null auto_increment,     -- Идентификатор.
+    board int not null,                 -- Идентификатор доски.
+    original_post int default null,     -- Номер оригинального сообщения.
+    bump_limit int default null,        -- Специфичный для нити бамплимит.
+    deleted bit not null,               -- Пометка на удаление.
+    archived bit not null,              -- Флаг архивирования.
+    -- Этот флаг не может быть null, так как для него нет родительского
+    -- значения, которое можно было бы унаследовать.
+    sage bit not null,                  -- Флаг поднятия нити.
+    sticky bit not null default 0,      -- Флаг закрепления.
+    -- Если этот флаг null, то берётся родительский with_attachments доски.
+    with_attachments bit default null,  -- Флаг вложений.
+    primary key (id),
+    constraint foreign key (board) references boards (id) on delete restrict on update restrict
 )
 engine=InnoDB|
 
@@ -323,11 +323,11 @@ create table posts_videos	-- Связь сообщений и вложенног
 )
 engine=InnoDB|
 
-create table words			-- Таблица вордфильтра
+create table words                      -- Таблица вордфильтра
 (
-	id int not null auto_increment,
-	word varchar(100) not null,
-	`replace` varchar(100) not null,
-	unique key (id)
+    id int not null auto_increment,     -- ?
+    word varchar(100) not null,         -- ?
+    `replace` varchar(100) not null,    -- ?
+    unique key (id)
 )
 engine=InnoDB|
