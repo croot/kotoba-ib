@@ -133,6 +133,8 @@ try {
                 && $_POST['youtube_video_code'] != '') {
             $youtube_video_code = check_youtube_video_code($_POST['youtube_video_code']);
             $attachment_type = Config::ATTACHMENT_TYPE_VIDEO;
+        } else {
+            throw new UploadException(UploadException::$messages['UNKNOWN']);
         }
     }
 
