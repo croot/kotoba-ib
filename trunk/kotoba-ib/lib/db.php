@@ -1225,6 +1225,51 @@ function languages_get_all()
 	return db_languages_get_all(DataExchange::getDBLink());
 }
 
+/******************************
+ * Работа с тегами макрочана. *
+ ******************************/
+
+function macrochan_tags_add() {
+    throw new CommonException('No Implemented yet.');
+}
+function macrochan_tags_delete_by_name() {
+    throw new CommonException('No Implemented yet.');
+}
+function macrochan_tags_get_all() {
+    throw new CommonException('No Implemented yet.');
+}
+
+/*************************************
+ * Работа с изображениями макрочана. *
+ *************************************/
+
+function macrochan_images_add() {
+    throw new CommonException('No Implemented yet.');
+}
+function macrochan_images_delete_by_name() {
+    throw new CommonException('No Implemented yet.');
+}
+function macrochan_images_get_all() {
+    throw new CommonException('No Implemented yet.');
+}
+function macrochan_images_get_by_tag() {
+    throw new CommonException('No Implemented yet.');
+}
+
+/****************************************************
+ * Работа со связями тегов и изображений макрочана. *
+ ****************************************************/
+
+function macrochan_tags_images_add() {
+    throw new CommonException('No Implemented yet.');
+}
+function macrochan_tags_images_delete() {
+    throw new CommonException('No Implemented yet.');
+}
+function macrochan_tags_images_get_all() {
+    throw new CommonException('No Implemented yet.');
+}
+
 /**********************************************************
  * Работа с обработчиками автоматического удаления нитей. *
  **********************************************************/
