@@ -1030,7 +1030,7 @@ function db_files_add($link, $hash, $name, $size, $thumbnail, $thumbnail_w,
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
-    
+
     $row = mysqli_fetch_assoc($result);
     mysqli_free_result($result);
     db_cleanup_link($link);
@@ -1325,7 +1325,7 @@ function db_images_add($link, $hash, $name, $widht, $height, $size, $thumbnail,
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
-    
+
     $row = mysqli_fetch_assoc($result);
 	mysqli_free_result($result);
 	db_cleanup_link($link);
@@ -1516,6 +1516,171 @@ function db_links_get_by_post($link, $post_id)
     mysqli_free_result($result);
     db_cleanup_link($link);
     return $links;
+}
+
+/******************************
+ * Работа с тегами макрочана. *
+ ******************************/
+
+/**
+ * Добавляет тег макрочана.
+ * @param MySQLi $link Связь с базой данных.
+ * @param string $name Имя.
+ */
+function db_macrochan_tags_add($link, $name) { // Java CC
+    if ($name == null) { // Пустая строка тоже null.
+        $name = 'null';
+    } else {
+        $name = '\'' . $name . '\'';
+    }
+
+    $result = mysqli_query($link,
+            'call sp_macrochan_tags_add(' . $name . ')');
+	if (!$result) {
+		throw new CommonException(mysqli_error($link));
+    }
+
+	db_cleanup_link($link);
+}
+/**
+ * Удаляет тег по заданному имени.
+ * @param MySQLi $link Связь с базой данных.
+ * @param string $name Имя.
+ */
+function db_macrochan_tags_delete_by_name($link, $name) { // Java CC
+    if ($name == null) { // Пустая строка тоже null.
+        $name = 'null';
+    } else {
+        $name = '\'' . $name . '\'';
+    }
+
+    $result = mysqli_query($link,
+            'call sp_macrochan_tags_delete_by_name(' . $name . ')');
+	if (!$result) {
+		throw new CommonException(mysqli_error($link));
+    }
+
+	db_cleanup_link($link);
+}
+/**
+ * Получает все теги макрочана.
+ * @param MySQLi $link Связь с базой данных.
+ * @return array
+ * Возвращает теги макрочана:<p>
+ * 'id' - Идентификатор.<br>
+ * 'name' - Имя.</p>
+ */
+function db_macrochan_tags_get_all($link) { // Java CC.
+    $result = mysqli_query($link, 'call sp_macrochan_tags_get_all()');
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+    $tags = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while ( ($row = mysqli_fetch_assoc($result)) !== null) {
+            array_push($tags, array('id' => $row['id'],
+                                    'name' => $row['name']));
+        }
+    }
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $tags;
+}
+
+/*************************************
+ * Работа с изображениями макрочана. *
+ *************************************/
+
+/**
+ * Добавляет изображение макрочана.
+ * @param MySQLi $link Связь с базой данных.
+ * @param string $name Имя.
+ * @param string|int $width Ширина.
+ * @param string|int $height Высота.
+ * @param string|int $size Размер в байтах.
+ * @param string $thumbnail Уменьшенная копия.
+ * @param string|int $thumbnail_w Ширина уменьшенной копии.
+ * @param string|int $thumbnail_h Высота уменьшенной копии.
+ */
+function db_macrochan_images_add($link, $name, $width, $height, $size,
+        $thumbnail, $thumbnail_w, $thumbnail_h) { // Java CC
+    if ($name == null) { // Пустая строка тоже null.
+        $name = 'null';
+    } else {
+        $name = '\'' . $name . '\'';
+    }
+    if ($thumbnail == null) { // Пустая строка тоже null.
+        $thumbnail = 'null';
+    } else {
+        $thumbnail = '\'' . $thumbnail . '\'';
+    }
+
+    $result = mysqli_query($link,
+            'call sp_macrochan_images_add(' . $name . ', ' . $width . ', '
+            . $height . ', ' . $size . ', ' . $thumbnail . ', ' . $thumbnail_w
+            . ', ' . $thumbnail_h . ')');
+	if (!$result) {
+		throw new CommonException(mysqli_error($link));
+    }
+
+	db_cleanup_link($link);
+}
+/**
+ * Удаляет изображение по заданному имени.
+ * @param MySQLi $link Связь с базой данных.
+ * @param string $name Имя.
+ */
+function db_macrochan_images_delete_by_name($link, $name) { // Java CC
+    if ($name == null) { // Пустая строка тоже null.
+        $name = 'null';
+    } else {
+        $name = '\'' . $name . '\'';
+    }
+
+    $result = mysqli_query($link,
+            'call sp_macrochan_images_delete_by_name(' . $name . ')');
+	if (!$result) {
+		throw new CommonException(mysqli_error($link));
+    }
+
+	db_cleanup_link($link);
+}
+/**
+ * Получает все изображения макрочана.
+ * @param MySQLi $link Связь с базой данных.
+ * @return array
+ * Возвращает изображения макрочана:<p>
+ * 'id' - Идентификатор.<br>
+ * 'name' - Имя.<br>
+ * 'width' - Ширина.<br>
+ * 'height' - Высота.<br>
+ * 'size' - Размер в байтах.<br>
+ * 'thumbnail' - Уменьшенная копия.<br>
+ * 'thumbnail_w' - Ширина уменьшенной копии.<br>
+ * 'thumbnail_h' - Высота уменьшенной копии.</p>
+ */
+function db_macrochan_images_get_all($link) { // Java CC
+    $result = mysqli_query($link, 'call sp_macrochan_images_get_all()');
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+    $images = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while ( ($row = mysqli_fetch_assoc($result)) !== null) {
+            array_push($images,
+                    array('id' => $row['id'],
+                          'name' => $row['name'],
+                          'width' => $row['width'],
+                          'height' => $row['height'],
+                          'size' => $row['size'],
+                          'thumbnail' => $row['thumbnail'],
+                          'thumbnail_w' => $row['thumbnail_w'],
+                          'thumbnail_h' => $row['thumbnail_h']));
+        }
+    }
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $images;
 }
 
 /**********************************************************

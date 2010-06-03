@@ -83,7 +83,8 @@ try
 	$hidden_threads = hidden_threads_get_filtred_by_boards(array($board),
 		$ht_filter, $_SESSION['user']);
 	$upload_types = upload_types_get_by_board($board['id']);
-	$macrochan_tags = array('orgasm_face');
+	//$macrochan_tags = array('orgasm_face');
+    $macrochan_tags = macrochan_tags_get_all();
 // Формирование вывода.
 	$smarty->assign('board', $board);
 	$smarty->assign('boards', $boards);
