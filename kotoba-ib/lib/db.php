@@ -1229,28 +1229,72 @@ function languages_get_all()
  * Работа с тегами макрочана. *
  ******************************/
 
-function macrochan_tags_add() {
-    throw new CommonException('No Implemented yet.');
+/**
+ * Добавляет тег макрочана.
+ * @param string $name Имя.
+ */
+function macrochan_tags_add($name) { // Java CC
+    db_macrochan_tags_add(DataExchange::getDBLink(), $name);
 }
-function macrochan_tags_delete_by_name() {
-    throw new CommonException('No Implemented yet.');
+/**
+ * Удаляет тег по заданному имени.
+ * @param string $name Имя.
+ */
+function macrochan_tags_delete_by_name($name) { // Java CC
+    db_macrochan_tags_delete_by_name(DataExchange::getDBLink(), $name);
 }
-function macrochan_tags_get_all() {
-    throw new CommonException('No Implemented yet.');
+/**
+ * Получает все теги макрочана.
+ * @return array
+ * Возвращает теги макрочана:<p>
+ * 'id' - Идентификатор.<br>
+ * 'name' - Имя.</p>
+ */
+function macrochan_tags_get_all() { // Java CC
+    return db_macrochan_tags_get_all(DataExchange::getDBLink());
 }
 
 /*************************************
  * Работа с изображениями макрочана. *
  *************************************/
 
-function macrochan_images_add() {
-    throw new CommonException('No Implemented yet.');
+/**
+ * Добавляет изображение макрочана.
+ * @param string $name Имя.
+ * @param string|int $width Ширина.
+ * @param string|int $height Высота.
+ * @param string|int $size Размер в байтах.
+ * @param string $thumbnail Уменьшенная копия.
+ * @param string|int $thumbnail_w Ширина уменьшенной копии.
+ * @param string|int $thumbnail_h Высота уменьшенной копии.
+ */
+function macrochan_images_add($name, $width, $height, $size, $thumbnail,
+        $thumbnail_w, $thumbnail_h) { // Java CC
+    db_macrochan_images_add(DataExchange::getDBLink(), $name, $width, $height,
+            $size, $thumbnail, $thumbnail_w, $thumbnail_h);
 }
-function macrochan_images_delete_by_name() {
-    throw new CommonException('No Implemented yet.');
+/**
+ * Удаляет изображение по заданному имени.
+ * @param string $name Имя.
+ */
+function macrochan_images_delete_by_name($name) { // Java CC
+    db_macrochan_images_delete_by_name(DataExchange::getDBLink(), $name);
 }
-function macrochan_images_get_all() {
-    throw new CommonException('No Implemented yet.');
+/**
+ * Получает все изображения макрочана.
+ * @return array
+ * Возвращает изображения макрочана:<p>
+ * 'id' - Идентификатор.<br>
+ * 'name' - Имя.<br>
+ * 'width' - Ширина.<br>
+ * 'height' - Высота.<br>
+ * 'size' - Размер в байтах.<br>
+ * 'thumbnail' - Уменьшенная копия.<br>
+ * 'thumbnail_w' - Ширина уменьшенной копии.<br>
+ * 'thumbnail_h' - Высота уменьшенной копии.</p>
+ */
+function macrochan_images_get_all() { // Java CC
+    return db_macrochan_images_get_all(DataExchange::getDBLink());
 }
 function macrochan_images_get_by_tag() {
     throw new CommonException('No Implemented yet.');

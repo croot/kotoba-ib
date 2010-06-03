@@ -55,6 +55,14 @@ drop procedure if exists sp_languages_get_all|
 
 drop procedure if exists sp_links_get_by_post|
 
+drop procedure if exists sp_macrochan_tags_add|
+drop procedure if exists sp_macrochan_tags_delete_by_name|
+drop procedure if exists sp_macrochan_tags_get_all|
+
+drop procedure if exists sp_macrochan_images_add|
+drop procedure if exists sp_macrochan_images_delete_by_name|
+drop procedure if exists sp_macrochan_images_get_all|
+
 drop procedure if exists sp_popdown_handlers_add|
 drop procedure if exists sp_popdown_handlers_delete|
 drop procedure if exists sp_popdown_handlers_get_all|
@@ -1130,6 +1138,93 @@ begin
 		l.thumbnail_h
 	from posts_links pl
 	join links l on l.id = pl.link and pl.post = post_id;
+end|
+
+-- -----------------------------
+-- Работа с тегами макрочана. --
+-- -----------------------------
+
+-- Добавляет тег макрочана.
+--
+-- Аргументы:
+-- _name - Имя.
+create procedure sp_macrochan_tags_add
+(
+    _name varchar(256)
+)
+begin
+    insert into macrochan_tags (name) values (_name);
+end|
+
+-- Удаляет тег по заданному имени.
+--
+-- Аргументы:
+-- _name - Имя.
+create procedure sp_macrochan_tags_delete_by_name
+(
+    _name varchar(256)
+)
+begin
+    declare _id int default null;
+
+    select id into _id from macrochan_tags where name = _name;
+    if (_id is not null) then
+        delete from macrochan_tags_images where tag = _id;
+        delete from macrochan_tags where id = _id;
+    end if;
+end|
+
+-- Выбирает все теги макрочана.
+create procedure sp_macrochan_tags_get_all ()
+begin
+    select id, name from macrochan_tags;
+end|
+
+-- -----------------------------
+-- Работа с тегами макрочана. --
+-- -----------------------------
+
+-- Добавляет изображение макрочана.
+create procedure sp_macrochan_images_add
+(
+    _name varchar(256),         -- Имя.
+    _width int,                 -- Ширина.
+    _height int,                -- Высота.
+    _size int,                  -- Размер в байтах.
+    _thumbnail varchar(256),    -- Уменьшенная копия.
+    _thumbnail_w int,           -- Ширина уменьшенной копии.
+    _thumbnail_h int            -- Высота уменьшенной копии.
+)
+begin
+    insert into macrochan_images (name, width, height, size, thumbnail,
+            thumbnail_w, thumbnail_h)
+        values (_name, _width, _height, _size, _thumbnail,
+            _thumbnail_w, _thumbnail_h);
+end|
+
+-- Удаляет изображение по заданному имени.
+--
+-- Аргументы:
+-- _name - Имя.
+create procedure sp_macrochan_images_delete_by_name
+(
+    _name varchar(256)
+)
+begin
+    declare _id int default null;
+
+    select id into _id from macrochan_images where name = _name;
+    if (_id is not null) then
+        delete from macrochan_tags_images where image = _id;
+        delete from macrochan_images where id = _id;
+    end if;
+end|
+
+-- Выбирает все изображения макрочана.
+create procedure sp_macrochan_images_get_all ()
+begin
+    select id, name, width, height, size, thumbnail, thumbnail_w, thumbnail_h
+        from macrochan_images;
 end|
 
 -- ----------------------------------------------------------
