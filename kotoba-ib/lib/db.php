@@ -485,50 +485,53 @@ function boards_add($name, $title, $annotation, $bump_limit, $force_anonymous,
 }
 /**
  * Проверяет корректность аннотации.
- * @param annotation string <p>Аннотация.</p>
- * @return string
+ * @param string $annotation Аннотация.
+ * @return string|null
  * Возвращает аннотацию.
  */
 function boards_check_annotation($annotation) { // Java CC.
     $tmp = htmlentities($annotation, ENT_QUOTES, Config::MB_ENCODING);
-    
-	if (strlen($tmp) > Config::MAX_ANNOTATION_LENGTH) {
+    $len = strlen($tmp);
+
+    if ($len == 0) {
+        return null;
+    }
+	if ($len > Config::MAX_ANNOTATION_LENGTH) {
 		throw new LimitException(LimitException::$messages['MAX_ANNOTATION']);
     }
 	return $tmp;
 }
 /**
  * Проверяет корректность специфичного для доски бамплимита.
- * @param $bump_limit string <p>Специфичный для доски бамплимит.</p>
+ * @param string $bump_limit Специфичный для доски бамплимит.
  * @return string
  * Возвращает безопасный для использования специфичный для доски бамплимит.
  */
-function boards_check_bump_limit($bump_limit)
-{
+function boards_check_bump_limit($bump_limit) { // Java CC
 	$length = strlen($bump_limit);
 	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
+	if ($length <= $max_int_length && $length >= 1) {
 		$bump_limit = RawUrlEncode($bump_limit);
 		$length = strlen($bump_limit);
-		if($length > $max_int_length || (ctype_digit($bump_limit) === false)
-			|| $length < 1)
-		{
+		if ($length > $max_int_length || (ctype_digit($bump_limit) === false)
+                || $length < 1) {
 			throw new FormatException(FormatException::$messages['BOARD_BUMP_LIMIT']);
 		}
-	}
-	else
+	} else {
 		throw new FormatException(FormatException::$messages['BOARD_BUMP_LIMIT']);
+    }
 	return $bump_limit;
 }
 /**
  * Проверяет корректность имени отправителя по умолчанию.
- * @param name string <p>Имя отправителя по умолчанию.</p>
- * @return string
+ * @param string $name Имя отправителя по умолчанию.
+ * @return string|null
  * Возвращает безопасное для использования имя отправителя по умолчанию.
  */
-function boards_check_default_name($name)
-{
+function boards_check_default_name($name) { // Java CC
+    if (strlen($name) == 0) {
+        return null;
+    }
 	posts_check_name_size($name);
 	$name = htmlentities($name, ENT_QUOTES, Config::MB_ENCODING);
 	posts_check_name_size($name);
@@ -557,22 +560,21 @@ function boards_check_id($id)
 }
 /**
  * Проверяет корректность имени доски.
- * @param name string <p>Имя доски.</p>
+ * @param string $name Имя доски.
  * @return string
  * Возвращает безопасное для использования имя доски.
  */
-function boards_check_name($name)
-{
+function boards_check_name($name) { // Java CC
 	$length = strlen($name);
-	if($length <= 16 && $length >= 1)
-	{
+	if ($length <= 16 && $length >= 1) {
 		$name = RawUrlEncode($name);
 		$length = strlen($name);
-		if($length > 16 || (strpos($name, '%') !== false) || $length < 1)
+		if ($length > 16 || (strpos($name, '%') !== false) || $length < 1) {
 			throw new FormatException(FormatException::$messages['BOARD_NAME']);
-	}
-	else
+        }
+	} else {
 		throw new FormatException(FormatException::$messages['BOARD_NAME']);
+    }
 	return $name;
 }
 /**
@@ -597,22 +599,24 @@ function boards_check_same_upload($same_upload)
 }
 /**
  * Проверяет корректность заголовка доски.
- * @param title string <p>Заголовок доски.</p>
- * @return string
+ * @param string $title Заголовок доски.
+ * @return string|null
  * Возвращает безопасный для использования заголовок доски.
  */
-function boards_check_title($title)
-{
+function boards_check_title($title) { // Java CC
 	$length = strlen($title);
-	if($length <= 50 && $length >= 1)
-	{
+    if ($length == 0) {
+        return null;
+    }
+	if ($length <= 50 && $length >= 1) {
 		$title = htmlentities($title, ENT_QUOTES, Config::MB_ENCODING);
 		$length = strlen($title);
-		if($length > 50 || $length < 1)
+		if ($length > 50 || $length < 1) {
 			throw new FormatException(FormatException::$messages['BOARD_TITLE']);
-	}
-	else
+        }
+	} else {
 		throw new FormatException(FormatException::$messages['BOARD_TITLE']);
+    }
 	return $title;
 }
 /**

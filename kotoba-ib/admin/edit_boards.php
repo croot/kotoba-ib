@@ -16,73 +16,76 @@ require Config::ABS_PATH . '/lib/logging.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
 require Config::ABS_PATH . '/lib/db.php';
 require Config::ABS_PATH . '/lib/misc.php';
-try
-{
-	kotoba_session_start();
-	locale_setup();
-	$smarty = new SmartyKotobaSetup($_SESSION['language'],
-		$_SESSION['stylesheet']);
-	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));
-	if(!in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
-		throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
-	Logging::write_message(sprintf(Logging::$messages['ADMIN_FUNCTIONS_EDIT_BOARDS'],
-				$_SESSION['user'], $_SERVER['REMOTE_ADDR']),
-			Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log');
-	$popdown_handlers = popdown_handlers_get_all();
-	$categories = categories_get_all();
-	$boards = boards_get_all();
-	$reload_boards = false;	// Были ли произведены изменения.
-	if(isset($_POST['submited']))
-	{
-// Создание новой доски.
-		if(isset($_POST['new_name'])
-			&& isset($_POST['new_title'])
-			&& isset($_POST['new_annotation'])
-			&& isset($_POST['new_bump_limit'])
-			&& isset($_POST['new_default_name'])
-			&& isset($_POST['new_same_upload'])
-			&& isset($_POST['new_popdown_handler'])
-			&& isset($_POST['new_category'])
-			&& $_POST['new_name'] != ''
-			&& $_POST['new_bump_limit'] != ''
-			&& $_POST['new_same_upload'] != ''
-			&& $_POST['new_popdown_handler'] != ''
-			&& $_POST['new_category'] != '')
-		{
-			$new_name = boards_check_name($_POST['new_name']);
-			if($_POST['new_title'] == '')
-				$new_title = null;
-			else
-				$new_title = boards_check_title($_POST['new_title']);
-			$new_annotation = boards_check_annotation($_POST['new_annotation']);
-			$new_bump_limit = boards_check_bump_limit($_POST['new_bump_limit']);
-			if(isset($_POST['new_force_anonymous']))
-				$new_force_anonymous = '1';
-			else
-				$new_force_anonymous = '0';
-			if($_POST['new_default_name'] == '')
-				$new_default_name = null;
-			else
-				$new_default_name = boards_check_default_name($_POST['new_default_name']);
-			if(isset($_POST['new_with_files']))
-				$new_with_files = '1';
-			else
-				$new_with_files = '0';
-			if(isset($_POST['new_macro']))
-				$new_macro = '1';
-			else
-				$new_macro = '0';
-			if(isset($_POST['new_youtube']))
-				$new_youtube = '1';
-			else
-				$new_youtube = '0';
-			if(isset($_POST['new_captcha']))
-				$new_captcha = '1';
-			else
-				$new_captcha = '0';
+try {
+    kotoba_session_start();
+    locale_setup();
+    $smarty = new SmartyKotobaSetup($_SESSION['language'],
+        $_SESSION['stylesheet']);
+
+    bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));
+
+    if (!is_admin()) {
+        throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
+    }
+    Logging::write_msg(Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log',
+            Logging::$messages['ADMIN_FUNCTIONS_EDIT_BOARDS'],
+            $_SESSION['user'], $_SERVER['REMOTE_ADDR']);
+
+    $popdown_handlers = popdown_handlers_get_all();
+    $categories = categories_get_all();
+    $boards = boards_get_all();
+    $reload_boards = false; // Были ли произведены изменения.
+
+    if (isset($_POST['submited'])) {
+
+        // Создание новой доски.
+		if (isset($_POST['new_name'])
+                && isset($_POST['new_title'])
+                && isset($_POST['new_annotation'])
+                && isset($_POST['new_bump_limit'])
+                && isset($_POST['new_default_name'])
+                && isset($_POST['new_same_upload'])
+                && isset($_POST['new_popdown_handler'])
+                && isset($_POST['new_category'])
+                && $_POST['new_name'] != ''
+                && $_POST['new_bump_limit'] != ''
+                && $_POST['new_same_upload'] != ''
+                && $_POST['new_popdown_handler'] != ''
+                && $_POST['new_category'] != '') {
+            $new_name = boards_check_name($_POST['new_name']);
+            $new_title = boards_check_title($_POST['new_title']);
+            $new_annotation = boards_check_annotation($_POST['new_annotation']);
+            $new_bump_limit = boards_check_bump_limit($_POST['new_bump_limit']);
+            if (isset($_POST['new_force_anonymous'])) {
+                $new_force_anonymous = '1';
+            } else {
+                $new_force_anonymous = '0';
+            }
+            $new_default_name = boards_check_default_name($_POST['new_default_name']);
+            if (isset($_POST['new_with_files'])) {
+                $new_with_files = '1';
+            } else {
+                $new_with_files = '0';
+            }
+            if (isset($_POST['new_macro'])) {
+                $new_macro = '1';
+            } else {
+                $new_macro = '0';
+            }
+            if (isset($_POST['new_youtube'])) {
+                $new_youtube = '1';
+            } else {
+                $new_youtube = '0';
+            }
+            if (isset($_POST['new_captcha'])) {
+                $new_captcha = '1';
+            } else {
+                $new_captcha = '0';
+            }
 			$new_same_upload = boards_check_same_upload($_POST['new_same_upload']);
 			$new_popdown_handler = popdown_handlers_check_id($_POST['new_popdown_handler']);
 			$new_category = categories_check_id($_POST['new_category']);
+            
 			/*
 			 * Проверим, нет ли уже доски с таким именем. Если есть, то изменим
 			 * параметры существующей.
