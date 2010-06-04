@@ -112,7 +112,7 @@ try {
     echo "Images added: $images_added<br>\n";
 
     // Добавим новые связи тегов с изображениями.
-    $tags_images = macrochan_tags_images_get_all();
+    $relations_added = 0;
     foreach ($MACROCHAN_TAGS_IMAGES as $ti) {
 
         // Найдём имя тега.
@@ -127,12 +127,14 @@ try {
                         // изображением. Если нет, то добавим связь.
                         if (macrochan_tags_images_get($t[1], $i[1]) === null) {
                             macrochan_tags_images_add($t[1], $i[1]);
+                            $relations_added++;
                         }
                     }
                 }
             }
         }
     }
+    echo "Tag Image relations added: $relations_added<br>\n";
 
 	DataExchange::releaseResources();
 } catch (Exception $e) {
