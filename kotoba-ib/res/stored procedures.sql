@@ -63,6 +63,10 @@ drop procedure if exists sp_macrochan_images_add|
 drop procedure if exists sp_macrochan_images_delete_by_name|
 drop procedure if exists sp_macrochan_images_get_all|
 
+drop procedure if exists sp_macrochan_tags_images_add|
+drop procedure if exists sp_macrochan_tags_images_get|
+drop procedure if exists sp_macrochan_tags_images_get_all|
+
 drop procedure if exists sp_popdown_handlers_add|
 drop procedure if exists sp_popdown_handlers_delete|
 drop procedure if exists sp_popdown_handlers_get_all|
@@ -1225,6 +1229,48 @@ create procedure sp_macrochan_images_get_all ()
 begin
     select id, name, width, height, size, thumbnail, thumbnail_w, thumbnail_h
         from macrochan_images;
+end|
+
+-- ---------------------------------------------------
+-- Работа со связями тегов и изображений макрочана. --
+-- ---------------------------------------------------
+
+-- Добавляет связь тега и изображения макрочана.
+create procedure sp_macrochan_tags_images_add
+(
+    tag_name varchar(256),          -- Имя тега макрочана.
+    image_name varchar(256)         -- Имя изображения макрочана.
+)
+begin
+    declare tag_id int default null;
+    declare image_id int default null;
+
+    select id into tag_id from macrochan_tags where name = tag_name;
+    select id into image_id from macrochan_images where name = image_name;
+    if (tag_id is not null and image_id is not null) then
+        insert into macrochan_tags_images (tag, image)
+        values (tag_id, image_id);
+    end if;
+end|
+
+-- Выбирает связь тега и изображением макрочана по заданному имени тега
+-- и изображения.
+create procedure sp_macrochan_tags_images_get
+(
+    tag_name varchar(256),          -- Имя тега макрочана.
+    image_name varchar(256)         -- Имя изображения макрочана.
+)
+begin
+    select ti.tag, ti.image
+    from macrochan_tags_images ti
+    join macrochan_tags t on ti.tag = t.id and t.name = tag_name
+    join macrochan_images i on ti.image = i.id and i.name = image_name;
+end|
+
+-- Выбирает все связи тегов и изображениями макрочана.
+create procedure sp_macrochan_tags_images_get_all ()
+begin
+    select tag, image from macrochan_tags_images;
 end|
 
 -- ----------------------------------------------------------

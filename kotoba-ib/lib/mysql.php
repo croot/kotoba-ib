@@ -1683,6 +1683,105 @@ function db_macrochan_images_get_all($link) { // Java CC
     return $images;
 }
 
+/****************************************************
+ * Работа со связями тегов и изображений макрочана. *
+ ****************************************************/
+
+/**
+ * Добавляет связь тега и изображения макрочана.
+ * @param MySQLi $link Связь с базой данных.
+ * @param string $tag_name Имя тега макрочана.
+ * @param string $image_name Имя изображения макрочана.
+ */
+function db_macrochan_tags_images_add($link, $tag_name, $image_name) { // Java CC
+    if ($tag_name == null) { // Пустая строка тоже null
+        $tag_name = 'null';
+    } else {
+        $tag_name = '\'' . $tag_name . '\'';
+    }
+    if ($image_name == null) { // Пустая строка тоже null
+        $image_name = 'null';
+    } else {
+        $image_name = '\'' . $image_name . '\'';
+    }
+
+    $result = mysqli_query($link,
+            'call sp_macrochan_tags_images_add(' . $tag_name . ', '
+            . $image_name . ')');
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+    
+    db_cleanup_link($link);
+}
+/**
+ * Получает связь тега и изображением макрочана по заданному имени тега
+ * и изображения.
+ * @param MySQLi $link Связь с базой данных.
+ * @param string $tag_name Имя тега макрочана.
+ * @param string $image_name Имя изображения макрочана.
+ * @return array|null
+ * Возвращает связь тега и изображения макрочана:<p>
+ * 'tag' - Идентификатор тега макрочана.<br>
+ * 'image' - Идентификатор изображения макрочана.</p>
+ * Или null, если связи не существует.
+ */
+function db_macrochan_tags_images_get($link, $tag_name, $image_name) { // Java CC
+    if ($tag_name == null) { // Пустая строка тоже null
+        $tag_name = 'null';
+    } else {
+        $tag_name = '\'' . $tag_name . '\'';
+    }
+    if ($image_name == null) { // Пустая строка тоже null
+        $image_name = 'null';
+    } else {
+        $image_name = '\'' . $image_name . '\'';
+    }
+
+    $result = mysqli_query($link,
+            'call sp_macrochan_tags_images_get(' . $tag_name . ', '
+            . $image_name . ')');
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $tags_images = null;
+    if (mysqli_affected_rows($link) > 0
+            && ($row = mysqli_fetch_assoc($result)) !== null) {
+        $tags_images['tag'] = $row['tag'];
+        $tags_images['image'] = $row['image'];
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $tags_images;
+}
+/**
+ * Получает все связи тегов и изображениями макрочана.
+ * @param MySQLi $link Связь с базой данных.
+ * @return array
+ * Возвращает связи тегов и изображениями макрочана:<p>
+ * 'tag' - Идентификатор тега макрочана.<br>
+ * 'image' - Идентификатор изображения макрочана.</p>
+ */
+function db_macrochan_tags_images_get_all($link) { // Java CC
+    $result = mysqli_query($link, 'call sp_macrochan_tags_images_get_all()');
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+    $tags_images = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while ( ($row = mysqli_fetch_assoc($result)) !== null) {
+            array_push($tags_images,
+                    array('tag' => $row['tag'],
+                          'image' => $row['image']));
+        }
+    }
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $tags_images;
+}
+
 /**********************************************************
  * Работа с обработчиками автоматического удаления нитей. *
  **********************************************************/

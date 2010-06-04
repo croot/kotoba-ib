@@ -1304,14 +1304,39 @@ function macrochan_images_get_by_tag() {
  * Работа со связями тегов и изображений макрочана. *
  ****************************************************/
 
-function macrochan_tags_images_add() {
-    throw new CommonException('No Implemented yet.');
+/**
+ * Добавляет связь тега и изображения макрочана.
+ * @param string $tag_name Имя тега макрочана.
+ * @param string $image_name Имя изображения макрочана.
+ */
+function macrochan_tags_images_add($tag_name, $image_name) { // Java CC
+    db_macrochan_tags_images_add(DataExchange::getDBLink(), $tag_name,
+            $image_name);
 }
-function macrochan_tags_images_delete() {
-    throw new CommonException('No Implemented yet.');
+/**
+ * Получает связь тега и изображением макрочана по заданному имени тега
+ * и изображения.
+ * @param string $tag_name Имя тега макрочана.
+ * @param string $image_name Имя изображения макрочана.
+ * @return array|null
+ * Возвращает связь тега и изображения макрочана:<p>
+ * 'tag' - Идентификатор тега макрочана.<br>
+ * 'image' - Идентификатор изображения макрочана.</p>
+ * Или null, если связи не существует.
+ */
+function macrochan_tags_images_get($tag_name, $image_name) { // Java CC
+    return db_macrochan_tags_images_get(DataExchange::getDBLink(), $tag_name,
+            $image_name);
 }
-function macrochan_tags_images_get_all() {
-    throw new CommonException('No Implemented yet.');
+/**
+ * Получает все связи тегов и изображениями макрочана.
+ * @return array
+ * Возвращает связи тегов и изображениями макрочана:<p>
+ * 'tag' - Идентификатор тега макрочана.<br>
+ * 'image' - Идентификатор изображения макрочана.</p>
+ */
+function macrochan_tags_images_get_all() { // Java CC
+    return db_macrochan_tags_images_get_all(DataExchange::getDBLink());
 }
 
 /**********************************************************
