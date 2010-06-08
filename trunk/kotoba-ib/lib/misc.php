@@ -117,24 +117,24 @@ function load_user_settings($keyword) { // Java CC Done.
 /**
  * Проверяет корректность номера страницы в постраничной разбивке просмотра
  * доски.
- * @param page mixed <p>Номер страницы.</p>
+ * @param mixed $page Номер страницы.
  * @return string
  * Возвращает безопасный для использования номер страницы.
  */
-function check_page($page)
-{
-	$length = strlen($page);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$page = RawUrlEncode($page);
-		$length = strlen($page);
-		if($length > $max_int_length || (ctype_digit($page) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['PAGE']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['PAGE']);
-	return $page;
+function check_page($page) { // Java CC
+    $length = strlen($page);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if ($length <= $max_int_length && $length >= 1) {
+        $page = RawUrlEncode($page);
+        $length = strlen($page);
+        if ($length > $max_int_length || (ctype_digit($page) === false)
+                || $length < 1) {
+            throw new FormatException(FormatException::$messages['PAGE']);
+        }
+    } else {
+        throw new FormatException(FormatException::$messages['PAGE']);
+    }
+    return $page;
 }
 /**
  * Проверяет, загружено ли расширение php.
