@@ -910,8 +910,8 @@ function db_boards_get_moderatable($link, $user_id)
 }
 /**
  * Получает доски, доступные для просмотра заданному пользователю.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param string|int $user_id Идентификатор пользователя.
  * @return array
  * Возвращает доски:<p>
  * 'id' - идентификатор.<br>
@@ -930,32 +930,36 @@ function db_boards_get_moderatable($link, $user_id)
  * 'category' - категория.<br>
  * 'category_name' - Имя категории.</p>
  */
-function db_boards_get_visible($link, $user_id)
-{
-	$result = mysqli_query($link, 'call sp_boards_get_visible(' . $user_id . ')');
-	if($result == false)
-		throw new CommonException(mysqli_error($link));
-	$boards = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) != null)
-			array_push($boards, array('id' => $row['id'],
-					'name' => $row['name'],
-					'title' => $row['title'],
-					'annotation' => $row['annotation'],
-					'bump_limit' => $row['bump_limit'],
-					'force_anonymous' => $row['force_anonymous'],
-					'default_name' => $row['default_name'],
-					'with_attachments' => $row['with_attachments'],
-					'enable_macro' => $row['enable_macro'],
-					'enable_youtube' => $row['enable_youtube'],
-					'enable_captcha' => $row['enable_captcha'],
-					'same_upload' => $row['same_upload'],
-					'popdown_handler' => $row['popdown_handler'],
-					'category' => $row['category'],
-					'category_name' => $row['category_name']));
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $boards;
+function db_boards_get_visible($link, $user_id) { // Java CC
+    $result = mysqli_query($link, "call sp_boards_get_visible($user_id)");
+    if ($result == false) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $boards = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while (($row = mysqli_fetch_assoc($result)) != null) {
+            array_push($boards,
+                array('id' => $row['id'],
+                      'name' => $row['name'],
+                      'title' => $row['title'],
+                      'annotation' => $row['annotation'],
+                      'bump_limit' => $row['bump_limit'],
+                      'force_anonymous' => $row['force_anonymous'],
+                      'default_name' => $row['default_name'],
+                      'with_attachments' => $row['with_attachments'],
+                      'enable_macro' => $row['enable_macro'],
+                      'enable_youtube' => $row['enable_youtube'],
+                      'enable_captcha' => $row['enable_captcha'],
+                      'same_upload' => $row['same_upload'],
+                      'popdown_handler' => $row['popdown_handler'],
+                      'category' => $row['category'],
+                      'category_name' => $row['category_name']));
+        }
+    }
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $boards;
 }
 
 /*************************
@@ -2970,31 +2974,29 @@ function db_threads_get_visible_by_id($link, $board_id, $thread_num, $user_id)
 /**
  * Вычисляет количество нитей, доступных для просмотра заданному пользователю
  * на заданной доске.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @param board_id mixed <p>идентификатор доски.</p>
- * @return string
+ * @param MySQLi $link Связь с базой данных.
+ * @param string|int $user_id Идентификатор пользователя.
+ * @param string|int $board_id Идентификатор доски.
+ * @return string|int
  * Возвращает число нитей.
  */
-function db_threads_get_visible_count($link, $user_id, $board_id)
-{
-	$result = mysqli_query($link, 'call sp_threads_get_visible_count('
-		. $user_id . ', ' . $board_id . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	if(mysqli_affected_rows($link) > 0
-		&& ($row = mysqli_fetch_assoc($result)) != null)
-	{
-		mysqli_free_result($result);
-		db_cleanup_link($link);
-		return $row['threads_count'];
-	}
-	else
-	{
-		mysqli_free_result($result);
-		db_cleanup_link($link);
-		return '0';
-	}
+function db_threads_get_visible_count($link, $user_id, $board_id) { // Java CC
+    $result = mysqli_query($link,
+        "call sp_threads_get_visible_count($user_id, $board_id)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    if (mysqli_affected_rows($link) > 0
+            && ($row = mysqli_fetch_assoc($result)) != null) {
+        mysqli_free_result($result);
+        db_cleanup_link($link);
+        return $row['threads_count'];
+    } else {
+        mysqli_free_result($result);
+        db_cleanup_link($link);
+        return 0;
+    }
 }
 
 /**********************************************

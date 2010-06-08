@@ -830,7 +830,7 @@ function boards_get_moderatable($user_id)
 }
 /**
  * Получает доски, доступные для просмотра заданному пользователю.
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param string|int $user_id Идентификатор пользователя.
  * @return array
  * Возвращает доски:<p>
  * 'id' - идентификатор.<br>
@@ -849,9 +849,8 @@ function boards_get_moderatable($user_id)
  * 'category' - категория.<br>
  * 'category_name' - Имя категории.</p>
  */
-function boards_get_visible($user_id)
-{
-	return db_boards_get_visible(DataExchange::getDBLink(), $user_id);
+function boards_get_visible($user_id) { // Java CC
+    return db_boards_get_visible(DataExchange::getDBLink(), $user_id);
 }
 
 /*************************
@@ -2225,15 +2224,14 @@ function threads_get_visible_by_id($board_id, $thread_num, $user_id)
 /**
  * Вычисляет количество нитей, доступных для просмотра заданному пользователю
  * на заданной доске.
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param string|int $user_id Идентификатор пользователя.
+ * @param string|int $board_id Идентификатор доски.
  * @return string
  * Возвращает количество нитей.
  */
-function threads_get_visible_count($user_id, $board_id)
-{
-	return db_threads_get_visible_count(DataExchange::getDBLink(), $user_id,
-		$board_id);
+function threads_get_visible_count($user_id, $board_id) { // Java CC
+    return db_threads_get_visible_count(DataExchange::getDBLink(), $user_id,
+        $board_id);
 }
 
 /**********************************************
