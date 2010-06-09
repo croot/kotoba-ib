@@ -63,7 +63,7 @@ try {
         ? (int)($threads_count / $_SESSION['threads_per_page'])
         : (int)($threads_count / $_SESSION['threads_per_page']) + 1);
     if ($page_max == 0) {
-        $page_max = 1;		// Important for empty boards.
+        $page_max = 1; // Important for empty boards.
     }
     if ($page > $page_max) {
         throw new LimitException(LimitException::$messages['MAX_PAGE']);
@@ -72,8 +72,7 @@ try {
     $threads = threads_get_visible_by_board($board['id'], $page,
         $_SESSION['user'], $_SESSION['threads_per_page']);
 
-    $p_filter = function($posts_per_thread, $thread, $post)
-    {
+    $p_filter = function($posts_per_thread, $thread, $post) {
         static $recived = 0;
         if ($thread['original_post'] == $post['number']) {
             return true;
@@ -87,10 +86,8 @@ try {
     $posts = posts_get_visible_filtred_by_threads($threads, $_SESSION['user'],
         $p_filter, $_SESSION['posts_per_thread']);
 
-//$posts_uploads = posts_uploads_get_by_posts($posts);
-$posts_attachments = posts_attachments_get_by_posts($posts);
-//$uploads = uploads_get_by_posts($posts);
-$attachments = attachments_get_by_posts($posts);
+    $posts_attachments = posts_attachments_get_by_posts($posts);
+    $attachments = attachments_get_by_posts($posts);
 $ht_filter = function($user, $hidden_thread)
 {
 if($hidden_thread['user'] == $user)
@@ -123,14 +120,14 @@ $smarty->assign('ATTACHMENT_TYPE_FILE', Config::ATTACHMENT_TYPE_FILE);
 $smarty->assign('ATTACHMENT_TYPE_LINK', Config::ATTACHMENT_TYPE_LINK);
 $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
 $smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
-//event_daynight($smarty);	// EVENT HERE! (not default kotoba function)
+//event_daynight($smarty); // EVENT HERE! (not default kotoba function)
 $boards_html = $smarty->fetch('board_header.tpl');
-$boards_thread_html = '';		// Код предпросмотра нити.
-$boards_posts_html = '';		// Код сообщений из препдпросмотра нитей.
-$recived_posts_count = 0;		// Количество показанных сообщений в предпросмотре нити.
-$original_post = null;			// Оригинальное сообщение с допольнительными полями.
-$original_attachments = array();	// Массив вложений оригинального сообщения.
-$simple_attachments = array();		// Массив вложений сообщения.
+$boards_thread_html = ''; // Код предпросмотра нити.
+$boards_posts_html = ''; // Код сообщений из препдпросмотра нитей.
+$recived_posts_count = 0; // Количество показанных сообщений в предпросмотре нити.
+$original_post = null; // Оригинальное сообщение с допольнительными полями.
+$original_attachments = array(); // Массив вложений оригинального сообщения.
+$simple_attachments = array(); // Массив вложений сообщения.
 foreach($threads as $t)
 {
 $smarty->assign('thread', $t);

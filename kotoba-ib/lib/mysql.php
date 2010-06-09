@@ -1715,7 +1715,7 @@ function db_macrochan_tags_images_add($link, $tag_name, $image_name) { // Java C
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
-    
+
     db_cleanup_link($link);
 }
 /**
@@ -2770,11 +2770,11 @@ function db_threads_get_moderatable_by_id($link, $thread_id, $user_id)
 /**
  * Получает с заданной страницы доски доступные для просмотра пользователю нити
  * и количество сообщений в них.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param page mixed <p>Номер страницы.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @param threads_per_page mixed <p>Количество нитей на странице.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param string|int $board_id Идентификатор доски.
+ * @param string|int $page Номер страницы.
+ * @param string|int $user_id Идентификатор пользователя.
+ * @param string|int $threads_per_page Количество нитей на странице.
  * @return array
  * Возвращает нити:<p>
  * 'id' - Идентификатор.<br>
@@ -2786,57 +2786,64 @@ function db_threads_get_moderatable_by_id($link, $thread_id, $user_id)
  * 'posts_count' - Число доступных для просмотра сообщений.</p>
  */
 function db_threads_get_visible_by_board($link, $board_id, $page, $user_id,
-	$threads_per_page)
-{
-	$threads = array();
-	$sticky_threads = array();
-	/*
-	 * Количество нитей, которое нужно пропустить, чтобы выбирать нити только
-	 * для нужной страницы.
-	 */
-	$skip = $threads_per_page * ($page - 1);
-	$number = 0;	// Номер записи с не закреплённой нитью. Начинается с 1.
-	$received = 0;	// Число выбранных не закреплённых нитей.
-	$result = mysqli_query($link, 'call sp_threads_get_visible_by_board('
-		. $board_id . ', ' . $user_id . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) != null)
-		{
-			if($row['sticky'])
-			{
-				if($page == 1)
-					// Закреплённые нити будут показаны только на 1 странице.
-					array_push($sticky_threads,
-						array('id' => $row['id'],
-								'original_post' => $row['original_post'],
-								'bump_limit' => $row['bump_limit'],
-								'sticky' => $row['sticky'],
-								'sage' => $row['sage'],
-								'with_attachments' => $row['with_attachments'],
-								'posts_count' => $row['posts_count']));
-				continue;
-			}
-			$number++;
-			if($number > $skip && $received < $threads_per_page)
-			{
-				array_push($threads,
-					array('id' => $row['id'],
-							'original_post' => $row['original_post'],
-							'bump_limit' => $row['bump_limit'],
-							'sticky' => $row['sticky'],
-							'sage' => $row['sage'],
-							'with_attachments' => $row['with_attachments'],
-							'posts_count' => $row['posts_count']));
-				$received++;
-			}
-		}
-	if($page == 1)
-		$threads = array_merge($sticky_threads, $threads);
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $threads;
+        $threads_per_page) {
+    $threads = array();
+    $sticky_threads = array();
+
+    /*
+     * Количество нитей, которое нужно пропустить, чтобы выбирать нити только
+     * для нужной страницы.
+     */
+    $skip = $threads_per_page * ($page - 1);
+
+    // Номер записи с не закреплённой нитью. Начинается с 1.
+    $number = 0;
+
+    // Число выбранных не закреплённых нитей.
+    $received = 0;
+
+    $result = mysqli_query($link,
+            "call sp_threads_get_visible_by_board($board_id, $user_id)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+    if (mysqli_affected_rows($link) > 0) {
+        while (($row = mysqli_fetch_assoc($result)) != null) {
+            if ($row['sticky']) {
+                if ($page == 1) {
+                    // Закреплённые нити будут показаны только на 1 странице.
+                    array_push($sticky_threads,
+                        array('id' => $row['id'],
+                              'original_post' => $row['original_post'],
+                              'bump_limit' => $row['bump_limit'],
+                              'sticky' => $row['sticky'],
+                              'sage' => $row['sage'],
+                              'with_attachments' => $row['with_attachments'],
+                              'posts_count' => $row['posts_count']));
+                }
+                continue;
+            }
+            $number++;
+            if ($number > $skip && $received < $threads_per_page) {
+                array_push($threads,
+                    array('id' => $row['id'],
+                          'original_post' => $row['original_post'],
+                          'bump_limit' => $row['bump_limit'],
+                          'sticky' => $row['sticky'],
+                          'sage' => $row['sage'],
+                          'with_attachments' => $row['with_attachments'],
+                          'posts_count' => $row['posts_count']));
+                $received++;
+            }
+        }
+    }
+    if ($page == 1) {
+        $threads = array_merge($sticky_threads, $threads);
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $threads;
 }
 /**
  * Ищет с заданной страницы доски доступные для просмотра пользователю нити

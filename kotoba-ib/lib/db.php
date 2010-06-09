@@ -579,22 +579,22 @@ function boards_check_name($name) { // Java CC
 }
 /**
  * Проверяет корректность политики загрузки одинаковых файлов.
- * @param same_upload string <p>Политика загрузки одинаковых файлов.</p>
+ * @param string $same_upload Политика загрузки одинаковых файлов.
  * @return string
  * Возвращает безопасную для использования политику загрузки одинаковых файлов.
  */
-function boards_check_same_upload($same_upload)
-{
+function boards_check_same_upload($same_upload) { // Java CC
 	$length = strlen($same_upload);
-	if($length <= 32 && $length >= 1)
-	{
+	if ($length <= 32 && $length >= 1) {
 		$same_upload = RawUrlEncode($same_upload);
 		$length = strlen($same_upload);
-		if($length > 32 || (strpos($same_upload, '%') !== false) || $length < 1)
+		if ($length > 32 || (strpos($same_upload, '%') !== false)
+                || $length < 1) {
 			throw new FormatException(FormatException::$messages['BOARD_SAME_UPLOAD']);
-	}
-	else
+        }
+	} else {
 		throw new FormatException(FormatException::$messages['BOARD_SAME_UPLOAD']);
+    }
 	return $same_upload;
 }
 /**
@@ -867,24 +867,24 @@ function categories_add($name)
 }
 /**
  * Проверяет корректность идентификатора категории.
- * @param id mixed <p>Идентификатор.</p>
+ * @param mixed $id Идентификатор.
  * @return string
  * Возвращает безопасный для использования идентификатор категории.
  */
-function categories_check_id($id)
-{
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['CATEGORY_ID']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['CATEGORY_ID']);
-	return $id;
+function categories_check_id($id) { // Java CC
+    $length = strlen($id);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if ($length <= $max_int_length && $length >= 1) {
+        $id = RawUrlEncode($id);
+        $length = strlen($id);
+        if ($length > $max_int_length || (ctype_digit($id) === false)
+                || $length < 1) {
+            throw new FormatException(FormatException::$messages['CATEGORY_ID']);
+        }
+    } else {
+        throw new FormatException(FormatException::$messages['CATEGORY_ID']);
+    }
+    return $id;
 }
 /**
  * Проверяет корректность имени категории.
@@ -1358,29 +1358,25 @@ function popdown_handlers_add($name)
 /**
  * Проверяет корректность идентификатора обработчика автоматического
  * удаления нитей.
- * @param id mixed <p>Идентификатор обработчика автоматического удаления
- * нитей.</p>
+ * @param mixed $id Идентификатор обработчика автоматического удаления  нитей.
  * @return string
  * Возвращает безопасный для использования идентификатор обработчика
  * автоматического удаления нитей.
  */
-function popdown_handlers_check_id($id)
-{
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false)
-				|| $length < 1)
-		{
-			throw new FormatException(FormatException::$messages['POPDOWN_HANDLER_ID']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['POPDOWN_HANDLER_ID']);
-	return $id;
+function popdown_handlers_check_id($id) { // Java CC
+    $length = strlen($id);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if ($length <= $max_int_length && $length >= 1) {
+        $id = RawUrlEncode($id);
+        $length = strlen($id);
+        if ($length > $max_int_length || (ctype_digit($id) === false)
+                || $length < 1) {
+            throw new FormatException(FormatException::$messages['POPDOWN_HANDLER_ID']);
+        }
+    } else {
+        throw new FormatException(FormatException::$messages['POPDOWN_HANDLER_ID']);
+    }
+    return $id;
 }
 /**
  * Проверяет корректность имени функции обработчика автоматического удаления
@@ -2155,10 +2151,10 @@ function threads_get_moderatable_by_id($thread_id, $user_id)
 /**
  * Получает с заданной страницы доски доступные для просмотра пользователю нити
  * и количество сообщений в них.
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param page mixed <p>Номер страницы.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @param threads_per_page mixed <p>Количество нитей на странице.</p>
+ * @param string|int $board_id Идентификатор доски.
+ * @param string|int $page Номер страницы.
+ * @param string|int $user_id Идентификатор пользователя.
+ * @param string|int $threads_per_page Количество нитей на странице.
  * @return array
  * Возвращает нити:<p>
  * 'id' - Идентификатор.<br>
@@ -2170,10 +2166,9 @@ function threads_get_moderatable_by_id($thread_id, $user_id)
  * 'posts_count' - Число доступных для просмотра сообщений.</p>
  */
 function threads_get_visible_by_board($board_id, $page, $user_id,
-	$threads_per_page)
-{
-	return db_threads_get_visible_by_board(DataExchange::getDBLink(), $board_id,
-		$page, $user_id, $threads_per_page);
+        $threads_per_page) {
+    return db_threads_get_visible_by_board(DataExchange::getDBLink(), $board_id,
+        $page, $user_id, $threads_per_page);
 }
 /**
  * Ищет с заданной страницы доски доступные для просмотра пользователю нити
