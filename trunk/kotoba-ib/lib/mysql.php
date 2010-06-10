@@ -184,7 +184,7 @@ function db_bans_add($link, $range_beg, $range_end, $reason, $untill)
 /**
  * Проверяет, заблокирован ли IP-адрес. Если да, то завершает работу скрипта.
  * @param MySQLi $link Связь с базой данных.
- * @param string $ip IP-адрес.
+ * @param int $ip IP-адрес.
  * @return boolean|array
  * Возвращает false, если адрес не заблокирован и массив, если заблокирован:<p>
  * 'range_beg' - Начало диапазона IP-адресов.<br>
@@ -1127,24 +1127,25 @@ function db_files_get_by_post($link, $post_id)
 
 /**
  * Добавляет группу с заданным именем.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param name string <p>Имя группы.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param string $name Имя группы.
  * @return string
  * Возвращает идентификатор добавленной группы.
  */
-function db_groups_add($link, $name)
-{
-	$result = mysqli_query($link, 'call sp_groups_add(\'' . $name . '\')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	if(mysqli_affected_rows($link) <= 0
-			|| ($row = mysqli_fetch_assoc($result)) === null)
-	{
-		throw new CommonException(CommonException::$messages['GROUPS_ADD']);
-	}
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $row['id'];
+function db_groups_add($link, $name) { // Java CC
+    $result = mysqli_query($link, "call sp_groups_add('$name')");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    if(mysqli_affected_rows($link) <= 0
+            || ($row = mysqli_fetch_assoc($result)) == null) {
+        throw new CommonException(CommonException::$messages['GROUPS_ADD']);
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $row['id'];
 }
 /**
  * Удаляет заданные группы, а так же всех пользователей, которые входят в эти

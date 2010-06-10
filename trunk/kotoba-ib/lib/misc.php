@@ -24,27 +24,32 @@
  * $DIR_PATH и $STYLESHEET (смотри описание одноименных констант в config.php).
  */
 require Config::ABS_PATH . '/smarty/Smarty.class.php';
-class SmartyKotobaSetup extends Smarty
-{
-	var $language;
-	var $stylesheet;
+class SmartyKotobaSetup extends Smarty { // Java CC
+    var $language;
+    var $stylesheet;
 
-	function SmartyKotobaSetup($language = Config::LANGUAGE, $stylesheet = Config::STYLESHEET)
-	{
-		date_default_timezone_set(Config::DEFAULT_TIMEZONE);	// Try to fix warning on strftime.
-		$this->Smarty();
-		$this->language = $language;
-		$this->stylesheet = $stylesheet;
+    function SmartyKotobaSetup($language = Config::LANGUAGE,
+            $stylesheet = Config::STYLESHEET) {
+        // Try to fix warning on strftime.
+        date_default_timezone_set(Config::DEFAULT_TIMEZONE);
 
-		$this->template_dir = Config::ABS_PATH . "/smarty/kotoba/templates/locale/$language/";
-		$this->compile_dir = Config::ABS_PATH . "/smarty/kotoba/templates_c/locale/$language/";
-		$this->config_dir = Config::ABS_PATH . "/smarty/kotoba/config/$language/";
-		$this->cache_dir = Config::ABS_PATH . "/smarty/kotoba/cache/$language/";
-		$this->caching = 0;
+        $this->Smarty();
+        $this->language = $language;
+        $this->stylesheet = $stylesheet;
 
-		$this->assign('DIR_PATH', Config::DIR_PATH);
-		$this->assign('STYLESHEET', $stylesheet);
-	}
+        $this->template_dir = Config::ABS_PATH
+                . "/smarty/kotoba/templates/locale/$language/";
+        $this->compile_dir = Config::ABS_PATH
+                . "/smarty/kotoba/templates_c/locale/$language/";
+        $this->config_dir = Config::ABS_PATH
+                . "/smarty/kotoba/config/$language/";
+        $this->cache_dir = Config::ABS_PATH
+                . "/smarty/kotoba/cache/$language/";
+        $this->caching = 0;
+
+        $this->assign('DIR_PATH', Config::DIR_PATH);
+        $this->assign('STYLESHEET', $stylesheet);
+    }
 }
 /**
  * Возобновляет сессию или начинает новую. Восстанавливает настройки
@@ -52,40 +57,41 @@ class SmartyKotobaSetup extends Smarty
  * сообщений об ошибках, если язык пользователя отличается от языка по
  * умолчанию.
  */
-function kotoba_session_start()
-{
-	//ini_set('session.save_path', Config::ABS_PATH . '/sessions/');
-	ini_set('session.save_path', Config::ABS_PATH . '/sessions');
-	ini_set('session.gc_maxlifetime', Config::SESSION_LIFETIME);
-	ini_set('session.cookie_lifetime', Config::SESSION_LIFETIME);
-	if(!session_start())
-		throw new CommonException(CommonException::$messages['SESSION_START']);
-	// По умолчанию пользователь является Гостем.
-	if(!isset($_SESSION['user']) || $_SESSION['user'] == Config::GUEST_ID)
-	{
-		$_SESSION['user'] = Config::GUEST_ID;
-		$_SESSION['groups'] = array(Config::GST_GROUP_NAME);
-		$_SESSION['threads_per_page'] = Config::THREADS_PER_PAGE;
-		$_SESSION['posts_per_thread'] = Config::POSTS_PER_THREAD;
-		$_SESSION['lines_per_post'] = Config::LINES_PER_POST;
-		$_SESSION['stylesheet'] = Config::STYLESHEET;
-		$_SESSION['language'] = Config::LANGUAGE;
-		$_SESSION['password'] = null;
-		$_SESSION['goto'] = 'b';	// Переход к доске.
-	}
-	// Язык мог измениться на язык пользователя.
-	require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+function kotoba_session_start() { // Java CC
+    ini_set('session.save_path', Config::ABS_PATH . '/sessions');
+    ini_set('session.gc_maxlifetime', Config::SESSION_LIFETIME);
+    ini_set('session.cookie_lifetime', Config::SESSION_LIFETIME);
+
+    if (!session_start()) {
+        throw new CommonException(CommonException::$messages['SESSION_START']);
+    }
+
+    // По умолчанию пользователь является Гостем.
+    if (!isset($_SESSION['user']) || $_SESSION['user'] == Config::GUEST_ID) {
+        $_SESSION['user'] = Config::GUEST_ID;
+        $_SESSION['groups'] = array(Config::GST_GROUP_NAME);
+        $_SESSION['threads_per_page'] = Config::THREADS_PER_PAGE;
+        $_SESSION['posts_per_thread'] = Config::POSTS_PER_THREAD;
+        $_SESSION['lines_per_post'] = Config::LINES_PER_POST;
+        $_SESSION['stylesheet'] = Config::STYLESHEET;
+        $_SESSION['language'] = Config::LANGUAGE;
+        $_SESSION['password'] = null;
+        $_SESSION['goto'] = 'b'; // Переход к доске.
+    }
+
+    // Язык мог измениться на язык пользователя.
+    require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
 }
 /**
  * Устанавливает язык и кодировку для фукнций работы с многобайтовыми
  * кодировками. Настраивает локаль.
  */
-function locale_setup()
-{
-	mb_language(Config::MB_LANGUAGE);
-	mb_internal_encoding(Config::MB_ENCODING);
-	if(!setlocale(LC_ALL, Config::$LOCALE_NAMES))
-		throw new CommonException(CommonException::$messages['SETLOCALE']);
+function locale_setup() { // Java CC
+    mb_language(Config::MB_LANGUAGE);
+    mb_internal_encoding(Config::MB_ENCODING);
+    if (!setlocale(LC_ALL, Config::$LOCALE_NAMES)) {
+        throw new CommonException(CommonException::$messages['SETLOCALE']);
+    }
 }
 
 /***********
@@ -104,7 +110,7 @@ function load_user_settings($keyword) { // Java CC Done.
 	$_SESSION['posts_per_thread'] = $user_settings['posts_per_thread'];
 	$_SESSION['lines_per_post'] = $user_settings['lines_per_post'];
 	$_SESSION['stylesheet'] = $user_settings['stylesheet'];
-    
+
 	// Язык мог измениться на язык пользователя.
 	if($_SESSION['language'] != $user_settings['language']) {
 		require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
