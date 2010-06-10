@@ -250,7 +250,7 @@ function bans_add($range_beg, $range_end, $reason, $untill)
 }
 /**
  * Проверяет, заблокирован ли IP-адрес. Если да, то завершает работу скрипта.
- * @param string $ip IP-адрес.
+ * @param int $ip IP-адрес.
  * @return boolean|array
  * Возвращает false, если адрес не заблокирован и массив, если заблокирован:<p>
  * 'range_beg' - Начало диапазона IP-адресов.<br>
@@ -259,6 +259,9 @@ function bans_add($range_beg, $range_end, $reason, $untill)
  * 'untill' - Время истечения блокировки.</p>
  */
 function bans_check($ip) { // Java CC
+    if (!is_int($ip)) {
+        throw new TypeException(TypeException::$messages['INT']);
+    }
     return db_bans_check(DataExchange::getDBLink(), $ip);
 }
 /**
@@ -562,17 +565,17 @@ function boards_check_id($id)
  * Возвращает безопасное для использования имя доски.
  */
 function boards_check_name($name) { // Java CC
-	$length = strlen($name);
-	if ($length <= 16 && $length >= 1) {
-		$name = RawUrlEncode($name);
-		$length = strlen($name);
-		if ($length > 16 || (strpos($name, '%') !== false) || $length < 1) {
-			throw new FormatException(FormatException::$messages['BOARD_NAME']);
+    $length = strlen($name);
+    if ($length <= 16 && $length >= 1) {
+        $name = RawUrlEncode($name);
+        $length = strlen($name);
+        if ($length > 16 || (strpos($name, '%') !== false) || $length < 1) {
+            throw new FormatException(FormatException::$messages['BOARD_NAME']);
         }
-	} else {
-		throw new FormatException(FormatException::$messages['BOARD_NAME']);
+    } else {
+        throw new FormatException(FormatException::$messages['BOARD_NAME']);
     }
-	return $name;
+    return $name;
 }
 /**
  * Проверяет корректность политики загрузки одинаковых файлов.
@@ -1780,7 +1783,7 @@ function posts_get_visible_by_number($board_id, $post_number, $user_id)
  * @param array $threads Нити.
  * @param string|int $user_id Идентификатор пользователя.
  * @param Object $filter Фильтр (лямбда).
- * @param Object $paramname,... Аргументы для фильтра (не обязательны).
+ * @param mixed $paramname,... Аргументы для фильтра (не обязательны).
  * @return array
  * Возвращает сообщения:<p>
  * 'id' - Идентификатор.<br>
