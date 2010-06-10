@@ -250,19 +250,16 @@ function bans_add($range_beg, $range_end, $reason, $untill)
 }
 /**
  * Проверяет, заблокирован ли IP-адрес. Если да, то завершает работу скрипта.
- * @param smarty SmartyKotobaSetup <p>Экземпляр шаблонизатора.</p>
- * @param ip string <p>IP-адрес.</p>
+ * @param string $ip IP-адрес.
+ * @return boolean|array
+ * Возвращает false, если адрес не заблокирован и массив, если заблокирован:<p>
+ * 'range_beg' - Начало диапазона IP-адресов.<br>
+ * 'range_end' - Конец диапазона IP-адресов.<br>
+ * 'reason' - Причина блокировки.<br>
+ * 'untill' - Время истечения блокировки.</p>
  */
-function bans_check($smarty, $ip)
-{
-	if(($ban = db_bans_check(DataExchange::getDBLink(), $ip)) !== false)
-	{
-		$smarty->assign('ip', long2ip($ip));
-		$smarty->assign('reason', $ban['reason']);
-		session_destroy();
-		DataExchange::releaseResources();
-		die($smarty->fetch('banned.tpl'));
-	}
+function bans_check($ip) { // Java CC
+    return db_bans_check(DataExchange::getDBLink(), $ip);
 }
 /**
  * Проверяет корректность начала диапазона IP-адресов.
@@ -1780,9 +1777,10 @@ function posts_get_visible_by_number($board_id, $post_number, $user_id)
 /**
  * Для каждой нити получает отфильтрованные сообщения, доступные для просмотра
  * заданному пользователю.
- * @param threads array <p>Нити.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @param filter mixed <p>Фильтр (лямбда).</p>
+ * @param array $threads Нити.
+ * @param string|int $user_id Идентификатор пользователя.
+ * @param Object $filter Фильтр (лямбда).
+ * @param Object $paramname,... Аргументы для фильтра (не обязательны).
  * @return array
  * Возвращает сообщения:<p>
  * 'id' - Идентификатор.<br>
@@ -1797,15 +1795,14 @@ function posts_get_visible_by_number($board_id, $post_number, $user_id)
  * 'text' - Текст.<br>
  * 'sage' - Флаг поднятия нити.</p>
  */
-function posts_get_visible_filtred_by_threads($threads, $user_id, $filter)
-{
-
-	$numargs = func_num_args();
-	$args = array();					// Аргументы для лямбды.
-	for($i = 3; $i < $numargs; $i++)	// Пропустим первые 3 аргумента фукнции.
-		array_push($args, func_get_arg($i));
-	return db_posts_get_visible_filtred_by_threads(DataExchange::getDBLink(),
-			$threads, $user_id, $filter, $args);
+function posts_get_visible_filtred_by_threads($threads, $user_id, $filter) { // Java CC
+    $numargs = func_num_args();
+    $args = array(); // Аргументы для лямбды.
+    for ($i = 3; $i < $numargs; $i++) { // Пропустим первые 3 аргумента фукнции.
+        array_push($args, func_get_arg($i));
+    }
+    return db_posts_get_visible_filtred_by_threads(DataExchange::getDBLink(),
+        $threads, $user_id, $filter, $args);
 }
 /**
  * Очищает и размечает текст сообщения заданной доски.

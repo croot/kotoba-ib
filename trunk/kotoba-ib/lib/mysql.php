@@ -183,32 +183,33 @@ function db_bans_add($link, $range_beg, $range_end, $reason, $untill)
 }
 /**
  * Проверяет, заблокирован ли IP-адрес. Если да, то завершает работу скрипта.
- * @param smarty SmartyKotobaSetup <p>Экземпляр шаблонизатора.</p>
- * @param ip string <p>IP-адрес.</p>
- * @return mixed
+ * @param MySQLi $link Связь с базой данных.
+ * @param string $ip IP-адрес.
+ * @return boolean|array
  * Возвращает false, если адрес не заблокирован и массив, если заблокирован:<p>
  * 'range_beg' - Начало диапазона IP-адресов.<br>
  * 'range_end' - Конец диапазона IP-адресов.<br>
  * 'reason' - Причина блокировки.<br>
  * 'untill' - Время истечения блокировки.</p>
  */
-function db_bans_check($link, $ip)
-{
-	$result = mysqli_query($link, 'call sp_bans_check(' . $ip . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$row = false;
-	if(mysqli_affected_rows($link) > 0)
-	{
-		$row = mysqli_fetch_assoc($result);
-		$row = array('range_beg' => $row['range_beg'],
-			'range_end' => $row['range_end'],
-			'untill' => $row['untill'],
-			'reason' => $row['reason']);
-	}
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $row;
+function db_bans_check($link, $ip) { // Java CC
+    $result = mysqli_query($link, "call sp_bans_check($ip)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $row = false;
+    if (mysqli_affected_rows($link) > 0) {
+        $row = mysqli_fetch_assoc($result);
+        $row = array('range_beg' => $row['range_beg'],
+                     'range_end' => $row['range_end'],
+                     'untill' => $row['untill'],
+                     'reason' => $row['reason']);
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $row;
 }
 /**
  * Удаляет блокировку с заданным идентификатором.
@@ -2224,11 +2225,11 @@ function db_posts_get_visible_by_number($link, $board_id, $post_number,
 /**
  * Для каждой нити получает отфильтрованные сообщения, доступные для просмотра
  * заданному пользователю.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param threads array <p>Нити.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @param filter mixed <p>Фильтр (лямбда).</p>
- * @param args array <p>Аргументы для фильтра.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param array $threads Нити.
+ * @param string|int $user_id Идентификатор пользователя.
+ * @param Object $filter Фильтр (лямбда).
+ * @param array $args Аргументы для фильтра.
  * @return array
  * Возвращает сообщения:<p>
  * 'id' - Идентификатор.<br>
@@ -2248,8 +2249,8 @@ function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id,
     $posts = array();
     $arg = count($args);
     foreach ($threads as $t) {
-        $result = mysqli_query($link, 'call sp_posts_get_visible_by_thread('
-            . $t['id'] . ', ' . $user_id . ')');
+        $result = mysqli_query($link,
+            "call sp_posts_get_visible_by_thread({$t['id']}, $user_id)");
         if (!$result) {
             throw new CommonException(mysqli_error($link));
         }
