@@ -21,10 +21,16 @@ require_once Config::ABS_PATH . '/lib/events.php';
 try {
     kotoba_session_start();
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup($_SESSION['language'],
+        $_SESSION['stylesheet']);
 
-    // Возможно завершение работы скрипта.
-    bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));
+    if (($ban = bans_check(ip2long($_SERVER['REMOTE_ADDR']))) !== false) {
+        $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
+        $smarty->assign('reason', $ban['reason']);
+        session_destroy();
+        DataExchange::releaseResources();
+        die($smarty->fetch('banned.tpl'));
+    }
 
     // Fix for Firefox.
     header("Cache-Control: private");
