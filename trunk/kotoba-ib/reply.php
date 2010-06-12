@@ -53,7 +53,7 @@ try {
             $should_update_goto = true;
         }
     } else {
-		throw new FormatException(FormatException::$messages['GOTO']);
+		throw new FormatException(FormatException::$messages['USER_GOTO']);
     }
 
 	$password = null;

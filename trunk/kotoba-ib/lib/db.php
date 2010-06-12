@@ -2397,26 +2397,23 @@ function upload_types_check_store_extension($store_ext)
 /**
  * Проверяет корректность имени файла уменьшенной копии типа загружаемых файлов.
  * Подробнее см. заметки к таблице upload_types.
- * @param thumbnail_image string <p>Имя файла уменьшенной копии.</p>
+ * @param string $thumbnail_image Имя файла уменьшенной копии.
  * @return string
  * Возвращает безопасное для использования имя файла уменьшенной копии типа
  * загружаемых файлов.
  */
-function upload_types_check_thumbnail_image($thumbnail_image)
-{
+function upload_types_check_thumbnail_image($thumbnail_image) { // Java CC
     $length = strlen($thumbnail_image);
-    if($length <= 256 && $length >= 1)
-    {
+    if ($length <= 256 && $length >= 1) {
         $thumbnail_image = RawUrlEncode($thumbnail_image);
         $length = strlen($thumbnail_image);
-        if($length > 256 || (strpos($thumbnail_image, '%') !== false)
-            || $length < 1)
-        {
+        if ($length > 256 || (strpos($thumbnail_image, '%') !== false)
+                || $length < 1) {
             throw new FormatException(FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE']);
         }
-    }
-    else
+    } else {
         throw new FormatException(FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE']);
+    }
     return $thumbnail_image;
 }
 /**
@@ -2526,16 +2523,16 @@ function user_groups_get_all()
 
 /**
  * Проверяет корректность перенаправления.
- * @param goto string <p>Перенаправление.</p>
+ * @param string $goto Перенаправление.
  * @return string
  * Возвращает безопасное для использования перенаправление.
  */
-function users_check_goto($goto)
-{
-	if($goto === 'b' || $goto === 't')
+function users_check_goto($goto) {
+	if ($goto === 'b' || $goto === 't') {
 		return $goto;
-	else
-		throw new FormatException(FormatException::$messages['GOTO']);
+    } else {
+		throw new FormatException(FormatException::$messages['USER_GOTO']);
+    }
 }
 /**
  * Проверяет корректность идентификатора пользователя.
@@ -2565,110 +2562,91 @@ function users_check_id($id)
 }
 /**
  * Проверяет корректность хеша ключевого слова.
- * @param keyword string <p>Хеш ключевого слова.</p>
+ * @param string $keyword Хеш ключевого слова.
  * @return string
  * Возвращает безопасный для использования хеш ключевого слова.
  */
-function users_check_keyword($keyword)
-{
-    if(!isset($keyword))
-        throw new NodataException(NodataException::$messages['KEYWORD_NOT_SPECIFED']);
+function users_check_keyword($keyword) { // Java CC
     $length = strlen($keyword);
-    if($length <= 32 && $length >= 16)
-    {
+    if ($length <= 32 && $length >= 16) {
         $keyword = RawUrlEncode($keyword);
         $length = strlen($keyword);
-        if($length > 32 || (strpos($keyword, '%') !== false) || $length < 16)
-            throw new FormatException(FormatException::$messages['KEYWORD']);
+        if ($length > 32 || (strpos($keyword, '%') !== false) || $length < 16) {
+            throw new FormatException(FormatException::$messages['USER_KEYWORD']);
+        }
+    } else {
+        throw new FormatException(FormatException::$messages['USER_KEYWORD']);
     }
-    else
-        throw new FormatException(FormatException::$messages['KEYWORD']);
     return $keyword;
 }
 /**
  * Проверяет корректность количества строк в предпросмотре сообщения.
- * @param lines_per_post mixed <p>Количество строк в предпросмотре
- * сообщения.</p>
+ * @param string|int $lines_per_post Количество строк в предпросмотре сообщения.
  * @return string
  * Возвращает безопасное для использования количество строк в предпросмотре
  * сообщения.
  */
-function users_check_lines_per_post($lines_per_post)
-{
-    if(!isset($lines_per_post))
-        throw new NodataException(NodataException::$messages['LINES_PER_POST_NOT_SPECIFED']);
+function users_check_lines_per_post($lines_per_post) { // Java CC
     $length = strlen($lines_per_post);
-    if($length <= 2 && $length >= 1)
-    {
+    if ($length <= 2 && $length >= 1) {
         $lines_per_post = RawUrlEncode($lines_per_post);
         $length = strlen($lines_per_post);
         if($length > 2 || (ctype_digit($lines_per_post) === false)
-            || $length < 1)
-        {
-            throw new FormatException(sprintf(FormatException::$messages['LINES_PER_POST'],
+                || $length < 1) {
+            throw new FormatException(sprintf(FormatException::$messages['USER_LINES_PER_POST'],
                 Config::MIN_LINESPERPOST, Config::MAX_LINESPERPOST));
         }
-    }
-    else
-        throw new FormatException(sprintf(FormatException::$messages['LINES_PER_POST'],
+    } else {
+        throw new FormatException(sprintf(FormatException::$messages['USER_LINES_PER_POST'],
             Config::MIN_LINESPERPOST, Config::MAX_LINESPERPOST));
+    }
     return $lines_per_post;
 }
 /**
  * Проверяет корректность числа сообщений в нити на странице просмотра доски.
- * @param posts_per_thread mixed <p>Число сообщений в нити на странице просмотра
- * доски.</p>
+ * @param string|int $posts_per_thread Число сообщений в нити на странице просмотра
+ * доски.
  * @return string
  * Возвращает безопасное для использования число сообщений в нити на странице
  * просмотра доски.
  */
-function users_check_posts_per_thread($posts_per_thread)
-{
-    if(!isset($posts_per_thread))
-        throw new NodataException(NodataException::$messages['POSTS_PER_THREAD_NOT_SPECIFED']);
+function users_check_posts_per_thread($posts_per_thread) { // Java CC
     $length = strlen($posts_per_thread);
-    if($length <= 2 && $length >= 1)
-    {
+    if ($length <= 2 && $length >= 1) {
         $posts_per_thread = RawUrlEncode($posts_per_thread);
         $length = strlen($posts_per_thread);
         if($length > 2 || (ctype_digit($posts_per_thread) === false)
-            || $length < 1)
-        {
-            throw new FormatException(sprintf(FormatException::$messages['POSTS_PER_THREAD'],
+                || $length < 1) {
+            throw new FormatException(sprintf(FormatException::$messages['USER_POSTS_PER_THREAD'],
                 Config::MIN_POSTSPERTHREAD, Config::MAX_POSTSPERTHREAD));
         }
-    }
-    else
-        throw new FormatException(sprintf(FormatException::$messages['POSTS_PER_THREAD'],
+    } else {
+        throw new FormatException(sprintf(FormatException::$messages['USER_POSTS_PER_THREAD'],
             Config::MIN_POSTSPERTHREAD, Config::MAX_POSTSPERTHREAD));
+    }
     return $posts_per_thread;
 }
 /**
  * Проверяет корректность числа нитей на странице просмотра доски.
- * @param threads_per_page mixed <p>Число нитей на странице просмотра доски.</p>
+ * @param string|int $threads_per_page Число нитей на странице просмотра доски.
  * @return string
  * Возвращает безопасное для использования число нитей на странице просмотра
  * доски.
  */
-function users_check_threads_per_page($threads_per_page)
-{
-    if(!isset($threads_per_page))
-        throw new NodataException(NodataException::$messages['THREADS_PER_PAGE_NOT_SPECIFED']);
+function users_check_threads_per_page($threads_per_page) { // Java CC
     $length = strlen($threads_per_page);
-    if($length <= 2 && $length >= 1)
-    {
+    if ($length <= 2 && $length >= 1) {
         $threads_per_page = RawUrlEncode($threads_per_page);
         $length = strlen($threads_per_page);
-        if($length > 2 || (ctype_digit($threads_per_page) === false)
-            || $length < 1)
-        {
-            throw new FormatException(sprintf(FormatException::$messages['THREADS_PER_PAGE'],
+        if ($length > 2 || (ctype_digit($threads_per_page) === false)
+                || $length < 1) {
+            throw new FormatException(sprintf(FormatException::$messages['USER_THREADS_PER_PAGE'],
                 Config::MIN_THREADSPERPAGE, Config::MAX_THREADSPERPAGE));
         }
-    }
-    else
-        throw new FormatException(sprintf(FormatException::$messages['THREADS_PER_PAGE'],
+    } else {
+        throw new FormatException(sprintf(FormatException::$messages['USER_THREADS_PER_PAGE'],
             Config::MIN_THREADSPERPAGE, Config::MAX_THREADSPERPAGE));
+    }
     return $threads_per_page;
 }
 /**
