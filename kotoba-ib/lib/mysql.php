@@ -958,6 +958,7 @@ function db_boards_get_visible($link, $user_id) { // Java CC
                       'category_name' => $row['category_name']));
         }
     }
+
     mysqli_free_result($result);
     db_cleanup_link($link);
     return $boards;

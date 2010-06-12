@@ -47,9 +47,9 @@ try {
             $_SESSION['goto'] = $goto;
             $should_update_goto = true;
         }
+    } else {
+		throw new FormatException(FormatException::$messages['USER_GOTO']);
     }
-    else
-		throw new FormatException(FormatException::$messages['GOTO']);
 
     $password = null;
     $should_update_password = false;
