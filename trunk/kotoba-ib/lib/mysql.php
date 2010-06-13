@@ -32,25 +32,23 @@ function db_connect()
 /**
  * Очищяет связь с базой данных от всех полученных результатов. Обязательна к
  * вызову после вызова хранимой процедуры.
- *
- * Аргументы:
- * $link - связь с базой данных.
+ * @param MySQLi $link Связь с базой данных.
  */
-function db_cleanup_link($link)
-{
+function db_cleanup_link($link) {
 	/*
 	 * Заметка: если использовать mysqli_use_result вместо store, то
 	 * не будет выведена ошибка, если таковая произошла в следующем запросе
 	 * в mysqli_multi_query.
 	 */
-	do
-	{
-		if(($result = mysqli_store_result($link)) != false)
+	do {
+		if (($result = mysqli_store_result($link)) != false) {
 			mysqli_free_result($result);
+        }
 	}
-	while(mysqli_next_result($link));
-	if(mysqli_errno($link))
+	while (mysqli_next_result($link));
+	if (mysqli_errno($link)) {
 		throw new CommonException(mysqli_error($link));
+    }
 }
 
 /***************************************
@@ -394,28 +392,32 @@ function db_words_get_all($link)
 }
 /**
  * Получает все слова по идентификатору доски.
- * @param board_id int <p>Идентификатор доски.</p>
+ * @param string|int $board_id Идентификатор доски.
  * @return array
  * Возвращает слова:<p>
  * 'id' - идентификатор.<br>
  * 'word' - слово для замены.<br>
  * 'replace' - замена.</p>
  */
-function db_words_get_all_by_board($link, $board_id)
-{
-	$result = mysqli_query($link, "call sp_words_get_all_by_board($board_id)");
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$words = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) !== null)
-			array_push($words,
-				array('id' => $row['id'],
-						'word' => $row['word'],
-						'replace' => $row['replace']));
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $words;
+function db_words_get_all_by_board($link, $board_id) { // Java CC
+    $result = mysqli_query($link, "call sp_words_get_all_by_board($board_id)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $words = array();
+    if(mysqli_affected_rows($link) > 0) {
+        while(($row = mysqli_fetch_assoc($result)) !== null) {
+            array_push($words,
+                    array('id' => $row['id'],
+                          'word' => $row['word'],
+                          'replace' => $row['replace']));
+        }
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $words;
 }
 
 /*********************
@@ -584,8 +586,8 @@ function db_boards_get_all($link)
 }
 /**
  * Получает заданную доску.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param string|int $board_id Идентификатор доски.
  * @return array
  * Возвращает доски:<p>
  * 'id' - идентификатор.<br>
@@ -603,33 +605,34 @@ function db_boards_get_all($link)
  * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
  * 'category' - категория.</p>
  */
-function db_boards_get_by_id($link, $board_id)
-{
-	$result = mysqli_query($link, 'call sp_boards_get_by_id(' . $board_id . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$board = null;
-	if(mysqli_affected_rows($link) > 0
-		&& ($row = mysqli_fetch_assoc($result)) !== null)
-	{
-		$board['id'] = $row['id'];
-		$board['name'] = $row['name'];
-		$board['title'] = $row['title'];
-		$board['annotation'] = $row['annotation'];
-		$board['bump_limit'] = $row['bump_limit'];
-		$board['force_anonymous'] = $row['force_anonymous'];
-		$board['default_name'] = $row['default_name'];
-		$board['with_attachments'] = $row['with_attachments'];
-		$board['enable_macro'] = $row['enable_macro'];
-		$board['enable_youtube'] = $row['enable_youtube'];
-		$board['enable_captcha'] = $row['enable_captcha'];
-		$board['same_upload'] = $row['same_upload'];
-		$board['popdown_handler'] = $row['popdown_handler'];
-		$board['category'] = $row['category'];
-	}
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $board;
+function db_boards_get_by_id($link, $board_id) { // Java CC
+    $result = mysqli_query($link, "call sp_boards_get_by_id($board_id)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $board = null;
+    if (mysqli_affected_rows($link) > 0
+            && ($row = mysqli_fetch_assoc($result)) !== null) {
+        $board = array('id' => $row['id'],
+                       'name' => $row['name'],
+                       'title' => $row['title'],
+                       'annotation' => $row['annotation'],
+                       'bump_limit' => $row['bump_limit'],
+                       'force_anonymous' => $row['force_anonymous'],
+                       'default_name' => $row['default_name'],
+                       'with_attachments' => $row['with_attachments'],
+                       'enable_macro' => $row['enable_macro'],
+                       'enable_youtube' => $row['enable_youtube'],
+                       'enable_captcha' => $row['enable_captcha'],
+                       'same_upload' => $row['same_upload'],
+                       'popdown_handler' => $row['popdown_handler'],
+                       'category' => $row['category']);
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $board;
 }
 /**
  * Получает заданную доску.
@@ -735,9 +738,9 @@ function db_boards_get_changeable($link, $user_id)
 /**
  * Получает заданную доску, доступную для редактирования заданному
  * пользователю.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param board_id string <p>Идентификатор доски.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param string|int $board_id Идентификатор доски.
+ * @param string|int $user_id Идентификатор пользователя.
  * @return array
  * Возвращает доску:<p>
  * 'id' - Идентификатор.<br>
@@ -756,43 +759,45 @@ function db_boards_get_changeable($link, $user_id)
  * 'category' - Категория.<br>
  * 'category_name' - Имя категории.</p>
  */
-function db_boards_get_changeable_by_id($link, $board_id, $user_id)
-{
-	$result = mysqli_query($link,
-		'call sp_boards_get_changeable_by_id(' . $board_id . ', ' . $user_id . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	if(mysqli_affected_rows($link) <= 0)
-	{
-		mysqli_free_result($result);
-		db_cleanup_link($link);
-		throw new PermissionException(PermissionException::$messages['BOARD_NOT_ALLOWED']);
-	}
-	$row = mysqli_fetch_assoc($result);
-	if(isset($row['error']) && $row['error'] == 'NOT_FOUND')
-	{
-		mysqli_free_result($result);
-		db_cleanup_link($link);
-		throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']);
-	}
-	$board['id'] = $row['id'];
-	$board['name'] = $row['name'];
-	$board['title'] = $row['title'];
-	$board['annotation'] = $row['annotation'];
-	$board['bump_limit'] = $row['bump_limit'];
-	$board['force_anonymous'] = $row['force_anonymous'];
-	$board['default_name'] = $row['default_name'];
-	$board['with_attachments'] = $row['with_attachments'];
-	$board['enable_macro'] = $row['enable_macro'];
-	$board['enable_youtube'] = $row['enable_youtube'];
-	$board['enable_captcha'] = $row['enable_captcha'];
-	$board['same_upload'] = $row['same_upload'];
-	$board['popdown_handler'] = $row['popdown_handler'];
-	$board['category'] = $row['category'];
-	$board['category_name'] = $row['category_name'];
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $board;
+function db_boards_get_changeable_by_id($link, $board_id, $user_id) { // Java CC
+    $result = mysqli_query($link,
+            "call sp_boards_get_changeable_by_id($board_id, $user_id)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    if (mysqli_affected_rows($link) <= 0) {
+        mysqli_free_result($result);
+        db_cleanup_link($link);
+        throw new PermissionException(PermissionException::$messages['BOARD_NOT_ALLOWED']);
+    }
+
+    $row = mysqli_fetch_assoc($result);
+    if (isset($row['error']) && $row['error'] == 'NOT_FOUND') {
+        mysqli_free_result($result);
+        db_cleanup_link($link);
+        throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']);
+    }
+
+    $board = array('id' => $row['id'],
+                   'name' => $row['name'],
+                   'title' => $row['title'],
+                   'annotation' => $row['annotation'],
+                   'bump_limit' => $row['bump_limit'],
+                   'force_anonymous' => $row['force_anonymous'],
+                   'default_name' => $row['default_name'],
+                   'with_attachments' => $row['with_attachments'],
+                   'enable_macro' => $row['enable_macro'],
+                   'enable_youtube' => $row['enable_youtube'],
+                   'enable_captcha' => $row['enable_captcha'],
+                   'same_upload' => $row['same_upload'],
+                   'popdown_handler' => $row['popdown_handler'],
+                   'category' => $row['category'],
+                   'category_name' => $row['category_name']);
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $board;
 }
 /**
  * Получает заданную доску, доступную для редактирования заданному
@@ -1221,33 +1226,36 @@ function db_hidden_threads_delete($link, $thread_id, $user_id)
 }
 /**
  * Возвращает отфильтрованные скрытые нити на заданных досках.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param boards array <p>Доски.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param array $boards Доски.
  * @return array
  * Возвращает скрытые нити:<p>
  * 'thread' - Идентификатор нити.<br>
  * 'thread_number' - Номер оригинального сообщения.<br>
  * 'user' - Идентификатор пользователя.</p>
  */
-function db_hidden_threads_get_by_boards($link, $boards)
-{
-	$threads = array();
-	foreach($boards as $b)
-	{
-		$result = mysqli_query($link,
-			'call sp_hidden_threads_get_by_board(' . $b['id'] . ')');
-		if(!$result)
-			throw new CommonException(mysqli_error($link));
-		if(mysqli_affected_rows($link) > 0)
-			while(($row = mysqli_fetch_assoc($result)) != null)
-				array_push($threads,
-					array('thread' => $row['thread'],
-							'thread_number' => $row['original_post'],
-							'user' => $row['user']));
-		mysqli_free_result($result);
-		db_cleanup_link($link);
-	}
-	return $threads;
+function db_hidden_threads_get_by_boards($link, $boards) { // Java CC
+    $threads = array();
+    foreach ($boards as $b) {
+        $result = mysqli_query($link,
+                "call sp_hidden_threads_get_by_board({$b['id']})");
+        if (!$result) {
+            throw new CommonException(mysqli_error($link));
+        }
+
+        if (mysqli_affected_rows($link) > 0) {
+            while (($row = mysqli_fetch_assoc($result)) != null) {
+                array_push($threads,
+                        array('thread' => $row['thread'],
+                              'thread_number' => $row['original_post'],
+                              'user' => $row['user']));
+            }
+        }
+
+        mysqli_free_result($result);
+        db_cleanup_link($link);
+    }
+    return $threads;
 }
 /**
  * Получает доступную для просмотра скрытую нить и количество сообщений в ней.
@@ -1819,25 +1827,29 @@ function db_popdown_handlers_delete($link, $id)
 }
 /**
  * Получает все обработчики автоматического удаления нитей.
- * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param MySQLi $link Связь с базой данных.
  * @return array
  * Возвращает обработчики автоматического удаления нитей:<p>
  * 'id' - Идентификатор.<br>
  * 'name' - Имя функции.</p>
  */
-function db_popdown_handlers_get_all($link)
-{
-	$result = mysqli_query($link, 'call sp_popdown_handlers_get_all()');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$popdown_handlers = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) != null)
-			array_push($popdown_handlers, array('id' => $row['id'],
-					'name' => $row['name']));
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $popdown_handlers;
+function db_popdown_handlers_get_all($link) { // Java CC
+    $result = mysqli_query($link, 'call sp_popdown_handlers_get_all()');
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $popdown_handlers = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while (($row = mysqli_fetch_assoc($result)) != null) {
+            array_push($popdown_handlers,
+                    array('id' => $row['id'], 'name' => $row['name']));
+        }
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $popdown_handlers;
 }
 
 /*************************
@@ -2125,9 +2137,9 @@ function db_posts_get_by_thread($link, $thread_id)
 }
 /**
  * Получает заданное сообщение, доступное для просмотра заданному пользователю.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param post_id mixed <p>Идентификатор сообщения.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param string|int post_id Идентификатор сообщения.
+ * @param string|int user_id Идентификатор пользователя.
  * @return array
  * Возвращает сообщение:<p>
  * 'id' - Идентификатор.<br>
@@ -2144,36 +2156,39 @@ function db_posts_get_by_thread($link, $thread_id)
  * 'sage' - Флаг поднятия нити.<br>
  * 'board_name' - Имя доски.</p>
  */
-function db_posts_get_visible_by_id($link, $post_id, $user_id)
-{
-	$result = mysqli_query($link, 'call sp_posts_get_visible_by_id('
-		. $post_id . ', ' . $user_id . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$post = null;
-	if(mysqli_affected_rows($link) > 0
-		&& ($row = mysqli_fetch_assoc($result)) != null)
-	{
-		$post['id'] = $row['id'];
-		$post['board'] = $row['board'];
-		$post['thread'] = $row['thread'];
-		$post['number'] = $row['number'];
-		$post['password'] = $row['password'];
-		$post['name'] = $row['name'];
-		$post['tripcode'] = $row['tripcode'];
-		$post['ip'] = $row['ip'];
-		$post['subject'] = $row['subject'];
-		$post['date_time'] = $row['date_time'];
-		$post['text'] = $row['text'];
-		$post['sage'] = $row['sage'];
-	}
-	if($post === null)
-		throw new NodataException(NodataException::$messages['POST_NOT_FOUND']);
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	$board = db_boards_get_by_id($link, $post['board']);
-	$post['board_name'] = $board['name'];
-	return $post;
+function db_posts_get_visible_by_id($link, $post_id, $user_id) { // Java CC
+    $result = mysqli_query($link,
+            "call sp_posts_get_visible_by_id($post_id, $user_id)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $post = null;
+    if (mysqli_affected_rows($link) > 0
+            && ($row = mysqli_fetch_assoc($result)) != null) {
+        $post = array('id' => $row['id'],
+                      'board' => $row['board'],
+                      'thread' => $row['thread'],
+                      'number' => $row['number'],
+                      'password' => $row['password'],
+                      'name' => $row['name'],
+                      'tripcode' => $row['tripcode'],
+                       'ip' => $row['ip'],
+                      'subject' => $row['subject'],
+                      'date_time' => $row['date_time'],
+                      'text' => $row['text'],
+                      'sage' => $row['sage']);
+    }
+
+    if($post === null) {
+        throw new NodataException(NodataException::$messages['POST_NOT_FOUND']);
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    $board = db_boards_get_by_id($link, $post['board']);
+    $post['board_name'] = $board['name'];
+    return $post;
 }
 /**
  * Получает заданное сообщение, доступное для просмотра заданному пользователю.
@@ -2489,27 +2504,32 @@ function db_stylesheets_delete($link, $id)
 }
 /**
  * Получает все стили.
- * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param MySQLi $link Связь с базой данных.
  * @return array
  * Возвращает стили:<p>
  * 'id' - Идентификатор.<br>
  * 'name' - Имя файла.</p>
  */
-function db_stylesheets_get_all($link)
-{
-	$result = mysqli_query($link, 'call sp_stylesheets_get_all()');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$stylesheets = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) != null)
-			array_push($stylesheets, array('id' => $row['id'],
-					'name' => $row['name']));
-	else
-		throw new NodataException(NodataException::$messages['STYLESHEETS_NOT_EXIST']);
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $stylesheets;
+function db_stylesheets_get_all($link) {
+    $result = mysqli_query($link, 'call sp_stylesheets_get_all()');
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $stylesheets = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while (($row = mysqli_fetch_assoc($result)) != null) {
+            array_push($stylesheets,
+                    array('id' => $row['id'],
+                          'name' => $row['name']));
+        }
+    } else {
+        throw new NodataException(NodataException::$messages['STYLESHEETS_NOT_EXIST']);
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $stylesheets;
 }
 
 /********************
@@ -2748,27 +2768,31 @@ function db_threads_get_moderatable($link, $user_id)
 }
 /**
  * Получает заданную нить, доступную для модерирования заданному пользователю.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param thread_id mixed <p>Идентификатор нити.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param string|int $thread_id Идентификатор нити.
+ * @param string|int $user_id Идентификатор пользователя.
  * @return mixed
  * Возвращает нить:<p>
  * 'id' - Идентификатор.</p>
  * Или null, если заданная нить не доступна для модерирования.
  */
-function db_threads_get_moderatable_by_id($link, $thread_id, $user_id)
-{
-	$result = mysqli_query($link, 'call sp_threads_get_moderatable_by_id('
-		. $thread_id . ', ' . $user_id . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$thread = null;
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) != null)
-			$thread['id'] = $row['id'];
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $thread;
+function db_threads_get_moderatable_by_id($link, $thread_id, $user_id) { // Java CC
+    $result = mysqli_query($link,
+        "call sp_threads_get_moderatable_by_id($thread_id, $user_id)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $thread = null;
+    if (mysqli_affected_rows($link) > 0) {
+        while (($row = mysqli_fetch_assoc($result)) != null) {
+            $thread['id'] = $row['id'];
+        }
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $thread;
 }
 /**
  * Получает с заданной страницы доски доступные для просмотра пользователю нити
@@ -2933,10 +2957,10 @@ function db_threads_search_visible_by_board($link, $board_id, $page, $user_id,
 }
 /**
  * Получает заданную нить, доступную для просмотра заданному пользователю.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param thread_num mixed <p>Номер нити.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param string|int $board Идентификатор доски.
+ * @param string|int $original_post Номер нити.
+ * @param string|int $user_id Идентификатор пользователя.
  * @return array
  * Возвращает нить:<p>
  * 'id' - Идентификатор.<br>
@@ -2949,37 +2973,41 @@ function db_threads_search_visible_by_board($link, $board_id, $page, $user_id,
  * 'with_attachments' - Флаг вложений.<br>
  * 'posts_count' - Число доступных для просмотра сообщений в нити.</p>
  */
-function db_threads_get_visible_by_id($link, $board_id, $thread_num, $user_id)
-{
-	$result = mysqli_query($link, 'call sp_threads_get_visible_by_id('
-		. $board_id . ', ' . $thread_num . ', ' . $user_id . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	if(mysqli_affected_rows($link) <= 0)
-	{
-		mysqli_free_result($result);
-		db_cleanup_link($link);
-		throw new PermissionException(PermissionException::$messages['THREAD_NOT_ALLOWED']);
-	}
-	$row = mysqli_fetch_assoc($result);
-	if(isset($row['error']) && $row['error'] == 'NOT_FOUND')
-	{
-		mysqli_free_result($result);
-		db_cleanup_link($link);
-		throw new NodataException(NodataException::$messages['THREAD_NOT_FOUND']);
-	}
-	$thread = array('id' => $row['id'],
-					'board' => $board_id,
-					'original_post' => $row['original_post'],
-					'bump_limit' => $row['bump_limit'],
-					'sage' => $row['sage'],
-					'sticky' => $row['sticky'],
-					'with_attachments' => $row['with_attachments'],
-					'archived' => $row['archived'],
-					'posts_count' => $row['visible_posts_count']);
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $thread;
+function db_threads_get_visible_by_original_post($link, $board, $original_post,
+        $user_id) { // Java CC
+    $result = mysqli_query($link,
+            "call sp_threads_get_visible_by_original_post($board,
+            $original_post, $user_id)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    if (mysqli_affected_rows($link) <= 0) {
+        mysqli_free_result($result);
+        db_cleanup_link($link);
+        throw new PermissionException(PermissionException::$messages['THREAD_NOT_ALLOWED']);
+    }
+
+    $row = mysqli_fetch_assoc($result);
+    if (isset($row['error']) && $row['error'] == 'NOT_FOUND') {
+        mysqli_free_result($result);
+        db_cleanup_link($link);
+        throw new NodataException(NodataException::$messages['THREAD_NOT_FOUND']);
+    }
+
+    $thread = array('id' => $row['id'],
+                    'board' => $board,
+                    'original_post' => $row['original_post'],
+                    'bump_limit' => $row['bump_limit'],
+                    'sage' => $row['sage'],
+                    'sticky' => $row['sticky'],
+                    'with_attachments' => $row['with_attachments'],
+                    'archived' => $row['archived'],
+                    'posts_count' => $row['visible_posts_count']);
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $thread;
 }
 /**
  * Вычисляет количество нитей, доступных для просмотра заданному пользователю
@@ -3149,8 +3177,8 @@ function db_upload_types_get_all($link)
 }
 /**
  * Получает типы загружаемых файлов, доступных для загрузки на заданной доске.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param string|int $board_id Идентификатор доски.
  * @return array
  * Возвращает типы загружаемых файлов:<p>
  * 'id' - Идентификатор.<br>
@@ -3161,14 +3189,16 @@ function db_upload_types_get_all($link)
  * 'upload_handler_name' - Имя обработчика загружаемых файлов.<br>
  * 'thumbnail_image' - Имя файла уменьшенной копии.</p>
  */
-function db_upload_types_get_by_board($link, $board_id)
-{
-    $result = mysqli_query($link, "call sp_upload_types_get_by_board($board_id)");
-    if(!$result)
+function db_upload_types_get_by_board($link, $board_id) { // Java CC
+    $result = mysqli_query($link,
+            "call sp_upload_types_get_by_board($board_id)");
+    if (!$result) {
         throw new CommonException(mysqli_error($link));
+    }
+
     $upload_types = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) != null)
+    if (mysqli_affected_rows($link) > 0) {
+        while (($row = mysqli_fetch_assoc($result)) != null) {
             array_push($upload_types,
                 array('id' => $row['id'],
                       'extension' => $row['extension'],
@@ -3177,6 +3207,9 @@ function db_upload_types_get_by_board($link, $board_id)
                       'upload_handler' => $row['upload_handler'],
                       'upload_handler_name' => $row['upload_handler_name'],
                       'thumbnail_image' => $row['thumbnail_image']));
+        }
+    }
+
     mysqli_free_result($result);
     db_cleanup_link($link);
     return $upload_types;
@@ -3363,32 +3396,24 @@ function db_users_get_by_keyword($link, $keyword)
 }
 /**
  * Устанавливает перенаправление заданному пользователю.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param id mixed <p>Идентификатор пользователя.</p>
- * @param goto mixed <p>Перенаправление.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param int $id Идентификатор пользователя.
+ * @param string $goto Перенаправление.
  */
-function db_users_set_goto($link, $id, $goto)
-{
-    if(!mysqli_query($link, 'call sp_users_set_goto(' . $id . ', \''
-        . $goto . '\')'))
-    {
+function db_users_set_goto($link, $id, $goto) { // Java CC
+    if(!mysqli_query($link, "call sp_users_set_goto($id, '$goto')")) {
         throw new CommonException(mysqli_error($link));
     }
     db_cleanup_link($link);
 }
 /**
  * Устанавливает пароль для удаления сообщений заданному пользователю.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param id mixed <p>Идентификатор пользователя.</p>
- * @param password mixed <p>Пароль для удаления сообщений.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param int $id Идентификатор пользователя.
+ * @param string $password Пароль для удаления сообщений.
  */
-function db_users_set_password($link, $id, $password)
-{
-    if($password === null)
-        $password = 'null';
-    if(!mysqli_query($link, 'call sp_users_set_password(' . $id . ', \''
-        . $password . '\')'))
-    {
+function db_users_set_password($link, $id, $password) { // Java CC
+    if (!mysqli_query($link, "call sp_users_set_password($id, '$password')")) {
         throw new CommonException(mysqli_error($link));
     }
     db_cleanup_link($link);

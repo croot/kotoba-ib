@@ -49,41 +49,42 @@ class DataExchange
 }
 /**
  * Создаёт необходимые директории при создании доски.
- * @param name string <p>Имя новой доски.</p>
+ * @param string name $Имя новой доски.
  * @return boolean
- * Возвращает TRUE в случае успешного создания директорий и FALSE в противном
+ * Возвращает true в случае успешного создания директорий и false в противном
  * случае.
  */
-function create_directories($name) {
-	$base = Config::ABS_PATH . "/$name";
-	if(@mkdir ($base)) {		// Hide warning when directory exists.
-		chmod ($base, 0777);
-		foreach(array("arch", "img", "thumb") as $dir) {
-			$subdir = "$base/$dir";
-			if(@mkdir($subdir))	// Hide warning when directory exists.
-				chmod($subdir, 0777);
-			else
-				return false;
-		}
-	}
-	else
-		return false;
-	return true;
+function create_directories($name) { // Java CC
+    $base = Config::ABS_PATH . "/$name";
+    if(@mkdir ($base)) { // Hide warning when directory exists.
+        chmod ($base, 0777);
+        foreach (array("arch", "img", "thumb") as $dir) {
+            $subdir = "$base/$dir";
+            if (@mkdir($subdir)) { // Hide warning when directory exists.
+                chmod($subdir, 0777);
+            } else {
+                return false;
+            }
+        }
+    } else {
+        return false;
+    }
+    return true;
 }
 /**
  * Создаёт необходимые директории при добавлении нового языка.
- * @param code string <p>ISO_639-2 код языка.</p>
+ * @param string $code ISO_639-2 код языка.
  */
-function create_language_directories($code) {
-	$dir = Config::ABS_PATH . "/smarty/kotoba/templates/locale/$code";
-	@mkdir($dir);		// Hide warning when directory exists.
-	chmod($dir, 0777);
-	$dir = Config::ABS_PATH . "/smarty/kotoba/templates_c/locale/$code";
-	@mkdir($dir);		// Hide warning when directory exists.
-	chmod($dir, 0777);
-	$dir = Config::ABS_PATH . "/locale/$code";
-	@mkdir($dir);		// Hide warning when directory exists.
-	chmod($dir, 0777);
+function create_language_directories($code) { // Java CC
+    $dir = Config::ABS_PATH . "/smarty/kotoba/templates/locale/$code";
+    @mkdir($dir); // Hide warning when directory exists.
+    chmod($dir, 0777);
+    $dir = Config::ABS_PATH . "/smarty/kotoba/templates_c/locale/$code";
+    @mkdir($dir); // Hide warning when directory exists.
+    chmod($dir, 0777);
+    $dir = Config::ABS_PATH . "/locale/$code";
+    @mkdir($dir); // Hide warning when directory exists.
+    chmod($dir, 0777);
 }
 
 /***************************************
@@ -157,7 +158,7 @@ function acl_get_all()
 
 /**
  * Получает связи сообщений с их вложениями.
- * @param posts array <p>Сообщения.</p>
+ * @param array $posts Сообщения.
  * @return array
  * Возвращает связи:<p>
  * 'post' - Идентификатор сообщения.<br>
@@ -165,46 +166,50 @@ function acl_get_all()
  * 'deleted' - Флаг удаления.<br>
  * 'attachment_type' - Тип вложения.</p>
  */
-function posts_attachments_get_by_posts($posts)
-{
-	$posts_attachments = array();
-	foreach($posts as $post)
-	{
-		foreach(db_posts_files_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_file)
-			array_push($posts_attachments, $post_file);
-		foreach(db_posts_images_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_image)
-			array_push($posts_attachments, $post_image);
-		foreach(db_posts_links_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_link)
-			array_push($posts_attachments, $post_link);
-		foreach(db_posts_videos_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_video)
-			array_push($posts_attachments, $post_video);
-	}
-	return $posts_attachments;
+function posts_attachments_get_by_posts($posts) { // Java CC
+    $posts_attachments = array();
+    foreach ($posts as $post) {
+        foreach (db_posts_files_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_file) {
+            array_push($posts_attachments, $post_file);
+        }
+        foreach (db_posts_images_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_image) {
+            array_push($posts_attachments, $post_image);
+        }
+        foreach (db_posts_links_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_link) {
+            array_push($posts_attachments, $post_link);
+        }
+        foreach (db_posts_videos_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_video) {
+            array_push($posts_attachments, $post_video);
+        }
+    }
+    return $posts_attachments;
 }
 /**
  * Получает вложения заданных сообщений.
- * @param posts array <p>Сообщения.</p>
+ * @param array $posts Сообщения.
  * @return array
  * Возвращает вложения:<p>
  * 'id' - Идентификатор.<br>
- * ... - Атрибуты, зависимые от конкретного типа вложения.<br>
+ * ... - Атрибуты, зависящие от конкретного типа вложения.<br>
  * 'attachment_type' - Тип вложения.</p>
  */
-function attachments_get_by_posts($posts)
-{
-	$attachments = array();
-	foreach($posts as $post)
-	{
-		foreach(db_files_get_by_post(DataExchange::getDBLink(), $post['id']) as $file)
-			array_push($attachments, $file);
-		foreach(db_images_get_by_post(DataExchange::getDBLink(), $post['id']) as $image)
-			array_push($attachments, $image);
-		foreach(db_links_get_by_post(DataExchange::getDBLink(), $post['id']) as $link)
-			array_push($attachments, $link);
-		foreach(db_videos_get_by_post(DataExchange::getDBLink(), $post['id']) as $video)
-			array_push($attachments, $video);
-	}
-	return $attachments;
+function attachments_get_by_posts($posts) { // Java CC
+    $attachments = array();
+    foreach ($posts as $post) {
+        foreach (db_files_get_by_post(DataExchange::getDBLink(), $post['id']) as $file) {
+            array_push($attachments, $file);
+        }
+        foreach (db_images_get_by_post(DataExchange::getDBLink(), $post['id']) as $image) {
+            array_push($attachments, $image);
+        }
+        foreach (db_links_get_by_post(DataExchange::getDBLink(), $post['id']) as $link) {
+            array_push($attachments, $link);
+        }
+        foreach (db_videos_get_by_post(DataExchange::getDBLink(), $post['id']) as $video) {
+            array_push($attachments, $video);
+        }
+    }
+    return $attachments;
 }
 /**
  * Получает одинаковые вложения на заданной доске.
@@ -259,9 +264,6 @@ function bans_add($range_beg, $range_end, $reason, $untill)
  * 'untill' - Время истечения блокировки.</p>
  */
 function bans_check($ip) { // Java CC
-    if (!is_int($ip)) {
-        throw new TypeException(TypeException::$messages['INT']);
-    }
     return db_bans_check(DataExchange::getDBLink(), $ip);
 }
 /**
@@ -442,16 +444,15 @@ function words_get_all()
 }
 /**
  * Получает все слова по идентификатору доски.
- * @param board_id int <p>Идентификатор доски.</p>
+ * @param string|int $board_id Идентификатор доски.
  * @return array
  * Возвращает слова:<p>
  * 'id' - идентификатор.<br>
  * 'word' - слово для замены.<br>
  * 'replace' - замена.</p>
  */
-function words_get_all_by_board($board_id)
-{
-	return db_words_get_all_by_board(DataExchange::getDBLink(), $board_id);
+function words_get_all_by_board($board_id) { // Java CC
+    return db_words_get_all_by_board(DataExchange::getDBLink(), $board_id);
 }
 
 /*********************
@@ -751,8 +752,8 @@ function boards_get_changeable($user_id)
 /**
  * Получает заданную доску, доступную для редактирования заданному
  * пользователю.
- * @param board_id string <p>Идентификатор доски.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param string|int $board_id Идентификатор доски.
+ * @param string|int $user_id Идентификатор пользователя.
  * @return array
  * Возвращает доску:<p>
  * 'id' - Идентификатор.<br>
@@ -771,10 +772,9 @@ function boards_get_changeable($user_id)
  * 'category' - Категория.<br>
  * 'category_name' - Имя категории.</p>
  */
-function boards_get_changeable_by_id($board_id, $user_id)
-{
-	return db_boards_get_changeable_by_id(DataExchange::getDBLink(), $board_id,
-		$user_id);
+function boards_get_changeable_by_id($board_id, $user_id) { // Java CC
+    return db_boards_get_changeable_by_id(DataExchange::getDBLink(), $board_id,
+            $user_id);
 }
 /**
  * Получает заданную доску, доступную для редактирования заданному
@@ -1050,31 +1050,32 @@ function hidden_threads_delete($thread_id, $user_id)
 }
 /**
  * Возвращает отфильтрованные скрытые нити на заданных досках.
- * @param boards array <p>Доски.</p>
- * @param filter object <p>Фильтр (лямбда).</p>
+ * @param array $boards Доски.
+ * @param object $filter Фильтр (лямбда).
+ * @param mixed $paramname,... Аргументы для фильтра (не обязательны).
  * @return array
  * Возвращает скрытые нити:<p>
  * 'user' - Пользователь.<br>
  * 'thread' - Нить.<br>
  * 'thread_number' - Номер оригинального сообщения.</p>
  */
-function hidden_threads_get_filtred_by_boards($boards, $filter)
-{
-	$threads = db_hidden_threads_get_by_boards(DataExchange::getDBLink(),
-		$boards);
-	$filtred_threads = array();
-	$filter_args = array();
-	$filter_argn = 0;
-	$n = func_num_args();
-	for($i = 2; $i < $n; $i++)	// Пропустим первые два аргумента функции.
-		$filter_args[$filter_argn++] = func_get_arg($i);
-	foreach($threads as $t)
-	{
-		$filter_args[$filter_argn] = $t;
-		if(call_user_func_array($filter, $filter_args))
-			array_push($filtred_threads, $t);
-	}
-	return $filtred_threads;
+function hidden_threads_get_filtred_by_boards($boards, $filter) { // Java CC
+    $threads = db_hidden_threads_get_by_boards(DataExchange::getDBLink(),
+            $boards);
+    $filtred_threads = array();
+    $filter_args = array();
+    $filter_argn = 0;
+    $n = func_num_args();
+    for ($i = 2; $i < $n; $i++) { // Пропустим первые два аргумента функции.
+        $filter_args[$filter_argn++] = func_get_arg($i);
+    }
+    foreach ($threads as $t) {
+        $filter_args[$filter_argn] = $t;
+        if (call_user_func_array($filter, $filter_args)) {
+            array_push($filtred_threads, $t);
+        }
+    }
+    return $filtred_threads;
 }
 /**
  * Получает доступную для просмотра скрытую нить и количество сообщений в ней.
@@ -1105,19 +1106,19 @@ function hidden_threads_get_visible($board_id, $thread_num, $user_id)
 
 /**
  * Добавляет вложенное изображение.
- * @param hash string <p>Хеш.</p>
- * @param name string <p>Имя.</p>
- * @param widht mixed <p>Ширина.</p>
- * @param height mixed <p>Высота.</p>
- * @param size mixed <p>Размер в байтах.</p>
- * @param thumbnail string <p>Уменьшенная копия.</p>
- * @param thumbnail_w mixed <p>Ширина уменьшенной копии.</p>
- * @param thumbnail_h mixed <p>Высота уменьшенной копии.</p>
+ * @param string $hash Хеш.
+ * @param string $name Имя.
+ * @param string|int $widht Ширина.
+ * @param string|int $height Высота.
+ * @param string|int $size Размер в байтах.
+ * @param string $thumbnail Уменьшенная копия.
+ * @param string|int $thumbnail_w Ширина уменьшенной копии.
+ * @param string|int $thumbnail_h Высота уменьшенной копии.
  * @return string
  * Возвращает идентификатор вложенного изображения.
  */
 function images_add($hash, $name, $widht, $height, $size, $thumbnail,
-        $thumbnail_w, $thumbnail_h) {
+        $thumbnail_w, $thumbnail_h) { // Java CC
     return db_images_add(DataExchange::getDBLink(), $hash, $name, $widht,
         $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h);
 }
@@ -1419,9 +1420,8 @@ function popdown_handlers_delete($id)
  * 'id' - Идентификатор.<br>
  * 'name' - Имя функции.</p>
  */
-function popdown_handlers_get_all()
-{
-	return db_popdown_handlers_get_all(DataExchange::getDBLink());
+function popdown_handlers_get_all() { // Java CC
+    return db_popdown_handlers_get_all(DataExchange::getDBLink());
 }
 
 /*************************
@@ -1478,33 +1478,33 @@ function posts_add_text_by_id($id, $text)
 }
 /**
  * Проверяет корректность идентификатора сообщения.
- * @param id mixed <p>Идентификатор сообщения.</p>
+ * @param string|int $id Идентификатор сообщения.
  * @return string
  * Возвращает безопасный для использования идентификатор сообщения.
  */
-function posts_check_id($id)
-{
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['POST_ID']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['POST_ID']);
-	return $id;
+function posts_check_id($id) {
+    $length = strlen($id);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if ($length <= $max_int_length && $length >= 1) {
+        $id = RawUrlEncode($id);
+        $length = strlen($id);
+        if ($length > $max_int_length || (ctype_digit($id) === false)
+                || $length < 1) {
+            throw new FormatException(FormatException::$messages['POST_ID']);
+        }
+    } else {
+        throw new FormatException(FormatException::$messages['POST_ID']);
+    }
+    return $id;
 }
 /**
  * Проверяет, удовлетворяет ли имя отправителя ограничениям по размеру.
- * @param name string <p>Имя отправителя.</p>
+ * @param string $name Имя отправителя.
  */
-function posts_check_name_size($name)
-{
-	if(strlen($name) > Config::MAX_THEME_LENGTH)
-		throw new LimitException(LimitException::$messages['MAX_NAME_LENGTH']);
+function posts_check_name_size($name) { // Java CC
+    if (strlen($name) > Config::MAX_THEME_LENGTH) {
+        throw new LimitException(LimitException::$messages['MAX_NAME_LENGTH']);
+    }
 }
 /**
  * Проверяет корректность номера сообщения.
@@ -1549,30 +1549,30 @@ function posts_check_password($password)
 }
 /**
  * Проверяет, удовлетворяет ли тема сообщения ограничениям по размеру.
- * @param subject string <p>Тема сообщения.</p>
+ * @param string $subject Тема сообщения.
  */
-function posts_check_subject_size($subject)
-{
-	if(strlen($subject) > Config::MAX_THEME_LENGTH)
+function posts_check_subject_size($subject) {
+	if (strlen($subject) > Config::MAX_THEME_LENGTH) {
 		throw new LimitException(LimitException::$messages['MAX_SUBJECT_LENGTH']);
+    }
 }
 /**
  * Проверяет корректность текста.
- * @param text string <p>Текст сообщения.</p>
+ * @param string $text Текст сообщения.
  */
-function posts_check_text($text)
-{
-	if(!check_utf8($text))
-		throw new CommonException(CommonException::$messages['TEXT_UNICODE']);
+function posts_check_text($text) { // Java CC
+    if (!check_utf8($text)) {
+        throw new CommonException(CommonException::$messages['TEXT_UNICODE']);
+    }
 }
 /**
  * Проверяет, удовлетворяет ли текст сообщения ограничениям по размеру.
- * @param text string <p>Текст сообщения.</p>
+ * @param string $text Текст сообщения.
  */
-function posts_check_text_size($text)
-{
-	if(mb_strlen($text) > Config::MAX_MESSAGE_LENGTH)
+function posts_check_text_size($text) { // Java CC
+	if (mb_strlen($text) > Config::MAX_MESSAGE_LENGTH) {
 		throw new LimitException(LimitException::$messages['MAX_TEXT_LENGTH']);
+    }
 }
 /**
  * Урезает текст сообщения.
@@ -1730,8 +1730,8 @@ function posts_get_filtred_by_boards($boards, $filter)
 }
 /**
  * Получает заданное сообщение, доступное для просмотра заданному пользователю.
- * @param post_id mixed <p>Идентификатор сообщения.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param string|int post_id Идентификатор сообщения.
+ * @param string|int user_id Идентификатор пользователя.
  * @return array
  * Возвращает сообщение:<p>
  * 'id' - Идентификатор.<br>
@@ -1748,10 +1748,9 @@ function posts_get_filtred_by_boards($boards, $filter)
  * 'sage' - Флаг поднятия нити.<br>
  * 'board_name' - Имя доски.</p>
  */
-function posts_get_visible_by_id($post_id, $user_id)
-{
-	return db_posts_get_visible_by_id(DataExchange::getDBLink(), $post_id,
-		$user_id);
+function posts_get_visible_by_id($post_id, $user_id) { // Java CC
+    return db_posts_get_visible_by_id(DataExchange::getDBLink(), $post_id,
+            $user_id);
 }
 /**
  * Получает заданное сообщение, доступное для просмотра заданному пользователю.
@@ -1782,7 +1781,7 @@ function posts_get_visible_by_number($board_id, $post_number, $user_id)
  * заданному пользователю.
  * @param array $threads Нити.
  * @param string|int $user_id Идентификатор пользователя.
- * @param Object $filter Фильтр (лямбда).
+ * @param object $filter Фильтр (лямбда).
  * @param mixed $paramname,... Аргументы для фильтра (не обязательны).
  * @return array
  * Возвращает сообщения:<p>
@@ -1809,17 +1808,16 @@ function posts_get_visible_filtred_by_threads($threads, $user_id, $filter) { // 
 }
 /**
  * Очищает и размечает текст сообщения заданной доски.
- * @param text string <p>Текст сообщения.</p>
- * @param board array <p>Доска.</p>
+ * @param string $text Текст сообщения.
+ * @param array $board Доска.
  */
-function posts_prepare_text(&$text, $board)
-{
-	purify_ascii($text);
-	kotoba_mark($text, $board);
-	$text = str_replace("</blockquote>\n", '</blockquote>', $text);
-	$text = str_replace("\n<blockquote", '<blockquote', $text);
-	$text = preg_replace('/\n{3,}/', '\n', $text);
-	$text = preg_replace('/\n/', '<br>', $text);
+function posts_prepare_text(&$text, $board) { // Java CC
+    purify_ascii($text);
+    kotoba_mark($text, $board);
+    $text = str_replace("</blockquote>\n", '</blockquote>', $text);
+    $text = str_replace("\n<blockquote", '<blockquote', $text);
+    $text = preg_replace('/\n{3,}/', '\n', $text);
+    $text = preg_replace('/\n/', '<br>', $text);
 }
 
 /***************************************************
@@ -2020,27 +2018,24 @@ function threads_check_id($id)
 }
 /**
  * Проверяет корректность номера оригинального сообщения.
- * @param number mixed <p>Номер оригинального сообщения.</p>
+ * @param string|int $original_post Номер оригинального сообщения.
  * @return string
  * Возвращает безопасный для использования номер оригинального сообщения.
  */
-function threads_check_number($number)
-{
-	$length = strlen($number);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$number = RawUrlEncode($number);
-		$length = strlen($number);
-		if($length > $max_int_length || (ctype_digit($number) === false)
-			|| $length < 1)
-		{
-			throw new FormatException(FormatException::$messages['THREAD_NUMBER']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['THREAD_NUMBER']);
-	return $number;
+function threads_check_original_post($original_post) { // Java CC
+    $length = strlen($original_post);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if ($length <= $max_int_length && $length >= 1) {
+        $original_post = RawUrlEncode($original_post);
+        $length = strlen($original_post);
+        if($length > $max_int_length || (ctype_digit($original_post) === false)
+                || $length < 1) {
+            throw new FormatException(FormatException::$messages['THREAD_NUMBER']);
+        }
+    } else {
+        throw new FormatException(FormatException::$messages['THREAD_NUMBER']);
+    }
+    return $original_post;
 }
 /**
  * Редактирует заданную нить.
@@ -2136,17 +2131,16 @@ function threads_get_moderatable($user_id)
 }
 /**
  * Получает заданную нить, доступную для модерирования заданному пользователю.
- * @param thread_id mixed <p>Идентификатор нити.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param string|int $thread_id Идентификатор нити.
+ * @param string|int $user_id Идентификатор пользователя.
  * @return mixed
  * Возвращает нить:<p>
  * 'id' - Идентификатор.</p>
  * Или null, если заданная нить не доступна для модерирования.
  */
-function threads_get_moderatable_by_id($thread_id, $user_id)
-{
-	return db_threads_get_moderatable_by_id(DataExchange::getDBLink(),
-		$thread_id, $user_id);
+function threads_get_moderatable_by_id($thread_id, $user_id) { // Java CC
+    return db_threads_get_moderatable_by_id(DataExchange::getDBLink(),
+            $thread_id, $user_id);
 }
 /**
  * Получает с заданной страницы доски доступные для просмотра пользователю нити
@@ -2166,7 +2160,7 @@ function threads_get_moderatable_by_id($thread_id, $user_id)
  * 'posts_count' - Число доступных для просмотра сообщений.</p>
  */
 function threads_get_visible_by_board($board_id, $page, $user_id,
-        $threads_per_page) {
+        $threads_per_page) { // Java CC
     return db_threads_get_visible_by_board(DataExchange::getDBLink(), $board_id,
         $page, $user_id, $threads_per_page);
 }
@@ -2196,9 +2190,9 @@ function threads_search_visible_by_board($board_id, $page, $user_id,
 }
 /**
  * Получает заданную нить, доступную для просмотра заданному пользователю.
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param thread_num mixed <p>Номер нити.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param string|int $board Идентификатор доски.
+ * @param string|int $original_post Номер нити.
+ * @param string|int $user_id Идентификатор пользователя.
  * @return array
  * Возвращает нить:<p>
  * 'id' - Идентификатор.<br>
@@ -2211,10 +2205,10 @@ function threads_search_visible_by_board($board_id, $page, $user_id,
  * 'with_attachments' - Флаг вложений.<br>
  * 'posts_count' - Число доступных для просмотра сообщений в нити.</p>
  */
-function threads_get_visible_by_id($board_id, $thread_num, $user_id)
+function threads_get_visible_by_original_post($board, $original_post, $user_id)
 {
-	return db_threads_get_visible_by_id(DataExchange::getDBLink(), $board_id,
-		$thread_num, $user_id);
+    return db_threads_get_visible_by_original_post(DataExchange::getDBLink(),
+            $board, $original_post, $user_id);
 }
 /**
  * Вычисляет количество нитей, доступных для просмотра заданному пользователю
@@ -2456,7 +2450,7 @@ function upload_types_get_all()
 }
 /**
  * Получает типы загружаемых файлов, доступных для загрузки на заданной доске.
- * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param string|int $board_id Идентификатор доски.
  * @return array
  * Возвращает типы загружаемых файлов:<p>
  * 'id' - Идентификатор.<br>
@@ -2467,8 +2461,7 @@ function upload_types_get_all()
  * 'upload_handler_name' - Имя обработчика загружаемых файлов.<br>
  * 'thumbnail_image' - Имя файла уменьшенной копии.</p>
  */
-function upload_types_get_by_board($board_id)
-{
+function upload_types_get_by_board($board_id) { // Java CC
     return db_upload_types_get_by_board(DataExchange::getDBLink(), $board_id);
 }
 
@@ -2527,37 +2520,32 @@ function user_groups_get_all()
  * @return string
  * Возвращает безопасное для использования перенаправление.
  */
-function users_check_goto($goto) {
-	if ($goto === 'b' || $goto === 't') {
-		return $goto;
+function users_check_goto($goto) { // Java CC
+    if ($goto === 'b' || $goto === 't') {
+        return $goto;
     } else {
-		throw new FormatException(FormatException::$messages['USER_GOTO']);
+        throw new FormatException(FormatException::$messages['USER_GOTO']);
     }
 }
 /**
  * Проверяет корректность идентификатора пользователя.
- * @param id mixed <p>Идентификатор пользователя.</p>
+ * @param string|id $id Идентификатор пользователя.
  * @return string
  * Возвращает безопасный для использования идентификатор пользователя.
  */
-function users_check_id($id)
-{
-    if(!isset($id))
-        throw new NodataException(NodataException::$messages['USER_ID_NOT_SPECIFED']);
+function users_check_id($id) { // Java CC
     $length = strlen($id);
     $max_int_length = strlen('' . PHP_INT_MAX);
-    if($length <= $max_int_length && $length >= 1)
-    {
+    if ($length <= $max_int_length && $length >= 1) {
         $id = RawUrlEncode($id);
         $length = strlen($id);
         if($length > $max_int_length || (ctype_digit($id) === false)
-            || $length < 1)
-        {
+                || $length < 1) {
             throw new FormatException(FormatException::$messages['USER_ID']);
         }
-    }
-    else
+    } else {
         throw new FormatException(FormatException::$messages['USER_ID']);
+    }
     return $id;
 }
 /**
@@ -2698,20 +2686,18 @@ function users_get_by_keyword($keyword)
 }
 /**
  * Устанавливает перенаправление заданному пользователю.
- * @param id mixed <p>Идентификатор пользователя.</p>
- * @param goto mixed <p>Перенаправление.</p>
+ * @param int $id Идентификатор пользователя.
+ * @param string $goto Перенаправление.
  */
-function users_set_goto($id, $goto)
-{
+function users_set_goto($id, $goto) { // Java CC
     db_users_set_goto(DataExchange::getDBLink(), $id, $goto);
 }
 /**
  * Устанавливает пароль для удаления сообщений заданному пользователю.
- * @param id mixed <p>Идентификатор пользователя.</p>
- * @param password mixed <p>Пароль для удаления сообщений.</p>
+ * @param int $id Идентификатор пользователя.
+ * @param string $password Пароль для удаления сообщений.
  */
-function users_set_password($id, $password)
-{
+function users_set_password($id, $password) { // Java CC
     db_users_set_password(DataExchange::getDBLink(), $id, $password);
 }
 
@@ -2727,7 +2713,7 @@ function users_set_password($id, $password)
  * @return string
  * Возвращает идентификатор вложенного видео.
  */
-function videos_add($code, $widht, $height) {
+function videos_add($code, $widht, $height) { // Java CC
     return db_videos_add(DataExchange::getDBLink(), $code, $widht, $height);
 }
 

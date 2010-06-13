@@ -46,29 +46,17 @@ SearchException::$messages['LONG_WORD'] = 'Одно из слов имеет д�
  *****************************/
 
 NodataException::$messages['ACL_NOT_EXIST'] = 'В списке контроля доступа нет ни одного правила.';
-
 NodataException::$messages['BOARD_NOT_FOUND'] = 'Доска не найдена.';
-
 NodataException::$messages['GROUPS_NOT_EXIST'] = 'Не создана ни одна группа пользователей.';
-
 NodataException::$messages['LANGUAGES_NOT_EXIST'] = 'Не задан ни один язык.';
 // Параметры: идентификатор языка.
 NodataException::$messages['LANGUAGE_NOT_EXIST'] = 'Языка с идентификатором %s не существует.';
-NodataException::$messages['LANGUAGE_NAME_NOT_SPECIFED'] = 'Не задано имя языка.';
-
 NodataException::$messages['POST_NOT_FOUND'] = 'Сообщение не найдено.';
-
 NodataException::$messages['STYLESHEETS_NOT_EXIST'] = 'Не задан ни один стиль.';
 // Параметры: идентификатор стиля оформления.
 NodataException::$messages['STYLESHEET_NOT_EXIST'] = 'Стиля оформления с идентификатором %s не существует.';
-NodataException::$messages['STYLESHEET_NAME_NOT_SPECIFED'] = 'Не задано имя стиля оформления.';
-
 NodataException::$messages['THREAD_NOT_FOUND'] = 'Нить не найдена.';
-
 NodataException::$messages['USER_WITHOUT_GROUP'] = 'Пользователь с заданным хешем ключевого слова не входит ни в одну группу.';
-
-NodataException::$messages['LINES_PER_POST_NOT_SPECIFED'] = 'Количество строк в сообщении на странице просмотра доски не задано.';
-NodataException::$messages['USER_ID_NOT_SPECIFED'] = 'Не задан идентификатор пользователя.';
 NodataException::$messages['USERS_NOT_EXIST'] = 'Не создан ни один пользователь.';
 NodataException::$messages['THREADS_EDIT'] = 'Нет нитей для редактирования настроек';
 NodataException::$messages['EMPTY_MESSAGE'] = 'Файл не был загружен и пустой текст сообщения.';

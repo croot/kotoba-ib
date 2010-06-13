@@ -155,36 +155,35 @@ function check_module($name)
 /**
  * Проверяет корректность юникода в UTF-8.
  * Thanks to javalc6@gmail.com <a href="http://ru2.php.net/manual/en/function.mb-check-encoding.php#95289">http://ru2.php.net/manual/en/function.mb-check-encoding.php#95289</a>
- * @param text string <p>Текст UTF-8</p>
+ * @param string $text Текст UTF-8
  * @return bool
  * <p>Возвращает true, если текст корректный и false в противном случае.</p>
  */
-function check_utf8($text)
-{
-	$len = strlen($text);
-    for($i = 0; $i < $len; $i++)
-	{
+function check_utf8($text) { // Java CC
+    $len = strlen($text);
+    for ($i = 0; $i < $len; $i++) {
         $c = ord($text[$i]);
-        if ($c > 128)
-		{
-            if (($c > 247))
-				return false;
-            elseif ($c > 239)
-				$bytes = 4;
-            elseif ($c > 223)
-				$bytes = 3;
-            elseif ($c > 191)
-				$bytes = 2;
-            else
-				return false;
-            if (($i + $bytes) > $len)
-				return false;
-            while ($bytes > 1)
-			{
+        if ($c > 128) {
+            if (($c > 247)) {
+                return false;
+            } elseif ($c > 239) {
+                $bytes = 4;
+            } elseif ($c > 223) {
+                $bytes = 3;
+            } elseif ($c > 191) {
+                $bytes = 2;
+            } else {
+                return false;
+            }
+            if (($i + $bytes) > $len) {
+                return false;
+            }
+            while ($bytes > 1) {
                 $i++;
                 $b = ord($text[$i]);
-                if ($b < 128 || $b > 191)
-					return false;
+                if ($b < 128 || $b > 191) {
+                    return false;
+                }
                 $bytes--;
             }
         }
@@ -216,26 +215,24 @@ function create_filenames($stored_ext)
 }
 /**
  * Создаёт трипкод.
- * @param name string <p>Имя отправителя, которое может содержать ключевое слово
- * для создания трипкода.</p>
+ * @param string $name Имя отправителя, которое может содержать ключевое слово
+ * для создания трипкода.
  * @return array
  * Возвращает имя отправителя со сгенерированным трипкодом, если было задано
  * ключевое слово или просто имя отправителя, если ключевое слово задано не было.
  */
-function calculate_tripcode($name)
-{
-	@list($first, $code) = @preg_split("/[#!]/", $name);
-	if(!isset($code) || strlen($code) == 0)
-	{
-		return array($name, null);
-	}
-	$enc = mb_convert_encoding($code, 'Shift_JIS', Config::MB_ENCODING);
-	$salt = substr($enc .'H..', 1, 2);
-	$salt2 = preg_replace("/![\.-z]/", '.', $salt);
-	$salt3 = strtr($salt2, ":;<=>?@[\]^_`", "ABCDEFGabcdef");
-	$cr = crypt($code, $salt3);
-	$trip = substr($cr, -10);
-	return array($first, $trip);
+function calculate_tripcode($name) {
+    @list($first, $code) = @preg_split("/[#!]/", $name);
+    if (!isset($code) || strlen($code) == 0) {
+        return array($name, null);
+    }
+    $enc = mb_convert_encoding($code, 'Shift_JIS', Config::MB_ENCODING);
+    $salt = substr($enc .'H..', 1, 2);
+    $salt2 = preg_replace("/![\.-z]/", '.', $salt);
+    $salt3 = strtr($salt2, ":;<=>?@[\]^_`", "ABCDEFGabcdef");
+    $cr = crypt($code, $salt3);
+    $trip = substr($cr, -10);
+    return array($first, $trip);
 }
 /**
  * Перемещает загруженный файл на постоянное место хранения.
@@ -249,16 +246,15 @@ function move_uploded_file($source, $dest)
 }
 /**
  * Удаляет из текста не нужные котобе управляющие символы.
- * @param text string <p>Текст.</p>
+ * @param string $text Текст.
  */
-function purify_ascii(&$text)
-{
-	// Remove any ASCII control sequences except \t and \n.
-	$text = str_replace(array("\0", "\x01", "\x02", "\x03", "\x04", "\x05",
-			"\x06", "\a", "\b", "\v", "\f", "\r", "\x0E", "\x0F", "\x10",
-			"\x11", "\x12", "\x13", "\x14", "\x15", "\x16", "\x17", "\x18",
-			"\x19", "\x1A", "\x1B", "\x1C", "\x1D", "\x1E", "\x1F", "\x7F"),
-		'', $text);
+function purify_ascii(&$text) { // Java CC
+    // Remove any ASCII control sequences except \t and \n.
+    $text = str_replace(array("\0", "\x01", "\x02", "\x03", "\x04", "\x05",
+            "\x06", "\a", "\b", "\v", "\f", "\r", "\x0E", "\x0F", "\x10",
+            "\x11", "\x12", "\x13", "\x14", "\x15", "\x16", "\x17", "\x18",
+            "\x19", "\x1A", "\x1B", "\x1C", "\x1D", "\x1E", "\x1F", "\x7F"),
+            '', $text);
 }
 /**
  * Вычисляет md5 хеш файла.
@@ -288,29 +284,27 @@ function show_same_attachments($smarty, $board_name, $same_attachments)
 /**
  * Проверяет, не произошло ли ошибки при загрузке файла.
  */
-function check_upload_error($error)
-{
-	switch($error)
-	{
-		case UPLOAD_ERR_INI_SIZE:
-			throw new UploadException::$messages['UPLOAD_ERR_INI_SIZE'];
-			break;
-		case UPLOAD_ERR_FORM_SIZE:
-			throw new UploadException::$messages['UPLOAD_ERR_FORM_SIZE'];
-			break;
-		case UPLOAD_ERR_PARTIAL:
-			throw new UploadException::$messages['UPLOAD_ERR_PARTIAL'];
-			break;
-		case UPLOAD_ERR_NO_TMP_DIR:
-			throw new UploadException::$messages['UPLOAD_ERR_NO_TMP_DIR'];
-			break;
-		case UPLOAD_ERR_CANT_WRITE:
-			throw new UploadException::$messages['UPLOAD_ERR_CANT_WRITE'];
-			break;
-		case UPLOAD_ERR_EXTENSION:
-			throw new UploadException::$messages['UPLOAD_ERR_EXTENSION'];
-			break;
-	}
+function check_upload_error($error) {
+    switch ($error) {
+        case UPLOAD_ERR_INI_SIZE:
+            throw new UploadException::$messages['UPLOAD_ERR_INI_SIZE'];
+            break;
+        case UPLOAD_ERR_FORM_SIZE:
+            throw new UploadException::$messages['UPLOAD_ERR_FORM_SIZE'];
+            break;
+        case UPLOAD_ERR_PARTIAL:
+            throw new UploadException::$messages['UPLOAD_ERR_PARTIAL'];
+            break;
+        case UPLOAD_ERR_NO_TMP_DIR:
+            throw new UploadException::$messages['UPLOAD_ERR_NO_TMP_DIR'];
+            break;
+        case UPLOAD_ERR_CANT_WRITE:
+            throw new UploadException::$messages['UPLOAD_ERR_CANT_WRITE'];
+            break;
+        case UPLOAD_ERR_EXTENSION:
+            throw new UploadException::$messages['UPLOAD_ERR_EXTENSION'];
+            break;
+    }
 }
 /**
  * Проверяет корректность кода видео.
@@ -327,16 +321,13 @@ function check_youtube_video_code($code)
 }
 /**
  * Выделяет расширение файла из его имени.
- *
- * Аргументы:
- * $name - имя файла.
- *
+ * @param string $name Имя файла.
+ * @return string
  * Возвращает расширение файла.
  */
-function get_extension($name)
-{
-	$parts = pathinfo($name);
-	return $parts['extension'];
+function get_extension($name) { // Java CC
+    $parts = pathinfo($name);
+    return $parts['extension'];
 }
 /**
  * Создает жесткую ссылку или копию файла, если жесткие ссылки не
@@ -361,26 +352,20 @@ function link_file($source, $dest)
  * Возвращает true, если пользователь является администратором и false в
  * противном случае.
  */
-function is_admin()
-{
-	if(isset($_SESSION['groups']) && is_array($_SESSION['groups'])
-		&& in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
-	{
-		if(count(Config::$ADMIN_IPS) > 0)
-		{
-			if(isset($_SERVER['REMOTE_ADDR'])
-				&& in_array($_SERVER['REMOTE_ADDR'], Config::$ADMIN_IPS))
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-	return false;
+function is_admin() {
+    if (isset($_SESSION['groups']) && is_array($_SESSION['groups'])
+            && in_array(Config::ADM_GROUP_NAME, $_SESSION['groups'])) {
+        if (count(Config::$ADMIN_IPS) > 0) {
+            if (isset($_SERVER['REMOTE_ADDR'])
+                    && in_array($_SERVER['REMOTE_ADDR'], Config::$ADMIN_IPS)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
+    return false;
 }
 /**
  * Проверяет, является ли пользователь гостем.
