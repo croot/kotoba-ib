@@ -17,6 +17,7 @@
 	$ib_name - название имейджборды  (см. config.default).
 	$enable_macro - Включение интеграции с макрочаном (см. config.default).
 	$enable_youtube - Включение постинга видео с ютуба (см. config.default).
+	$enable_search - Включение поиска по тексту сообщений (см. config.default).
 	$board - просматриваемая доска.
 	$boards - доски.
 	$is_admin - флаг администратора.
@@ -39,12 +40,14 @@
 <div class="navbar">{include file='board_list.tpl' boards=$boards DIR_PATH=$DIR_PATH} [<a href="{$DIR_PATH}/">Главная</a>]</div>
 
 <div class="logo">{$ib_name} — /{$board.name}/ {$board.title}</div>
-<div class="search">
-<form name="searchform" id="searchform" action="{$DIR_PATH}/search.php" method="post">
-<input type="text" name="search">&nbsp;<input type="submit" value="Искать">
-<input type="hidden" name="board" value="{$board.name}">
-</form>
-</div>
+{if $enable_search}
+    <div class="search">
+    <form name="searchform" id="searchform" action="{$DIR_PATH}/search.php" method="post">
+    <input type="text" name="search">&nbsp;<input type="submit" value="Искать">
+    <input type="hidden" name="board" value="{$board.name}">
+    </form>
+    </div>
+{/if}
 {include file='pages_list.tpl' board_name=$board.name pages=$pages page=$page}
 <hr>
 <div class="postarea">

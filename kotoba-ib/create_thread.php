@@ -9,6 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 // Скрипт создания нитей.
+
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
@@ -22,12 +23,23 @@ include Config::ABS_PATH . '/securimage/securimage.php';
 try {
     kotoba_session_start();
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup($_SESSION['language'],
+            $_SESSION['stylesheet']);
 
-    bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
+    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+        throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
+    }
+    if (($ban = bans_check($ip)) !== false) {
+        $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
+        $smarty->assign('reason', $ban['reason']);
+        session_destroy();
+        DataExchange::releaseResources();
+        die($smarty->fetch('banned.tpl'));
+    }
+
     /* TODO: Логичней было бы если бы проверка была вне фунции. */
     $board = boards_get_changeable_by_id(boards_check_id($_POST['board']),
-        $_SESSION['user']);
+            $_SESSION['user']);
 
     if (!is_admin()
             && (($board['enable_captcha'] === null && Config::ENABLE_CAPTCHA)
@@ -88,9 +100,12 @@ try {
 	
     posts_check_text_size($_POST['text']);
     $text = htmlentities($_POST['text'], ENT_QUOTES, Config::MB_ENCODING);
-	$words = words_get_all_by_board(boards_check_id($_POST['board']));
-    foreach ($words as $word) { //Замена регистронезависима
-        $text = preg_replace("#".$word['word']."#iu", $word['replace'], $text);
+    if (Config::ENABLE_WORDFILTER) {
+        $words = words_get_all_by_board(boards_check_id($_POST['board']));
+        foreach ($words as $word) { //Замена регистронезависима
+            $text = preg_replace("#".$word['word']."#iu", $word['replace'],
+                    $text);
+        }
     }
     $text = str_replace('\\', '\\\\', $text);
     posts_check_text_size($text);
