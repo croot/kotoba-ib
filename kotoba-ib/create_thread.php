@@ -76,9 +76,7 @@ try {
 
     $name = null;
     $tripcode = null;
-    if ($board['force_anonymous']) {
-        $name = '';
-    } else {
+    if (!$board['force_anonymous']) {
         posts_check_name_size($_POST['name']);
         $name = htmlentities($_POST['name'], ENT_QUOTES, Config::MB_ENCODING);
         $name = str_replace('\\', '\\\\', $name);
@@ -86,6 +84,7 @@ try {
         $name = str_replace("\n", '', $name);
         $name = str_replace("\r", '', $name);
         posts_check_name_size($name);
+        // TODO: Check what tripcode cannot be empty string.
         $name_tripcode = calculate_tripcode($name);
         $name = $name_tripcode[0];
         $tripcode = $name_tripcode[1];
@@ -242,7 +241,7 @@ try {
         }
     }
 
-    // Create empty thread.
+    // Create empty thread and create post.
     $thread = threads_add($board['id'], null, null, 0, null);
     date_default_timezone_set(Config::DEFAULT_TIMEZONE);
     $post = posts_add($board['id'], $thread['id'], $_SESSION['user'], $password,
