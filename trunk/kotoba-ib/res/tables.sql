@@ -237,27 +237,27 @@ engine=InnoDB|
 -- Заметки:
 -- Если установлен флаг удаления, то сообщение считается "помеченным на
 -- удаление".
-create table posts						-- Сообщения.
+create table posts                      -- Сообщения.
 (
-	id int not null auto_increment,		-- Идентификатор.
-	board int not null,					-- Идентификатор доски.
-	thread int not null,				-- Идентификатор нити.
-	number int not null,				-- Номер.
-	user int not null,					-- Идентификатор пользователя.
-	password varchar(12) default null,	-- Пароль.
-	name varchar(128) default null,		-- Имя отправителя.
-	tripcode varchar(128) default null,	-- Трипкод.
-	ip bigint default null,				-- IP-адрес отправителя.
-	subject varchar(128) default null,	-- Тема.
-	date_time datetime default null,	-- Время сохранения.
-	`text` text default null,			-- Текст.
-	-- Если этот флаг null, то берётся родительский sage от нити.
-	sage bit default null,				-- Флаг поднятия нити.
-	deleted bit not null,				-- Флаг удаления.
-	primary key (id),
-	constraint foreign key (board) references boards (id) on delete restrict on update restrict,
-	constraint foreign key (thread) references threads (id) on delete restrict on update restrict,
-	constraint foreign key (user) references users (id) on delete restrict on update restrict
+    id int not null auto_increment,     -- Идентификатор.
+    board int not null,                 -- Идентификатор доски.
+    thread int not null,                -- Идентификатор нити.
+    number int not null,                -- Номер.
+    user int not null,                  -- Идентификатор пользователя.
+    password varchar(12) default null,  -- Пароль.
+    name varchar(128) default null,     -- Имя отправителя.
+    tripcode varchar(128) default null, -- Трипкод.
+    ip bigint default null,             -- IP-адрес отправителя.
+    subject varchar(128) default null,  -- Тема.
+    date_time datetime default null,    -- Время сохранения.
+    `text` text default null,           -- Текст.
+    -- Если этот флаг null, то берётся родительский sage от нити.
+    sage bit default null,              -- Флаг поднятия нити.
+    deleted bit not null,               -- Флаг удаления.
+    primary key (id),
+    constraint foreign key (board) references boards (id) on delete restrict on update restrict,
+    constraint foreign key (thread) references threads (id) on delete restrict on update restrict,
+    constraint foreign key (user) references users (id) on delete restrict on update restrict
 )
 engine=InnoDB|
 
@@ -301,14 +301,14 @@ create table posts_images	-- Связь сообщений и вложенных
 )
 engine=InnoDB|
 
-create table posts_links	-- Связь сообщений и вложенных ссылок на изображения.
+create table posts_links    -- Связь сообщений и вложенных ссылок на изображения.
 (
-	post int not null,		-- Идентификатор сообщения.
-	link int not null,		-- Идентификатор вложенной ссылки на изображение.
-	deleted bit not null,	-- Флаг удаления.
-	unique key (post, link),
-	constraint foreign key (post) references posts (id) on delete restrict on update restrict,
-	constraint foreign key (link) references links (id) on delete restrict on update restrict
+    post int not null,      -- Идентификатор сообщения.
+    link int not null,      -- Идентификатор вложенной ссылки на изображение.
+    deleted bit not null,   -- Флаг удаления.
+    unique key (post, link),
+    constraint foreign key (post) references posts (id) on delete restrict on update restrict,
+    constraint foreign key (link) references links (id) on delete restrict on update restrict
 )
 engine=InnoDB|
 

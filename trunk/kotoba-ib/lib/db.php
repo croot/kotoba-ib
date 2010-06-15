@@ -1428,22 +1428,19 @@ function popdown_handlers_get_all() { // Java CC
  * Работа с сообщениями. *
  *************************/
 
-// Начиная с работы с сообщениями изменены формулировки в комментариях. Вместо
-// "Удаляет заданное сообщение" надо писать "Удаляет сообщения с заданным
-// идентификатором, если сообщение удаляется по id.
 /**
  * Добавляет сообщение.
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param thread_id mixed <p>Идентификатор нити.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @param password string <p>Пароль на удаление сообщения.</p>
- * @param name string <p>Имя отправителя.</p>
- * @param tripcode string <p>Трипкод.</p>
- * @param ip int <p>IP-адрес отправителя.</p>
- * @param subject string <p>Тема.</p>
- * @param date_time string <p>Время сохранения.</p>
- * @param text string <p>Текст.</p>
- * @param sage mixed <p>Флаг поднятия нити.</p>
+ * @param int $board_id Идентификатор доски.
+ * @param int $thread_id Идентификатор нити.
+ * @param int $user_id Идентификатор пользователя.
+ * @param string $password Пароль на удаление сообщения.
+ * @param string $name Имя отправителя.
+ * @param string $tripcode Трипкод.
+ * @param int $ip IP-адрес отправителя.
+ * @param string $subject Тема.
+ * @param string $date_time Время сохранения.
+ * @param string $text Текст.
+ * @param int $sage Флаг поднятия нити.
  * @return array
  * Возвращает добавленное сообщение:<p>
  * 'id' - Идентификатор.<br>
@@ -1461,11 +1458,10 @@ function popdown_handlers_get_all() { // Java CC
  * 'sage' - Флаг поднятия нити.</p>
  */
 function posts_add($board_id, $thread_id, $user_id, $password, $name, $tripcode,
-    $ip, $subject, $date_time, $text, $sage)
-{
+        $ip, $subject, $date_time, $text, $sage) { // Java CC
     return db_posts_add(DataExchange::getDBLink(), $board_id, $thread_id,
-        $user_id, $password, $name, $tripcode, $ip, $subject, $date_time, $text,
-        $sage);
+            $user_id, $password, $name, $tripcode, $ip, $subject, $date_time,
+            $text, $sage);
 }
 /**
  * Добавляет текст в конец текста заданного сообщения.
@@ -1826,14 +1822,13 @@ function posts_prepare_text(&$text, $board) { // Java CC
 
 /**
  * Добавляет связь сообщения с вложенным файлом.
- * @param post mixed <p>Идентификатор сообщения.</p>
- * @param file mixed <p>Идентификатор вложенного файла.</p>
- * @param deleted mixed <p>Флаг удаления.</p>
+ * @param int $post Идентификатор сообщения.
+ * @param int file Идентификатор вложенного файла.
+ * @param int $deleted Флаг удаления.
  */
 function posts_files_add($post, $file, $deleted) { // Java CC
     db_posts_files_add(DataExchange::getDBLink(), $post, $file, $deleted);
 }
-
 
 /********************************************************
  * Работа со связями сообщений и вложенных изображений. *
@@ -1841,12 +1836,26 @@ function posts_files_add($post, $file, $deleted) { // Java CC
 
 /**
  * Добавляет связь сообщения с вложенным изображением.
- * @param post mixed <p>Идентификатор сообщения.</p>
- * @param image mixed <p>Идентификатор вложенного изображения.</p>
- * @param deleted mixed <p>Флаг удаления.</p>
+ * @param int $post Идентификатор сообщения.
+ * @param int $image Идентификатор вложенного изображения.
+ * @param int $deleted Флаг удаления.
  */
 function posts_images_add($post, $image, $deleted) { // Java CC
     db_posts_images_add(DataExchange::getDBLink(), $post, $image, $deleted);
+}
+
+/******************************************************************
+ * Работа со связями сообщений и вложенных ссылок на изображения. *
+ ******************************************************************/
+
+/**
+ * Добавляет связь сообщения с вложенной ссылкой на изображение.
+ * @param int $post Идентификатор сообщения.
+ * @param int $link Идентификатор вложенной ссылки на изображение.
+ * @param int $deleted Флаг удаления.
+ */
+function posts_links_add($post, $link, $deleted) { // Java CC
+    db_posts_links_add(DataExchange::getDBLink(), $post, $link, $deleted);
 }
 
 /***************************************************
@@ -1855,9 +1864,9 @@ function posts_images_add($post, $image, $deleted) { // Java CC
 
 /**
  * Добавляет связь сообщения с вложенным видео.
- * @param post mixed <p>Идентификатор сообщения.</p>
- * @param video mixed <p>Идентификатор вложенного видео.</p>
- * @param deleted mixed <p>Флаг удаления.</p>
+ * @param int $post Идентификатор сообщения.
+ * @param int $video Идентификатор вложенного видео.
+ * @param int $deleted Флаг удаления.
  */
 function posts_videos_add($post, $video, $deleted) { // Java CC
     db_posts_videos_add(DataExchange::getDBLink(), $post, $video, $deleted);
@@ -2053,13 +2062,12 @@ function threads_edit($thread_id, $bump_limit, $sticky, $sage,
 }
 /**
  * Редактирует номер оригинального сообщения нити.
- * @param id mixed <p>Идентификатор нити.</p>
- * @param original_post mixed <p>Номер оригинального сообщения нити.</p>
+ * @param int $id Идентификатор нити.
+ * @param int $original_post Номер оригинального сообщения нити.
  */
-function threads_edit_original_post($id, $original_post)
-{
-	db_threads_edit_original_post(DataExchange::getDBLink(), $id,
-			$original_post);
+function threads_edit_original_post($id, $original_post) { // Java CC
+    db_threads_edit_original_post(DataExchange::getDBLink(), $id,
+        $original_post);
 }
 /**
  * Получает все нити.

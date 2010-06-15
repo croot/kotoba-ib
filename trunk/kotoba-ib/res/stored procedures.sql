@@ -89,6 +89,7 @@ drop procedure if exists sp_posts_files_get_by_post|
 drop procedure if exists sp_posts_images_add|
 drop procedure if exists sp_posts_images_get_by_post|
 
+drop procedure if exists sp_posts_links_add|
 drop procedure if exists sp_posts_links_get_by_post|
 
 drop procedure if exists sp_posts_videos_add|
@@ -1301,69 +1302,54 @@ end|
 -- -------------------------
 
 -- Добавляет сообщение.
---
--- Аргументы:
--- board_id - Идентификатор доски.
--- thread_id - Идентификатор нити.
--- user_id - Идентификатор пользователя.
--- _password - Пароль на удаление сообщения.
--- _name - Имя отправителя.
--- _tripcode - Трипкод.
--- _ip - IP-адрес отправителя.
--- _subject - Тема.
--- _date_time - Время сохранения.
--- _text - Текст.
--- _sage - Флаг поднятия нити.
 create procedure sp_posts_add
 (
-	board_id int,
-	thread_id int,
-	user_id int,
-	_password varchar(128),
-	_name varchar(128),
-	_tripcode varchar(128),
-	_ip bigint,
-	_subject varchar(128),
-	_date_time datetime,
-	_text text,
-	_sage bit
+    board_id int,           -- Идентификатор доски.
+    thread_id int,          -- Идентификатор нити.
+    user_id int,            -- Идентификатор пользователя.
+    _password varchar(128), -- Пароль на удаление сообщения.
+    _name varchar(128),     -- Имя отправителя.
+    _tripcode varchar(128), -- Трипкод.
+    _ip bigint,             -- IP-адрес отправителя.
+    _subject varchar(128),  -- Тема.
+    _date_time datetime,    -- Время сохранения.
+    _text text,             -- Текст.
+    _sage bit               -- Флаг поднятия нити.
 )
 begin
-	declare count_posts int;	-- posts in thread
-	declare post_number int;	-- number on post on thread
-	declare bumplimit int;		-- number of bump posts (posts which brings thread to up)
-	declare threadsage bit;		-- whole thread sage
-	declare post_id int;
-	select max(number) into post_number from posts where board = board_id;
-	if(post_number is null)
-	then
-		set post_number = 1;
-	else
-		set post_number = post_number + 1;
-	end if;
-	select bump_limit into bumplimit from threads where id = thread_id;
-	select count(id) into count_posts from posts where thread = thread_id;
-	select sage into threadsage from threads where id = thread_id;
-	if(threadsage is not null and threadsage = 1)
-	then
-		set _sage = 1;
-	end if;
-	if(count_posts > bumplimit)
-	then
-		set _sage = 1;
-	end if;
-	if(_date_time is null)
-	then
-		set _date_time = now();
-	end if;
-	insert into posts (board, thread, number, user, password, name,
-		tripcode, ip, subject, date_time, text, sage, deleted)
-	values (board_id, thread_id, post_number, user_id, _password, _name,
-		_tripcode, _ip, _subject, _date_time, _text, _sage, 0);
-	select last_insert_id() into post_id;
-	select id, board, thread, number, user, password, name, tripcode, ip,
-		subject, date_time, `text`, sage
-	from posts where id = post_id;
+    declare count_posts int;    -- posts in thread
+    declare post_number int;    -- number on post on thread
+    declare bumplimit int;      -- number of bump posts (posts which brings thread to up)
+    declare threadsage bit;     -- whole thread sage
+    declare post_id int;
+
+    select max(number) into post_number from posts where board = board_id;
+    if(post_number is null) then
+        set post_number = 1;
+    else
+        set post_number = post_number + 1;
+    end if;
+    select bump_limit into bumplimit from threads where id = thread_id;
+    select count(id) into count_posts from posts where thread = thread_id;
+    select sage into threadsage from threads where id = thread_id;
+    if(threadsage is not null and threadsage = 1) then
+        set _sage = 1;
+    end if;
+    if(count_posts > bumplimit) then
+        set _sage = 1;
+    end if;
+    if(_date_time is null) then
+        set _date_time = now();
+    end if;
+
+    insert into posts (board, thread, number, user, password, name,
+            tripcode, ip, subject, date_time, text, sage, deleted)
+        values (board_id, thread_id, post_number, user_id, _password, _name,
+            _tripcode, _ip, _subject, _date_time, _text, _sage, 0);
+    select last_insert_id() into post_id;
+    select id, board, thread, number, user, password, name, tripcode, ip,
+            subject, date_time, `text`, sage
+        from posts where id = post_id;
 end|
 
 -- Удаляет сообщение с заданным идентификатором.
@@ -1671,16 +1657,11 @@ end|
 -- --------------------------------------------------
 
 -- Добавляет связь сообщения с вложенным файлом.
---
--- Аргументы:
--- _post - Идентификатор сообщения.
--- _file - Идентификатор вложенного файла.
--- _deleted - Флаг удаления.
 create procedure sp_posts_files_add
 (
-    _post int,
-    _file int,
-    _deleted bit
+    _post int,      -- Идентификатор сообщения.
+    _file int,      -- Идентификатор вложенного файла.
+    _deleted bit    -- Флаг удаления.
 )
 begin
     insert into posts_files (post, file, deleted)
@@ -1704,16 +1685,11 @@ end|
 -- -------------------------------------------------------
 
 -- Добавляет связь сообщения с вложенным изображением.
---
--- Аргументы:
--- _post - Идентификатор сообщения.
--- _image - Идентификатор вложенного изображения.
--- _deleted - Флаг удаления.
 create procedure sp_posts_images_add
 (
-    _post int,
-    _image int,
-    _deleted bit
+    _post int,      -- Идентификатор сообщения.
+    _image int,     -- Идентификатор вложенного изображения.
+    _deleted bit    -- Флаг удаления.
 )
 begin
     insert into posts_images (post, image, deleted)
@@ -1736,6 +1712,18 @@ end|
 -- Работа со связями сообщений и вложенных ссылок на изображения. --
 -- -----------------------------------------------------------------
 
+-- Добавляет связь сообщения с вложенным изображением.
+create procedure sp_posts_links_add
+(
+    _post int,      -- Идентификатор сообщения.
+    _link int,      -- Идентификатор вложенной ссылки на изображение.
+    _deleted bit    -- Флаг удаления.
+)
+begin
+    insert into posts_links (post, link, deleted)
+        values (_post, _link, _deleted);
+end|
+
 -- Выбирает связи заданного сообщения с вложенными ссылками на изображения.
 --
 -- Аргументы:
@@ -1753,16 +1741,11 @@ end|
 -- --------------------------------------------------
 
 -- Добавляет связь сообщения с вложенным видео.
---
--- Аргументы:
--- _post - Идентификатор сообщения.
--- _video - Идентификатор вложенного видео.
--- _deleted - Флаг удаления.
 create procedure sp_posts_videos_add
 (
-    _post int,
-    _video int,
-    _deleted bit
+    _post int,      -- Идентификатор сообщения.
+    _video int,     -- Идентификатор вложенного видео.
+    _deleted bit    -- Флаг удаления.
 )
 begin
     insert into posts_videos (post, video, deleted)
@@ -1932,17 +1915,13 @@ begin
 end|
 
 -- Редактирует номер оригинального сообщения нити.
---
--- Аргументы:
--- _id - Идентификатор нити.
--- _original_post - Номер оригинального сообщения нити.
 create procedure sp_threads_edit_original_post
 (
-	_id int,
-	_original_post int
+    _id int,            -- Идентификатор нити.
+    _original_post int  -- Номер оригинального сообщения нити.
 )
 begin
-	update threads set original_post = _original_post where id = _id;
+    update threads set original_post = _original_post where id = _id;
 end|
 
 -- Выбирает все нити.

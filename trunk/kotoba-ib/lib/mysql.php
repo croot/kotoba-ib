@@ -1858,18 +1858,18 @@ function db_popdown_handlers_get_all($link) { // Java CC
 
 /**
  * Добавляет сообщение.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param thread_id mixed <p>Идентификатор нити.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @param password string <p>Пароль на удаление сообщения.</p>
- * @param name string <p>Имя отправителя.</p>
- * @param tripcode string <p>Трипкод.</p>
- * @param ip int <p>IP-адрес отправителя.</p>
- * @param subject string <p>Тема.</p>
- * @param date_time string <p>Время сохранения.</p>
- * @param text string <p>Текст.</p>
- * @param sage mixed <p>Флаг поднятия нити.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param int $board_id Идентификатор доски.
+ * @param int $thread_id Идентификатор нити.
+ * @param int $user_id Идентификатор пользователя.
+ * @param string|null $password Пароль на удаление сообщения.
+ * @param string|null $name Имя отправителя.
+ * @param string|null $tripcode Трипкод.
+ * @param int $ip IP-адрес отправителя.
+ * @param string|null $subject Тема.
+ * @param string $date_time Время сохранения.
+ * @param string|null $text Текст.
+ * @param int|null $sage Флаг поднятия нити.
  * @return array
  * Возвращает добавленное сообщение:<p>
  * 'id' - Идентификатор.<br>
@@ -1887,60 +1887,40 @@ function db_popdown_handlers_get_all($link) { // Java CC
  * 'sage' - Флаг поднятия нити.</p>
  */
 function db_posts_add($link, $board_id, $thread_id, $user_id, $password, $name,
-    $tripcode, $ip, $subject, $date_time, $text, $sage)
-{ // Java CC
+        $tripcode, $ip, $subject, $date_time, $text, $sage) { // Java CC
     if ($sage === null) {
         $sage = 'null';
     }
-    if ($password == null) { // Пустая строка тоже NULL!
-        $password = 'null';
-    } else {
-        $password = '\'' . $password . '\'';
-    }
-    if ($subject == null) { // Пустая строка тоже NULL!
-        $subject = 'null';
-    } else {
-        $subject = '\'' . $subject . '\'';
-    }
-    if ($name == null) { // Пустая строка тоже NULL!
-        $name = 'null';
-    } else {
-        $name = '\'' . $name . '\'';
-    }
-    if ($tripcode == null) { // Пустая строка тоже NULL!
-        $tripcode = 'null';
-    } else {
-        $tripcode = '\'' . $tripcode . '\'';
-    }
-    if ($text == null) { // Пустая строка тоже NULL!
-        $text = 'null';
-    } else {
-        $text = '\'' . $text . '\'';
-    }
-    $result = mysqli_query($link, 'call sp_posts_add(' . $board_id . ', '
-        . $thread_id . ', ' . $user_id . ', ' . $password . ', '
-        . $name . ', ' . $tripcode . ', ' . $ip . ', '
-        . $subject . ', \'' . $date_time . '\', ' . $text . ', '
-        . $sage . ')');
+    $text = ($text == null ? 'null' : "'$text'");
+    $subject = ($subject == null ? 'null' : "'$subject'");
+    $tripcode = ($tripcode == null ? 'null' : "'$tripcode'");
+    $name = ($name == null ? 'null' : "'$name'");
+    $password = ($password == null ? 'null' : "'$password'");
+
+    $result = mysqli_query($link,
+            "call sp_posts_add($board_id, $thread_id, $user_id, $password,
+            $name, $tripcode, $ip, $subject, '$date_time', $text, $sage)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
+
     $post = null;
     if(mysqli_affected_rows($link) > 0
             && ($row = mysqli_fetch_assoc($result)) !== null) {
-        $post['id'] = $row['id'];
-        $post['board'] = $row['board'];
-        $post['thread'] = $row['thread'];
-        $post['number'] = $row['number'];
-        $post['password'] = $row['password'];
-        $post['name'] = $row['name'];
-        $post['tripcode'] = $row['tripcode'];
-        $post['ip'] = $row['ip'];
-        $post['subject'] = $row['subject'];
-        $post['date_time'] = $row['date_time'];
-        $post['text'] = $row['text'];
-        $post['sage'] = $row['sage'];
+        $post = array('id' => $row['id'],
+                      'board' => $row['board'],
+                      'thread' => $row['thread'],
+                      'number' => $row['number'],
+                      'password' => $row['password'],
+                      'name' => $row['name'],
+                      'tripcode' => $row['tripcode'],
+                      'ip' => $row['ip'],
+                      'subject' => $row['subject'],
+                      'date_time' => $row['date_time'],
+                      'text' => $row['text'],
+                      'sage' => $row['sage']);
     }
+
     mysqli_free_result($result);
     db_cleanup_link($link);
     return $post;
@@ -2303,14 +2283,14 @@ function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id,
 
 /**
  * Добавляет связь сообщения с вложенным файлом.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param post mixed <p>Идентификатор сообщения.</p>
- * @param file mixed <p>Идентификатор вложенного файла.</p>
- * @param deleted mixed <p>Флаг удаления.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param int $post Идентификатор сообщения.
+ * @param int file Идентификатор вложенного файла.
+ * @param int $deleted Флаг удаления.
  */
 function db_posts_files_add($link, $post, $file, $deleted) { // Java CC
-    if(!mysqli_query($link, 'call sp_posts_files_add(' . $post . ', ' . $file
-            . ', ' . $deleted . ')')) {
+    if(!mysqli_query($link,
+            "call sp_posts_files_add($post, $file, $deleted)")) {
         throw new CommonException(mysqli_error($link));
     }
     db_cleanup_link($link);
@@ -2351,14 +2331,14 @@ function db_posts_files_get_by_post($link, $post_id)
 
 /**
  * Добавляет связь сообщения с вложенным изображением.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param post mixed <p>Идентификатор сообщения.</p>
- * @param image mixed <p>Идентификатор вложенного изображения.</p>
- * @param deleted mixed <p>Флаг удаления.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param int $post Идентификатор сообщения.
+ * @param int $image Идентификатор вложенного изображения.
+ * @param int $deleted Флаг удаления.
  */
 function db_posts_images_add($link, $post, $image, $deleted) { // Java CC
-    if(!mysqli_query($link, 'call sp_posts_images_add(' . $post . ', ' . $image
-            . ', ' . $deleted . ')')) {
+    if(!mysqli_query($link,
+            "call sp_posts_images_add($post, $image, $deleted)")) {
         throw new CommonException(mysqli_error($link));
     }
     db_cleanup_link($link);
@@ -2399,6 +2379,20 @@ function db_posts_images_get_by_post($link, $post_id)
  ******************************************************************/
 
 /**
+ * Добавляет связь сообщения с вложенной ссылкой на изображение.
+ * @param MySQLi $link Связь с базой данных.
+ * @param int $post Идентификатор сообщения.
+ * @param int $posts_links_link Идентификатор вложенной ссылки на изображение.
+ * @param int $deleted Флаг удаления.
+ */
+function db_posts_links_add($link, $post, $posts_links_link, $deleted) { // Java CC
+    if(!mysqli_query($link,
+            "call sp_posts_links_add($post, $posts_links_link, $deleted)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+    db_cleanup_link($link);
+}
+/**
  * Получает связи заданного сообщения с вложенными ссылками на изображения.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param post_id mixed <p>Идентификатор сообщения.</p>
@@ -2434,14 +2428,14 @@ function db_posts_links_get_by_post($link, $post_id)
 
 /**
  * Добавляет связь сообщения с вложенным видео.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param post mixed <p>Идентификатор сообщения.</p>
- * @param video mixed <p>Идентификатор вложенного видео.</p>
- * @param deleted mixed <p>Флаг удаления.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param int $post Идентификатор сообщения.
+ * @param int $video Идентификатор вложенного видео.
+ * @param int $deleted Флаг удаления.
  */
 function db_posts_videos_add($link, $post, $video, $deleted) { // Java CC
-    if(!mysqli_query($link, 'call sp_posts_videos_add(' . $post . ', ' . $video
-            . ', ' . $deleted . ')')) {
+    if(!mysqli_query($link,
+            "call sp_posts_videos_add($post, $video, $deleted)")) {
         throw new CommonException(mysqli_error($link));
     }
     db_cleanup_link($link);
@@ -2611,18 +2605,16 @@ function db_threads_edit($link, $thread_id, $bump_limit, $sticky, $sage,
 }
 /**
  * Редактирует номер оригинального сообщения нити.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param id mixed <p>Идентификатор нити.</p>
- * @param original_post mixed <p>Номер оригинального сообщения нити.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param int $id Идентификатор нити.
+ * @param int $original_post Номер оригинального сообщения нити.
  */
-function db_threads_edit_original_post($link, $id, $original_post)
-{
-	if(!mysqli_query($link, 'call sp_threads_edit_original_post(' . $id . ', '
-			. $original_post . ')'))
-	{
-		throw new CommonException(mysqli_error($link));
-	}
-	db_cleanup_link($link);
+function db_threads_edit_original_post($link, $id, $original_post) {
+    if(!mysqli_query($link,
+            "call sp_threads_edit_original_post($id, $original_post)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+    db_cleanup_link($link);
 }
 /**
  * Получает все нити.
