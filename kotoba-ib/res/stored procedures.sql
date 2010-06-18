@@ -1804,20 +1804,13 @@ end|
 
 -- Добавляет нить. Если номер оригинального сообщения null, то будет создана
 -- пустая нить.
---
--- Аргументы:
--- board_id - Идентификатор доски.
--- _original_post - Номер оригинального сообщения.
--- _bump_limit - Специфичный для нити бамплимит.
--- _sage - Флаг поднятия нити.
--- _with_attachments - Флаг вложений.
 create procedure sp_threads_add
 (
-	board_id int,
-	_original_post int,
-	_bump_limit int,
-	_sage bit,
-	_with_attachments bit
+    board_id int,           -- Идентификатор доски.
+    _original_post int,     -- Номер оригинального сообщения.
+    _bump_limit int,        -- Специфичный для нити бамплимит.
+    _sage bit,              -- Флаг поднятия нити.
+    _with_attachments bit   -- Флаг вложений.
 )
 begin
     declare thread_id int;
