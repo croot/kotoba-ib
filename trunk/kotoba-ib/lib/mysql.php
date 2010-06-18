@@ -2533,13 +2533,13 @@ function db_stylesheets_get_all($link) {
 /**
  * Добавляет нить. Если номер оригинального сообщения null, то будет создана
  * пустая нить.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param original_post mixed <p>Номер оригинального сообщения.</p>
- * @param bump_limit mixed <p>Специфичный для нити бамплимит.</p>
- * @param sage mixed <p>Флаг поднятия нити.</p>
- * @param with_attachments mixed <p>Флаг вложений.</p>
- * @return mixed
+ * @param MySQLi $link Связь с базой данных.
+ * @param int $board_id Идентификатор доски.
+ * @param int|null $original_post Номер оригинального сообщения.
+ * @param int|null $bump_limit Специфичный для нити бамплимит.
+ * @param int $sage Флаг поднятия нити.
+ * @param int|null $with_attachments Флаг вложений.
+ * @return array|null
  * Возвращает нить:<p>
  * 'id' - Идентификатор.<br>
  * 'board' - Идентификатор доски.<br>
@@ -2551,32 +2551,36 @@ function db_stylesheets_get_all($link) {
  * Или null, если что-то пошло не так.
  */
 function db_threads_add($link, $board_id, $original_post, $bump_limit, $sage,
-	$with_attachments)
-{
-    if($original_post === null)
+        $with_attachments) { // Java CC
+    if ($original_post === null) {
         $original_post = 'null';
-    if($bump_limit === null)
-        $bump_limit = 'null';
-    $sage = $sage ? '1' : '0';
-    if($with_attachments === null)
-        $with_attachments = 'null';
-    $result = mysqli_query($link, 'call sp_threads_add(' . $board_id . ', '
-        . $original_post . ', ' . $bump_limit . ', ' . $sage . ', '
-        . $with_attachments . ')');
-    if(!$result)
-        throw new CommonException(mysqli_error($link));
-    $thread = null;
-    if(mysqli_affected_rows($link) > 0
-        && ($row = mysqli_fetch_assoc($result)) !== null)
-    {
-        $thread['id'] = $row['id'];
-        $thread['board'] = $row['board'];
-        $thread['original_post'] = $row['original_post'];
-        $thread['bump_limit'] = $row['bump_limit'];
-        $thread['sage'] = $row['sage'];
-        $thread['sticky'] = $row['sticky'];
-        $thread['with_attachments'] = $row['with_attachments'];
     }
+    if ($bump_limit === null) {
+        $bump_limit = 'null';
+    }
+    if ($with_attachments === null) {
+        $with_attachments = 'null';
+    }
+
+    $result = mysqli_query($link,
+            "call sp_threads_add($board_id, $original_post, $bump_limit, $sage,
+            $with_attachments)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $thread = null;
+    if (mysqli_affected_rows($link) > 0
+            && ($row = mysqli_fetch_assoc($result)) != null) {
+        $thread = array('id' => $row['id'],
+                        'board' => $row['board'],
+                        'original_post' => $row['original_post'],
+                        'bump_limit' => $row['bump_limit'],
+                        'sage' => $row['sage'],
+                        'sticky' => $row['sticky'],
+                        'with_attachments' => $row['with_attachments']);
+    }
+
     mysqli_free_result($result);
     db_cleanup_link($link);
     return $thread;

@@ -1433,14 +1433,14 @@ function popdown_handlers_get_all() { // Java CC
  * @param int $board_id Идентификатор доски.
  * @param int $thread_id Идентификатор нити.
  * @param int $user_id Идентификатор пользователя.
- * @param string $password Пароль на удаление сообщения.
- * @param string $name Имя отправителя.
- * @param string $tripcode Трипкод.
+ * @param string|null $password Пароль на удаление сообщения.
+ * @param string|null $name Имя отправителя.
+ * @param string|null $tripcode Трипкод.
  * @param int $ip IP-адрес отправителя.
- * @param string $subject Тема.
+ * @param string|null $subject Тема.
  * @param string $date_time Время сохранения.
- * @param string $text Текст.
- * @param int $sage Флаг поднятия нити.
+ * @param string|null $text Текст.
+ * @param int|null $sage Флаг поднятия нити.
  * @return array
  * Возвращает добавленное сообщение:<p>
  * 'id' - Идентификатор.<br>
@@ -1955,12 +1955,12 @@ function stylesheets_get_all()
 /**
  * Добавляет нить. Если номер оригинального сообщения null, то будет создана
  * пустая нить.
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param original_post mixed <p>Номер оригинального сообщения.</p>
- * @param bump_limit mixed <p>Специфичный для нити бамплимит.</p>
- * @param sage mixed <p>Флаг поднятия нити.</p>
- * @param with_attachments mixed <p>Флаг вложений.</p>
- * @return mixed
+ * @param int $board_id Идентификатор доски.
+ * @param int|null $original_post Номер оригинального сообщения.
+ * @param int|null $bump_limit Специфичный для нити бамплимит.
+ * @param int $sage Флаг поднятия нити.
+ * @param int|null $with_attachments Флаг вложений.
+ * @return array|null
  * Возвращает нить:<p>
  * 'id' - Идентификатор.<br>
  * 'board' - Идентификатор доски.<br>
@@ -1972,10 +1972,9 @@ function stylesheets_get_all()
  * Или null, если что-то пошло не так.
  */
 function threads_add($board_id, $original_post, $bump_limit, $sage,
-    $with_attachments)
-{
+        $with_attachments) { // Java CC
     return db_threads_add(DataExchange::getDBLink(), $board_id, $original_post,
-        $bump_limit, $sage, $with_attachments);
+            $bump_limit, $sage, $with_attachments);
 }
 /**
  * Проверяет корректность специфичного для нити бамплимита.
