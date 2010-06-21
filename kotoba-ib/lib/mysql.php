@@ -1316,27 +1316,25 @@ function db_hidden_threads_get_visible($link, $board_id, $thread_num, $user_id)
 
 /**
  * Добавляет вложенное изображение.
- * @param hash string <p>Хеш.</p>
- * @param name string <p>Имя.</p>
- * @param widht mixed <p>Ширина.</p>
- * @param height mixed <p>Высота.</p>
- * @param size mixed <p>Размер в байтах.</p>
- * @param thumbnail string <p>Уменьшенная копия.</p>
- * @param thumbnail_w mixed <p>Ширина уменьшенной копии.</p>
- * @param thumbnail_h mixed <p>Высота уменьшенной копии.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param string|null $hash Хеш.
+ * @param string $name Имя.
+ * @param int $widht Ширина.
+ * @param int $height Высота.
+ * @param int $size Размер в байтах.
+ * @param string $thumbnail Уменьшенная копия.
+ * @param int $thumbnail_w Ширина уменьшенной копии.
+ * @param int $thumbnail_h Высота уменьшенной копии.
  * @return string
  * Возвращает идентификатор вложенного изображения.
  */
 function db_images_add($link, $hash, $name, $widht, $height, $size, $thumbnail,
-        $thumbnail_w, $thumbnail_h) {
-    if ($hash == null) {
-        $hash = 'null';
-    } else {
-        $hash = '\'' . $hash . '\'';
-    }
-    $result = mysqli_query($link, 'call sp_images_add(' . $hash . ', \'' . $name
-        . '\', ' . $widht . ', ' . $height . ', ' . $size . ', \''
-        . $thumbnail . '\', ' . $thumbnail_w . ', ' . $thumbnail_h . ')');
+        $thumbnail_w, $thumbnail_h) { // Java CC
+    $hash = ($hash == null ? 'null' : "'$hash'");
+
+    $result = mysqli_query($link,
+            "call sp_images_add($hash, '$name', $widht, $height, $size,
+            '$thumbnail', $thumbnail_w, $thumbnail_h)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
@@ -1467,32 +1465,65 @@ function db_languages_delete($link, $id)
 }
 /**
  * Получает все языки.
- * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param MySQLi $link Связь с базой данных.
  * @return array
  * Возвращает языки:<p>
  * 'id' - Идентификатор.<br>
  * 'code' - Код ISO_639-2.</p>
  */
-function db_languages_get_all($link)
-{
-	if(($result = mysqli_query($link, 'call sp_languages_get_all()')) == false)
-		throw new CommonException(mysqli_error($link));
-	$languages = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) != null)
-			array_push($languages, array('id' => $row['id'],
-					'code' => $row['code']));
-	else
-		throw new NodataException(NodataException::$messages['LANGUAGES_NOT_EXIST']);
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $languages;
+function db_languages_get_all($link) { // Java CC
+    $result = mysqli_query($link, 'call sp_languages_get_all()');
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $languages = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while(($row = mysqli_fetch_assoc($result)) != null) {
+            array_push($languages, array('id' => $row['id'],
+                                         'code' => $row['code']));
+        }
+    }
+    else {
+        throw new NodataException(NodataException::$messages['LANGUAGES_NOT_EXIST']);
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $languages;
 }
 
 /************************************************
  * Работа с вложенными ссылками на изображения. *
  ************************************************/
 
+/**
+ * Добавляет вложенную ссылку на изображение.
+ * @param MySQLi $link Связь с базой данных.
+ * @param string $name Имя.
+ * @param int $widht Ширина.
+ * @param int $height Высота.
+ * @param int $size Размер в байтах.
+ * @param string $thumbnail Уменьшенная копия.
+ * @param int $thumbnail_w Ширина уменьшенной копии.
+ * @param int $thumbnail_h Высота уменьшенной копии.
+ * @return string
+ * Возвращает идентификатор вложенной ссылки на изображение.
+ */
+function db_links_add($link, $name, $widht, $height, $size, $thumbnail,
+        $thumbnail_w, $thumbnail_h) {
+    $result = mysqli_query($link,
+            "call sp_links_add('$name', $widht, $height, $size, '$thumbnail',
+            $thumbnail_w, $thumbnail_h)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $row = mysqli_fetch_assoc($result);
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $row['id'];
+}
 /**
  * Получает ссылки на изображения, вложенные в заданное сообщение.
  * @param link MySQLi <p>Связь с базой данных.</p>
@@ -1676,6 +1707,45 @@ function db_macrochan_images_delete_by_name($link, $name) { // Java CC
  */
 function db_macrochan_images_get_all($link) { // Java CC
     $result = mysqli_query($link, 'call sp_macrochan_images_get_all()');
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+    $images = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while ( ($row = mysqli_fetch_assoc($result)) !== null) {
+            array_push($images,
+                    array('id' => $row['id'],
+                          'name' => $row['name'],
+                          'width' => $row['width'],
+                          'height' => $row['height'],
+                          'size' => $row['size'],
+                          'thumbnail' => $row['thumbnail'],
+                          'thumbnail_w' => $row['thumbnail_w'],
+                          'thumbnail_h' => $row['thumbnail_h']));
+        }
+    }
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $images;
+}
+/**
+ * Получает случайное изображение макрочана с заданным именем тега макрочана.
+ * @param MySQLi $link Связь с базой данных.
+ * @param string $tag Имя тега макрочана.
+ * @return array
+ * Возвращает изображения макрочана:<p>
+ * 'id' - Идентификатор.<br>
+ * 'name' - Имя.<br>
+ * 'width' - Ширина.<br>
+ * 'height' - Высота.<br>
+ * 'size' - Размер в байтах.<br>
+ * 'thumbnail' - Уменьшенная копия.<br>
+ * 'thumbnail_w' - Ширина уменьшенной копии.<br>
+ * 'thumbnail_h' - Высота уменьшенной копии.</p>
+ */
+function db_macrochan_images_get_random($link, $tag) { // Java CC
+    $result = mysqli_query($link,
+            "call sp_macrochan_images_get_random('$tag')");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
@@ -3421,21 +3491,16 @@ function db_users_set_password($link, $id, $password) { // Java CC
 
 /**
  * Добавляет вложенное видео.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param code string <p>HTML-код.</p>
- * @param widht mixed <p>Ширина.</p>
- * @param height mixed <p>Высота.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param string $code HTML-код.
+ * @param int $widht Ширина.
+ * @param int $height Высота.
  * @return string
  * Возвращает идентификатор вложенного видео.
  */
 function db_videos_add($link, $code, $widht, $height) {
-    if ($hash == null) {
-        $hash = 'null';
-    } else {
-        $hash = '\'' . $hash . '\'';
-    }
-    $result = mysqli_query($link, 'call sp_videos_add(\'' . $code . '\', '
-        . $widht . ', ' . $height . ')');
+    $result = mysqli_query($link,
+            "call sp_videos_add('$code', $widht, $height)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }

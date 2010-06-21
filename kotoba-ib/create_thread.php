@@ -141,6 +141,7 @@ try {
             }
         } elseif (($board['enable_macro'] === null && Config::ENABLE_MACRO || $board['enable_macro'])
                 && isset($_POST['macrochan_tag']) && $_POST['macrochan_tag'] != '') {
+            $macrochan_tag = macrochan_tags_check($_POST['macrochan_tag']);
             $attachment_type = Config::ATTACHMENT_TYPE_LINK;
         } elseif (($board['enable_youtube'] === null && Config::ENABLE_YOUTUBE || $board['enable_youtube'])
                 && isset($_POST['youtube_video_code'])
@@ -230,10 +231,14 @@ try {
                     $thumb_dimensions['y']);
             }
         } elseif ($attachment_type == Config::ATTACHMENT_TYPE_LINK) {
-            $file_names[0] = 'http://12ch.ru/macro/index.php/image/3478.jpg';
-            $file_names[1] = 'http://12ch.ru/macro/index.php/thumb/3478.jpg';
-            $attachment_id = links_add($file_names[0], '640', '480', 63290,
-                $file_names[1], '192', '144');
+            $macrochan_image = macrochan_images_get_random($macrochan_tag);
+            $macrochan_image['name'] = "http://12ch.ru/macro/index.php/image/{$macrochan_image['name']}";
+            $macrochan_image['thumbnail'] = "http://12ch.ru/macro/index.php/thumb/{$macrochan_image['thumbnail']}";
+            $attachment_id = links_add($macrochan_image['name'],
+                    $macrochan_image['width'], $macrochan_image['height'],
+                    $macrochan_image['size'], $macrochan_image['thumbnail'],
+                    $macrochan_image['thumbnail_w'],
+                    $macrochan_image['thumbnail_h']);
         } elseif ($attachment_type == Config::ATTACHMENT_TYPE_VIDEO) {
             $attachment_id = videos_add($youtube_video_code, 220, 182);
         } else {
