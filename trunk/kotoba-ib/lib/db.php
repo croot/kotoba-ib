@@ -1106,14 +1106,14 @@ function hidden_threads_get_visible($board_id, $thread_num, $user_id)
 
 /**
  * Добавляет вложенное изображение.
- * @param string $hash Хеш.
+ * @param string|null $hash Хеш.
  * @param string $name Имя.
- * @param string|int $widht Ширина.
- * @param string|int $height Высота.
- * @param string|int $size Размер в байтах.
+ * @param int $widht Ширина.
+ * @param int $height Высота.
+ * @param int $size Размер в байтах.
  * @param string $thumbnail Уменьшенная копия.
- * @param string|int $thumbnail_w Ширина уменьшенной копии.
- * @param string|int $thumbnail_h Высота уменьшенной копии.
+ * @param int $thumbnail_w Ширина уменьшенной копии.
+ * @param int $thumbnail_h Высота уменьшенной копии.
  * @return string
  * Возвращает идентификатор вложенного изображения.
  */
@@ -1229,6 +1229,27 @@ function languages_get_all()
 	return db_languages_get_all(DataExchange::getDBLink());
 }
 
+/************************************************
+ * Работа с вложенными ссылками на изображения. *
+ ************************************************/
+
+/**
+ * Добавляет вложенную ссылку на изображение.
+ * @param string $name Имя.
+ * @param int $widht Ширина.
+ * @param int $height Высота.
+ * @param int $size Размер в байтах.
+ * @param string $thumbnail Уменьшенная копия.
+ * @param int $thumbnail_w Ширина уменьшенной копии.
+ * @param int $thumbnail_h Высота уменьшенной копии.
+ * @return string
+ * Возвращает идентификатор вложенной ссылки на изображение.
+ */
+function links_add($name, $widht, $height, $size, $thumbnail, $thumbnail_w,
+        $thumbnail_h) { // Java CC
+    return db_links_add(DataExchange::getDBLink(), $name, $widht, $height,
+            $size, $thumbnail, $thumbnail_w, $thumbnail_h);
+}
 /******************************
  * Работа с тегами макрочана. *
  ******************************/
@@ -1302,6 +1323,23 @@ function macrochan_images_get_all() { // Java CC
 }
 function macrochan_images_get_by_tag() {
     throw new CommonException('No Implemented yet.');
+}
+/**
+ * Получает случайное изображение макрочана с заданным именем тега макрочана.
+ * @param string $tag Имя тега макрочана.
+ * @return array
+ * Возвращает изображение макрочана:<p>
+ * 'id' - Идентификатор.<br>
+ * 'name' - Имя.<br>
+ * 'width' - Ширина.<br>
+ * 'height' - Высота.<br>
+ * 'size' - Размер в байтах.<br>
+ * 'thumbnail' - Уменьшенная копия.<br>
+ * 'thumbnail_w' - Ширина уменьшенной копии.<br>
+ * 'thumbnail_h' - Высота уменьшенной копии.</p>
+ */
+function macrochan_images_get_random($tag) {
+    return db_macrochan_images_get_random(DataExchange::getDBLink(), $tag);
 }
 
 /****************************************************
@@ -2714,9 +2752,9 @@ function users_set_password($id, $password) { // Java CC
 
 /**
  * Добавляет вложенное видео.
- * @param code string <p>HTML-код.</p>
- * @param widht mixed <p>Ширина.</p>
- * @param height mixed <p>Высота.</p>
+ * @param string $code HTML-код.
+ * @param int $widht Ширина.
+ * @param int $height Высота.
  * @return string
  * Возвращает идентификатор вложенного видео.
  */

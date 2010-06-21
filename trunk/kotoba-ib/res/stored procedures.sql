@@ -53,6 +53,7 @@ drop procedure if exists sp_languages_add|
 drop procedure if exists sp_languages_delete|
 drop procedure if exists sp_languages_get_all|
 
+drop procedure if exists sp_links_add|
 drop procedure if exists sp_links_get_by_post|
 
 drop procedure if exists sp_macrochan_tags_add|
@@ -1119,19 +1120,35 @@ end|
 -- Работа с вложенными ссылками на изображения. --
 -- -----------------------------------------------
 
--- Выбирает ссылки на изображения, вложенные в заданное сообщение.
---
--- Аргументы:
--- post_id - Идентификатор сообщения.
-create procedure sp_links_get_by_post
+-- Добавляет вложенную ссылку на изображение.
+create procedure sp_links_add
 (
-	post_id int
+    _name varchar(256),         -- Имя.
+    _widht int,                 -- Ширина.
+    _height int,                -- Высота.
+    _size int,                  -- Размер в байтах.
+    _thumbnail varchar(256),    -- Уменьшенная копия.
+    _thumbnail_w int,           -- Ширина уменьшенной копии.
+    _thumbnail_h int            -- Высота уменьшенной копии.
 )
 begin
-	select l.id, l.url, l.widht, l.height, l.size, l.thumbnail, l.thumbnail_w,
-		l.thumbnail_h
-	from posts_links pl
-	join links l on l.id = pl.link and pl.post = post_id;
+    insert into links (name, widht, height, size, thumbnail, thumbnail_w,
+            thumbnail_h)
+        values (_name, _widht, _height, _size, _thumbnail, _thumbnail_w,
+            _thumbnail_h);
+    select last_insert_id() as id;
+end|
+
+-- Выбирает ссылки на изображения, вложенные в заданное сообщение.
+create procedure sp_links_get_by_post
+(
+    post_id int -- Идентификатор сообщения.
+)
+begin
+    select l.id, l.url, l.widht, l.height, l.size, l.thumbnail, l.thumbnail_w,
+            l.thumbnail_h
+        from posts_links pl
+        join links l on l.id = pl.link and pl.post = post_id;
 end|
 
 -- -----------------------------
@@ -2658,16 +2675,11 @@ end|
 -- ----------------------------
 
 -- Добавляет вложенное видео.
-
--- Аргументы:
--- _code - HTML-код.
--- _widht - Ширина.
--- _height - Высота.
 create procedure sp_videos_add
 (
-    _code varchar(256),
-    _widht int,
-    _height int
+    _code varchar(256), -- HTML-код.
+    _widht int,         -- Ширина.
+    _height int         -- Высота.
 )
 begin
     insert into videos (code, widht, height) values (_code, _widht, _height);
