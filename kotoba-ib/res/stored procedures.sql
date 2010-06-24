@@ -63,6 +63,7 @@ drop procedure if exists sp_macrochan_tags_get_all|
 drop procedure if exists sp_macrochan_images_add|
 drop procedure if exists sp_macrochan_images_delete_by_name|
 drop procedure if exists sp_macrochan_images_get_all|
+drop procedure if exists sp_macrochan_images_get_random|
 
 drop procedure if exists sp_macrochan_tags_images_add|
 drop procedure if exists sp_macrochan_tags_images_get|
@@ -740,22 +741,14 @@ end|
 -- -------------------------------
 
 -- Добавляет файл.
---
--- Аргументы:
--- _hash - Хеш.
--- _name - Имя.
--- _size - Размер в байтах.
--- _thumbnail - Уменьшенная копия.
--- _thumbnail_w - Ширина уменьшенной копии.
--- _thumbnail_h - Высота уменьшенной копии.
 create procedure sp_files_add
 (
-	_hash varchar(32),
-	_name varchar(256),
-	_size int,
-	_thumbnail varchar(256),
-	_thumbnail_w int,
-	_thumbnail_h int
+    _hash varchar(32),          -- Хеш.
+    _name varchar(256),         -- Имя.
+    _size int,                  -- Размер в байтах.
+    _thumbnail varchar(256),    -- Уменьшенная копия.
+    _thumbnail_w int,           -- Ширина уменьшенной копии.
+    _thumbnail_h int            -- Высота уменьшенной копии.
 )
 begin
     insert into files (hash, name, size, thumbnail, thumbnail_w, thumbnail_h)
@@ -1236,6 +1229,21 @@ create procedure sp_macrochan_images_get_all ()
 begin
     select id, name, width, height, size, thumbnail, thumbnail_w, thumbnail_h
         from macrochan_images;
+end|
+
+-- Получает случайное изображение макрочана с заданным именем тега макрочана.
+create procedure sp_macrochan_images_get_random
+(
+    _name varchar(256)    -- Имя тега макрочана.
+)
+begin
+    select mi.id, mi.name, mi.width, mi.height, mi.size, mi.thumbnail,
+            mi.thumbnail_w, mi.thumbnail_h
+        from macrochan_images mi
+        join macrochan_tags_images mti on mi.id = mti.image
+        join macrochan_tags mt on mti.tag = mt.id and mt.name = _name
+        order by rand()
+        limit 1;
 end|
 
 -- ---------------------------------------------------

@@ -141,6 +141,9 @@ try {
             }
         } elseif (($board['enable_macro'] === null && Config::ENABLE_MACRO || $board['enable_macro'])
                 && isset($_POST['macrochan_tag']) && $_POST['macrochan_tag'] != '') {
+            /* TODO Actually macrochan tag entity is a pair: id, name. Is
+             * $macrochan_tag should be $macrochan_tag_name?
+             */
             $macrochan_tag = macrochan_tags_check($_POST['macrochan_tag']);
             $attachment_type = Config::ATTACHMENT_TYPE_LINK;
         } elseif (($board['enable_youtube'] === null && Config::ENABLE_YOUTUBE || $board['enable_youtube'])
