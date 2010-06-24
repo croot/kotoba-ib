@@ -1023,21 +1023,21 @@ function db_categories_get_all($link)
 
 /**
  * Добавляет файл.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param hash string <p>Хеш.</p>
- * @param name string <p>Имя.</p>
- * @param size mixed <p>Размер в байтах.</p>
- * @param thumbnail string <p>Уменьшенная копия.</p>
- * @param thumbnail_w mixed <p>Ширина уменьшенной копии.</p>
- * @param thumbnail_h mixed <p>Высота уменьшенной копии.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param string $hash Хеш.
+ * @param string $name Имя.
+ * @param int $size Размер в байтах.
+ * @param string $thumbnail Уменьшенная копия.
+ * @param int $thumbnail_w Ширина уменьшенной копии.
+ * @param int $thumbnail_h Высота уменьшенной копии.
  * @return string
  * Возвращает идентификатор вложенного файла.
  */
 function db_files_add($link, $hash, $name, $size, $thumbnail, $thumbnail_w,
-        $thumbnail_h) {
-    $result = mysqli_query($link, 'call sp_files_add(\'' . $hash . '\', \'' . $name
-        . '\', ' . $size . ', \'' . $thumbnail . '\', ' . $thumbnail_w . ', '
-        . $thumbnail_h . ')');
+        $thumbnail_h) { // Java CC
+    $result = mysqli_query($link,
+            "call sp_files_add('$hash', '$name', $size, '$thumbnail',
+            $thumbnail_w, $thumbnail_h)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
@@ -1731,7 +1731,7 @@ function db_macrochan_images_get_all($link) { // Java CC
 /**
  * Получает случайное изображение макрочана с заданным именем тега макрочана.
  * @param MySQLi $link Связь с базой данных.
- * @param string $tag Имя тега макрочана.
+ * @param string $name Имя тега макрочана.
  * @return array
  * Возвращает изображения макрочана:<p>
  * 'id' - Идентификатор.<br>
@@ -1743,12 +1743,13 @@ function db_macrochan_images_get_all($link) { // Java CC
  * 'thumbnail_w' - Ширина уменьшенной копии.<br>
  * 'thumbnail_h' - Высота уменьшенной копии.</p>
  */
-function db_macrochan_images_get_random($link, $tag) { // Java CC
+function db_macrochan_images_get_random($link, $name) { // Java CC
     $result = mysqli_query($link,
-            "call sp_macrochan_images_get_random('$tag')");
+            "call sp_macrochan_images_get_random('$name')");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
+
     $images = array();
     if (mysqli_affected_rows($link) > 0) {
         while ( ($row = mysqli_fetch_assoc($result)) !== null) {
@@ -1763,6 +1764,7 @@ function db_macrochan_images_get_random($link, $tag) { // Java CC
                           'thumbnail_h' => $row['thumbnail_h']));
         }
     }
+
     mysqli_free_result($result);
     db_cleanup_link($link);
     return $images;

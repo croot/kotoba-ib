@@ -236,13 +236,13 @@ function calculate_tripcode($name) {
 }
 /**
  * Перемещает загруженный файл на постоянное место хранения.
- * @param source string <p>Путь к загруженному файлу.</p>
- * @param dest string <p>Путь, куда должен быть сохранён загруженный файл.</p>
+ * @param string $source Путь к загруженному файлу.
+ * @param string $dest Путь, куда должен быть сохранён загруженный файл.
  */
-function move_uploded_file($source, $dest)
-{
-	if(!@rename($source, $dest))
-		throw new UploadException(UploadException::$messages['UPLOAD_SAVE']);
+function move_uploded_file($source, $dest) { // Java CC
+    if (!@rename($source, $dest)) {
+        throw new UploadException(UploadException::$messages['UPLOAD_SAVE']);
+    }
 }
 /**
  * Удаляет из текста не нужные котобе управляющие символы.
@@ -412,32 +412,26 @@ function is_mod()
 
 /**
  * Вычисляет размеры загружаемого изображения.
- * @param upload_type array
- * <p>Тип загружаемого файла.</p>
- * @param file string
- * <p>Загружаемый файл.</p>
+ * @param array $upload_type Тип загружаемого файла.
+ * @param string $file Загружаемый файл.
  * @return array
  * Возвращает размеры:<p>
  * 'x' - ширина.<br>
  * 'y' - высота.</p>
  */
-function image_get_dimensions($upload_type, $file)
-{
+function image_get_dimensions($upload_type, $file) { // Java CC
 	$result = array();
-	//gd library formats
-	if((check_module('gd') | check_module('gd2')) & Config::TRY_IMAGE_GD)
-	{
+
+	if ((check_module('gd') | check_module('gd2')) & Config::TRY_IMAGE_GD) {
+        //gd library formats
 		$dimensions = getimagesize($file);
 		$result['x'] = $dimensions[0];
 		$result['y'] = $dimensions[1];
 		return $result;
-	}
-	//image magick library
-	elseif(check_module('imagick') & Config::TRY_IMAGE_IM)
-	{
+	} elseif(check_module('imagick') & Config::TRY_IMAGE_IM) {
+        //image magick library
 		$image = new Imagick($file);
-		if(!$image->setImageFormat($upload_type['extension']))
-		{
+		if (!$image->setImageFormat($upload_type['extension'])) {
 			throw new CommonException(CommonException::$messages['IMAGEMAGICK_FORMAT']);
 		}
 		$result['x'] = $image->getImageWidth();
@@ -445,43 +439,42 @@ function image_get_dimensions($upload_type, $file)
 		$image->clear();
 		$image->destroy();
 		return $result;
-	}
-	else
-	{
+	} else {
 		throw new CommonException(CommonException::$messages['NO_IMG_LIB']);
 	}
 }
 /**
  * Создаёт уменьшенную копию изображения.
- * @param source string <p>Исходное изображение.</p>
- * @param dest string <p>Файл, куда должна быть помещена уменьшенная копия.</p>
- * @param source_dimensions array <p>Размеры исходного изображения.</p>
- * @param type array <p>Тип файла изображения.</p>
- * @param resize_x mixed<p>Ширина уменьшенной копии изображения.</p>
- * @param resize_y mixed<p>Высота уменьшенной копии изображения.</p>
- * @param force bool<p>Создавать уменьшенную копию, даже если изображение мало.</p>
+ * @param string $source Исходное изображение.
+ * @param string $dest Файл, куда должна быть помещена уменьшенная копия.
+ * @param array $source_dimensions Размеры исходного изображения.
+ * @param array $type Тип файла изображения.
+ * @param int $resize_x Ширина уменьшенной копии изображения.
+ * @param int $resize_y Высота уменьшенной копии изображения.
+ * @param boolean $force Создавать уменьшенную копию, даже если изображение мало.
  * @return array
  * Возвращает размеры созданной уменьшенной копии изображения:<p>
  * 'x' - ширина изображения.<br>
  * 'y' - высота изображения.</p>
  */
 function create_thumbnail($source, $dest, $source_dimensions, $type,
-	$resize_x, $resize_y, $force)
-{
-	$result = array();
-	// small image doesn't need to be thumbnailed
-	if(!$force && $source_dimensions['x'] < $resize_x
-		&& $source_dimensions['y'] < $resize_y)
-	{
-		// big file but small image is some kind of trolling
-		if(filesize($source) > Config::SMALLIMAGE_LIMIT_FILE_SIZE)
-			throw new LimitException(LimitException::$messages['MAX_SMALL_IMG_SIZE']);
-		$result['x'] = $source_dimensions['x'];
-		$result['y'] = $source_dimensions['y'];
-		link_file_new($source, $dest);
-		return $result;
-	}
-	return $type['upload_handler_name']($source, $dest, $source_dimensions,
-		$type, $resize_x, $resize_y);
+        $resize_x, $resize_y, $force) {
+    $result = array();
+
+    // small image doesn't need to be thumbnailed
+    if (!$force && $source_dimensions['x'] < $resize_x
+            && $source_dimensions['y'] < $resize_y) {
+        // big file but small image is some kind of trolling
+        if (filesize($source) > Config::SMALLIMAGE_LIMIT_FILE_SIZE) {
+            throw new LimitException(LimitException::$messages['MAX_SMALL_IMG_SIZE']);
+        }
+        $result['x'] = $source_dimensions['x'];
+        $result['y'] = $source_dimensions['y'];
+        link_file_new($source, $dest); // TODO oops I lost this function.
+        return $result;
+    }
+
+    return $type['upload_handler_name']($source, $dest, $source_dimensions,
+            $type, $resize_x, $resize_y);
 }
 ?>

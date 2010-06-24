@@ -932,20 +932,19 @@ function categories_get_all()
 
 /**
  * Добавляет файл.
- * @param hash string <p>Хеш.</p>
- * @param name string <p>Имя.</p>
- * @param size mixed <p>Размер в байтах.</p>
- * @param thumbnail string <p>Уменьшенная копия.</p>
- * @param thumbnail_w mixed <p>Ширина уменьшенной копии.</p>
- * @param thumbnail_h mixed <p>Высота уменьшенной копии.</p>
+ * @param string $hash Хеш.
+ * @param string $name Имя.
+ * @param int $size Размер в байтах.
+ * @param string $thumbnail Уменьшенная копия.
+ * @param int $thumbnail_w Ширина уменьшенной копии.
+ * @param int $thumbnail_h Высота уменьшенной копии.
  * @return string
  * Возвращает идентификатор вложенного файла.
  */
 function files_add($hash, $name, $size, $thumbnail, $thumbnail_w,
-    $thumbnail_h)
-{
-    return db_files_add(DataExchange::getDBLink(), $hash, $name, $size, $thumbnail,
-        $thumbnail_w, $thumbnail_h);
+        $thumbnail_h) { // Java CC
+    return db_files_add(DataExchange::getDBLink(), $hash, $name, $size,
+        $thumbnail, $thumbnail_w, $thumbnail_h);
 }
 
 /**********************
@@ -1326,7 +1325,7 @@ function macrochan_images_get_by_tag() {
 }
 /**
  * Получает случайное изображение макрочана с заданным именем тега макрочана.
- * @param string $tag Имя тега макрочана.
+ * @param string $name Имя тега макрочана.
  * @return array
  * Возвращает изображение макрочана:<p>
  * 'id' - Идентификатор.<br>
@@ -1338,8 +1337,8 @@ function macrochan_images_get_by_tag() {
  * 'thumbnail_w' - Ширина уменьшенной копии.<br>
  * 'thumbnail_h' - Высота уменьшенной копии.</p>
  */
-function macrochan_images_get_random($tag) {
-    return db_macrochan_images_get_random(DataExchange::getDBLink(), $tag);
+function macrochan_images_get_random($name) {
+    return db_macrochan_images_get_random(DataExchange::getDBLink(), $name);
 }
 
 /****************************************************
