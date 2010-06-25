@@ -193,24 +193,21 @@ function check_utf8($text) { // Java CC
 /**
  * Создаёт имена для загружаемого файла и уменьшенной копии (если это
  * изображение), с которыми они будут сохранены.
- * @param stored_ext string
- * <p>Расширение файла, с которым он будет сохранён.</p>
+ * @param string $ext Расширение файла, с которым он будет сохранён.
  * @return array
  * Возвращает имена файлов:<p>
  * 0 - новое имя загружаемого файла.<br>
  * 1 - имя уменьшенной копии (для изображений)<br>
- * 2 - новое имя файла без расширения.
- * </p>
+ * 2 - новое имя файла без расширения.</p>
  */
-function create_filenames($stored_ext)
-{
+function create_filenames($ext) {
 	list($usec, $sec) = explode(' ', microtime());
 	// Три знака после запятой.
 	$saved_filename = $sec . substr($usec, 2, 5);
 	// Имена всех миниатюр заканчиваются на t.
-	$saved_thumbname = $saved_filename . 't.' . $stored_ext;
+	$saved_thumbname = $saved_filename . 't.' . $ext;
 	$raw_filename = $saved_filename;
-	$saved_filename .= ".$stored_ext";
+	$saved_filename .= ".$ext";
 	return array($saved_filename, $saved_thumbname, $raw_filename);
 }
 /**
@@ -221,7 +218,7 @@ function create_filenames($stored_ext)
  * Возвращает имя отправителя со сгенерированным трипкодом, если было задано
  * ключевое слово или просто имя отправителя, если ключевое слово задано не было.
  */
-function calculate_tripcode($name) {
+function calculate_tripcode($name) { // Java CC
     @list($first, $code) = @preg_split("/[#!]/", $name);
     if (!isset($code) || strlen($code) == 0) {
         return array($name, null);
@@ -258,66 +255,54 @@ function purify_ascii(&$text) { // Java CC
 }
 /**
  * Вычисляет md5 хеш файла.
- * @param path string <p>Путь к файлу.</p>
+ * @param string $path Путь к файлу.
  * @return string
  * Возвращает строку, содержащую md5 хеш.
  */
-function calculate_file_hash($path)
-{
+function calculate_file_hash($path) { // Java CC
 	$hash = null;
-	if(($hash = hash_file('md5', $path)) === false)
+
+	if (($hash = hash_file('md5', $path)) === false) {
 		throw new UploadException(UploadException::$messages['UPLOAD_HASH']);
+    }
+
 	return $hash;
 }
 /**
  * Выводит информацию об одинаковых вложениях.
- * @param smarty SmartyKotobaSetup <p>Шаблонизатор.</p>
- * @param board_name string <p>Имя доски.</p>
- * @param same_attachments array <p>Одинаковые вложения.</p>
+ * @param SmartyKotobaSetup $smarty Шаблонизатор.
+ * @param string $board_name Имя доски.
+ * @param array $same_attachments Одинаковые вложения.
  */
-function show_same_attachments($smarty, $board_name, $same_attachments)
-{
-	$smarty->assign('same_uploads', $same_attachments);
-	$smarty->assign('board_name', $board_name);
-	$smarty->display('same_uploads.tpl');
+function show_same_attachments($smarty, $board_name, $same_attachments) { // Java CC
+    $smarty->assign('same_uploads', $same_attachments);
+    $smarty->assign('board_name', $board_name);
+    $smarty->display('same_uploads.tpl');
 }
 /**
  * Проверяет, не произошло ли ошибки при загрузке файла.
  */
-function check_upload_error($error) {
+function check_upload_error($error) { // Java CC
     switch ($error) {
-        case UPLOAD_ERR_INI_SIZE:
-            throw new UploadException::$messages['UPLOAD_ERR_INI_SIZE'];
-            break;
-        case UPLOAD_ERR_FORM_SIZE:
-            throw new UploadException::$messages['UPLOAD_ERR_FORM_SIZE'];
-            break;
-        case UPLOAD_ERR_PARTIAL:
-            throw new UploadException::$messages['UPLOAD_ERR_PARTIAL'];
-            break;
-        case UPLOAD_ERR_NO_TMP_DIR:
-            throw new UploadException::$messages['UPLOAD_ERR_NO_TMP_DIR'];
-            break;
-        case UPLOAD_ERR_CANT_WRITE:
-            throw new UploadException::$messages['UPLOAD_ERR_CANT_WRITE'];
-            break;
-        case UPLOAD_ERR_EXTENSION:
-            throw new UploadException::$messages['UPLOAD_ERR_EXTENSION'];
-            break;
+    case UPLOAD_ERR_INI_SIZE:
+        throw new UploadException::$messages['UPLOAD_ERR_INI_SIZE'];
+        break;
+    case UPLOAD_ERR_FORM_SIZE:
+        throw new UploadException::$messages['UPLOAD_ERR_FORM_SIZE'];
+        break;
+    case UPLOAD_ERR_PARTIAL:
+        throw new UploadException::$messages['UPLOAD_ERR_PARTIAL'];
+        break;
+    case UPLOAD_ERR_NO_TMP_DIR:
+        throw new UploadException::$messages['UPLOAD_ERR_NO_TMP_DIR'];
+        break;
+    case UPLOAD_ERR_CANT_WRITE:
+        throw new UploadException::$messages['UPLOAD_ERR_CANT_WRITE'];
+        break;
+    case UPLOAD_ERR_EXTENSION:
+        throw new UploadException::$messages['UPLOAD_ERR_EXTENSION'];
+        break;
     }
-}
-/**
- * Проверяет корректность кода видео.
- * @param code string <p>Код видео.</p>
- * @return string
- * Возвращает безопасный для использования код видео.
- */
-function check_youtube_video_code($code)
-{
-	$code = RawURLEncode($code);
-	if(strlen($code) > Config::MAX_FILE_LINK)
-		throw new LimitException(LimitException::$messages['MAX_FILE_LINK']);
-	return RawURLEncode($code);
 }
 /**
  * Выделяет расширение файла из его имени.
@@ -352,7 +337,7 @@ function link_file($source, $dest)
  * Возвращает true, если пользователь является администратором и false в
  * противном случае.
  */
-function is_admin() {
+function is_admin() { // Java CC
     if (isset($_SESSION['groups']) && is_array($_SESSION['groups'])
             && in_array(Config::ADM_GROUP_NAME, $_SESSION['groups'])) {
         if (count(Config::$ADMIN_IPS) > 0) {
