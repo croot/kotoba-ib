@@ -213,9 +213,9 @@ function attachments_get_by_posts($posts) { // Java CC
 }
 /**
  * Получает одинаковые вложения на заданной доске.
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @param hash string <p>Хеш файла.</p>
+ * @param int $board_id Идентификатор доски.
+ * @param int $user_id Идентификатор пользователя.
+ * @param string $hash Хеш файла.
  * @return array
  * Возвращает вложения:<p>
  * 'id' - Идентификатор.<br>
@@ -223,17 +223,21 @@ function attachments_get_by_posts($posts) { // Java CC
  * 'attachment_type' - Тип вложения.<br>
  * 'visible' - Право на просмотр сообщения, в которое вложено изображение.</p>
  */
-function attachments_get_same($board_id, $user_id, $hash)
-{
+function attachments_get_same($board_id, $user_id, $hash) { // Java CC
 	$attachments = array();
+
     $files = db_files_get_same(DataExchange::getDBLink(), $board_id, $user_id,
         $hash);
     $images = db_images_get_same(DataExchange::getDBLink(), $board_id, $user_id,
         $hash);
-    foreach($files as $file)
+
+    foreach ($files as $file) {
         array_push($attachments, $file);
-    foreach($images as $image)
+    }
+    foreach ($images as $image) {
         array_push($attachments, $image);
+    }
+
 	return $attachments;
 }
 
@@ -1123,11 +1127,11 @@ function images_add($hash, $name, $widht, $height, $size, $thumbnail,
 }
 /**
  * Проверяет, удовлетворяет ли загружаемое изображение ограничениям по размеру.
- * @param img_size mixed <p>Размер изображения в байтах.</p>
+ * @param int $img_size Размер изображения в байтах.
  */
 function images_check_size($size) { // Java CC
-	if ($size < Config::MIN_IMGSIZE) {
-		throw new LimitException(LimitException::$messages['MIN_IMG_SIZE']);
+    if ($size < Config::MIN_IMGSIZE) {
+        throw new LimitException(LimitException::$messages['MIN_IMG_SIZE']);
     }
 }
 /**
@@ -1562,31 +1566,30 @@ function posts_check_number($number)
 }
 /**
  * Проверяет корректность пароля для удаления сообщения.
- * @param password string <p>Пароль.</p>
+ * @param string $password Пароль.
  * @return string
  * Возвращает безопасный для использования пароль для удаления сообщения.
  */
-function posts_check_password($password)
-{
-	$length = strlen($password);
-	if($length <= 12 && $length >= 1)
-	{
-		$password = RawUrlEncode($password);
-		$length = strlen($password);
-		if($length > 12 || (strpos($password, '%') !== false) || $length < 1)
-			throw new FormatException(FormatException::$messages['POST_PASSWORD']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['POST_PASSWORD']);
-	return $password;
+function posts_check_password($password) { // Java CC
+    $length = strlen($password);
+    if ($length <= 12 && $length >= 1) {
+        $password = RawUrlEncode($password);
+        $length = strlen($password);
+        if ($length > 12 || (strpos($password, '%') !== false) || $length < 1) {
+            throw new FormatException(FormatException::$messages['POST_PASSWORD']);
+        }
+    } else {
+        throw new FormatException(FormatException::$messages['POST_PASSWORD']);
+    }
+    return $password;
 }
 /**
  * Проверяет, удовлетворяет ли тема сообщения ограничениям по размеру.
  * @param string $subject Тема сообщения.
  */
-function posts_check_subject_size($subject) {
-	if (strlen($subject) > Config::MAX_THEME_LENGTH) {
-		throw new LimitException(LimitException::$messages['MAX_SUBJECT_LENGTH']);
+function posts_check_subject_size($subject) { // Java CC
+    if (strlen($subject) > Config::MAX_THEME_LENGTH) {
+        throw new LimitException(LimitException::$messages['MAX_SUBJECT_LENGTH']);
     }
 }
 /**
@@ -1603,8 +1606,8 @@ function posts_check_text($text) { // Java CC
  * @param string $text Текст сообщения.
  */
 function posts_check_text_size($text) { // Java CC
-	if (mb_strlen($text) > Config::MAX_MESSAGE_LENGTH) {
-		throw new LimitException(LimitException::$messages['MAX_TEXT_LENGTH']);
+    if (mb_strlen($text) > Config::MAX_MESSAGE_LENGTH) {
+        throw new LimitException(LimitException::$messages['MAX_TEXT_LENGTH']);
     }
 }
 /**
@@ -2759,6 +2762,19 @@ function users_set_password($id, $password) { // Java CC
  */
 function videos_add($code, $widht, $height) { // Java CC
     return db_videos_add(DataExchange::getDBLink(), $code, $widht, $height);
+}
+/**
+ * Проверяет корректность кода видео.
+ * @param string $code Код видео.
+ * @return string
+ * Возвращает безопасный для использования код видео.
+ */
+function videos_check_code($code) { // Java CC
+    $code = RawURLEncode($code);
+    if (strlen($code) > Config::MAX_FILE_LINK) {
+        throw new LimitException(LimitException::$messages['MAX_FILE_LINK']);
+    }
+    return RawURLEncode($code);
 }
 
 /***************************************************

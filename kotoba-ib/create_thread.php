@@ -149,7 +149,7 @@ try {
         } elseif (($board['enable_youtube'] === null && Config::ENABLE_YOUTUBE || $board['enable_youtube'])
                 && isset($_POST['youtube_video_code'])
                 && $_POST['youtube_video_code'] != '') {
-            $youtube_video_code = check_youtube_video_code($_POST['youtube_video_code']);
+            $youtube_video_code = videos_check_code($_POST['youtube_video_code']);
             $attachment_type = Config::ATTACHMENT_TYPE_VIDEO;
         } else {
             throw new UploadException(UploadException::$messages['UNKNOWN']);
