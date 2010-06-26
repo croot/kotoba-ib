@@ -587,7 +587,7 @@ function db_boards_get_all($link)
 /**
  * Получает заданную доску.
  * @param MySQLi $link Связь с базой данных.
- * @param string|int $board_id Идентификатор доски.
+ * @param int $board_id Идентификатор доски.
  * @return array
  * Возвращает доски:<p>
  * 'id' - идентификатор.<br>
@@ -2760,9 +2760,9 @@ function db_threads_get_archived($link)
 }
 /**
  * Получает заданную нить, доступную для редактирования заданному пользователю.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param thread_id mixed <p>Идентификатор нити.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param int $thread_id Идентификатор нити.
+ * @param int $user_id Идентификатор пользователя.
  * @return array
  * Возвращает нить:<p>
  * 'id' - Идентификатор.<br>
@@ -2773,17 +2773,16 @@ function db_threads_get_archived($link)
  * 'sage' - Флаг поднятия нити.<br>
  * 'with_attachments' - Флаг вложений.</p>
  */
-function db_threads_get_changeable_by_id($link, $thread_id, $user_id)
-{
-	$result = mysqli_query($link, 'call sp_threads_get_changeable_by_id('
-		. $thread_id . ', ' . $user_id . ')');
-	if(!$result)
+function db_threads_get_changeable_by_id($link, $thread_id, $user_id) { // Java CC
+	$result = mysqli_query($link,
+            "call sp_threads_get_changeable_by_id($thread_id, $user_id)");
+	if (!$result) {
 		throw new CommonException(mysqli_error($link));
+    }
+
 	$thread = array();
-	if(mysqli_affected_rows($link) > 0)
-	{
-		if(($row = mysqli_fetch_assoc($result)) !== null)
-		{
+	if(mysqli_affected_rows($link) > 0) {
+		if(($row = mysqli_fetch_assoc($result)) !== null) {
 			$thread['id'] = $row['id'];
 			$thread['board'] = $row['board'];
 			$thread['original_post'] = $row['original_post'];
@@ -2792,9 +2791,10 @@ function db_threads_get_changeable_by_id($link, $thread_id, $user_id)
 			$thread['sage'] = $row['sage'];
 			$thread['with_attachments'] = $row['with_attachments'];
 		}
-	}
-	else
+	} else {
 		throw new PermissionException(PermissionException::$messages['THREAD_NOT_ALLOWED']);
+    }
+
 	mysqli_free_result($result);
 	db_cleanup_link($link);
 	return $thread;

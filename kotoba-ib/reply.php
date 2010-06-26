@@ -9,6 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 // Скрипт ответа в нить.
+
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
@@ -22,18 +23,29 @@ include Config::ABS_PATH . '/securimage/securimage.php';
 try {
     kotoba_session_start();
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup($_SESSION['language'],
+            $_SESSION['stylesheet']);
 
-    bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
+    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+        throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
+    }
+    if (($ban = bans_check($ip)) !== false) {
+        $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
+        $smarty->assign('reason', $ban['reason']);
+        session_destroy();
+        DataExchange::releaseResources();
+        die($smarty->fetch('banned.tpl'));
+    }
+
     /* TODO: Логичней было бы если бы проверка была вне фунции. */
     $thread = threads_get_changeable_by_id(threads_check_id($_POST['t']),
-        $_SESSION['user']);
+            $_SESSION['user']);
     if ($thread['archived']) {
         throw new CommonException(CommonException::$messages['THREAD_ARCHIVED']);
     }
 
     $board = boards_get_by_id($thread['board']);
-    
+
     if (!is_admin()
             && (($board['enable_captcha'] === null && Config::ENABLE_CAPTCHA)
             || $board['enable_captcha'])) {
@@ -43,7 +55,7 @@ try {
             throw new CommonException(CommonException::$messages['CAPTCHA']);
         }
     }
-    
+
     $goto = null;
     $should_update_goto = false;
     if (isset($_POST['goto'])) {
@@ -74,9 +86,7 @@ try {
 
     $name = null;
     $tripcode = null;
-	if ($board['force_anonymous']) {
-        $name = '';
-    } else {
+	if (!$board['force_anonymous']) {
 		posts_check_name_size($_POST['name']);
 		$name = htmlentities($_POST['name'], ENT_QUOTES, Config::MB_ENCODING);
 		$name = str_replace('\\', '\\\\', $name);
@@ -84,6 +94,7 @@ try {
 		$name = str_replace("\n", '', $name);
 		$name = str_replace("\r", '', $name);
 		posts_check_name_size($name);
+        // TODO: Check what tripcode cannot be empty string.
 		$name_tripcode = calculate_tripcode($name);
 		$name = $name_tripcode[0];
 		$tripcode = $name_tripcode[1];
@@ -98,9 +109,12 @@ try {
 
     posts_check_text_size($_POST['text']);
 	$text = htmlentities($_POST['text'], ENT_QUOTES, Config::MB_ENCODING);
-    $words = words_get_all_by_board($board['id']);
-    foreach ($words as $word) { //Замена регистронезависима
-        $text = preg_replace("#".$word['word']."#iu", $word['replace'], $text);
+    if (Config::ENABLE_WORDFILTER) {
+        $words = words_get_all_by_board($board['id']);
+        foreach ($words as $word) {
+            $text = preg_replace("#".$word['word']."#iu", $word['replace'],
+                    $text);
+        }
     }
 	$text = str_replace('\\', '\\\\', $text);
 	posts_check_text_size($text);
@@ -108,7 +122,7 @@ try {
 	posts_prepare_text($text, $board);
 	posts_check_text_size($text);
 
-	$attachment_type = null;	// Тип вложения.
+	$attachment_type = null;
     if ($thread['with_attachments']
             || ($thread['with_attachments'] === null && $board['with_attachments'])) {
         if ($_FILES['file']['error'] != UPLOAD_ERR_NO_FILE) {
@@ -139,9 +153,15 @@ try {
         } elseif (($board['enable_macro'] === null && Config::ENABLE_MACRO || $board['enable_macro'])
                 && isset($_POST['macrochan_tag'])
                 && $_POST['macrochan_tag'] != '') {
+            /* TODO Actually macrochan tag entity is a pair: id, name. Is
+             * $macrochan_tag should be $macrochan_tag_name?
+             */
+            $macrochan_tag = macrochan_tags_check($_POST['macrochan_tag']);
             $attachment_type = Config::ATTACHMENT_TYPE_LINK;
-        } elseif (($board['enable_youtube'] === null && Config::ENABLE_YOUTUBE || $board['enable_youtube']) && isset($_POST['youtube_video_code']) && $_POST['youtube_video_code'] != '') {
-            $youtube_video_code = check_youtube_video_code($_POST['youtube_video_code']);
+        } elseif (($board['enable_youtube'] === null && Config::ENABLE_YOUTUBE || $board['enable_youtube'])
+                && isset($_POST['youtube_video_code'])
+                && $_POST['youtube_video_code'] != '') {
+            $youtube_video_code = videos_check_code($_POST['youtube_video_code']);
             $attachment_type = Config::ATTACHMENT_TYPE_VIDEO;
         }
     }
@@ -224,10 +244,14 @@ try {
                     $thumb_dimensions['y']);
             }
         } elseif ($attachment_type == Config::ATTACHMENT_TYPE_LINK) {
-            $file_names[0] = 'http://12ch.ru/macro/index.php/image/3478.jpg';
-            $file_names[1] = 'http://12ch.ru/macro/index.php/thumb/3478.jpg';
-            $attachment_id = link_add($file_names[0], '640', '480', 63290,
-                $file_names[1], '192', '144');
+            $macrochan_image = macrochan_images_get_random($macrochan_tag);
+            $macrochan_image['name'] = "http://12ch.ru/macro/index.php/image/{$macrochan_image['name']}";
+            $macrochan_image['thumbnail'] = "http://12ch.ru/macro/index.php/thumb/{$macrochan_image['thumbnail']}";
+            $attachment_id = links_add($macrochan_image['name'],
+                    $macrochan_image['width'], $macrochan_image['height'],
+                    $macrochan_image['size'], $macrochan_image['thumbnail'],
+                    $macrochan_image['thumbnail_w'],
+                    $macrochan_image['thumbnail_h']);
         } elseif ($attachment_type == Config::ATTACHMENT_TYPE_VIDEO) {
             $attachment_id = videos_add($youtube_video_code, 220, 182);
         } else {
@@ -236,10 +260,10 @@ try {
     }
 
     date_default_timezone_set(Config::DEFAULT_TIMEZONE);
-    $post = posts_add($board['id'], $thread['id'], $_SESSION['user'],
-        $password, $name, $tripcode, ip2long($_SERVER['REMOTE_ADDR']),
-        $subject, date(Config::DATETIME_FORMAT), $text, $sage);
-    
+    $post = posts_add($board['id'], $thread['id'], $_SESSION['user'], $password,
+            $name, $tripcode, ip2long($_SERVER['REMOTE_ADDR']), $subject,
+            date(Config::DATETIME_FORMAT), $text, $sage);
+
     if ($attachment_type !== null) {
         switch ($attachment_type) {
             case Config::ATTACHMENT_TYPE_FILE:
@@ -259,7 +283,7 @@ try {
                 break;
         }
     }
-    
+
 	if ($_SESSION['user'] != Config::GUEST_ID && $should_update_password) {
         users_set_password($_SESSION['user'], $password);
     }

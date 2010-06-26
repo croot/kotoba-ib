@@ -96,12 +96,12 @@ try {
     posts_check_subject_size($subject);
     $subject = str_replace("\n", '', $subject);
     $subject = str_replace("\r", '', $subject);
-	
+
     posts_check_text_size($_POST['text']);
     $text = htmlentities($_POST['text'], ENT_QUOTES, Config::MB_ENCODING);
     if (Config::ENABLE_WORDFILTER) {
         $words = words_get_all_by_board(boards_check_id($_POST['board']));
-        foreach ($words as $word) { //Замена регистронезависима
+        foreach ($words as $word) {
             $text = preg_replace("#".$word['word']."#iu", $word['replace'],
                     $text);
         }
@@ -140,7 +140,8 @@ try {
                 $attachment_type = Config::ATTACHMENT_TYPE_FILE;
             }
         } elseif (($board['enable_macro'] === null && Config::ENABLE_MACRO || $board['enable_macro'])
-                && isset($_POST['macrochan_tag']) && $_POST['macrochan_tag'] != '') {
+                && isset($_POST['macrochan_tag'])
+                && $_POST['macrochan_tag'] != '') {
             /* TODO Actually macrochan tag entity is a pair: id, name. Is
              * $macrochan_tag should be $macrochan_tag_name?
              */
@@ -195,7 +196,7 @@ try {
                 $file_names = create_filenames($upload_type['store_extension']);
             }
         }
-        
+
         if ($attachment_type == Config::ATTACHMENT_TYPE_FILE) {
             if ($file_exists) {
                 $attachment_id = $same_attachments[0]['id'];
@@ -253,12 +254,12 @@ try {
     $thread = threads_add($board['id'], null, null, 0, null);
     date_default_timezone_set(Config::DEFAULT_TIMEZONE);
     $post = posts_add($board['id'], $thread['id'], $_SESSION['user'], $password,
-        $name, $tripcode, ip2long($_SERVER['REMOTE_ADDR']), $subject,
-        date(Config::DATETIME_FORMAT), $text, null);
+            $name, $tripcode, ip2long($_SERVER['REMOTE_ADDR']), $subject,
+            date(Config::DATETIME_FORMAT), $text, null);
 
     // Закрепляем сообщение как оригинальное сообщение созданной пустой нити.
     threads_edit_original_post($thread['id'], $post['number']);
-    
+
     if ($attachment_type !== null) {
         switch ($attachment_type) {
             case Config::ATTACHMENT_TYPE_FILE:
