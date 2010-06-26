@@ -682,7 +682,7 @@ function boards_get_all()
 }
 /**
  * Получает заданную доску.
- * @param board_id mixed <p>Идентификатор доски.</p>
+ * @param int $board_id Идентификатор доски.
  * @return array
  * Возвращает доску:<p>
  * 'id' - идентификатор.<br>
@@ -700,9 +700,8 @@ function boards_get_all()
  * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
  * 'category' - категория.</p>
  */
-function boards_get_by_id($board_id)
-{
-	return db_boards_get_by_id(DataExchange::getDBLink(), $board_id);
+function boards_get_by_id($board_id) { // Java CC
+    return db_boards_get_by_id(DataExchange::getDBLink(), $board_id);
 }
 /**
  * Получает заданную доску.
@@ -2142,8 +2141,8 @@ function threads_get_archived()
 }
 /**
  * Получает заданную нить, доступную для изменения заданному пользователю.
- * @param thread_id mixed <p>Идентификатор нити.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param int $thread_id Идентификатор нити.
+ * @param int $user_id Идентификатор пользователя.
  * @return array
  * Возвращает нить:<p>
  * 'id' - Идентификатор.<br>
@@ -2154,10 +2153,9 @@ function threads_get_archived()
  * 'sage' - Флаг поднятия нити.<br>
  * 'with_attachments' - Флаг вложений.</p>
  */
-function threads_get_changeable_by_id($thread_id, $user_id)
-{
-	return db_threads_get_changeable_by_id(DataExchange::getDBLink(),
-		$thread_id, $user_id);
+function threads_get_changeable_by_id($thread_id, $user_id) { // Java CC
+    return db_threads_get_changeable_by_id(DataExchange::getDBLink(),
+            $thread_id, $user_id);
 }
 /**
  * Получает нити, доступные для модерирования заданному пользователю.
