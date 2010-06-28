@@ -2576,7 +2576,7 @@ function db_stylesheets_delete($link, $id)
  * 'id' - Идентификатор.<br>
  * 'name' - Имя файла.</p>
  */
-function db_stylesheets_get_all($link) {
+function db_stylesheets_get_all($link) { // Java CC
     $result = mysqli_query($link, 'call sp_stylesheets_get_all()');
     if (!$result) {
         throw new CommonException(mysqli_error($link));
@@ -3362,26 +3362,34 @@ function db_user_groups_get_all($link)
 
 /**
  * Редактирует пользователя с заданным ключевым словом или добавляет нового.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param keyword string <p>Хеш ключевого слова.</p>
- * @param posts_per_thread mixed <p>Число сообщений в нити на странице просмотра доски.</p>
- * @param threads_per_page mixed <p>Число нитей на странице просмотра доски.</p>
- * @param lines_per_post mixed <p>Количество строк в предпросмотре сообщения.</p>
- * @param language mixed <p>Идентификатор языка.</p>
- * @param stylesheet mixed <p>Идентификатор стиля.</p>
- * @param password mixed <p>Пароль для удаления сообщений.</p>
- * @param goto string <p>Перенаправление.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param string $keyword Хеш ключевого слова.
+ * @param int|null $posts_per_thread Число сообщений в нити на странице просмотра доски.
+ * @param int|null $threads_per_page Число нитей на странице просмотра доски.
+ * @param int|null $lines_per_post Количество строк в предпросмотре сообщения.
+ * @param int $language Идентификатор языка.
+ * @param int $stylesheet Идентификатор стиля.
+ * @param string|null $password Пароль для удаления сообщений.
+ * @param string|null $goto Перенаправление.
  */
 function db_users_edit_by_keyword($link, $keyword, $posts_per_thread,
-    $threads_per_page, $lines_per_post, $language, $stylesheet, $password, $goto)
-{
-    $password = $password === null? 'null' : '\'' . $password . '\'';
-    $goto = $goto === null? 'null' : '\'' . $goto . '\'';
-    if(!mysqli_query($link, 'call sp_users_edit_by_keyword(\'' . $keyword
-         . '\', ' . $posts_per_thread . ', ' . $threads_per_page . ', '
-         . $lines_per_post . ', ' . $language . ', ' . $stylesheet . ', '
-         . $password . ', ' . $goto . ')'))
-    {
+        $threads_per_page, $lines_per_post, $language, $stylesheet, $password,
+        $goto) { // Java CC
+    if ($posts_per_thread === null) {
+        $posts_per_thread = 'null';
+    }
+    if ($threads_per_page === null) {
+        $threads_per_page = 'null';
+    }
+    if ($lines_per_post === null) {
+        $lines_per_post = 'null';
+    }
+    $password = ($password === null? 'null' : "'$password'");
+    $goto = ($goto === null? 'null' : "'$goto'");
+    if(!mysqli_query($link,
+            "call sp_users_edit_by_keyword('$keyword', $posts_per_thread,
+            $threads_per_page, $lines_per_post, $language, $stylesheet,
+            $password, $goto)")) {
         throw new CommonException(mysqli_error($link));
     }
     db_cleanup_link($link);
@@ -3410,8 +3418,8 @@ function db_users_get_all($link)
 }
 /**
  * Получает ползователя с заданным ключевым словом.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param keyword string <p>Хеш ключевого слова.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param string $keyword Хеш ключевого слова.
  * @return array
  * Возвращает настройки:<p>
  * 'id' - Идентификатор.<br>
@@ -3424,18 +3432,17 @@ function db_users_get_all($link)
  * 'goto' - Перенаправление.<br>
  * 'groups' - Группы, в которые входит пользователь.</p>
  */
-function db_users_get_by_keyword($link, $keyword)
-{
-    if(mysqli_multi_query($link,
-        'call sp_users_get_by_keyword(\'' . $keyword . '\')') == false)
-    {
+function db_users_get_by_keyword($link, $keyword) { // Java CC
+    if (mysqli_multi_query($link,
+            "call sp_users_get_by_keyword('$keyword')") == false) {
         throw new CommonException(mysqli_error($link));
     }
+
     // Настройки пользователя.
-    if(($result = mysqli_store_result($link)) == false)
+    if (($result = mysqli_store_result($link)) == false) {
         throw new CommonException(mysqli_error($link));
-    if(($row = mysqli_fetch_assoc($result)) !== null)
-    {
+    }
+    if (($row = mysqli_fetch_assoc($result)) !== null) {
         $user_settings['id'] = $row['id'];
         $user_settings['posts_per_thread'] = $row['posts_per_thread'];
         $user_settings['threads_per_page'] = $row['threads_per_page'];
@@ -3444,20 +3451,25 @@ function db_users_get_by_keyword($link, $keyword)
         $user_settings['stylesheet'] = $row['stylesheet'];
         $user_settings['password'] = $row['password'];
         $user_settings['goto'] = $row['goto'];
-    }
-    else
+    } else {
         throw new PermissionException(PermissionException::$messages['USER_NOT_EXIST']);
+    }
     mysqli_free_result($result);
-    if(!mysqli_next_result($link))
+    if (!mysqli_next_result($link)) {
         throw new CommonException(mysqli_error($link));
+    }
+
     // Группы пользователя.
-    if(($result = mysqli_store_result($link)) == false)
+    if (($result = mysqli_store_result($link)) == false) {
         throw new CommonException(mysqli_error($link));
+    }
     $user_settings['groups'] = array();
-    while(($row = mysqli_fetch_assoc($result)) !== null)
+    while (($row = mysqli_fetch_assoc($result)) !== null) {
         array_push($user_settings['groups'], $row['name']);
-    if(count($user_settings['groups']) <= 0)
+    }
+    if (count($user_settings['groups']) <= 0) {
         throw new NodataException(NodataException::$messages['USER_WITHOUT_GROUP']);
+    }
     mysqli_free_result($result);
     db_cleanup_link($link);
     return $user_settings;

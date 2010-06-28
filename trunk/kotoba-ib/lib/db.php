@@ -1192,24 +1192,24 @@ function languages_check_code($code)
 }
 /**
  * Проверяет корректность идентификатора языка.
- * @param id mixed <p>Идентификатор языка.</p>
+ * @param int $id Идентификатор языка.
  * @return string
  * Возвращает безопасный для использования идентификатор языка.
  */
-function languages_check_id($id)
-{
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['LANGUAGE_ID']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['LANGUAGE_ID']);
-	return $id;
+function languages_check_id($id) {
+    $length = strlen($id);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if ($length <= $max_int_length && $length >= 1) {
+        $id = RawUrlEncode($id);
+        $length = strlen($id);
+        if ($length > $max_int_length || (ctype_digit($id) === false)
+                || $length < 1) {
+            throw new FormatException(FormatException::$messages['LANGUAGE_ID']);
+        }
+    } else {
+        throw new FormatException(FormatException::$messages['LANGUAGE_ID']);
+    }
+    return $id;
 }
 /**
  * Удаляет язык с заданным идентификатором.
@@ -1226,9 +1226,8 @@ function languages_delete($id)
  * 'id' - Идентификатор.<br>
  * 'code' - Код ISO_639-2.</p>
  */
-function languages_get_all()
-{
-	return db_languages_get_all(DataExchange::getDBLink());
+function languages_get_all() {
+    return db_languages_get_all(DataExchange::getDBLink());
 }
 
 /************************************************
@@ -1925,27 +1924,24 @@ function stylesheets_add($name)
 }
 /**
  * Проверяет корректность идентификатора стиля.
- * @param id mixed <p>Идентификатор стиля.</p>
+ * @param int $id Идентификатор стиля.
  * @return string
  * Возвращает безопасный для использования идентификатор стиля.
  */
-function stylesheets_check_id($id)
-{
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false)
-			|| $length < 1)
-		{
-			throw new FormatException(FormatException::$messages['STYLESHEET_ID']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['STYLESHEET_ID']);
-	return $id;
+function stylesheets_check_id($id) {
+    $length = strlen($id);
+    $max_int_length = strlen('' . PHP_INT_MAX);
+    if ($length <= $max_int_length && $length >= 1) {
+        $id = RawUrlEncode($id);
+        $length = strlen($id);
+        if ($length > $max_int_length || (ctype_digit($id) === false)
+                || $length < 1) {
+            throw new FormatException(FormatException::$messages['STYLESHEET_ID']);
+        }
+    } else {
+        throw new FormatException(FormatException::$messages['STYLESHEET_ID']);
+    }
+    return $id;
 }
 /**
  * Проверяет корректность имени файла стиля.
@@ -1982,9 +1978,8 @@ function stylesheets_delete($id)
  * 'id' - Идентификатор.<br>
  * 'name' - Имя файла.</p>
  */
-function stylesheets_get_all()
-{
-	return db_stylesheets_get_all(DataExchange::getDBLink());
+function stylesheets_get_all() { // Java CC
+    return db_stylesheets_get_all(DataExchange::getDBLink());
 }
 
 /********************
@@ -2601,10 +2596,10 @@ function users_check_id($id) { // Java CC
  */
 function users_check_keyword($keyword) { // Java CC
     $length = strlen($keyword);
-    if ($length <= 32 && $length >= 16) {
+    if ($length <= 32 && $length >= 2) {
         $keyword = RawUrlEncode($keyword);
         $length = strlen($keyword);
-        if ($length > 32 || (strpos($keyword, '%') !== false) || $length < 16) {
+        if ($length > 32 || (strpos($keyword, '%') !== false) || $length < 2) {
             throw new FormatException(FormatException::$messages['USER_KEYWORD']);
         }
     } else {
@@ -2684,21 +2679,20 @@ function users_check_threads_per_page($threads_per_page) { // Java CC
 }
 /**
  * Редактирует пользователя с заданным ключевым словом или добавляет нового.
- * @param keyword string <p>Хеш ключевого слова.</p>
- * @param posts_per_thread mixed <p>Число сообщений в нити на странице просмотра доски.</p>
- * @param threads_per_page mixed <p>Число нитей на странице просмотра доски.</p>
- * @param lines_per_post mixed <p>Количество строк в предпросмотре сообщения.</p>
- * @param language mixed <p>Идентификатор языка.</p>
- * @param stylesheet mixed <p>Идентификатор стиля.</p>
- * @param password mixed <p>Пароль для удаления сообщений.</p>
- * @param goto string <p>Перенаправление.</p>
+ * @param string $keyword Хеш ключевого слова.
+ * @param int|null $posts_per_thread Число сообщений в нити на странице просмотра доски.
+ * @param int|null $threads_per_page Число нитей на странице просмотра доски.
+ * @param int|null $lines_per_post Количество строк в предпросмотре сообщения.
+ * @param int $language Идентификатор языка.
+ * @param int $stylesheet Идентификатор стиля.
+ * @param string|null $password Пароль для удаления сообщений.
+ * @param string|null $goto Перенаправление.
  */
 function users_edit_by_keyword($keyword, $posts_per_thread, $threads_per_page,
-    $lines_per_post, $language, $stylesheet, $password, $goto)
-{
+        $lines_per_post, $language, $stylesheet, $password, $goto) { // Java CC
     db_users_edit_by_keyword(DataExchange::getDBLink(), $keyword,
-        $posts_per_thread, $threads_per_page, $lines_per_post, $language,
-        $stylesheet, $password, $goto);
+            $posts_per_thread, $threads_per_page, $lines_per_post, $language,
+            $stylesheet, $password, $goto);
 }
 /**
  * Получает всех пользователей.
@@ -2712,7 +2706,7 @@ function users_get_all()
 }
 /**
  * Получает ползователя с заданным ключевым словом.
- * @param keyword string <p>Хеш ключевого слова.</p>
+ * @param string $keyword Хеш ключевого слова.
  * @return array
  * Возвращает настройки:<p>
  * 'id' - Идентификатор.<br>
@@ -2725,8 +2719,7 @@ function users_get_all()
  * 'goto' - Перенаправление.<br>
  * 'groups' - Группы, в которые входит пользователь.</p>
  */
-function users_get_by_keyword($keyword)
-{
+function users_get_by_keyword($keyword) { // Java CC
     return db_users_get_by_keyword(DataExchange::getDBLink(), $keyword);
 }
 /**

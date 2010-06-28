@@ -2579,52 +2579,43 @@ end|
 -- ----------------------------
 
 -- Редактирует пользователя с заданным ключевым словом или добавляет нового.
---
--- Аргументы:
--- _keyword - Хеш ключевого слова.
--- _posts_per_thread - Число сообщений в нити на странице просмотра доски.
--- _threads_per_page - Число нитей на странице просмотра доски.
--- _lines_per_post - Количество строк в предпросмотре сообщения.
--- _language - Идентификатор языка.
--- _stylesheet - Идентификатор стиля.
--- _password - Пароль для удаления сообщений.
--- _goto - Перенаправление.
 create procedure sp_users_edit_by_keyword
 (
-	_keyword varchar(32),
-	_posts_per_thread int,
-	_threads_per_page int,
-	_lines_per_post int,
-	_language int,
-	_stylesheet int,
-	_password varchar(12),
-	_goto varchar(32)
+    _keyword varchar(32),   -- Хеш ключевого слова.
+    _posts_per_thread int,  -- Число сообщений в нити на странице просмотра доски.
+    _threads_per_page int,  -- Число нитей на странице просмотра доски.
+    _lines_per_post int,    -- Количество строк в предпросмотре сообщения.
+    _language int,          -- Идентификатор языка.
+    _stylesheet int,        -- Идентификатор стиля.
+    _password varchar(12),  -- Пароль для удаления сообщений.
+    _goto varchar(32)       -- Перенаправление.
 )
 begin
-	declare user_id int;
-	set @user_id = null;
-	select id into user_id from users where keyword = _keyword;
-	if(user_id is null)
-	then
-		-- Создаём ногового пользователя
-		insert into users (keyword, threads_per_page, posts_per_thread,
-			lines_per_post, stylesheet, language, password, `goto`)
-		values (_keyword, _threads_per_page, _posts_per_thread,
-			_lines_per_post, _stylesheet, _language, _password, _goto);
-		select last_insert_id() into user_id;
-		insert into user_groups (user, `group`) select user_id, id from groups
-			where name = 'Users';
-	else
-		-- Редактируем настройки существующего
-		update users set threads_per_page = _threads_per_page,
-			posts_per_thread = _posts_per_thread,
-			lines_per_post = _lines_per_post,
-			stylesheet = _stylesheet,
-			language = _language,
-			password = _password,
-			`goto` = _goto
-		where id = user_id;
-	end if;
+    declare user_id int default null;
+    -- TODO ???
+    set @user_id = null;
+
+    select id into user_id from users where keyword = _keyword;
+    if (user_id is null) then
+        -- Создаём ногового пользователя
+        insert into users (keyword, threads_per_page, posts_per_thread,
+                lines_per_post, stylesheet, language, password, `goto`)
+            values (_keyword, _threads_per_page, _posts_per_thread,
+                _lines_per_post, _stylesheet, _language, _password, _goto);
+        select last_insert_id() into user_id;
+        insert into user_groups (user, `group`) select user_id, id from groups
+            where name = 'Users';
+    else
+        -- Редактируем настройки существующего
+        update users set threads_per_page = _threads_per_page,
+                posts_per_thread = _posts_per_thread,
+                lines_per_post = _lines_per_post,
+                stylesheet = _stylesheet,
+                language = _language,
+                password = _password,
+                `goto` = _goto
+            where id = user_id;
+    end if;
 end|
 
 -- Выбирает всех пользователей.
@@ -2634,12 +2625,9 @@ begin
 end|
 
 -- Выбирает ползователя с заданным ключевым словом.
---
--- Аргументы:
--- _keyword - Хеш ключевого слова.
 create procedure sp_users_get_by_keyword
 (
-	_keyword varchar(32)
+    _keyword varchar(32)    -- Хеш ключевого слова.
 )
 begin
     declare user_id int;

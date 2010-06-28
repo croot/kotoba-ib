@@ -148,7 +148,7 @@ create table boards							-- Доски.
 )
 engine=InnoDB|
 
-create table users						-- Пользователи.
+create table users                      -- Пользователи.
 (
     id int not null auto_increment,     -- Идентификатор.
     keyword varchar(32) default null,   -- Хеш ключевого слова.

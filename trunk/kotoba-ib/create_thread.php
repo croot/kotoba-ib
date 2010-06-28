@@ -2,7 +2,7 @@
 /*************************************
  * Этот файл является частью Kotoba. *
  * Файл license.txt содержит условия *
- * распространения Kotoba.		   *
+ * распространения Kotoba.           *
  *************************************/
 /*********************************
  * This file is part of Kotoba.  *
@@ -60,12 +60,13 @@ try {
             $should_update_goto = true;
         }
     } else {
-		throw new FormatException(FormatException::$messages['USER_GOTO']);
+        throw new FormatException(FormatException::$messages['USER_GOTO']);
     }
 
     $password = null;
     $should_update_password = false;
     if (isset($_POST['password']) && $_POST['password'] != '') {
+        var_dump($_POST['password']);
         $password = posts_check_password($_POST['password']);
         if (!isset($_SESSION['password'])
                 || $_SESSION['password'] != $password) {
@@ -224,7 +225,7 @@ try {
                     . "/{$board['name']}/thumb/{$file_names[1]}";
                 move_uploded_file($uploaded_file_path, $abs_img_path);
                 $force = $upload_type['upload_handler_name'] === 'thumb_internal_png'
-                    ? true : false;	// TODO Unhardcode handler name.
+                    ? true : false; // TODO Unhardcode handler name.
                 $thumb_dimensions = create_thumbnail($abs_img_path,
                     $abs_thumb_path, $img_dimensions, $upload_type,
                     Config::THUMBNAIL_WIDTH, Config::THUMBNAIL_HEIGHT,
@@ -306,8 +307,8 @@ try {
 } catch (Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();
-	if (isset($abs_file_path)) { // Удаление загруженного файла.
-		@unlink($abs_file_path);
+    if (isset($abs_file_path)) { // Удаление загруженного файла.
+        @unlink($abs_file_path);
     }
     if (isset($abs_img_path)) { // Удаление загруженного файла.
         @unlink($abs_img_path);
