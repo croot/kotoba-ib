@@ -102,23 +102,23 @@ function locale_setup() { // Java CC
  * Загружает настройки пользователя по заданному ключевому слову.
  * @param keyword string <p>Хеш ключевого слова.</p>
  */
-function load_user_settings($keyword) { // Java CC Done.
-	$user_settings = users_get_by_keyword($keyword);
-	$_SESSION['user'] = $user_settings['id'];
-	$_SESSION['groups'] = $user_settings['groups'];
-	$_SESSION['threads_per_page'] = $user_settings['threads_per_page'];
-	$_SESSION['posts_per_thread'] = $user_settings['posts_per_thread'];
-	$_SESSION['lines_per_post'] = $user_settings['lines_per_post'];
-	$_SESSION['stylesheet'] = $user_settings['stylesheet'];
+function load_user_settings($keyword) { // Java CC
+    $user_settings = users_get_by_keyword($keyword);
+    $_SESSION['user'] = $user_settings['id'];
+    $_SESSION['groups'] = $user_settings['groups'];
+    $_SESSION['threads_per_page'] = $user_settings['threads_per_page'];
+    $_SESSION['posts_per_thread'] = $user_settings['posts_per_thread'];
+    $_SESSION['lines_per_post'] = $user_settings['lines_per_post'];
+    $_SESSION['stylesheet'] = $user_settings['stylesheet'];
 
-	// Язык мог измениться на язык пользователя.
-	if($_SESSION['language'] != $user_settings['language']) {
-		require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+    // Язык мог измениться на язык пользователя.
+    if($_SESSION['language'] != $user_settings['language']) {
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
     }
-	$_SESSION['language'] = $user_settings['language'];
-	$_SESSION['password'] = $user_settings['password'] == ''
-		? null : $user_settings['password'];
-	$_SESSION['goto'] = $user_settings['goto'];
+    $_SESSION['language'] = $user_settings['language'];
+    $_SESSION['password'] = $user_settings['password'] == ''
+        ? null : $user_settings['password'];
+    $_SESSION['goto'] = $user_settings['goto'];
 }
 /**
  * Проверяет корректность номера страницы в постраничной разбивке просмотра

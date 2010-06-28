@@ -18,8 +18,20 @@ try
 {
 	kotoba_session_start();
 	locale_setup();
-	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
-	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
+	$smarty = new SmartyKotobaSetup($_SESSION['language'],
+            $_SESSION['stylesheet']);
+
+	if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+        throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
+    }
+    if (($ban = bans_check($ip)) !== false) {
+        $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
+        $smarty->assign('reason', $ban['reason']);
+        session_destroy();
+        DataExchange::releaseResources();
+        die($smarty->fetch('banned.tpl'));
+    }
+
 	$smarty->assign('id', $_SESSION['user']);
 	$smarty->assign('groups', $_SESSION['groups']);
 	$smarty->display('my_id.tpl');
