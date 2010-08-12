@@ -364,3 +364,8 @@ create table macrochan_tags_images  -- Связь тегов и изображе
     constraint foreign key (image) references macrochan_images (id) on delete restrict on update restrict
 )
 engine=InnoDB|
+
+create table db_version         -- Версия базы данных.
+(
+    version int default null    -- Текущий номер версии базы данных.
+)
