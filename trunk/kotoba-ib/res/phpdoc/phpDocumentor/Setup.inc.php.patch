@@ -1,0 +1,4 @@
+723c723
+<                             if (stristr($ret, "utf-8") !== "")
+---
+>                             if (stristr($ret, "utf-8") === false)
