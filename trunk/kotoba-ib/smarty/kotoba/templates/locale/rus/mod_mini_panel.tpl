@@ -54,7 +54,7 @@
 </form>
 <form action="{$DIR_PATH}/admin/hard_ban.php" method="post">
 	<input type="submit" name="submit" value="БФ" title="Бан в фаерволе">
-	<input type="hidden" name="range_beg" value="{$ip}">
-	<input type="hidden" name="range_end" value="{$ip}">
+	<input type="hidden" name="new_range_beg" value="{$ip}">
+	<input type="hidden" name="new_range_end" value="{$ip}">
 </form>]
 </span>

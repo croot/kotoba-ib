@@ -365,7 +365,15 @@ create table macrochan_tags_images  -- Связь тегов и изображе
 )
 engine=InnoDB|
 
-create table db_version         -- Версия базы данных.
+create table db_version     -- Версия базы данных.
 (
-    version int default null    -- Текущий номер версии базы данных.
+    version int default 0   -- Текущий номер версии базы данных.
 )
+engine=InnoDB|
+
+create table hard_ban               -- Блокировки в фаерволе.
+(
+    range_beg varchar(15) not null, -- Начало диапазона IP-адресов.
+    range_end varchar(15) not null  -- Конец диапазона IP-адресов.
+)
+engine=InnoDB|

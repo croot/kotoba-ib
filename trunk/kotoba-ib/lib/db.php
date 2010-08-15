@@ -272,27 +272,27 @@ function bans_check($ip) { // Java CC
 }
 /**
  * Проверяет корректность начала диапазона IP-адресов.
- * @param range_beg string <p>Начало диапазона IP-адресов.</p>
- * @return string
- * Возвращает безопасное для использования начало диапазона IP-адресов.
+ * @param string $range_beg Начало диапазона IP-адресов.
+ * @return string Возвращает безопасное для использования начало диапазона
+ * IP-адресов.
  */
-function bans_check_range_beg($range_beg)
-{
-	if(($range_beg = ip2long($range_beg)) == false)
-		throw new FormatException(FormatException::$messages['BANS_RANGE_BEG']);
-	return $range_beg;
+function bans_check_range_beg($range_beg) {
+    if ( ($range_beg = ip2long($range_beg)) == false) {
+        throw new FormatException(FormatException::$messages['BANS_RANGE_BEG']);
+    }
+    return $range_beg;
 }
 /**
  * Проверяет корректность конца диапазона IP-адресов.
- * @param range_end string <p>Конец диапазона IP-адресов.</p>
- * @return string
- * Возвращает безопасный для использования конец диапазона IP-адресов.
+ * @param string $range_end Конец диапазона IP-адресов.
+ * @return string Возвращает безопасный для использования конец диапазона
+ * IP-адресов.
  */
-function bans_check_range_end($range_end)
-{
-	if(($range_end = ip2long($range_end)) == false)
-		throw new FormatException(FormatException::$messages['BANS_RANGE_END']);
-	return $range_end;
+function bans_check_range_end($range_end) {
+    if ( ($range_end = ip2long($range_end)) == false) {
+        throw new FormatException(FormatException::$messages['BANS_RANGE_END']);
+    }
+    return $range_end;
 }
 /**
  * Проверяет корректность причины блокировки.
@@ -1024,6 +1024,19 @@ function groups_delete($groups)
 function groups_get_all()
 {
 	return db_groups_get_all(DataExchange::getDBLink());
+}
+
+/***********************************
+  Работа с блокировками в фаерволе. 
+ ***********************************/
+
+/**
+ * Блокирует диапазон IP-адресов в фаерволе.
+ * @param string $range_beg Начало диапазона IP-адресов.
+ * @param string $range_end Конец диапазона IP-адресов.
+ */
+function hard_ban_add($range_beg, $range_end) {
+    db_hard_ban_add(DataExchange::getDBLink(), $range_beg, $range_end);
 }
 
 /******************************
