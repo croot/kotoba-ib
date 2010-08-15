@@ -30,7 +30,7 @@ function db_connect()
 	return $link;
 }
 /**
- * Очищяет связь с базой данных от всех полученных результатов. Обязательна к
+ * Очищает связь с базой данных от всех полученных результатов. Обязательна к
  * вызову после вызова хранимой процедуры.
  * @param MySQLi $link Связь с базой данных.
  */
@@ -1190,6 +1190,23 @@ function db_groups_get_all($link)
 	mysqli_free_result($result);
 	db_cleanup_link($link);
 	return $groups;
+}
+
+/***********************************
+  Работа с блокировками в фаерволе.
+ ***********************************/
+
+/**
+ * Блокирует диапазон IP-адресов в фаерволе.
+ * @param MySQLi $link Связь с базой данных.
+ * @param string $range_beg Начало диапазона IP-адресов.
+ * @param string $range_end Конец диапазона IP-адресов.
+ */
+function db_hard_ban_add($link, $range_beg, $range_end) {
+    if (!mysqli_query($link, "call sp_hard_ban_add('$range_beg', '$range_end')")) {
+        throw new CommonException(mysqli_error($link));
+    }
+    db_cleanup_link($link);
 }
 
 /******************************

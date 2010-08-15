@@ -40,6 +40,8 @@ drop procedure if exists sp_groups_add|
 drop procedure if exists sp_groups_delete|
 drop procedure if exists sp_groups_get_all|
 
+drop procedure if exists sp_hard_ban_add|
+
 drop procedure if exists sp_hidden_threads_add|
 drop procedure if exists sp_hidden_threads_delete|
 drop procedure if exists sp_hidden_threads_get_by_board|
@@ -853,6 +855,27 @@ end|
 create procedure sp_groups_get_all ()
 begin
 	select id, name from groups order by id;
+end|
+
+-- -------------------------------------
+--  Работа с блокировками в фаерволе. --
+-- -------------------------------------
+
+-- Блокирует диапазон IP-адресов в фаерволе.
+create procedure sp_hard_ban_add
+(
+    _range_beg varchar(15), -- Начало диапазона IP-адресов.
+    _range_end varchar(15)  -- Конец диапазона IP-адресов.
+)
+begin
+    insert into hard_ban (range_beg, range_end) values (_range_beg, _range_end);
+end|
+
+-- Выбирает все диапазоны IP-адресов для блокировки и очищает таблицу.
+create procedure sp_hard_ban_execute ()
+begin
+    select range_beg, range_end from hard_ban;
+    delete from hard_ban where 1 = 1;
 end|
 
 -- ------------------------------
