@@ -25,6 +25,5 @@
 <a href="{$DIR_PATH}/admin/edit_upload_types.php">Редактирование типов загружаемых файлов.</a><br>
 <a href="{$DIR_PATH}/admin/edit_board_upload_types.php">Редактирование типов загружаемых файлов для досок.</a><br>
 <a href="{$DIR_PATH}/admin/edit_boards.php">Редактирование досок.</a><br>
-<a href="{$DIR_PATH}/admin/edit_boards_annotation.php">Редактирование аннотаций досок.</a><br>
 <a href="{$DIR_PATH}/admin/edit_bans.php">Редактирование банов.</a><br>
 <a href="{$DIR_PATH}/admin/edit_threads.php">Редактирование настроек нитей.</a>

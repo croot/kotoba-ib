@@ -1,18 +1,23 @@
 <?php
-/*************************************
+/* ***********************************
  * Этот файл является частью Kotoba. *
  * Файл license.txt содержит условия *
  * распространения Kotoba.           *
  *************************************/
-/*********************************
- * This file is part of Kotoba.  *
- * See license.txt for more info.*
- *********************************/
-// Скрипт, предоставляющий прослойку из фукнций для фукнций работы с БД.
+/* ********************************
+ * This file is part of Kotoba.   *
+ * See license.txt for more info. *
+ **********************************/
+
+/**
+ * Скрипт, предоставляющий прослойку из фукнций для фукнций работы с БД.
+ * @package api
+ */
 
 // Конечный скрипт должен загрузить конфигурацию!
-if(!class_exists("Config"))
+if (!class_exists("Config")) {
     throw new Exception("User-end script MUST load a configuraion!");
+}
 require_once Config::ABS_PATH . '/lib/errors.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/mysql.php';
@@ -261,11 +266,11 @@ function bans_add($range_beg, $range_end, $reason, $untill)
  * Проверяет, заблокирован ли IP-адрес. Если да, то завершает работу скрипта.
  * @param int $ip IP-адрес.
  * @return boolean|array
- * Возвращает false, если адрес не заблокирован и массив, если заблокирован:<p>
+ * Возвращает false, если адрес не заблокирован и массив, если заблокирован:<br>
  * 'range_beg' - Начало диапазона IP-адресов.<br>
  * 'range_end' - Конец диапазона IP-адресов.<br>
  * 'reason' - Причина блокировки.<br>
- * 'untill' - Время истечения блокировки.</p>
+ * 'untill' - Время истечения блокировки.
  */
 function bans_check($ip) { // Java CC
     return db_bans_check(DataExchange::getDBLink(), $ip);
