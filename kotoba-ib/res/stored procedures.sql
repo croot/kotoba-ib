@@ -41,6 +41,7 @@ drop procedure if exists sp_groups_delete|
 drop procedure if exists sp_groups_get_all|
 
 drop procedure if exists sp_hard_ban_add|
+drop procedure if exists sp_hard_ban_execute|
 
 drop procedure if exists sp_hidden_threads_add|
 drop procedure if exists sp_hidden_threads_delete|
@@ -262,7 +263,7 @@ create procedure sp_bans_add
     _untill datetime
 )
 begin
-    call sp_refresh_banlist();
+    call sp_bans_refresh();
     insert into bans (range_beg, range_end, reason, untill)
         values (_range_beg, _range_end, _reason, _untill);
 end|

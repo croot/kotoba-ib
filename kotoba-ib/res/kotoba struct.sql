@@ -64,7 +64,7 @@ CREATE TABLE `bans` (
   `untill` datetime NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `ip_range` (`range_beg`,`range_end`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -780,7 +780,7 @@ DELIMITER ;;
     _untill datetime
 )
 begin
-    call sp_refresh_banlist();
+    call sp_bans_refresh();
     insert into bans (range_beg, range_end, reason, untill)
         values (_range_beg, _range_end, _reason, _untill);
 end */;;
@@ -5697,4 +5697,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2010-08-15 20:19:07
+-- Dump completed on 2010-08-16 19:30:49

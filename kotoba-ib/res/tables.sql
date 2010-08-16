@@ -39,12 +39,12 @@ create table files						-- Вложенные файлы.
 )
 engine=InnoDB|
 
-create table groups					-- Группы.
+create table groups                 -- Группы.
 (
-	id int not null auto_increment,	-- Идентификатор.
-	name varchar(50) not null,		-- Имя.
-	primary key (id),
-	unique key (name)
+    id int not null auto_increment, -- Идентификатор.
+    name varchar(50) not null,      -- Имя.
+    primary key (id),
+    unique key (name)
 )
 engine=InnoDB|
 
@@ -166,13 +166,13 @@ create table users                      -- Пользователи.
 )
 engine=InnoDB|
 
-create table user_groups	-- Связь пользователей с группами.
+create table user_groups    -- Связь пользователей с группами.
 (
-	user int not null,		-- Идентификатор пользователя.
-	`group` int not null,	-- Идентификатор группы.
-	constraint foreign key (`group`) references groups (id) on delete cascade on update restrict,
-	constraint foreign key (user) references users (id),
-	unique key (user, `group`)
+    user int not null,      -- Идентификатор пользователя.
+    `group` int not null,   -- Идентификатор группы.
+    constraint foreign key (`group`) references groups (id) on delete cascade on update restrict,
+    constraint foreign key (user) references users (id),
+    unique key (user, `group`)
 ) 
 engine=InnoDB|
 

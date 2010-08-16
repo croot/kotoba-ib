@@ -1,16 +1,20 @@
 <?php
-/*************************************
+/* ***********************************
  * Этот файл является частью Kotoba. *
  * Файл license.txt содержит условия *
  * распространения Kotoba.           *
  *************************************/
-/*********************************
- * This file is part of Kotoba.  *
- * See license.txt for more info.*
- *********************************/
-// Интерфейс работы с БД.
+/* ********************************
+ * This file is part of Kotoba.   *
+ * See license.txt for more info. *
+ **********************************/
 
-/***********
+/**
+ * Интерфейс работы с БД.
+ * @package api
+ */
+
+/* *********
  * Разное. *
  ***********/
 
@@ -51,7 +55,7 @@ function db_cleanup_link($link) {
     }
 }
 
-/***************************************
+/* *************************************
  * Работа со списком контроля доступа. *
  ***************************************/
 
@@ -159,36 +163,35 @@ function db_acl_get_all($link)
 	return $acl;
 }
 
-/**************************
+/* ************************
  * Работа с блокировками. *
  **************************/
 
 /**
  * Блокирует заданный диапазон IP-адресов.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param range_beg int <p>Начало диапазона IP-адресов.</p>
- * @param range_end int <p>Конец диапазона IP-адресов.</p>
- * @param reason string <p>Причина блокировки.</p>
- * @param untill string <p>Время истечения блокировки.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param int $range_beg Начало диапазона IP-адресов.
+ * @param int $range_end Конец диапазона IP-адресов.
+ * @param string $reason Причина блокировки.
+ * @param string $untill Время истечения блокировки.
  */
-function db_bans_add($link, $range_beg, $range_end, $reason, $untill)
-{
-	$reason = ($reason === null ? 'null' : $reason);
-	if(!mysqli_query($link, 'call sp_bans_add(' . $range_beg . ', '
-			. $range_end . ', \'' . $reason . '\', \'' . $untill . '\')'))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+function db_bans_add($link, $range_beg, $range_end, $reason, $untill) { // Java CC
+    $reason = ($reason === null ? 'null' : $reason);
+    if (!mysqli_query($link, "call sp_bans_add($range_beg, $range_end, '$reason', '$until')")) {
+        throw new CommonException(mysqli_error($link));
+    }
+    db_cleanup_link($link);
 }
 /**
  * Проверяет, заблокирован ли IP-адрес. Если да, то завершает работу скрипта.
  * @param MySQLi $link Связь с базой данных.
  * @param int $ip IP-адрес.
  * @return boolean|array
- * Возвращает false, если адрес не заблокирован и массив, если заблокирован:<p>
+ * Возвращает false, если адрес не заблокирован и массив, если заблокирован:<br>
  * 'range_beg' - Начало диапазона IP-адресов.<br>
  * 'range_end' - Конец диапазона IP-адресов.<br>
  * 'reason' - Причина блокировки.<br>
- * 'untill' - Время истечения блокировки.</p>
+ * 'untill' - Время истечения блокировки.
  */
 function db_bans_check($link, $ip) { // Java CC
     $result = mysqli_query($link, "call sp_bans_check($ip)");
@@ -211,56 +214,61 @@ function db_bans_check($link, $ip) { // Java CC
 }
 /**
  * Удаляет блокировку с заданным идентификатором.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param id miexd <p>Идентификатор блокировки.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param miexd $id Идентификатор блокировки.
  */
-function db_bans_delete_by_id($link, $id)
-{
-	if(!mysqli_query($link, 'call sp_bans_delete_by_id(' . $id . ')'))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+function db_bans_delete_by_id($link, $id) { // Java CC
+    if (!mysqli_query($link, "call sp_bans_delete_by_id($id)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+    db_cleanup_link($link);
 }
 /**
  * Удаляет блокировки с заданным IP-адресом.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param ip int <p>IP-адрес.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param int $ip IP-адрес.
  */
-function db_bans_delete_by_ip($link, $ip)
-{
-	if(!mysqli_query($link, 'call sp_bans_delete_by_ip(' . $ip . ')'))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+function db_bans_delete_by_ip($link, $ip) { // Java CC
+    if (!mysqli_query($link, "call sp_bans_delete_by_ip($ip)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+    db_cleanup_link($link);
 }
 /**
  * Получает все блокировки.
- * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param MySQLi $link Связь с базой данных.
  * @return array
- * Возвращает блокировки:<p>
+ * Возвращает блокировки:<br>
  * 'id' - Идентификатор.<br>
  * 'range_beg' - Начало диапазона IP-адресов.<br>
  * 'range_end' - Конец диапазона IP-адресов.<br>
  * 'reason' - Причина блокировки.<br>
- * 'untill' - Время истечения блокировки.</p>
+ * 'untill' - Время истечения блокировки.
  */
-function db_bans_get_all($link)
-{
-	$result = mysqli_query($link, 'call sp_bans_get_all()');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$bans = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) != null)
-			array_push($bans, array('id' => $row['id'],
-									'range_beg' => $row['range_beg'],
-									'range_end' => $row['range_end'],
-									'reason' => $row['reason'],
-									'untill' => $row['untill']));
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $bans;
+function db_bans_get_all($link) { // Java CC
+    $result = mysqli_query($link, 'call sp_bans_get_all()');
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $bans = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while (($row = mysqli_fetch_assoc($result)) != null) {
+            array_push($bans,
+                    array('id' => $row['id'],
+                          'range_beg' => $row['range_beg'],
+                          'range_end' => $row['range_end'],
+                          'reason' => $row['reason'],
+                          'untill' => $row['untill']));
+        }
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $bans;
 }
 
-/*******************************************************
+/* *****************************************************
  * Работа со связями досок и типов загружаемых файлов. *
  *******************************************************/
 
@@ -313,7 +321,7 @@ function db_board_upload_types_get_all($link)
 	return $board_upload_types;
 }
 
-/**************************
+/* ************************
  * Работа с вордфильтром. *
  **************************/
 
@@ -420,7 +428,7 @@ function db_words_get_all_by_board($link, $board_id) { // Java CC
     return $words;
 }
 
-/*********************
+/* *******************
  * Работа с досками. *
  *********************/
 
@@ -969,7 +977,7 @@ function db_boards_get_visible($link, $user_id) { // Java CC
     return $boards;
 }
 
-/*************************
+/* ***********************
  * Работа с категориями. *
  *************************/
 
@@ -1017,7 +1025,7 @@ function db_categories_get_all($link)
 	return $categories;
 }
 
-/********************************
+/* ******************************
  * Работа с вложенными файлами. *
  ********************************/
 
@@ -1127,7 +1135,7 @@ function db_files_get_by_post($link, $post_id)
     return $files;
  }
 
-/**********************
+/* ********************
  * Работа с группами. *
  **********************/
 
@@ -1192,7 +1200,7 @@ function db_groups_get_all($link)
 	return $groups;
 }
 
-/***********************************
+/* *********************************
   Работа с блокировками в фаерволе.
  ***********************************/
 
@@ -1209,7 +1217,7 @@ function db_hard_ban_add($link, $range_beg, $range_end) {
     db_cleanup_link($link);
 }
 
-/******************************
+/* ****************************
  * Работа со скрытыми нитями. *
  ******************************/
 
@@ -1327,7 +1335,7 @@ function db_hidden_threads_get_visible($link, $board_id, $thread_num, $user_id)
 }
 
 
-/**************************************
+/* ************************************
  * Работа с вложенными изображениями. *
  **************************************/
 
@@ -1452,7 +1460,7 @@ function db_images_get_same($link, $board_id, $user_id, $image_hash)
     return $images;
 }
 
-/*********************
+/* *******************
  * Работа с языками. *
  *********************/
 
@@ -1510,7 +1518,7 @@ function db_languages_get_all($link) { // Java CC
     return $languages;
 }
 
-/************************************************
+/* **********************************************
  * Работа с вложенными ссылками на изображения. *
  ************************************************/
 
@@ -1581,7 +1589,7 @@ function db_links_get_by_post($link, $post_id)
     return $links;
 }
 
-/******************************
+/* ****************************
  * Работа с тегами макрочана. *
  ******************************/
 
@@ -1650,7 +1658,7 @@ function db_macrochan_tags_get_all($link) { // Java CC.
     return $tags;
 }
 
-/*************************************
+/* ***********************************
  * Работа с изображениями макрочана. *
  *************************************/
 
@@ -1787,7 +1795,7 @@ function db_macrochan_images_get_random($link, $name) { // Java CC
     return $images;
 }
 
-/****************************************************
+/* **************************************************
  * Работа со связями тегов и изображений макрочана. *
  ****************************************************/
 
@@ -1886,7 +1894,7 @@ function db_macrochan_tags_images_get_all($link) { // Java CC
     return $tags_images;
 }
 
-/**********************************************************
+/* ********************************************************
  * Работа с обработчиками автоматического удаления нитей. *
  **********************************************************/
 
@@ -1941,7 +1949,7 @@ function db_popdown_handlers_get_all($link) { // Java CC
     return $popdown_handlers;
 }
 
-/*************************
+/* ***********************
  * Работа с сообщениями. *
  *************************/
 
@@ -2366,7 +2374,7 @@ function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id,
     return $posts;
 }
 
-/***************************************************
+/* *************************************************
  * Работа со связями сообщений и вложенных файлов. *
  ***************************************************/
 
@@ -2414,7 +2422,7 @@ function db_posts_files_get_by_post($link, $post_id)
     return $posts_files;
 }
 
-/********************************************************
+/* ******************************************************
  * Работа со связями сообщений и вложенных изображений. *
  ********************************************************/
 
@@ -2463,7 +2471,7 @@ function db_posts_images_get_by_post($link, $post_id)
     return $posts_images;
 }
 
-/******************************************************************
+/* ****************************************************************
  * Работа со связями сообщений и вложенных ссылок на изображения. *
  ******************************************************************/
 
@@ -2511,7 +2519,7 @@ function db_posts_links_get_by_post($link, $post_id)
     return $posts_links;
 }
 
-/***************************************************
+/* *************************************************
  * Работа со связями сообщений и вложенного видео. *
  ***************************************************/
 
@@ -2559,7 +2567,7 @@ function db_posts_videos_get_by_post($link, $post_id)
     return $posts_videos;
 }
 
-/**********************
+/* ********************
  * Работа со стилями. *
  **********************/
 
@@ -2615,7 +2623,7 @@ function db_stylesheets_get_all($link) { // Java CC
     return $stylesheets;
 }
 
-/********************
+/* ******************
  * Работа с нитями. *
  ********************/
 
@@ -3122,7 +3130,7 @@ function db_threads_get_visible_count($link, $user_id, $board_id) { // Java CC
     }
 }
 
-/**********************************************
+/* ********************************************
  * Работа с обработчиками загружаемых файлов. *
  **********************************************/
 
@@ -3170,7 +3178,7 @@ function db_upload_handlers_get_all($link)
 	return $upload_handlers;
 }
 
-/***************************************
+/* *************************************
  * Работа с типами загружаемых файлов. *
  ***************************************/
 
@@ -3300,7 +3308,7 @@ function db_upload_types_get_by_board($link, $board_id) { // Java CC
     return $upload_types;
 }
 
-/*****************************************************
+/* ***************************************************
  * Работа с закреплениями пользователей за группами. *
  *****************************************************/
 
@@ -3373,7 +3381,7 @@ function db_user_groups_get_all($link)
     return $user_groups;
 }
 
-/****************************
+/* **************************
  * Работа с пользователями. *
  ****************************/
 
@@ -3516,7 +3524,7 @@ function db_users_set_password($link, $id, $password) { // Java CC
     db_cleanup_link($link);
 }
 
-/*****************************
+/* ***************************
  * Работа с вложенным видео. *
  *****************************/
 
@@ -3573,7 +3581,7 @@ function db_videos_get_by_post($link, $post_id)
     return $videos;
 }
 
-/***************************************************
+/* *************************************************
  * Работа с закреплениями загрузок за сообщениями. *
  ***************************************************/
 
@@ -3629,7 +3637,7 @@ function db_videos_get_by_post($link, $post_id)
 	db_cleanup_link($link);
 }*/
 
-/************************
+/* **********************
  * Работа с загрузками. *
  ************************/
 
