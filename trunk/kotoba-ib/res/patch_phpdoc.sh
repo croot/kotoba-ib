@@ -120,7 +120,18 @@ then
     echo "Rename $TARGET_DIR/pkgelementindex.tp to $TARGET_DIR/pkgelementindex.tpl"
     mv pkgelementindex.tp pkgelementindex.tpl
 fi
-
 echo "Go back to $CUR_DIR"
 cd $CUR_DIR
+
+#
+# Change generation script new lines o UNIX format and ser execute permision
+#
+TARGET_DIR="$ABS_PATH/phpdoc"
+echo "Change directory to $TARGET_DIR"
+cd $TARGET_DIR
+dos2unix ./phpdoc
+chmod u+x ./phpdoc
+echo "Go back to $CUR_DIR"
+cd $CUR_DIR
+
 exit 0
