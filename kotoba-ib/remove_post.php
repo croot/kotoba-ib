@@ -1,14 +1,18 @@
 <?php
-/*************************************
+/* ***********************************
  * Этот файл является частью Kotoba. *
  * Файл license.txt содержит условия *
  * распространения Kotoba.           *
  *************************************/
-/*********************************
+/* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
-// Скрипт удаления сообщений.
+
+/**
+ * Скрипт удаления сообщений.
+ * @package userscripts
+ */
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
@@ -54,30 +58,26 @@ try {
     }
 
     $post = posts_get_visible_by_id($post_id, $_SESSION['user']);
-    $password = isset($password)
-            ? posts_check_password($password) : $_SESSION['password'];
+    $password = isset($password) ? posts_check_password($password) : $_SESSION['password'];
 
-    if(is_admin())
-    {
-    posts_delete($post['id']);
-    header('Location: ' . Config::DIR_PATH . "/{$post['board_name']}/");
+    if (is_admin()) {
+        posts_delete($post['id']);
+        header('Location: ' . Config::DIR_PATH . "/{$post['board_name']}/");
+    } elseif(($post['password'] !== null && $post['password'] === $password)) {
+        $securimage = new Securimage();
+        if ($securimage->check($_POST['captcha_code']) == false) {
+            throw new CommonException(CommonException::$messages['CAPTCHA']);
+        }
+        posts_delete($post['id']);
+        header('Location: ' . Config::DIR_PATH . "/{$post['board_name']}/");
+    } else {
+        // Вывод формы ввода пароля.
+        $smarty->assign('id', $post['id']);
+        $smarty->assign('is_admin', is_admin());
+        $smarty->assign('password', $password);
+        $smarty->display('remove_post.tpl');
     }
-    elseif(($post['password'] !== null && $post['password'] === $password))
-    {
-    $securimage = new Securimage();
-    if ($securimage->check($_POST['captcha_code']) == false)
-    throw new CommonException(CommonException::$messages['CAPTCHA']);
-    posts_delete($post['id']);
-    header('Location: ' . Config::DIR_PATH . "/{$post['board_name']}/");
-    }
-    else
-    {
-    // Вывод формы ввода пароля.
-    $smarty->assign('id', $post['id']);
-    $smarty->assign('is_admin', is_admin());
-    $smarty->assign('password', $password);
-    $smarty->display('remove_post.tpl');
-    }
+
     DataExchange::releaseResources();
     exit;
 } catch(Exception $e) {

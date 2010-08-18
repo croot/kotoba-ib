@@ -2039,14 +2039,14 @@ function db_posts_add_text_by_id($link, $id, $text)
 }
 /**
  * Удаляет сообщение с заданным идентификатором.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param id mixed <p>Идентификатор сообщения.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param mixed $id Идентификатор сообщения.
  */
-function db_posts_delete($link, $id)
-{
-	if(!mysqli_query($link, 'call sp_posts_delete(' . $id . ')'))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+function db_posts_delete($link, $id) {
+    if (!mysqli_query($link, "call sp_posts_delete($id)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+    db_cleanup_link($link);
 }
 /**
  * Удаляет сообщение с заданным идентификатором и все сообщения с ip адреса
@@ -2215,10 +2215,10 @@ function db_posts_get_by_thread($link, $thread_id)
 /**
  * Получает заданное сообщение, доступное для просмотра заданному пользователю.
  * @param MySQLi $link Связь с базой данных.
- * @param string|int post_id Идентификатор сообщения.
- * @param string|int user_id Идентификатор пользователя.
+ * @param string|int $post_id Идентификатор сообщения.
+ * @param string|int $user_id Идентификатор пользователя.
  * @return array
- * Возвращает сообщение:<p>
+ * Возвращает сообщение:<br>
  * 'id' - Идентификатор.<br>
  * 'board' - Идентификатор доски.<br>
  * 'thread' - Идентификатор нити.<br>
@@ -2231,11 +2231,10 @@ function db_posts_get_by_thread($link, $thread_id)
  * 'date_time' - Время сохранения.<br>
  * 'text' - Текст.<br>
  * 'sage' - Флаг поднятия нити.<br>
- * 'board_name' - Имя доски.</p>
+ * 'board_name' - Имя доски.
  */
 function db_posts_get_visible_by_id($link, $post_id, $user_id) { // Java CC
-    $result = mysqli_query($link,
-            "call sp_posts_get_visible_by_id($post_id, $user_id)");
+    $result = mysqli_query($link, "call sp_posts_get_visible_by_id($post_id, $user_id)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
@@ -2393,30 +2392,44 @@ function db_posts_files_add($link, $post, $file, $deleted) { // Java CC
     db_cleanup_link($link);
 }
 /**
+ * Удаляет связи заданного сообщения с вложенными файлами.
+ * @param MySQLi $link Связь с базой данных.
+ * @param string|int $post_id Идентификатор сообщения.
+ */
+function db_posts_files_delete_by_post($link, $post_id) {
+    if (!mysqli_query($link, "call sp_posts_files_delete_by_post($post_id)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+    db_cleanup_link($link);
+}
+/**
  * Получает связи заданного сообщения с вложенными файлами.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param post_id mixed <p>Идентификатор сообщения.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param mixed $post_id Идентификатор сообщения.
  * @return array
- * Возвращает связи:<p>
+ * Возвращает связи:<br>
  * 'post' - Идентификатор сообщения.<br>
  * 'file' - Идентификатор вложенного файла.<br>
  * 'deleted' - Флаг удаления.<br>
- * 'attachment_type' - Тип вложения.</p>
+ * 'attachment_type' - Тип вложения.
  */
-function db_posts_files_get_by_post($link, $post_id)
-{
-    $result = mysqli_query($link,
-        'call sp_posts_files_get_by_post(' . $post_id . ')');
-    if(!$result)
+function db_posts_files_get_by_post($link, $post_id) {
+    $result = mysqli_query($link, "call sp_posts_files_get_by_post($post_id)");
+    if (!$result) {
         throw new CommonException(mysqli_error($link));
+    }
+
     $posts_files = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) !== null)
+    if (mysqli_affected_rows($link) > 0) {
+        while (($row = mysqli_fetch_assoc($result)) != null) {
             array_push($posts_files,
                 array('post' => $row['post'],
                       'file' => $row['file'],
                       'deleted' => $row['deleted'],
                       'attachment_type' => Config::ATTACHMENT_TYPE_FILE));
+        }
+    }
+
     mysqli_free_result($result);
     db_cleanup_link($link);
     return $posts_files;
@@ -2440,32 +2453,45 @@ function db_posts_images_add($link, $post, $image, $deleted) { // Java CC
     }
     db_cleanup_link($link);
 }
-
+/**
+ * Удаляет связи заданного сообщения с вложенными изображениями.
+ * @param MySQLi $link Связь с базой данных.
+ * @param string|int $post_id Идентификатор сообщения.
+ */
+function db_posts_images_delete_by_post($link, $post_id) {
+    if (!mysqli_query($link, "call sp_posts_images_delete_by_post($post_id)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+    db_cleanup_link($link);
+}
 /**
  * Получает связи заданного сообщения с вложенными изображениями.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param post_id mixed <p>Идентификатор сообщения.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param mixed $post_id Идентификатор сообщения.
  * @return array
- * Возвращает связи:<p>
+ * Возвращает связи:<br>
  * 'post' - Идентификатор сообщения.<br>
  * 'image' - Идентификатор вложенного изображения.<br>
  * 'deleted' - Флаг удаления.<br>
- * 'attachment_type' - Тип вложения.</p>
+ * 'attachment_type' - Тип вложения.
  */
-function db_posts_images_get_by_post($link, $post_id)
-{
-    $result = mysqli_query($link,
-        'call sp_posts_images_get_by_post(' . $post_id . ')');
-    if(!$result)
+function db_posts_images_get_by_post($link, $post_id) {
+    $result = mysqli_query($link, "call sp_posts_images_get_by_post($post_id)");
+    if (!$result) {
         throw new CommonException(mysqli_error($link));
+    }
+
     $posts_images = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) !== null)
+    if (mysqli_affected_rows($link) > 0) {
+        while (($row = mysqli_fetch_assoc($result)) !== null) {
             array_push($posts_images,
                 array('post' => $row['post'],
                       'image' => $row['image'],
                       'deleted' => $row['deleted'],
                       'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE));
+        }
+    }
+
     mysqli_free_result($result);
     db_cleanup_link($link);
     return $posts_images;
@@ -2490,30 +2516,44 @@ function db_posts_links_add($link, $post, $posts_links_link, $deleted) { // Java
     db_cleanup_link($link);
 }
 /**
+ * Удаляет связи заданного сообщения с вложенными ссылками на изображения.
+ * @param MySQLi $link Связь с базой данных.
+ * @param string|int $post_id Идентификатор сообщения.
+ */
+function db_posts_links_delete_by_post($link, $post_id) {
+    if (!mysqli_query($link, "call sp_posts_links_delete_by_post($post_id)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+    db_cleanup_link($link);
+}
+/**
  * Получает связи заданного сообщения с вложенными ссылками на изображения.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param post_id mixed <p>Идентификатор сообщения.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param mixed $post_id Идентификатор сообщения.
  * @return array
- * Возвращает связи:<p>
+ * Возвращает связи:<br>
  * 'post' - Идентификатор сообщения.<br>
  * 'link' - Идентификатор вложенной ссылки на изображение.<br>
  * 'deleted' - Флаг удаления.<br>
- * 'attachment_type' - Тип вложения.</p>
+ * 'attachment_type' - Тип вложения.
  */
-function db_posts_links_get_by_post($link, $post_id)
-{
-    $result = mysqli_query($link,
-        'call sp_posts_links_get_by_post(' . $post_id . ')');
-    if(!$result)
+function db_posts_links_get_by_post($link, $post_id) {
+    $result = mysqli_query($link, "call sp_posts_links_get_by_post($post_id)");
+    if (!$result) {
         throw new CommonException(mysqli_error($link));
+    }
+
     $posts_links = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) !== null)
+    if (mysqli_affected_rows($link) > 0) {
+        while (($row = mysqli_fetch_assoc($result)) !== null) {
             array_push($posts_links,
                 array('post' => $row['post'],
                       'link' => $row['link'],
                       'deleted' => $row['deleted'],
                       'attachment_type' => Config::ATTACHMENT_TYPE_LINK));
+        }
+    }
+
     mysqli_free_result($result);
     db_cleanup_link($link);
     return $posts_links;
@@ -2538,30 +2578,44 @@ function db_posts_videos_add($link, $post, $video, $deleted) { // Java CC
     db_cleanup_link($link);
 }
 /**
+ * Удаляет связи заданного сообщения с вложенными видео.
+ * @param MySQLi $link Связь с базой данных.
+ * @param string|int $post_id Идентификатор сообщения.
+ */
+function db_posts_videos_delete_by_post($link, $post_id) {
+    if (!mysqli_query($link, "call sp_posts_videos_delete_by_post($post_id)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+    db_cleanup_link($link);
+}
+/**
  * Получает связи заданного сообщения с вложенным видео.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param post_id mixed <p>Идентификатор сообщения.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param mixed $post_id Идентификатор сообщения.
  * @return array
- * Возвращает связи:<p>
+ * Возвращает связи:<br>
  * 'post' - Идентификатор сообщения.<br>
  * 'video' - Идентификатор вложенного видео.<br>
  * 'deleted' - Флаг удаления.<br>
- * 'attachment_type' - Тип вложения.</p>
+ * 'attachment_type' - Тип вложения.
  */
-function db_posts_videos_get_by_post($link, $post_id)
-{
-    $result = mysqli_query($link,
-        'call sp_posts_videos_get_by_post(' . $post_id . ')');
-    if(!$result)
+function db_posts_videos_get_by_post($link, $post_id) {
+    $result = mysqli_query($link, "call sp_posts_videos_get_by_post($post_id)");
+    if (!$result) {
         throw new CommonException(mysqli_error($link));
+    }
+
     $posts_videos = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) !== null)
+    if (mysqli_affected_rows($link) > 0) {
+        while (($row = mysqli_fetch_assoc($result)) !== null) {
             array_push($posts_videos,
                 array('post' => $row['post'],
                       'video' => $row['video'],
                       'deleted' => $row['deleted'],
                       'attachment_type' => Config::ATTACHMENT_TYPE_VIDEO));
+        }
+    }
+
     mysqli_free_result($result);
     db_cleanup_link($link);
     return $posts_videos;
