@@ -1,27 +1,31 @@
 <?php
-/*************************************
+/* ***********************************
  * Этот файл является частью Kotoba. *
  * Файл license.txt содержит условия *
  * распространения Kotoba.           *
  *************************************/
-/*********************************
+/* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
-//Скрипт, показывающий id пользователя и группы, в которые он входит.
+
+/**
+ * Скрипт, показывающий id пользователя и группы, в которые он входит.
+ * @package userscripts
+ */
+
 require_once 'config.php';
 require Config::ABS_PATH. '/lib/errors.php';
 require_once Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
-try
-{
-	kotoba_session_start();
-	locale_setup();
-	$smarty = new SmartyKotobaSetup($_SESSION['language'],
-            $_SESSION['stylesheet']);
 
-	if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+try {
+    kotoba_session_start();
+    locale_setup();
+    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+
+    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
     if (($ban = bans_check($ip)) !== false) {
@@ -32,19 +36,19 @@ try
         die($smarty->fetch('banned.tpl'));
     }
 
-	$smarty->assign('id', $_SESSION['user']);
-	$smarty->assign('groups', $_SESSION['groups']);
-	$smarty->display('my_id.tpl');
-	if(isset($_GET['kuga']) && $_GET['kuga'] === '1')
-		echo take_it_easy();
-	DataExchange::releaseResources();
-	exit;
-}
-catch(Exception $e)
-{
-	$smarty->assign('msg', $e->__toString());
-	DataExchange::releaseResources();
-	die($smarty->fetch('error.tpl'));
+    $smarty->assign('id', $_SESSION['user']);
+    $smarty->assign('groups', $_SESSION['groups']);
+    $smarty->display('my_id.tpl');
+    if (isset($_GET['kuga']) && $_GET['kuga'] === '1') {
+        echo take_it_easy();
+    }
+
+    DataExchange::releaseResources();
+    exit;
+} catch(Exception $e) {
+    $smarty->assign('msg', $e->__toString());
+    DataExchange::releaseResources();
+    die($smarty->fetch('error.tpl'));
 }
 ?>
 <?php

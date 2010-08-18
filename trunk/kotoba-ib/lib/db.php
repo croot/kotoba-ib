@@ -162,6 +162,16 @@ function acl_get_all()
  *********************************************************************/
 
 /**
+ * Удаляет связи заданного сообщения с вложениями.
+ * @param string|int $post_id Идентификатор сообщения.
+ */
+function posts_attachments_delete_by_post($post_id) {
+    db_posts_files_delete_by_post(DataExchange::getDBLink(), $post_id);
+    db_posts_images_delete_by_post(DataExchange::getDBLink(), $post_id);
+    db_posts_links_delete_by_post(DataExchange::getDBLink(), $post_id);
+    db_posts_videos_delete_by_post(DataExchange::getDBLink(), $post_id);
+}
+/**
  * Получает связи сообщений с их вложениями.
  * @param array $posts Сообщения.
  * @return array
@@ -193,10 +203,10 @@ function posts_attachments_get_by_posts($posts) { // Java CC
  * Получает вложения заданных сообщений.
  * @param array $posts Сообщения.
  * @return array
- * Возвращает вложения:<p>
+ * Возвращает вложения:<br>
  * 'id' - Идентификатор.<br>
  * ... - Атрибуты, зависящие от конкретного типа вложения.<br>
- * 'attachment_type' - Тип вложения.</p>
+ * 'attachment_type' - Тип вложения.
  */
 function attachments_get_by_posts($posts) { // Java CC
     $attachments = array();
@@ -1782,10 +1792,10 @@ function posts_get_filtred_by_boards($boards, $filter)
 }
 /**
  * Получает заданное сообщение, доступное для просмотра заданному пользователю.
- * @param string|int post_id Идентификатор сообщения.
- * @param string|int user_id Идентификатор пользователя.
+ * @param string|int $post_id Идентификатор сообщения.
+ * @param string|int $user_id Идентификатор пользователя.
  * @return array
- * Возвращает сообщение:<p>
+ * Возвращает сообщение:<br>
  * 'id' - Идентификатор.<br>
  * 'board' - Идентификатор доски.<br>
  * 'thread' - Идентификатор нити.<br>
@@ -1798,7 +1808,7 @@ function posts_get_filtred_by_boards($boards, $filter)
  * 'date_time' - Время сохранения.<br>
  * 'text' - Текст.<br>
  * 'sage' - Флаг поднятия нити.<br>
- * 'board_name' - Имя доски.</p>
+ * 'board_name' - Имя доски.
  */
 function posts_get_visible_by_id($post_id, $user_id) { // Java CC
     return db_posts_get_visible_by_id(DataExchange::getDBLink(), $post_id,

@@ -89,15 +89,19 @@ drop procedure if exists sp_posts_get_visible_by_number|
 drop procedure if exists sp_posts_get_visible_by_thread|
 
 drop procedure if exists sp_posts_files_add|
+drop procedure if exists sp_posts_files_delete_by_post|
 drop procedure if exists sp_posts_files_get_by_post|
 
 drop procedure if exists sp_posts_images_add|
+drop procedure if exists sp_posts_images_delete_by_post|
 drop procedure if exists sp_posts_images_get_by_post|
 
 drop procedure if exists sp_posts_links_add|
+drop procedure if exists sp_posts_links_delete_by_post|
 drop procedure if exists sp_posts_links_get_by_post|
 
 drop procedure if exists sp_posts_videos_add|
+drop procedure if exists sp_posts_videos_delete_by_post|
 drop procedure if exists sp_posts_videos_get_by_post|
 
 drop procedure if exists sp_stylesheets_add|
@@ -1717,6 +1721,15 @@ begin
         values (_post, _file, _deleted);
 end|
 
+-- Удаляет связи заданного сообщения с вложенными файлами.
+create procedure sp_posts_files_delete_by_post
+(
+    post_id int -- Идентификатор сообщения.
+)
+begin
+    update posts_files set deleted = 1 where post = post_id;
+end|
+
 -- Выбирает связи заданного сообщения с вложенными файлами.
 --
 -- Аргументы:
@@ -1726,7 +1739,7 @@ create procedure sp_posts_files_get_by_post
     post_id int
 )
 begin
-    select post, file, deleted from posts_files where post = post_id;
+    select post, file, deleted from posts_files where post = post_id and deleted = 0;
 end|
 
 -- -------------------------------------------------------
@@ -1745,6 +1758,15 @@ begin
         values (_post, _image, _deleted);
 end|
 
+-- Удаляет связи заданного сообщения с вложенными изображениями.
+create procedure sp_posts_images_delete_by_post
+(
+    post_id int -- Идентификатор сообщения.
+)
+begin
+    update posts_images set deleted = 1 where post = post_id;
+end|
+
 -- Выбирает связи заданного сообщения с вложенными изображениями.
 --
 -- Аргументы:
@@ -1754,14 +1776,14 @@ create procedure sp_posts_images_get_by_post
     post_id int
 )
 begin
-    select post, image, deleted from posts_images where post = post_id;
+    select post, image, deleted from posts_images where post = post_id and deleted = 0;
 end|
 
 -- -----------------------------------------------------------------
 -- Работа со связями сообщений и вложенных ссылок на изображения. --
 -- -----------------------------------------------------------------
 
--- Добавляет связь сообщения с вложенным изображением.
+-- Добавляет связь сообщения с вложенной ссылкой на изображение.
 create procedure sp_posts_links_add
 (
     _post int,      -- Идентификатор сообщения.
@@ -1773,6 +1795,15 @@ begin
         values (_post, _link, _deleted);
 end|
 
+-- Удаляет связи заданного сообщения с вложенными ссылками на изображения.
+create procedure sp_posts_links_delete_by_post
+(
+    post_id int -- Идентификатор сообщения.
+)
+begin
+    update posts_links set deleted = 1 where post = post_id;
+end|
+
 -- Выбирает связи заданного сообщения с вложенными ссылками на изображения.
 --
 -- Аргументы:
@@ -1782,7 +1813,7 @@ create procedure sp_posts_links_get_by_post
     post_id int
 )
 begin
-    select post, link, deleted from posts_links where post = post_id;
+    select post, link, deleted from posts_links where post = post_id and deleted = 0;
 end|
 
 -- --------------------------------------------------
@@ -1801,6 +1832,15 @@ begin
         values (_post, _video, _deleted);
 end|
 
+-- Удаляет связи заданного сообщения с вложенными видео.
+create procedure sp_posts_videos_delete_by_post
+(
+    post_id int -- Идентификатор сообщения.
+)
+begin
+    update posts_videos set deleted = 1 where post = post_id;
+end|
+
 -- Выбирает связи заданного сообщения с вложенным видео.
 --
 -- Аргументы:
@@ -1810,7 +1850,7 @@ create procedure sp_posts_videos_get_by_post
     post_id int
 )
 begin
-    select post, video, deleted from posts_videos where post = post_id;
+    select post, video, deleted from posts_videos where post = post_id and deleted = 0;
 end|
 
 -- ----------------------

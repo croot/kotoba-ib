@@ -1,18 +1,24 @@
 <?php
-/*************************************
+/* ***********************************
  * Этот файл является частью Kotoba. *
  * Файл license.txt содержит условия *
  * распространения Kotoba.           *
  *************************************/
-/*********************************
+/* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
-// Скрипт, предоставляющий данные для оверчана.
+
+/**
+ * Скрипт, предоставляющий данные для оверчана.
+ * @package userscripts
+ */
+
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/db.php';
+
 try {
     $boards = boards_get_all();
     $categories = categories_get_all();

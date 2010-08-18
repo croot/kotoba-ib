@@ -70,7 +70,6 @@ try {
     $password = null;
     $should_update_password = false;
     if (isset($_POST['password']) && $_POST['password'] != '') {
-        var_dump($_POST['password']);
         $password = posts_check_password($_POST['password']);
         if (!isset($_SESSION['password'])
                 || $_SESSION['password'] != $password) {
