@@ -10,7 +10,7 @@
  *********************************/
 
 /**
- * Remove attachments of specified post.
+ * Removes attachments of specified post.
  * @package userscripts
  */
 
