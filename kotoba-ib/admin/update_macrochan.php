@@ -104,8 +104,7 @@ try {
             }
         }
         if (!$found) {
-            macrochan_images_add($i[1], $i[2], $i[3], $i[4], $i[5], $i[6],
-                    $i[6]);
+            macrochan_images_add($i[1], $i[2], $i[3], $i[4], $i[5], $i[6], $i[7]);
             $images_added++;
         }
     }

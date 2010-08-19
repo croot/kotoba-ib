@@ -1232,10 +1232,8 @@ create procedure sp_macrochan_images_add
     _thumbnail_h int            -- Высота уменьшенной копии.
 )
 begin
-    insert into macrochan_images (name, width, height, size, thumbnail,
-            thumbnail_w, thumbnail_h)
-        values (_name, _width, _height, _size, _thumbnail,
-            _thumbnail_w, _thumbnail_h);
+    insert into macrochan_images (name, width, height, size, thumbnail, thumbnail_w, thumbnail_h)
+        values (_name, _width, _height, _size, _thumbnail, _thumbnail_w, _thumbnail_h);
 end|
 
 -- Удаляет изображение по заданному имени.

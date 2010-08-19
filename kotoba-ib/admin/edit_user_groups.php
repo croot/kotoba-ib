@@ -11,7 +11,7 @@
 
 /**
  * Скрипт редактирования связей пользователей с группами.
- * @package userscripts
+ * @package admscripts
  */
 
 require '../config.php';
