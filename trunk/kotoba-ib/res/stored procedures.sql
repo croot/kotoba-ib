@@ -34,6 +34,7 @@ drop procedure if exists sp_categories_get_all|
 
 drop procedure if exists sp_files_add|
 drop procedure if exists sp_files_get_by_post|
+drop procedure if exists sp_files_get_dangling|
 drop procedure if exists sp_files_get_same|
 
 drop procedure if exists sp_groups_add|
@@ -50,6 +51,7 @@ drop procedure if exists sp_hidden_threads_get_visible|
 
 drop procedure if exists sp_images_add|
 drop procedure if exists sp_images_get_by_post|
+drop procedure if exists sp_images_get_dangling|
 drop procedure if exists sp_images_get_same|
 
 drop procedure if exists sp_languages_add|
@@ -58,6 +60,7 @@ drop procedure if exists sp_languages_get_all|
 
 drop procedure if exists sp_links_add|
 drop procedure if exists sp_links_get_by_post|
+drop procedure if exists sp_links_get_dangling|
 
 drop procedure if exists sp_macrochan_tags_add|
 drop procedure if exists sp_macrochan_tags_delete_by_name|
@@ -90,18 +93,22 @@ drop procedure if exists sp_posts_get_visible_by_thread|
 
 drop procedure if exists sp_posts_files_add|
 drop procedure if exists sp_posts_files_delete_by_post|
+drop procedure if exists sp_posts_files_delete_marked|
 drop procedure if exists sp_posts_files_get_by_post|
 
 drop procedure if exists sp_posts_images_add|
 drop procedure if exists sp_posts_images_delete_by_post|
+drop procedure if exists sp_posts_images_delete_marked|
 drop procedure if exists sp_posts_images_get_by_post|
 
 drop procedure if exists sp_posts_links_add|
 drop procedure if exists sp_posts_links_delete_by_post|
+drop procedure if exists sp_posts_links_delete_marked|
 drop procedure if exists sp_posts_links_get_by_post|
 
 drop procedure if exists sp_posts_videos_add|
 drop procedure if exists sp_posts_videos_delete_by_post|
+drop procedure if exists sp_posts_videos_delete_marked|
 drop procedure if exists sp_posts_videos_get_by_post|
 
 drop procedure if exists sp_stylesheets_add|
@@ -109,6 +116,7 @@ drop procedure if exists sp_stylesheets_delete|
 drop procedure if exists sp_stylesheets_get_all|
 
 drop procedure if exists sp_threads_add|
+drop procedure if exists sp_threads_delete_marked|
 drop procedure if exists sp_threads_edit|
 drop procedure if exists sp_threads_edit_archived_postlimit|
 drop procedure if exists sp_threads_edit_deleted|
@@ -146,6 +154,7 @@ drop procedure if exists sp_users_set_password|
 
 drop procedure if exists sp_videos_add|
 drop procedure if exists sp_videos_get_by_post|
+drop procedure if exists sp_videos_get_dangling|
 
 drop procedure if exists sp_words_add|
 drop procedure if exists sp_words_delete|
@@ -764,64 +773,64 @@ begin
 end|
 
 -- Выбирает файлы, вложенные в заданное сообщение.
-
--- Аргументы:
--- post_id - Идентификатор сообщения.
 create procedure sp_files_get_by_post
 (
-	post_id int
+    post_id int -- Идентификатор сообщения.
 )
 begin
-	select f.id, f.hash, f.name, f.size, f.thumbnail, f.thumbnail_w,
-		f.thumbnail_h
-	from posts_files pf
-	join files f on f.id = pf.file and pf.post = post_id;
+    select f.id, f.hash, f.name, f.size, f.thumbnail, f.thumbnail_w, f.thumbnail_h
+        from posts_files pf
+        join files f on f.id = pf.file and pf.post = post_id;
+end|
+
+-- Выбирает висячие файлы.
+create procedure sp_files_get_dangling ()
+begin
+    select f.id, f.hash, f.name, f.size, f.thumbnail, f.thumbnail_w, f.thumbnail_h
+        from files f
+        left join posts_files pf on pf.file = f.id
+        where pf.post is null;
 end|
 
 -- Выбирает одинаковые файлы, вложенные в сообщения на заданной доске.
---
--- Аргументы:
--- board_id - Идентификатор доски.
--- user_id - Идентификатор пользователя.
--- hash - Хеш файла.
 create procedure sp_files_get_same
 (
-    board_id int,
-    user_id int,
-    file_hash varchar(32)
+    board_id int,           -- Идентификатор доски.
+    user_id int,            -- Идентификатор пользователя.
+    file_hash varchar(32)   -- Хеш файла.
 )
 begin
 	select f.id, f.hash, f.name, f.size, f.thumbnail, f.thumbnail_w,
-            f.thumbnail_h, max(case when a1.`view` = 0 then 0
-                                    when a2.`view` = 0 then 0
-                                    when a3.`view` = 0 then 0
-                                    when a4.`view` = 0 then 0
-                                    when a5.`view` = 0 then 0
-                                    when a6.`view` = 0 then 0
-                                    when a7.`view` = 0 then 0
-                                    else 1 end) as `view`
-        from posts_files pf
-        join files f on f.id = pf.file
-        join posts p on p.id = pf.post and p.board = board_id
-        join threads t on t.id = p.thread
-        join user_groups ug on ug.user = user_id
-        -- Правило для конкретной группы и сообщения.
-        left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
-        -- Правило для всех групп и конкретного сообщения.
-        left join acl a2 on a2.`group` is null and a2.post = p.id
-        -- Правила для конкретной группы и нити.
-        left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
-        -- Правило для всех групп и конкретной нити.
-        left join acl a4 on a4.`group` is null and a4.thread = p.thread
-        -- Правила для конкретной группы и доски.
-        left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
-        -- Правило для всех групп и конкретной доски.
-        left join acl a6 on a6.`group` is null and a6.board = p.board
-        -- Правило для конкретной групы.
-        left join acl a7 on a7.`group` = ug.`group` and a7.board is null
-            and a7.thread is null and a7.post is null
-        where f.`hash` = file_hash and pf.deleted is null
-        group by f.id, p.id;
+                f.thumbnail_h, max(case when a1.`view` = 0 then 0
+                                        when a2.`view` = 0 then 0
+                                        when a3.`view` = 0 then 0
+                                        when a4.`view` = 0 then 0
+                                        when a5.`view` = 0 then 0
+                                        when a6.`view` = 0 then 0
+                                        when a7.`view` = 0 then 0
+                                        else 1 end) as `view`
+            from posts_files pf
+            join files f on f.id = pf.file
+            join posts p on p.id = pf.post and p.board = board_id
+            join threads t on t.id = p.thread
+            join user_groups ug on ug.user = user_id
+            -- Правило для конкретной группы и сообщения.
+            left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+            -- Правило для всех групп и конкретного сообщения.
+            left join acl a2 on a2.`group` is null and a2.post = p.id
+            -- Правила для конкретной группы и нити.
+            left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+            -- Правило для всех групп и конкретной нити.
+            left join acl a4 on a4.`group` is null and a4.thread = p.thread
+            -- Правила для конкретной группы и доски.
+            left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+            -- Правило для всех групп и конкретной доски.
+            left join acl a6 on a6.`group` is null and a6.board = p.board
+            -- Правило для конкретной групы.
+            left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+                and a7.thread is null and a7.post is null
+            where f.`hash` = file_hash and pf.deleted is null
+            group by f.id, p.id;
 end|
 
 -- ----------------------
@@ -1011,96 +1020,84 @@ end|
 -- -------------------------------------
 
 -- Добавляет вложенное изображение.
---
--- Аргументы:
--- _hash - Хеш.
--- _name - Имя.
--- _widht - Ширина.
--- _height - Высота.
--- _size - Размер в байтах.
--- _thumbnail - Уменьшенная копия.
--- _thumbnail_w - Ширина уменьшенной копии.
--- _thumbnail_h - Высота уменьшенной копии.
 create procedure sp_images_add
 (
-    _hash varchar(32),
-    _name varchar(256),
-    _widht int,
-    _height int,
-    _size int,
-    _thumbnail varchar(256),
-    _thumbnail_w int,
-    _thumbnail_h int
+    _hash varchar(32),          -- Хеш.
+    _name varchar(256),         -- Имя.
+    _widht int,                 -- Ширина.
+    _height int,                -- Высота.
+    _size int,                  -- Размер в байтах.
+    _thumbnail varchar(256),    -- Уменьшенная копия.
+    _thumbnail_w int,           -- Ширина уменьшенной копии.
+    _thumbnail_h int            -- Высота уменьшенной копии.
 )
 begin
-    insert into images (hash, name, widht, height, size, thumbnail, thumbnail_w,
-            thumbnail_h)
-        values (_hash, _name, _widht, _height, _size, _thumbnail, _thumbnail_w,
-            _thumbnail_h);
+    insert into images (hash, name, widht, height, size, thumbnail, thumbnail_w, thumbnail_h)
+        values (_hash, _name, _widht, _height, _size, _thumbnail, _thumbnail_w, _thumbnail_h);
     select last_insert_id() as id;
 end|
 
 -- Выбирает изображения, вложенные в заданное сообщение.
---
--- Аргументы:
--- post_id - Идентификатор сообщения.
 create procedure sp_images_get_by_post
 (
-	post_id int
+    post_id int -- Идентификатор сообщения.
 )
 begin
-	select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail,
-		i.thumbnail_w, i.thumbnail_h
-	from posts_images pi
-	join images i on i.id = pi.image and pi.post = post_id;
+    select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail, i.thumbnail_w, i.thumbnail_h
+        from posts_images pi
+        join images i on i.id = pi.image and pi.post = post_id;
+end|
+
+-- Выбирает висячие изображения.
+create procedure sp_images_get_dangling ()
+begin
+    select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail, i.thumbnail_w, i.thumbnail_h
+        from images i
+        left join posts_images pi on pi.image = i.id
+        where pi.post is null;
 end|
 
 -- Выбирает одинаковые изображения, вложенные в сообщения на заданной доске.
---
--- Аргументы:
--- board_id - Идентификатор доски.
--- user_id - Идентификатор пользователя.
--- image_hash - Хеш вложенного изображения.
 create procedure sp_images_get_same
 (
-	board_id int,
-	user_id int,
-	image_hash varchar(32)
+    board_id int,           -- Идентификатор доски.
+    user_id int,            -- Идентификатор пользователя.
+    image_hash varchar(32)  -- Хеш вложенного изображения.
 )
 begin
 	select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail,
-		i.thumbnail_w, i.thumbnail_h, p.number, t.original_post,
-		max(case
-			when a1.`view` = 0 then 0
-			when a2.`view` = 0 then 0
-			when a3.`view` = 0 then 0
-			when a4.`view` = 0 then 0
-			when a5.`view` = 0 then 0
-			when a6.`view` = 0 then 0
-			when a7.`view` = 0 then 0
-			else 1 end) as `view`
-	from images i
-	join posts_images pi on pi.image = i.id
-	join posts p on p.id = pi.post and p.board = board_id
-	join threads t on t.id = p.thread
-	join user_groups ug on ug.`user` = user_id
-	-- Правило для конкретной группы и сообщения.
-	left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
-	-- Правило для всех групп и конкретного сообщения.
-	left join acl a2 on a2.`group` is null and a2.post = p.id
-	-- Правила для конкретной группы и нити.
-	left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
-	-- Правило для всех групп и конкретной нити.
-	left join acl a4 on a4.`group` is null and a4.thread = p.thread
-	-- Правила для конкретной группы и доски.
-	left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
-	-- Правило для всех групп и конкретной доски.
-	left join acl a6 on a6.`group` is null and a6.board = p.board
-	-- Правило для конкретной групы.
-	left join acl a7 on a7.`group` = ug.`group` and a7.board is null
-		and a7.thread is null and a7.post is null
-	where i.hash = image_hash and pi.deleted is null
-	group by i.id, p.id;
+                    i.thumbnail_w, i.thumbnail_h, p.number, t.original_post,
+                    max(case
+                            when a1.`view` = 0 then 0
+                            when a2.`view` = 0 then 0
+                            when a3.`view` = 0 then 0
+                            when a4.`view` = 0 then 0
+                            when a5.`view` = 0 then 0
+                            when a6.`view` = 0 then 0
+                            when a7.`view` = 0 then 0
+                            else 1 end) as `view`
+            from images i
+            join posts_images pi on pi.image = i.id
+            join posts p on p.id = pi.post and p.board = board_id
+            join threads t on t.id = p.thread
+            join user_groups ug on ug.`user` = user_id
+            -- Правило для конкретной группы и сообщения.
+            left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+            -- Правило для всех групп и конкретного сообщения.
+            left join acl a2 on a2.`group` is null and a2.post = p.id
+            -- Правила для конкретной группы и нити.
+            left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+            -- Правило для всех групп и конкретной нити.
+            left join acl a4 on a4.`group` is null and a4.thread = p.thread
+            -- Правила для конкретной группы и доски.
+            left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+            -- Правило для всех групп и конкретной доски.
+            left join acl a6 on a6.`group` is null and a6.board = p.board
+            -- Правило для конкретной групы.
+            left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+                    and a7.thread is null and a7.post is null
+            where i.hash = image_hash and pi.deleted is null
+            group by i.id, p.id;
 end|
 
 -- ---------------------
@@ -1144,7 +1141,7 @@ end|
 -- Добавляет вложенную ссылку на изображение.
 create procedure sp_links_add
 (
-    _name varchar(256),         -- Имя.
+    _url varchar(256),          -- URL.
     _widht int,                 -- Ширина.
     _height int,                -- Высота.
     _size int,                  -- Размер в байтах.
@@ -1153,10 +1150,8 @@ create procedure sp_links_add
     _thumbnail_h int            -- Высота уменьшенной копии.
 )
 begin
-    insert into links (name, widht, height, size, thumbnail, thumbnail_w,
-            thumbnail_h)
-        values (_name, _widht, _height, _size, _thumbnail, _thumbnail_w,
-            _thumbnail_h);
+    insert into links (url, widht, height, size, thumbnail, thumbnail_w, thumbnail_h)
+        values (_url, _widht, _height, _size, _thumbnail, _thumbnail_w, _thumbnail_h);
     select last_insert_id() as id;
 end|
 
@@ -1170,6 +1165,15 @@ begin
             l.thumbnail_h
         from posts_links pl
         join links l on l.id = pl.link and pl.post = post_id;
+end|
+
+-- Выбирает висячие ссылки на изображения.
+create procedure sp_links_get_dangling ()
+begin
+    select l.id, l.url, l.widht, l.height, l.size, l.thumbnail, l.thumbnail_w, l.thumbnail_h
+        from links l
+        left join posts_links pl on pl.link = l.id
+        where pl.post is null;
 end|
 
 -- -----------------------------
@@ -1469,21 +1473,25 @@ end|
 -- Удаляет сообщения, помеченные на удаление.
 create procedure sp_posts_delete_marked ()
 begin
-	delete pu from posts_uploads pu
-	join posts p on p.id = pu.post
-	where p.deleted = 1;
+    update posts p join threads t on t.id = p.thread and t.deleted = 1 set p.deleted = 1;
 
-	delete a from acl a
-	join posts p on p.id = a.post
-	where p.deleted = 1;
+    delete pf from posts_files pf join posts p on p.id = pf.post where p.deleted = 1;
 
-	delete from posts where deleted = 1;
+    delete pi from posts_images pi join posts p on p.id = pi.post where p.deleted = 1;
 
-	delete ht from hidden_threads ht
-	join threads t on t.id = ht.thread
-	where t.deleted = 1;
+    delete pl from posts_links pl join posts p on p.id = pl.post where p.deleted = 1;
 
-	delete from threads where deleted = 1;
+    delete pv from posts_videos pv join posts p on p.id = pv.post where p.deleted = 1;
+
+    delete a from acl a join posts p on p.id = a.post where p.deleted = 1;
+
+    delete from posts where deleted = 1;
+
+    /*delete ht from hidden_threads ht join threads t on t.id = ht.thread where t.deleted = 1;
+
+    delete a from acl a join threads t on t.id = a.thread where t.deleted = 1;
+
+    delete from threads where deleted = 1;*/
 end|
 
 -- Редактирует текст заданного сообщения, добавляя в конец его текста заданный
@@ -1730,6 +1738,12 @@ begin
     update posts_files set deleted = 1 where post = post_id;
 end|
 
+-- Удаляет помеченные на удаление связи заданного сообщения с вложенными файлами.
+create procedure sp_posts_files_delete_marked ()
+begin
+    delete from posts_files where deleted = 1;
+end|
+
 -- Выбирает связи заданного сообщения с вложенными файлами.
 --
 -- Аргументы:
@@ -1765,6 +1779,12 @@ create procedure sp_posts_images_delete_by_post
 )
 begin
     update posts_images set deleted = 1 where post = post_id;
+end|
+
+-- Удаляет помеченные на удаление связи заданного сообщения с вложенными изображениями.
+create procedure sp_posts_images_delete_marked ()
+begin
+    delete from posts_images where deleted = 1;
 end|
 
 -- Выбирает связи заданного сообщения с вложенными изображениями.
@@ -1804,6 +1824,12 @@ begin
     update posts_links set deleted = 1 where post = post_id;
 end|
 
+-- Удаляет связи заданного сообщения с вложенными ссылками на изображения.
+create procedure sp_posts_links_delete_marked ()
+begin
+    delete from posts_links where deleted = 1;
+end|
+
 -- Выбирает связи заданного сообщения с вложенными ссылками на изображения.
 --
 -- Аргументы:
@@ -1839,6 +1865,12 @@ create procedure sp_posts_videos_delete_by_post
 )
 begin
     update posts_videos set deleted = 1 where post = post_id;
+end|
+
+-- Удаляет связи заданного сообщения с вложенными видео.
+create procedure sp_posts_videos_delete_marked ()
+begin
+    delete from posts_videos where deleted = 1;
 end|
 
 -- Выбирает связи заданного сообщения с вложенным видео.
@@ -1910,6 +1942,16 @@ begin
     select last_insert_id() into thread_id;
     select id, board, original_post, bump_limit, sage, sticky, with_attachments
         from threads where id = thread_id;
+end|
+
+-- Удаляет нити, помеченные на удаление.
+create procedure sp_threads_delete_marked ()
+begin
+    delete ht from hidden_threads ht join threads t on t.id = ht.thread where t.deleted = 1;
+
+    delete a from acl a join threads t on t.id = a.thread where t.deleted = 1;
+
+    delete from threads where deleted = 1;
 end|
 
 -- Редактирует заданную нить.
@@ -2758,6 +2800,15 @@ begin
     select v.id, v.code, v.widht, v.height
         from posts_videos pv
         join videos v on v.id = pv.video and pv.post = post_id;
+end|
+
+-- Выбирает висячие видео.
+create procedure sp_videos_get_dangling ()
+begin
+    select v.id, v.code, v.widht, v.height
+        from videos v
+        left join posts_videos pv on pv.video = v.id
+        where pv.post is null;
 end|
 
 -- ---------------------------------

@@ -129,9 +129,9 @@ try {
     $smarty->assign('goto', $_SESSION['goto']);
     $smarty->assign('macrochan_tags', $macrochan_tags);
     $smarty->assign('ib_name', Config::IB_NAME);
-    $smarty->assign('enable_macro', Config::ENABLE_MACRO);
-    $smarty->assign('enable_youtube', Config::ENABLE_YOUTUBE);
-    $smarty->assign('enable_search', Config::ENABLE_SEARCH);
+    $smarty->assign('enable_macro', $board['enable_macro'] === null ? Config::ENABLE_MACRO : $board['enable_macro']);
+    $smarty->assign('enable_youtube', $board['enable_youtube'] === null ? Config::ENABLE_YOUTUBE : $board['enable_youtube']);
+    $smarty->assign('enable_search', $board['enable_search'] === null ? Config::ENABLE_SEARCH : $board['enable_search']);
     $smarty->assign('ATTACHMENT_TYPE_FILE', Config::ATTACHMENT_TYPE_FILE);
     $smarty->assign('ATTACHMENT_TYPE_LINK', Config::ATTACHMENT_TYPE_LINK);
     $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
@@ -155,16 +155,14 @@ try {
                 $recived_posts_count++;
 
                 // Имя отправителя по умолчанию.
-                if (!$board['force_anonymous'] && $board['default_name']
-                        && !$p['name']) {
+                if (!$board['force_anonymous'] && $board['default_name'] && !$p['name']) {
                     $p['name'] = $board['default_name'];
                 }
 
                 // Оригинальное сообщение.
                 if ($t['original_post'] == $p['number']) {
                     $p['with_attachments'] = false; // Fake field.
-                    $p['text'] = posts_corp_text($p['text'],
-                            $_SESSION['lines_per_post'], $is_cutted);
+                    $p['text'] = posts_corp_text($p['text'], $_SESSION['lines_per_post'], $is_cutted);
                     $p['text_cutted'] = $is_cutted; // Fake field.
                     foreach ($posts_attachments as $pa) {
                         if ($pa['post'] == $p['id']) {
