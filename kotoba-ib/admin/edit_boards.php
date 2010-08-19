@@ -78,10 +78,10 @@ try {
                 $new_force_anonymous = 0;
             }
             $new_default_name = boards_check_default_name($_POST['new_default_name']);
-            if (isset($_POST['new_with_files'])) {
-                $new_with_files = 1;
+            if (isset($_POST['new_with_attachments'])) {
+                $new_with_attachments = 1;
             } else {
-                $new_with_files = 0;
+                $new_with_attachments = 0;
             }
             if (isset($_POST['new_macro'])) {
                 $new_macro = 1;
@@ -111,7 +111,7 @@ try {
                 if ($board['name'] == $new_name && $found = true) {
                     boards_edit($board['id'], $new_title, $new_annotation,
                             $new_bump_limit, $new_force_anonymous,
-                            $new_default_name, $new_with_files, $new_macro,
+                            $new_default_name, $new_with_attachments, $new_macro,
                             $new_youtube, $new_captcha, $new_same_upload,
                             $new_popdown_handler, $new_category);
                     $reload_boards = true;
@@ -121,7 +121,7 @@ try {
             if (!$found) {
                 boards_add($new_name, $new_title, $new_annotation,
                         $new_bump_limit, $new_force_anonymous,
-                        $new_default_name, $new_with_files, $new_macro,
+                        $new_default_name, $new_with_attachments, $new_macro,
                         $new_youtube, $new_captcha, $new_same_upload,
                         $new_popdown_handler, $new_category);
                 create_directories($new_name);
@@ -179,19 +179,19 @@ try {
                 }
 			}
 			// Был ли изменен флаг загрузки файлов.
-			$param_name = "with_files_{$board['id']}";
-			$new_with_files = $board['with_files'];
-			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['with_files']) {
+			$param_name = "with_attachments_{$board['id']}";
+			$new_with_attachments = $board['with_attachments'];
+			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['with_attachments']) {
 				// Флаг был установлен 0 -> 1
-				$new_with_files = 1;
+				$new_with_attachments = 1;
 			}
-			if (!isset($_POST[$param_name]) && $board['with_files']) {
+			if (!isset($_POST[$param_name]) && $board['with_attachments']) {
 				// Флаг был снят 1 -> 0
-				$new_with_files = 0;
+				$new_with_attachments = 0;
 			}
 			// Была ли включена интеграция с макрочаном?
 			$param_name = "macro_{$board['id']}";
-			$new_macro = $board['enabled_macro'];
+			$new_macro = $board['enable_macro'];
 			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['enable_macro']) {
 				// Флаг был установлен 0 -> 1
 				$new_macro = 1;
@@ -202,7 +202,7 @@ try {
 			}
 			// Было ли разрешено видео с ютуба?
 			$param_name = "youtube_{$board['id']}";
-			$new_youtube = $board['enabled_youtube'];
+			$new_youtube = $board['enable_youtube'];
 			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['enable_youtube']) {
 				// Флаг был установлен 0 -> 1
 				$new_youtube = 1;
@@ -213,7 +213,7 @@ try {
 			}
 			// Была ли включена капча?
 			$param_name = "captcha_{$board['id']}";
-			$new_captcha = $board['enabled_captcha'];
+			$new_captcha = $board['enable_captcha'];
 			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['enable_captcha']) {
 				// Флаг был установлен 0 -> 1
 				$new_captcha = 1;
@@ -249,7 +249,7 @@ try {
                     || $new_bump_limit != $board['bump_limit']
                     || $new_force_anonymous != $board['force_anonymous']
                     || $new_default_name != $board['default_name']
-                    || $new_with_files != $board['with_files']
+                    || $new_with_attachments != $board['with_attachments']
                     || $new_macro != $board['enable_macro']
                     || $new_youtube != $board['enable_youtube']
                     || $new_captcha != $board['enable_captcha']
@@ -263,7 +263,7 @@ try {
                             $new_bump_limit,
                             $new_force_anonymous,
                             $new_default_name,
-                            $new_with_files,
+                            $new_with_attachments,
                             $new_macro, $new_youtube,
                             $new_captcha,
                             $new_same_upload,

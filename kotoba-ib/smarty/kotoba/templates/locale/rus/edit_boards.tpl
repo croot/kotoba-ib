@@ -50,7 +50,7 @@
 	<td><input type="text" name="bump_limit_{$boards[i].id}" value="{$boards[i].bump_limit}"></td>
 	<td><input type="checkbox" name="force_anonymous_{$boards[i].id}" value="1"{if $boards[i].force_anonymous} checked{/if}></td>
 	<td><input type="text" name="default_name_{$boards[i].id}" value="{$boards[i].default_name}"></td>
-	<td><input type="checkbox" name="with_files_{$boards[i].id}" value="1"{if $boards[i].with_attachments} checked{/if}></td>
+	<td><input type="checkbox" name="with_attachments_{$boards[i].id}" value="1"{if $boards[i].with_attachments} checked{/if}></td>
 	<td><input type="checkbox" name="macro_{$boards[i].id}" value="1"{if $boards[i].enable_macro} checked{/if}></td>
 	<td><input type="checkbox" name="youtube_{$boards[i].id}" value="1"{if $boards[i].enable_youtube} checked{/if}></td>
 	<td><input type="checkbox" name="captcha_{$boards[i].id}" value="1"{if $boards[i].enable_captcha} checked{/if}></td>
@@ -79,7 +79,7 @@
 	<td><input type="text" name="new_bump_limit" value=""></td>
 	<td><input type="checkbox" name="new_force_anonymous" value="1"></td>
 	<td><input type="text" name="new_default_name" value=""></td>
-	<td><input type="checkbox" name="new_with_files" value="1"></td>
+	<td><input type="checkbox" name="new_with_attachments" value="1"></td>
 	<td><input type="checkbox" name="new_macro" value="1"></td>
 	<td><input type="checkbox" name="new_youtube" value="1"></td>
 	<td><input type="checkbox" name="new_captcha" value="1"></td>
