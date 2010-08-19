@@ -143,9 +143,7 @@ try {
             } else {
                 $attachment_type = Config::ATTACHMENT_TYPE_FILE;
             }
-        } elseif (($board['enable_macro'] === null && Config::ENABLE_MACRO || $board['enable_macro'])
-                && isset($_POST['macrochan_tag'])
-                && $_POST['macrochan_tag'] != '') {
+        } elseif (($board['enable_macro'] === null && Config::ENABLE_MACRO || $board['enable_macro']) && isset($_POST['macrochan_tag']) && $_POST['macrochan_tag'] != '') {
             /* TODO Actually macrochan tag entity is a pair: id, name. Is
              * $macrochan_tag should be $macrochan_tag_name?
              */

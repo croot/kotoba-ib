@@ -89,6 +89,8 @@ FormatException::$messages['GROUP_NAME'] = 'Имя группы имеет не 
 FormatException::$messages['LANGUAGE_ID'] = 'Идентификатор языка имеет не верный формат.';
 FormatException::$messages['LANGUAGE_CODE'] = 'ISO_639-2 код языка имеет не верный формат.';
 
+FormatException::$messages['MACROCHAN_TAG_NAME'] = 'Тег макрочана имеет не верный формат или не существует.';
+
 FormatException::$messages['POPDOWN_HANDLER_ID'] = 'Идентификатор обработчика автоматического удаления нитей имеет не верный формат.';
 FormatException::$messages['POPDOWN_HANDLER_NAME'] = 'Имя обработчика удаления нитей имеет не верный формат.';
 

@@ -2,22 +2,13 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/1">
         <file>
-            <url>res/stored%20procedures.sql</url>
-            <line>865</line>
-            <line>1724</line>
-        </file>
-        <file>
             <url>securimage/securimage.php</url>
             <line>418</line>
             <line>802</line>
         </file>
         <file>
             <url>lib/mysql.php</url>
-            <line>1203</line>
-        </file>
-        <file>
-            <url>lib/db.php</url>
-            <line>1044</line>
+            <line>1245</line>
         </file>
     </editor-bookmarks>
 </project-private>

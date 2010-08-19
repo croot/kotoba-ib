@@ -68,7 +68,7 @@
 		<select name="macrochan_tag">
 		<option value="" selected></option>
 		{section name=i loop=$macrochan_tags}
-			<option value="{$macrochan_tags[i]}">{$macrochan_tags[i]}</option>
+			<option value="{$macrochan_tags[i].name}">{$macrochan_tags[i].name}</option>
 		{/section}
 		</select>
 	</td>

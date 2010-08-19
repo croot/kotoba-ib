@@ -32,6 +32,6 @@
 
 <a href="{$DIR_PATH}/admin/moderate.php">Основной скрипт модератора.</a><br>
 <a href="{$DIR_PATH}/admin/archive.php">Произвести архивирование.</a><br>
-<a href="{$DIR_PATH}/admin/delete_marked_posts.php">Удалить помеченные на удаление сообщения и нити.</a><br>
-<a href="{$DIR_PATH}/admin/delete_dangling_files.php">Удалить висячие загрузки.</a>
+<a href="{$DIR_PATH}/admin/delete_marked.php">Удалить помеченные на удаление сообщения, нити, связи сообщений и вложений.</a><br>
+<a href="{$DIR_PATH}/admin/delete_dangling_attachments.php">Удаление висячих вложений.</a>
 <br><br><a href="{$DIR_PATH}/">На главную</a>

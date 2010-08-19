@@ -172,6 +172,15 @@ function posts_attachments_delete_by_post($post_id) {
     db_posts_videos_delete_by_post(DataExchange::getDBLink(), $post_id);
 }
 /**
+ * Удаляет связи сообщений с вложениями, помеченные на удаление.
+ */
+function posts_attachments_delete_marked() { // Java CC
+    db_posts_files_delete_marked(DataExchange::getDBLink());
+    db_posts_images_delete_marked(DataExchange::getDBLink());
+    db_posts_links_delete_marked(DataExchange::getDBLink());
+    db_posts_videos_delete_marked(DataExchange::getDBLink());
+}
+/**
  * Получает связи сообщений с их вложениями.
  * @param array $posts Сообщения.
  * @return array
@@ -223,6 +232,30 @@ function attachments_get_by_posts($posts) { // Java CC
         foreach (db_videos_get_by_post(DataExchange::getDBLink(), $post['id']) as $video) {
             array_push($attachments, $video);
         }
+    }
+    return $attachments;
+}
+/**
+ * Получает висячие вложения.
+ * @return array
+ * Возвращает вложения:<br>
+ * 'id' - Идентификатор.<br>
+ * ... - Атрибуты, зависящие от конкретного типа вложения.<br>
+ * 'attachment_type' - Тип вложения.
+ */
+function attachments_get_dangling() {
+    $attachments = array();
+    foreach (db_files_get_dangling(DataExchange::getDBLink()) as $file) {
+        array_push($attachments, $file);
+    }
+    foreach (db_images_get_dangling(DataExchange::getDBLink()) as $image) {
+        array_push($attachments, $image);
+    }
+    foreach (db_links_get_dangling(DataExchange::getDBLink()) as $link) {
+        array_push($attachments, $link);
+    }
+    foreach (db_videos_get_dangling(DataExchange::getDBLink()) as $video) {
+        array_push($attachments, $video);
     }
     return $attachments;
 }
@@ -675,7 +708,7 @@ function boards_edit($id, $title, $annotation, $bump_limit, $force_anonymous,
 /**
  * Получает все доски.
  * @return array
- * Возвращает доски:<p>
+ * Возвращает доски:<br>
  * 'id' - идентификатор.<br>
  * 'name' - имя.<br>
  * 'title' - заголовок.<br>
@@ -689,11 +722,10 @@ function boards_edit($id, $title, $annotation, $bump_limit, $force_anonymous,
  * 'enable_captcha' - включение капчи.<br>
  * 'same_upload' - политика загрузки одинаковых файлов.<br>
  * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
- * 'category' - категория.</p>
+ * 'category' - категория.
  */
-function boards_get_all()
-{
-	return db_boards_get_all(DataExchange::getDBLink());
+function boards_get_all() {
+    return db_boards_get_all(DataExchange::getDBLink());
 }
 /**
  * Получает заданную доску.
@@ -1264,7 +1296,7 @@ function languages_get_all() {
 
 /**
  * Добавляет вложенную ссылку на изображение.
- * @param string $name Имя.
+ * @param string $url URL.
  * @param int $widht Ширина.
  * @param int $height Высота.
  * @param int $size Размер в байтах.
@@ -1274,10 +1306,8 @@ function languages_get_all() {
  * @return string
  * Возвращает идентификатор вложенной ссылки на изображение.
  */
-function links_add($name, $widht, $height, $size, $thumbnail, $thumbnail_w,
-        $thumbnail_h) { // Java CC
-    return db_links_add(DataExchange::getDBLink(), $name, $widht, $height,
-            $size, $thumbnail, $thumbnail_w, $thumbnail_h);
+function links_add($url, $widht, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h) { // Java CC
+    return db_links_add(DataExchange::getDBLink(), $url, $widht, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h);
 }
 /******************************
  * Работа с тегами макрочана. *
@@ -1291,6 +1321,20 @@ function macrochan_tags_add($name) { // Java CC
     db_macrochan_tags_add(DataExchange::getDBLink(), $name);
 }
 /**
+ * Проверяет корректность тега макрочана.
+ * @param string $name Имя.
+ * @return string Возвращает безопасный для использования тег макрочана.
+ */
+function macrochan_tags_check($name) {
+    $macrochan_tags = macrochan_tags_get_all();
+    foreach ($macrochan_tags as $tag) {
+        if ($tag['name'] === $name) {
+            return $tag['name'];
+        }
+    }
+    throw new FormatException(FormatException::$messages['MACROCHAN_TAG_NAME']);
+}
+/**
  * Удаляет тег по заданному имени.
  * @param string $name Имя.
  */
@@ -1300,9 +1344,9 @@ function macrochan_tags_delete_by_name($name) { // Java CC
 /**
  * Получает все теги макрочана.
  * @return array
- * Возвращает теги макрочана:<p>
+ * Возвращает теги макрочана:<br>
  * 'id' - Идентификатор.<br>
- * 'name' - Имя.</p>
+ * 'name' - Имя.
  */
 function macrochan_tags_get_all() { // Java CC
     return db_macrochan_tags_get_all(DataExchange::getDBLink());
@@ -1680,9 +1724,8 @@ function posts_delete_last($id, $date_time)
 /**
  * Удаляет сообщения, помеченные на удаление.
  */
-function posts_delete_marked()
-{
-	db_posts_delete_marked(DataExchange::getDBLink());
+function posts_delete_marked() { // Java CC
+    db_posts_delete_marked(DataExchange::getDBLink());
 }
 /**
  * Получает все сообщения.
@@ -2106,6 +2149,12 @@ function threads_check_original_post($original_post) { // Java CC
         throw new FormatException(FormatException::$messages['THREAD_NUMBER']);
     }
     return $original_post;
+}
+/**
+ * Удаляет нити, помеченные на удаление.
+ */
+function threads_delete_marked() { // Java CC
+    db_threads_delete_marked(DataExchange::getDBLink());
 }
 /**
  * Редактирует заданную нить.

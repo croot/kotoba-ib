@@ -49,60 +49,83 @@ try {
             $_SESSION['user'], $_SERVER['REMOTE_ADDR']);
     Logging::close_log();
 
-    $uploads = uploads_get_all_dangling();
+    $attachments = attachments_get_dangling();
     $boards = boards_get_all();
     $delete_count = 0;
 
-    foreach ($uploads as &$u) {
-        switch ($u['upload_type']) {
-            case Config::LINK_TYPE_VIRTUAL:
-                $full_path = null;
-                $found = false;
+    foreach ($attachments as &$a) {
+        switch ($a['attachment_type']) {
+            case Config::ATTACHMENT_TYPE_FILE:
                 foreach ($boards as $b) {
-                    $full_path = Config::ABS_PATH . "/{$b['name']}/img/{$u['link']}";
+                    $full_path = Config::ABS_PATH . "/{$b['name']}/other/{$a['name']}";
                     if(file_exists($full_path)) {
-                        $found = true;
-                        break;
-                        // TODO А если вдруг файл не только на этой доске?
-                    }
-                }
-                if($u['hash'] === null || ($found && $u['hash'] == calculate_file_hash($full_path))) {
-                    if(isset($_POST['submit']) && (isset($_POST["delete_{$u['id']}"]) || isset($_POST['delete_all']))) {
-                        if ($found) {
-                            unlink($full_path);
+                        if($a['hash'] === null || $a['hash'] == calculate_file_hash($full_path)) {
+                            if(isset($_POST['submit']) && (isset($_POST["delete_file_{$a['id']}"]) || isset($_POST['delete_all']))) {
+
+                                // Удаление.
+                                //unlink($full_path);
+                                //files_delete($a['id']);
+                                $delete_count++;
+                            } elseif(!isset($_POST['submit'])) {
+
+                                // Для вывода списка висячих вложений.
+                                $a['flag'] = true;
+                                $a['link'] = Config::DIR_PATH . "/{$b['name']}/other/{$a['name']}";
+                                $a['thumbnail'] = Config::DIR_PATH . "/img/{$a['thumbnail']}";
+                            }
                         }
-                        uploads_delete_specifed($u['id']);
-                        $delete_count++;
-                    } elseif(!isset($_POST['submit'])) {
-                        $u['flag'] = true;
-                        $u['link'] = Config::DIR_PATH . "/{$b['name']}/img/{$u['link']}";
-                        $u['thumbnail'] = Config::DIR_PATH . "/{$b['name']}/thumb/{$u['thumbnail']}";
                     }
                 }
                 break;
-            case Config::LINK_TYPE_URL:
-                if(isset($_POST['submit']) && (isset($_POST["delete_{$u['id']}"]) || isset($_POST['delete_all']))) {
-                    uploads_delete_specifed($u['id']);
-                    $delete_count++;
-                } elseif (!isset($_POST['submit'])) {
-                    $u['flag'] = true;
+            case Config::ATTACHMENT_TYPE_IMAGE:
+                foreach ($boards as $b) {
+                    $full_path = Config::ABS_PATH . "/{$b['name']}/img/{$a['name']}";
+                    if(file_exists($full_path)) {
+                        if($a['hash'] === null || $a['hash'] == calculate_file_hash($full_path)) {
+                            if(isset($_POST['submit']) && (isset($_POST["delete_image_{$a['id']}"]) || isset($_POST['delete_all']))) {
+
+                                // Удаление.
+                                //unlink($full_path);
+                                //images_delete($a['id']);
+                                $delete_count++;
+                            } elseif(!isset($_POST['submit'])) {
+
+                                // Для вывода списка висячих вложений.
+                                $a['flag'] = true;
+                                $a['link'] = Config::DIR_PATH . "/{$b['name']}/img/{$a['name']}";
+                                $a['thumbnail'] = Config::DIR_PATH . "/{$b['name']}/thumb/{$a['thumbnail']}";
+                            }
+                        }
+                    }
                 }
                 break;
-            case Config::LINK_TYPE_CODE:
-                if(isset($_POST['submit']) && (isset($_POST["delete_{$u['id']}"]) || isset($_POST['delete_all']))) {
-                    uploads_delete_specifed($u['id']);
+            case Config::ATTACHMENT_TYPE_LINK:
+                if(isset($_POST['submit']) && (isset($_POST["delete_link_{$a['id']}"]) || isset($_POST['delete_all']))) {
+                    //links_delete($a['id']);
                     $delete_count++;
                 } elseif (!isset($_POST['submit'])) {
-                    $u['flag'] = true;
-                    $u['is_embed'] = true;
-                    $smarty->assign('code', $u['link']);
-                    $u['link'] = $smarty->fetch('youtube.tpl');
+                    $a['flag'] = true;
                 }
-            break;
+                break;
+            case Config::ATTACHMENT_TYPE_VIDEO:
+                if(isset($_POST['submit']) && (isset($_POST["delete_video_{$a['id']}"]) || isset($_POST['delete_all']))) {
+                    //videos_delete($a['id']);
+                    $delete_count++;
+                } elseif (!isset($_POST['submit'])) {
+                    $a['flag'] = true;
+                    $a['is_embed'] = true;
+                    $smarty->assign('code', $a['code']);
+                    $a['link'] = $smarty->fetch('youtube.tpl');
+                }
+                break;
         }
     }
 
-    $smarty->assign('uploads', $uploads);
+    $smarty->assign('attachments', $attachments);
+    $smarty->assign('ATTACHMENT_TYPE_FILE', Config::ATTACHMENT_TYPE_FILE);
+    $smarty->assign('ATTACHMENT_TYPE_LINK', Config::ATTACHMENT_TYPE_LINK);
+    $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
+    $smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
     if (isset($_POST['submit'])) {
         $smarty->assign('delete_count', $delete_count);
     }

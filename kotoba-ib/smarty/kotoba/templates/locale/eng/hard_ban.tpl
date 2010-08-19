@@ -12,7 +12,7 @@
 Code of hard ban page.
 
 Variables:
-    $DIR_PATH - path from servers document root to kotoba directory what contans index.php (see config.default).
+    $DIR_PATH - path from server document root to kotoba directory what contains index.php (see config.default).
     $STYLESHEET - stylesheet (see config.default).
 *}
 {include file='header.tpl' page_title='Banned at firewall' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
