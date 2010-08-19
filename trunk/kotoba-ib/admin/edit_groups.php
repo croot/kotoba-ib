@@ -11,7 +11,7 @@
 
 /**
  * Скрипт редактирования групп.
- * @package userscripts
+ * @package admscripts
  */
 
 require '../config.php';

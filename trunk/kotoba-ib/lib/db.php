@@ -1366,10 +1366,8 @@ function macrochan_tags_get_all() { // Java CC
  * @param string|int $thumbnail_w Ширина уменьшенной копии.
  * @param string|int $thumbnail_h Высота уменьшенной копии.
  */
-function macrochan_images_add($name, $width, $height, $size, $thumbnail,
-        $thumbnail_w, $thumbnail_h) { // Java CC
-    db_macrochan_images_add(DataExchange::getDBLink(), $name, $width, $height,
-            $size, $thumbnail, $thumbnail_w, $thumbnail_h);
+function macrochan_images_add($name, $width, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h) { // Java CC
+    db_macrochan_images_add(DataExchange::getDBLink(), $name, $width, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h);
 }
 /**
  * Удаляет изображение по заданному имени.

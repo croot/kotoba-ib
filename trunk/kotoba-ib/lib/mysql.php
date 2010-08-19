@@ -1799,8 +1799,7 @@ function db_macrochan_tags_get_all($link) { // Java CC.
  * @param string|int $thumbnail_w Ширина уменьшенной копии.
  * @param string|int $thumbnail_h Высота уменьшенной копии.
  */
-function db_macrochan_images_add($link, $name, $width, $height, $size,
-        $thumbnail, $thumbnail_w, $thumbnail_h) { // Java CC
+function db_macrochan_images_add($link, $name, $width, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h) { // Java CC
     if ($name == null) { // Пустая строка тоже null.
         $name = 'null';
     } else {
