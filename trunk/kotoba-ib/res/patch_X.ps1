@@ -8,9 +8,9 @@ if (! $VERSION) {
 
 echo "delimiter |
 
-drop function if exists vesioning_table_exists|
+drop function if exists versioning_table_exists|
 
-create function vesioning_table_exists ()
+create function versioning_table_exists ()
 returns int
 deterministic
 begin
@@ -23,7 +23,7 @@ drop procedure if exists patch_$VERSION|
 
 create procedure patch_$VERSION ()
 begin
-    if (not vesioning_table_exists()) then
+    if (not versioning_table_exists()) then
         create table db_version (version int) engine=InnoDB;
         insert into db_version (version) values (0);
     end if;
