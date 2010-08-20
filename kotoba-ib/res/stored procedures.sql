@@ -1521,7 +1521,7 @@ begin
 	order by p.date_time desc;
 end|
 
--- Выбирает все номера сообщений с соотвествующими номерами нитей и именами досок.
+-- Выбирает номера всех сообщений с соотвествующими номерами нитей и именами досок.
 create procedure sp_posts_get_all_numbers ()
 begin
     select p.`number` as post, t.`original_post` as thread, b.`name` as board
