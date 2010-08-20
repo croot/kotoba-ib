@@ -24,7 +24,7 @@
 </tr>
 {section name=i loop=$languages}
 <tr>
-	<td>{$languages[i].name}</td><td><input type="checkbox" name="delete_{$languages[i].id}" value="1"></td>
+	<td>{$languages[i].code}</td><td><input type="checkbox" name="delete_{$languages[i].id}" value="1"></td>
 </tr>
 {/section}
 <tr>

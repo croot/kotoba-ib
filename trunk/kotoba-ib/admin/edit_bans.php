@@ -11,7 +11,7 @@
 
 /**
  * Скрипт редактирования блокировок.
- * @package userscripts
+ * @package admscripts
  */
 
 require '../config.php';

@@ -14,7 +14,7 @@
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
     $STYLESHEET - стиль оформления (см. config.default).
-	$languages - языки.
+    $languages - языки.
 *}
 {include file='header.tpl' page_title='Редактирование языков' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
 <form action="{$DIR_PATH}/admin/edit_languages.php" method="post">
@@ -24,7 +24,7 @@
 </tr>
 {section name=i loop=$languages}
 <tr>
-	<td>{$languages[i].name}</td><td><input type="checkbox" name="delete_{$languages[i].id}" value="1"></td>
+	<td>{$languages[i].code}</td><td><input type="checkbox" name="delete_{$languages[i].id}" value="1"></td>
 </tr>
 {/section}
 <tr>
