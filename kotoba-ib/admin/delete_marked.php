@@ -11,7 +11,7 @@
 
 /**
  * Скрипт удаления помеченных на удаление сообщений, нитей, связей сообщений с вложениями.
- * @package userscripts
+ * @package admscripts
  */
 
 require '../config.php';

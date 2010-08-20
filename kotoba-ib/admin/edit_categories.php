@@ -23,10 +23,12 @@ require Config::ABS_PATH . '/lib/db.php';
 require Config::ABS_PATH . '/lib/misc.php';
 
 try {
+    // Initialization.
     kotoba_session_start();
     locale_setup();
     $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
+    // Check if remote host was banned.
     if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
@@ -38,6 +40,7 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
+    // Check permission and write message to log file.
     if (!is_admin()) {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
     }

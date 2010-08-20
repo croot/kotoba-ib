@@ -1,14 +1,19 @@
 <?php
-/*************************************
+/* ***********************************
  * Этот файл является частью Kotoba. *
  * Файл license.txt содержит условия *
  * распространения Kotoba.           *
  *************************************/
-/*********************************
+/* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
-// Скрипт редактирования стилей оформления.
+
+/**
+ * Скрипт редактирования стилей оформления.
+ * @package admscripts
+ */
+
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
@@ -16,43 +21,62 @@ require Config::ABS_PATH . '/lib/logging.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
 require Config::ABS_PATH . '/lib/db.php';
 require Config::ABS_PATH . '/lib/misc.php';
-try
-{
-	kotoba_session_start();
-	locale_setup();
-	$smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
-	bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));	// Возможно завершение работы скрипта.
-	if(!in_array(Config::ADM_GROUP_NAME, $_SESSION['groups']))
-		throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
-	Logging::write_message(sprintf(Logging::$messages['ADMIN_FUNCTIONS_EDIT_STYLESHEETS'],
-				$_SESSION['user'], $_SERVER['REMOTE_ADDR']),
-			Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log');
-	$stylesheets = stylesheets_get_all();
-	$reload_stylesheets = false;	// Были ли произведены изменения.
-	// Добавление стиля оформления.
-	if(isset($_POST['new_stylesheet']) && $_POST['new_stylesheet'] !== '')
-	{
-		stylesheets_add(stylesheets_check_name($_POST['new_stylesheet']));
-		$reload_stylesheets = true;
-	}
-	// Удаление стилей оформления.
-	foreach($stylesheets as $stylesheet)
-		if(isset($_POST['delete_' . $stylesheet['id']]))
-		{
-			stylesheets_delete($stylesheet['id']);
-			$reload_stylesheets = true;
-		}
-	// Вывод формы редактирования.
-	if($reload_stylesheets)
-		$stylesheets = stylesheets_get_all();
-	DataExchange::releaseResources();
-	$smarty->assign('stylesheets', $stylesheets);
-	$smarty->display('edit_stylesheets.tpl');
-}
-catch(Exception $e)
-{
-	$smarty->assign('msg', $e->__toString());
-	DataExchange::releaseResources();
-	die($smarty->fetch('error.tpl'));
+
+try {
+    // Initialization.
+    kotoba_session_start();
+    locale_setup();
+    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+
+    // Check if remote host was banned.
+    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+        throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
+    }
+    if (($ban = bans_check($ip)) !== false) {
+        $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
+        $smarty->assign('reason', $ban['reason']);
+        session_destroy();
+        DataExchange::releaseResources();
+        die($smarty->fetch('banned.tpl'));
+    }
+
+    // Check permission and write message to log file.
+    if (!is_admin()) {
+        throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
+    }
+    Logging::write_msg(Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log',
+            Logging::$messages['ADMIN_FUNCTIONS_EDIT_STYLESHEETS'],
+            $_SESSION['user'], $_SERVER['REMOTE_ADDR']);
+    Logging::close_log();
+
+    $stylesheets = stylesheets_get_all();
+    $reload_stylesheets = false;    // Были ли произведены изменения.
+
+    // Добавление стиля оформления.
+    if (isset($_POST['new_stylesheet']) && $_POST['new_stylesheet'] !== '') {
+        stylesheets_add(stylesheets_check_name($_POST['new_stylesheet']));
+        $reload_stylesheets = true;
+    }
+
+    // Удаление стилей оформления.
+    foreach ($stylesheets as $stylesheet) {
+        if (isset($_POST['delete_' . $stylesheet['id']])) {
+            stylesheets_delete($stylesheet['id']);
+            $reload_stylesheets = true;
+        }
+    }
+
+    // Вывод формы редактирования.
+    if ($reload_stylesheets) {
+        $stylesheets = stylesheets_get_all();
+    }
+    $smarty->assign('stylesheets', $stylesheets);
+    $smarty->display('edit_stylesheets.tpl');
+
+    DataExchange::releaseResources();
+} catch(Exception $e) {
+    $smarty->assign('msg', $e->__toString());
+    DataExchange::releaseResources();
+    die($smarty->fetch('error.tpl'));
 }
 ?>

@@ -11,7 +11,7 @@
 
 /**
  * Edit threads script.
- * @package userscripts
+ * @package admscripts
  */
 
 require '../config.php';
