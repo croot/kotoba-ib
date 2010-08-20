@@ -28,5 +28,5 @@
 {include file='search_pages_list.tpl' pages=$pages page=$page}
 <br>
 <div class="navbar">{include file='board_list.tpl' boards=$boards DIR_PATH=$DIR_PATH} [<a href="{$DIR_PATH}/">Главная</a>]</div>
-<div class="footer" style="clear: both;">- Kotoba 1.0 -</div>
+<div class="footer" style="clear: both;">- Kotoba 1.1 -</div>
 {include file='footer.tpl'}
