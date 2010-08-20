@@ -85,6 +85,7 @@ drop procedure if exists sp_posts_delete_last|
 drop procedure if exists sp_posts_delete_marked|
 drop procedure if exists sp_posts_edit_text_by_id|
 drop procedure if exists sp_posts_get_all|
+drop procedure if exists sp_posts_get_all_numbers|
 drop procedure if exists sp_posts_get_by_board|
 drop procedure if exists sp_posts_get_by_thread|
 drop procedure if exists sp_posts_get_visible_by_id|
@@ -1518,6 +1519,17 @@ begin
 	join boards b on b.id = p.board
 	where p.deleted = 0 and t.deleted = 0 and t.archived = 0
 	order by p.date_time desc;
+end|
+
+-- Выбирает все номера сообщений с соотвествующими номерами нитей и именами досок.
+create procedure sp_posts_get_all_numbers ()
+begin
+    select p.`number` as post, t.`original_post` as thread, b.`name` as board
+        from posts p
+        join threads t on t.id = p.thread
+        join boards b on b.id = p.board
+        where p.deleted = 0 and t.deleted = 0 and t.archived = 0
+        order by p.`number`, t.`original_post`, b.`name` asc;
 end|
 
 -- Выбирает сообщения с заданной доски.
