@@ -19,20 +19,31 @@ require Config::ABS_PATH . '/lib/db.php';
 require Config::ABS_PATH . '/lib/misc.php';
 
 try {
+    // Initialization.
     kotoba_session_start();
     locale_setup();
     $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
-    // Возможно завершение работы скрипта.
-    bans_check($smarty, ip2long($_SERVER['REMOTE_ADDR']));
+    // Check if remote host was banned.
+    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+        throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
+    }
+    if (($ban = bans_check($ip)) !== false) {
+        $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
+        $smarty->assign('reason', $ban['reason']);
+        session_destroy();
+        DataExchange::releaseResources();
+        die($smarty->fetch('banned.tpl'));
+    }
 
+    // Check permission and write message to log file.
     if (!is_admin()) {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
     }
-
-    Logging::write_message(sprintf(Logging::$messages['ADMIN_FUNCTIONS_UPDATE_MACROCHAN'],
-            $_SESSION['user'], $_SERVER['REMOTE_ADDR']),
-        Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log');
+    Logging::write_msg(Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log',
+            Logging::$messages['ADMIN_FUNCTIONS_UPDATE_MACROCHAN'],
+            $_SESSION['user'], $_SERVER['REMOTE_ADDR']);
+    Logging::close_log();
 
     // download data
 

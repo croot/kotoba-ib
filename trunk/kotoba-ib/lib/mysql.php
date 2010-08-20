@@ -2240,6 +2240,52 @@ function db_posts_get_all($link)
 	return $posts;
 }
 /**
+ * Получает все сообщения.
+ * @param link MySQLi <p>Связь с базой данных.</p>
+ * @return array
+ * Возвращает сообщения:<p>
+ * 'id' - Идентификатор.<br>
+ * 'board' - Доска.<br>
+ * 'board_name' - Имя доски.<br>
+ * 'thread' - Нить.<br>
+ * 'thread_number' - Номер нити.<br>
+ * 'number' - Номер.<br>
+ * 'password' - Пароль.<br>
+ * 'name' - Имя отправителя.<br>
+ * 'tripcode' - Трипкод.<br>
+ * 'ip' - IP-адрес отправителя.<br>
+ * 'subject' - Тема.<br>
+ * 'date_time' - Время сохранения.<br>
+ * 'text' - Текст.<br>
+ * 'sage' - Флаг поднятия нити.</p>
+ */
+function db_posts_get_all_numbers($link) {
+$result = mysqli_query($link, 'call sp_posts_get_all()');
+if(!$result)
+throw new CommonException(mysqli_error($link));
+$posts = array();
+if(mysqli_affected_rows($link) > 0)
+while(($row = mysqli_fetch_assoc($result)) !== null)
+array_push($posts,
+array('id' => $row['id'],
+'board' => $row['board'],
+'board_name' => $row['board_name'],
+'thread' => $row['thread'],
+'thread_number' => $row['thread_number'],
+'number' => $row['number'],
+'password' => $row['password'],
+'name' => $row['name'],
+'tripcode' => $row['tripcode'],
+'ip' => $row['ip'],
+'subject' => $row['subject'],
+'date_time' => $row['date_time'],
+'text' => $row['text'],
+'sage' => $row['sage']));
+mysqli_free_result($result);
+db_cleanup_link($link);
+return $posts;
+}
+/**
  * Получает сообщения с заданных досок.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param boards array <p>Доски.</p>
