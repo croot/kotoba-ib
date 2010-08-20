@@ -143,8 +143,7 @@ try {
     foreach ($posts as $p) {
 
         // Имя отправителя по умолчанию.
-        if (!$board['force_anonymous'] && $board['default_name'] !== null
-                && $p['name'] === null) {
+        if (!$board['force_anonymous'] && $board['default_name'] !== null && $p['name'] === null) {
             $p['name'] = $board['default_name'];
         }
         
