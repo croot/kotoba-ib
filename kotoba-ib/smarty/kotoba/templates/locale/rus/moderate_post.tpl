@@ -16,12 +16,15 @@
     $STYLESHEET - стиль оформления (см. config.default).
     $post - сообщение.
     $attachments - вложения.
+    $board - доска, на которой расположено сообщение.
 *}
 <tr>
 <td><input type="checkbox" name="mark_{$post.id}" value="1"></td>
 <td colspan="3" class="reply">
     <span class="filetitle">{$post.subject}</span> <span class="postername">{$post.name}</span>{if $post.tripcode != null}<span class="postertrip">!{$post.tripcode}</span>{/if} {$post.date_time}
     <span class="reflink"><span onclick="insert('>>{$post.number}');">#</span> <a href="{$DIR_PATH}/{$board.name}/{$thread[0].original_post}#{$post.number}">{$post.number}</a></span>
+    {* {include file='mod_mini_panel.tpl' post_id=$post.id ip=$post.ip board_name=$board.name post_num=$post.number} *}
+    {$post.ip}
     <a name="{$post.number}"></a><br/>
     {if $post.with_attachments}
             {if $attachments[0].attachment_type == $ATTACHMENT_TYPE_FILE}

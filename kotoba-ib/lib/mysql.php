@@ -177,7 +177,7 @@ function db_acl_get_all($link)
  */
 function db_bans_add($link, $range_beg, $range_end, $reason, $untill) { // Java CC
     $reason = ($reason === null ? 'null' : $reason);
-    if (!mysqli_query($link, "call sp_bans_add($range_beg, $range_end, '$reason', '$until')")) {
+    if (!mysqli_query($link, "call sp_bans_add($range_beg, $range_end, '$reason', '$untill')")) {
         throw new CommonException(mysqli_error($link));
     }
     db_cleanup_link($link);

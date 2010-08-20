@@ -295,15 +295,13 @@ function attachments_get_same($board_id, $user_id, $hash) { // Java CC
 
 /**
  * Блокирует заданный диапазон IP-адресов.
- * @param range_beg int <p>Начало диапазона IP-адресов.</p>
- * @param range_end int <p>Конец диапазона IP-адресов.</p>
- * @param reason string <p>Причина блокировки.</p>
- * @param untill string <p>Время истечения блокировки.</p>
+ * @param int $range_beg Начало диапазона IP-адресов.
+ * @param int $range_end Конец диапазона IP-адресов.
+ * @param string $reason Причина блокировки.
+ * @param string $untill Время истечения блокировки.
  */
-function bans_add($range_beg, $range_end, $reason, $untill)
-{
-	db_bans_add(DataExchange::getDBLink(), $range_beg, $range_end, $reason,
-		$untill);
+function bans_add($range_beg, $range_end, $reason, $untill) { // Java CC
+    db_bans_add(DataExchange::getDBLink(), $range_beg, $range_end, $reason, $untill);
 }
 /**
  * Проверяет, заблокирован ли IP-адрес. Если да, то завершает работу скрипта.
