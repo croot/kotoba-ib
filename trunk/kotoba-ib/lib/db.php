@@ -1747,6 +1747,17 @@ function posts_get_all()
 	return db_posts_get_all(DataExchange::getDBLink());
 }
 /**
+ * Получает номера всех сообщений с соотвествующими номерами нитей и именами досок.
+ * @return array
+ * Возвращает сообщения:<br>
+ * 'post' - Номер сообщения.<br>
+ * 'thread' - Номер нити.<br>
+ * 'board' - Имя доски.
+ */
+function posts_get_all_numbers() { // Java CC
+    return db_posts_get_all_numbers(DataExchange::getDBLink());
+}
+/**
  * Получает сообщения с заданных досок.
  * @param boards array <p>Доски.</p>
  * @return array
