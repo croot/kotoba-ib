@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт редактирования групп.
- * @package admscripts
- */
+// Скрипт редактирования групп.
 
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';

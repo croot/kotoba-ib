@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт, показывающий id пользователя и группы, в которые он входит.
- * @package userscripts
- */
+// Скрипт, показывающий id пользователя и группы, в которые он входит.
 
 require_once 'config.php';
 require Config::ABS_PATH. '/lib/errors.php';

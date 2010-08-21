@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт для блокировки диапазона IP адресов в фаерволе.
- * @package admscripts
- */
+// Скрипт для блокировки диапазона IP адресов в фаерволе.
 
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';

@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт ответа в нить.
- * @package userscripts
- */
+// Скрипт ответа в нить.
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';

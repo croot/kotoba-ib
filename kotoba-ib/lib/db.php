@@ -14,6 +14,7 @@
  * @package api
  */
 
+/***/
 // Конечный скрипт должен загрузить конфигурацию!
 if (!class_exists("Config")) {
     throw new Exception("User-end script MUST load a configuraion!");
@@ -29,6 +30,7 @@ require_once Config::ABS_PATH . '/lib/mysql.php';
 
 /**
  * Просто обёртка во избежание возни с глобальной переменной.
+ * @package database
  */
 class DataExchange
 {

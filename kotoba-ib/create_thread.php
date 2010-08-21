@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт создания нитей.
- * @package userscripts
- */
+// Скрипт создания нитей.
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';

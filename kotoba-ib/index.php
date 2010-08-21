@@ -9,10 +9,7 @@
  * See license.txt for more info. *
  **********************************/
 
-/**
- * Скрипт главной страницы имейджборды.
- * @package userscripts
- */
+// Скрипт главной страницы имейджборды.
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/db.php';

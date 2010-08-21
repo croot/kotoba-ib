@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт редактирования обработчиков загружаемых файлов.
- * @package admscripts
- */
+// Скрипт редактирования обработчиков загружаемых файлов.
 
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';

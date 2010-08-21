@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Edit threads script.
- * @package admscripts
- */
+// Edit threads script.
 
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';

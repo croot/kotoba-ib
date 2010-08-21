@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт архивирования нитей.
- * @package admscripts
- */
+// Скрипт архивирования нитей.
 
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';

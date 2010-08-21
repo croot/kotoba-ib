@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт редактирования языков.
- * @package admscripts
- */
+// Скрипт редактирования языков.
 
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';

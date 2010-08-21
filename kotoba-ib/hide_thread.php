@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт скрытия нитей.
- * @package userscripts
- */
+// Скрипт скрытия нитей.
 
 require 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';

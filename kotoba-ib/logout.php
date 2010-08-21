@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт удаления сессии.
- * @package userscripts
- */
+// Скрипт удаления сессии.
 
 require_once 'config.php';
 

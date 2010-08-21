@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт страницы административных фукнций и фукнций модераторов.
- * @package userscripts
- */
+// Скрипт страницы административных фукнций и фукнций модераторов.
 
 require 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';

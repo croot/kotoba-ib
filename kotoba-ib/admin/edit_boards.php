@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт редактирования досок.
- * @package admscripts
- */
+// Скрипт редактирования досок.
 
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';

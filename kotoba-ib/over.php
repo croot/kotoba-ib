@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт, предоставляющий данные для оверчана.
- * @package userscripts
- */
+// Скрипт, предоставляющий данные для оверчана.
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';

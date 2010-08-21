@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт удаления сообщений.
- * @package userscripts
- */
+// Скрипт удаления сообщений.
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';

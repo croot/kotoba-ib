@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт отмены скрытия нити.
- * @package userscripts
- */
+// Скрипт отмены скрытия нити.
 
 require 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
