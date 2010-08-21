@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт редактирования стилей оформления.
- * @package admscripts
- */
+// Скрипт редактирования стилей оформления.
 
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';

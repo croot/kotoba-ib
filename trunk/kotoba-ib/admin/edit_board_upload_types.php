@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт редактирования связей загружаемых типов файлов с досками.
- * @package admscripts
- */
+// Скрипт редактирования связей загружаемых типов файлов с досками.
 
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';

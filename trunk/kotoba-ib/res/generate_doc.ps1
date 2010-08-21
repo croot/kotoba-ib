@@ -19,7 +19,18 @@ if (! (Test-Path $DOC_PATH)) {
 
 echo "Change directory to $PHPDOC_PATH"
 cd $PHPDOC_PATH
-.\phpdoc.bat -o HTML:Smarty:PHP -f "$ABS_PATH\lib\db.php,$ABS_PATH\lib\errors.php,$ABS_PATH\lib\events.php,$ABS_PATH\lib\logging.php,$ABS_PATH\lib\misc.php,$ABS_PATH\lib\mysql.php" -t $DOC_PATH
+
+$TARGETS=""
+$TARGETS+="$ABS_PATH\lib\db.php,"
+$TARGETS+="$ABS_PATH\lib\errors.php,"
+$TARGETS+="$ABS_PATH\lib\events.php,"
+$TARGETS+="$ABS_PATH\lib\logging.php,"
+$TARGETS+="$ABS_PATH\lib\mark.php,"
+$TARGETS+="$ABS_PATH\lib\misc.php,"
+$TARGETS+="$ABS_PATH\lib\mysql.php,"
+$TARGETS+="$ABS_PATH\lib\popdown_handlers.php"
+
+.\phpdoc.bat -o HTML:Smarty:PHP -f $TARGETS -t $DOC_PATH
 
 echo ""
 echo "Go back to $CUR_DIR"

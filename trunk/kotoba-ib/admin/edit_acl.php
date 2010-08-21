@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт редактирования списка контроля доступа.
- * @package admscripts
- */
+// Скрипт редактирования списка контроля доступа.
 
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';

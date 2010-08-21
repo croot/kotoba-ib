@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт редактирования обработчиков удаления нитей.
- * @package admscripts
- */
+// Скрипт редактирования обработчиков удаления нитей.
 
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';

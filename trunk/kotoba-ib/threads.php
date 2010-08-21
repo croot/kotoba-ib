@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт просмотра нити.
- * @package userscripts
- */
+// Скрипт просмотра нити.
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';

@@ -9,10 +9,7 @@
 * See license.txt for more info.*
 *********************************/
 
-/**
- * Скрипт редактирования настроек пользователя.
- * @package userscripts
- */
+// Скрипт редактирования настроек пользователя.
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';

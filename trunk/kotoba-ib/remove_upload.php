@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Removes attachments of specified post.
- * @package userscripts
- */
+// Removes attachments of specified post.
 
 require 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';

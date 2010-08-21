@@ -1,16 +1,24 @@
 <?php
-/*************************************
+/* ***********************************
  * Этот файл является частью Kotoba. *
  * Файл license.txt содержит условия *
  * распространения Kotoba.           *
  *************************************/
-/*********************************
+/* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
-// Скрипт расширений стандартного исключения.
-class CommonException extends Exception
-{
+
+/**
+ * Скрипт расширений стандартного исключения.
+ * @package api
+ */
+
+/**
+ * Разные ошибки.
+ * @package exceptions
+ */
+class CommonException extends Exception {
 	static $messages;
 	private $reason;
 	/**
@@ -39,9 +47,9 @@ class CommonException extends Exception
 }
 /**
  * Ошибки поиска.
+ * @package exceptions
  */
-class SearchException extends Exception
-{
+class SearchException extends Exception {
 	static $messages;
 	private $reason;
 	/**
@@ -70,9 +78,9 @@ class SearchException extends Exception
 }
 /**
  * Ошибки отсутствия данных.
+ * @package exceptions
  */
-class NodataException extends Exception
-{
+class NodataException extends Exception {
 	static $messages;
 	private $reason;
 	/**
@@ -101,9 +109,9 @@ class NodataException extends Exception
 }
 /**
  * Ошибки формата данных.
+ * @package exceptions
  */
-class FormatException extends Exception
-{
+class FormatException extends Exception {
 	static $messages;
 	private $reason;
 	/**
@@ -132,9 +140,9 @@ class FormatException extends Exception
 }
 /**
  * Ошибки при регистрации, авторизации, идентификации и прав доступа.
+ * @package exceptions
  */
-class PermissionException extends Exception
-{
+class PermissionException extends Exception {
 	static $messages;
 	private $reason;
 	/**
@@ -163,9 +171,9 @@ class PermissionException extends Exception
 }
 /**
  * Ошибки обмена данными с хранилищем.
+ * @package exceptions
  */
-class DataExchangeException extends Exception
-{
+class DataExchangeException extends Exception {
 	static $messages;
 	private $reason;
 	/**
@@ -194,9 +202,9 @@ class DataExchangeException extends Exception
 }
 /**
  * Ошибки загрузки файла.
+ * @package exceptions
  */
-class UploadException extends Exception
-{
+class UploadException extends Exception {
 	static $messages;
 	private $reason;
 	/**
@@ -225,9 +233,9 @@ class UploadException extends Exception
 }
 /**
  * Нарушение ограничений.
+ * @package exceptions
  */
-class LimitException extends Exception
-{
+class LimitException extends Exception {
 	static $messages;
 	private $reason;
 	/**

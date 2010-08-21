@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт редактирования связей пользователей с группами.
- * @package admscripts
- */
+// Скрипт редактирования связей пользователей с группами.
 
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';

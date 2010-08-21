@@ -9,10 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт редактирования категорий досок.
- * @package admscripts
- */
+// Скрипт редактирования категорий досок.
 
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';
