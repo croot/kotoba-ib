@@ -279,7 +279,7 @@ class Config
 	 */
 	static $MOD_GROUPS = array(Config::MOD_GROUP_NAME);
 
-	/**********
+	/* ********
 	 * Разное *
 	 **********/
 
@@ -291,5 +291,12 @@ class Config
 	const ATTACHMENT_TYPE_LINK = 2;
 	const ATTACHMENT_TYPE_VIDEO = 3;
 	const ATTACHMENT_TYPE_IMAGE = 4;
+
+    /*
+     * LaTeX
+     */
+     const LATEX_PATH = '/usr/local/bin/latex';
+     const DVIPS_PATH = '/usr/local/bin/dvips';
+     const CONVERT_PATH = '/usr/local/bin/convert';
 }
 ?>
