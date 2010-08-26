@@ -295,8 +295,8 @@ class Config
     /*
      * LaTeX
      */
-     const LATEX_PATH = '/usr/local/bin/latex';
-     const DVIPS_PATH = '/usr/local/bin/dvips';
-     const CONVERT_PATH = '/usr/local/bin/convert';
+     const LATEX_BINARY = '/usr/local/bin/latex/';
+     const DVIPS_BINARY = '/usr/local/bin/dvips/';
+     const CONVERT_BINARY = '/usr/local/bin/convert/';
 }
 ?>
