@@ -19,6 +19,7 @@ require_once Config::ABS_PATH . '/lib/misc.php';
 require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
 require_once Config::ABS_PATH . '/lib/upload_handlers.php';
 require_once Config::ABS_PATH . '/lib/mark.php';
+require_once Config::ABS_PATH . '/lib/latex_render.php';
 include Config::ABS_PATH . '/securimage/securimage.php';
 
 try {
@@ -100,11 +101,12 @@ try {
 
     posts_check_text_size($_POST['text']);
     $text = htmlentities($_POST['text'], ENT_QUOTES, Config::MB_ENCODING);
+    $text = transform($text);
+	posts_check_text_size($text);
     if (Config::ENABLE_WORDFILTER) {
         $words = words_get_all_by_board(boards_check_id($_POST['board']));
         foreach ($words as $word) {
-            $text = preg_replace("#".$word['word']."#iu", $word['replace'],
-                    $text);
+            $text = preg_replace("#".$word['word']."#iu", $word['replace'], $text);
         }
     }
     $text = str_replace('\\', '\\\\', $text);

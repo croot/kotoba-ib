@@ -24,9 +24,16 @@ class Config
 	/*
 	 * Абсолютный путь к директории, в которую установлена Котоба.
 	 * Например: c:/Apache/htdocs/kotoba
-	 * или 
+	 * или /var/www/html/kotoba
 	 */
 	const ABS_PATH = 'c:/Apache/htdocs/kotoba';
+
+	/*
+	 * Абсолютный путь к директории для хранения временных файлов.
+     * Например: C:/Temp
+	 * или /tmp
+	 */
+	const TMP_PATH = 'C:/Temp';
 
 	/*
 	 * Разрешить загружать одинакоые файлы. Значения: true или false.
@@ -295,8 +302,8 @@ class Config
     /*
      * LaTeX
      */
-     const LATEX_BINARY = '/usr/local/bin/latex/';
-     const DVIPS_BINARY = '/usr/local/bin/dvips/';
-     const CONVERT_BINARY = '/usr/local/bin/convert/';
+    const LATEX_BINARY = 'c:/usr/bin/latex.exe';
+    const DVIPS_BINARY = 'c:/usr/bin/dvips.exe';
+    const CONVERT_BINARY = 'c:/usr/bin/convert.exe';
 }
 ?>
