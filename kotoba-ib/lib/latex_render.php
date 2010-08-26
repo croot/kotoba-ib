@@ -40,12 +40,12 @@ function transform($text) {
 
     for ($i = 0; $i < count($matches[0]); $i++) {
         $position = strpos($text, $matches[0][$i]);
-        $thunk = $matches[1][$i];
-        $hash = md5($thunk);
+        $code = $matches[1][$i]; // TODO May be remove spaces from code?
+        $hash = md5($code);
         $full_name = $this->CACHE_DIR . "/" . $hash . ".png";
         $url = $this->URL_PATH . "/" . $hash . ".png";
         if (!is_file($full_name)) {
-            $this->render_latex($thunk, $hash);
+            $this->render_latex($code, $hash);
             $this->cleanup($hash);
         }
         $text = substr_replace($text, "<img src=\"$url\" alt=\"Formula: $i\" />", $position, strlen($matches[0][$i]));
