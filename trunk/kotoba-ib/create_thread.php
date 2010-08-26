@@ -88,6 +88,7 @@ try {
         posts_check_name_size($name);
         // TODO: Check what tripcode cannot be empty string.
         $name_tripcode = calculate_tripcode($name);
+        $_SESSION['name'] = $name;
         $name = $name_tripcode[0];
         $tripcode = $name_tripcode[1];
     }

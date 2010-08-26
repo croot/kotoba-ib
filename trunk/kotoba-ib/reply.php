@@ -98,6 +98,7 @@ try {
 		posts_check_name_size($name);
         // TODO: Check what tripcode cannot be empty string.
 		$name_tripcode = calculate_tripcode($name);
+        $_SESSION['name'] = $name;
 		$name = $name_tripcode[0];
 		$tripcode = $name_tripcode[1];
 	}
@@ -116,8 +117,7 @@ try {
     if (Config::ENABLE_WORDFILTER) {
         $words = words_get_all_by_board($board['id']);
         foreach ($words as $word) {
-            $text = preg_replace("#".$word['word']."#iu", $word['replace'],
-                    $text);
+            $text = preg_replace("#".$word['word']."#iu", $word['replace'], $text);
         }
     }
 	$text = str_replace('\\', '\\\\', $text);
