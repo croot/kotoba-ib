@@ -83,6 +83,7 @@ function kotoba_session_start() { // Java CC
         $_SESSION['language'] = Config::LANGUAGE;
         $_SESSION['password'] = null;
         $_SESSION['goto'] = 'b'; // Переход к доске.
+        $_SESSION['name'] = null;
     }
 
     // Язык мог измениться на язык пользователя.

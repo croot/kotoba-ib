@@ -25,6 +25,7 @@
 	$password - пароль для удаления сообщений.
 	$upload_types - типы файлов, доступные для загрузки.
 	$goto - переход к нити или доске.
+        $name - имя
 
 Специальные переменные (не входит в котобу):
 	$event_daynight_active - запущен ли эвент времени суток.
@@ -46,7 +47,7 @@
 <table align="center" border="0">
 <tbody>
 {if !$board.force_anonymous}
-<tr valign="top"><td class="postblock">Имя: </td><td><input type="text" name="name" size="30"></td></tr>
+<tr valign="top"><td class="postblock">Имя: </td><td><input type="text" name="name" size="30" value="{$name}"></td></tr>
 {/if}
 <tr valign="top"><td class="postblock">Тема: </td><td><input type="text" name="subject" size="56"> <input type="submit" value="Ответить"></td></tr>
 <tr valign="top"><td class="postblock">Сообщение: </td><td><textarea name="text" rows="7" cols="50"></textarea><img id="resizer" src="{$DIR_PATH}/flower.png"></td></tr>
