@@ -88,6 +88,7 @@ drop procedure if exists sp_posts_get_all|
 drop procedure if exists sp_posts_get_all_numbers|
 drop procedure if exists sp_posts_get_by_board|
 drop procedure if exists sp_posts_get_by_thread|
+drop procedure if exists sp_posts_get_reported_by_board|
 drop procedure if exists sp_posts_get_visible_by_id|
 drop procedure if exists sp_posts_get_visible_by_number|
 drop procedure if exists sp_posts_get_visible_by_thread|
@@ -111,6 +112,10 @@ drop procedure if exists sp_posts_videos_add|
 drop procedure if exists sp_posts_videos_delete_by_post|
 drop procedure if exists sp_posts_videos_delete_marked|
 drop procedure if exists sp_posts_videos_get_by_post|
+
+drop procedure if exists sp_reports_add|
+drop procedure if exists sp_reports_delete|
+drop procedure if exists sp_reports_get_all|
 
 drop procedure if exists sp_stylesheets_add|
 drop procedure if exists sp_stylesheets_delete|
@@ -1567,6 +1572,24 @@ begin
 	where thread = thread_id;
 end|
 
+-- Выбирает сообщения, на которые поступила жалоба, с заданных досок.
+create procedure sp_posts_get_reported_by_board
+(
+    board_id int    -- Идентификатор доски.
+)
+begin
+    select p.id, p.thread, t.original_post as thread_number, p.board,
+            b.name as board_name, p.number, p.password, p.name, p.tripcode,
+            p.ip, p.subject, p.date_time, p.text, p.sage
+        from posts p
+        join threads t on t.id = p.thread
+        join boards b on b.id = p.board
+        join reports r on p.id = r.post
+        where p.deleted = 0 and t.deleted = 0 and t.archived = 0
+            and p.board = board_id
+        order by p.date_time desc;
+end|
+
 -- Выбирает заданное сообщение, доступное для просмотра заданному пользователю.
 --
 -- Аргументы:
@@ -1893,6 +1916,34 @@ create procedure sp_posts_videos_get_by_post
 )
 begin
     select post, video, deleted from posts_videos where post = post_id and deleted = 0;
+end|
+
+-- ----------------------
+--  Работа с жалобами. --
+-- ----------------------
+
+-- Добавляет жалобу.
+create procedure sp_reports_add
+(
+    _post int   -- Идентификатор сообщения.
+)
+begin
+    insert into reports (post) values (_post);
+end|
+
+-- Удаляет жалобу.
+create procedure sp_reports_delete
+(
+    _post int   -- Идентификатор сообщения.
+)
+begin
+    delete from reports where post = _post;
+end|
+
+-- Выбирает все жалобы.
+create procedure sp_reports_get_all ()
+begin
+    select post from reports;
 end|
 
 -- ----------------------

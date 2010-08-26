@@ -231,11 +231,11 @@ function calculate_tripcode($name) { // Java CC
         return array($name, null);
     }
     $enc = mb_convert_encoding($code, 'Shift_JIS', Config::MB_ENCODING);
-    $salt = substr($enc .'H..', 1, 2);
+    $salt = mb_substr($enc .'H..', 1, 2);
     $salt2 = preg_replace("/![\.-z]/", '.', $salt);
     $salt3 = strtr($salt2, ":;<=>?@[\]^_`", "ABCDEFGabcdef");
     $cr = crypt($code, $salt3);
-    $trip = substr($cr, -10);
+    $trip = mb_substr($cr, -10);
     return array($first, $trip);
 }
 /**

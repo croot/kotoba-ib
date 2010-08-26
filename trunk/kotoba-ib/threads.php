@@ -110,8 +110,7 @@ try {
     $upload_types = upload_types_get_by_board($board['id']);
     $macrochan_tags = macrochan_tags_get_all();
 
-    $board['annotation'] = html_entity_decode($board['annotation'], ENT_QUOTES,
-            Config::MB_ENCODING);
+    $board['annotation'] = html_entity_decode($board['annotation'], ENT_QUOTES, Config::MB_ENCODING);
     $smarty->assign('board', $board);
     $smarty->assign('boards', $boards);
     $smarty->assign('thread', array($thread));

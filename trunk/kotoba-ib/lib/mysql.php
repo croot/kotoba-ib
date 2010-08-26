@@ -2364,6 +2364,61 @@ function db_posts_get_by_thread($link, $thread_id)
 	return $posts;
 }
 /**
+ * Получает сообщения, на которые поступила жалоба, с заданных досок.
+ * @param MySQLi $link Связь с базой данных.
+ * @param array $boards Доски.
+ * @return array
+ * Возвращает сообщения:<br>
+ * 'id' - Идентификатор.<br>
+ * 'board' - Идентификатор доски.<br>
+ * 'board_name' - Имя доски.<br>
+ * 'thread' - Идентификатор нити.<br>
+ * 'thread_number' - Номер нити.<br>
+ * 'number' - Номер.<br>
+ * 'password' - Пароль.<br>
+ * 'name' - Имя отправителя.<br>
+ * 'tripcode' - Трипкод.<br>
+ * 'ip' - IP-адрес отправителя.<br>
+ * 'subject' - Тема.<br>
+ * 'date_time' - Время сохранения.<br>
+ * 'text' - Текст.<br>
+ * 'sage' - Флаг поднятия нити.
+ */
+function db_posts_get_reported_by_boards($link, $boards) {
+    $posts = array();
+    foreach ($boards as $b) {
+        $result = mysqli_query($link, "call sp_posts_get_reported_by_board({$b['id']})");
+        if (!$result) {
+            throw new CommonException(mysqli_error($link));
+        }
+
+        if (mysqli_affected_rows($link) > 0) {
+            while(($row = mysqli_fetch_assoc($result)) != null) {
+                array_push($posts,
+                    array('id' => $row['id'],
+                          'board' => $row['board'],
+                          'board_name' => $row['board_name'],
+                          'thread' => $row['thread'],
+                          'thread_number' => $row['thread_number'],
+                          'number' => $row['number'],
+                          'password' => $row['password'],
+                          'name' => $row['name'],
+                          'tripcode' => $row['tripcode'],
+                          'ip' => $row['ip'],
+                          'subject' => $row['subject'],
+                          'date_time' => $row['date_time'],
+                          'text' => $row['text'],
+                          'sage' => $row['sage']));
+            }
+        }
+
+        mysqli_free_result($result);
+        db_cleanup_link($link);
+    }
+
+    return $posts;
+}
+/**
  * Получает заданное сообщение, доступное для просмотра заданному пользователю.
  * @param MySQLi $link Связь с базой данных.
  * @param string|int $post_id Идентификатор сообщения.
@@ -2806,6 +2861,49 @@ function db_posts_videos_get_by_post($link, $post_id) {
     mysqli_free_result($result);
     db_cleanup_link($link);
     return $posts_videos;
+}
+
+/* ********************
+ * Работа с жалобами. *
+ **********************/
+
+/**
+ * 
+ */
+function db_reports_add($link, $post_id) {
+	if (!mysqli_query($link, "call sp_reports_add($post_id)")) {
+		throw new CommonException(mysqli_error($link));
+    }
+	db_cleanup_link($link);
+}
+/**
+ *
+ */
+function db_reports_delete($link, $post_id) {
+	if (!mysqli_query($link, "call sp_reports_delete($post_id)")) {
+		throw new CommonException(mysqli_error($link));
+    }
+	db_cleanup_link($link);
+}
+/**
+ * 
+ */
+function db_reports_get_all($link) {
+    $result = mysqli_query($link, 'call sp_reports_get_all()');
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $reports = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while (($row = mysqli_fetch_assoc($result)) != null) {
+            array_push($reports, array('post' => $row['post']));
+        }
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $reports;
 }
 
 /* ********************

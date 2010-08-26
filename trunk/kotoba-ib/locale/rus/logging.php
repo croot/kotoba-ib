@@ -64,6 +64,8 @@ Logging::$messages['ADMIN_FUNCTIONS_UPDATE_MACROCHAN'] = 'Использован
 Logging::$messages['ADMIN_FUNCTIONS_MANAGE'] = 'Задействован скрипт административных фукнций и фукнций модераторов. Администратор %s IP %s';
 // Параметры: id пользователя, ip адрес.
 Logging::$messages['MOD_FUNCTIONS_MANAGE'] = 'Задействован скрипт административных фукнций и фукнций модераторов. Модератор %s IP %s';
+// Параметры: id пользователя, ip адрес.
+Logging::$messages['ADM_FUNCTIONS_REPORTS'] = 'Задействован скрипт работы с жалобами. Администратор %s IP %s';
 
 /* *********
  * Разное. *

@@ -377,3 +377,10 @@ create table hard_ban               -- Блокировки в фаерволе.
     range_end varchar(15) not null  -- Конец диапазона IP-адресов.
 )
 engine=InnoDB|
+
+create table reports    -- Жалобы.
+(
+    post int not null,  -- Идентификатор сообщения.
+    constraint foreign key (post) references posts (id) on delete restrict on update restrict
+)
+engine=InnoDB|
