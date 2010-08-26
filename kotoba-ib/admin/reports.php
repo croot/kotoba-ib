@@ -9,7 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-// Основной скрипт модератора.
+// Скрипт работы с жалобами.
 
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';
@@ -35,43 +35,32 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    $is_admin = false;
-    if (is_admin()) {
-        $is_admin = true;
-    } elseif (!is_mod()) {
-        throw new PermissionException(PermissionException::$messages['NOT_ADMIN'] . ' ' . PermissionException::$messages['NOT_MOD']);
+    if (!is_admin()) {
+        throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
     }
     Logging::write_msg(Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log',
-            Logging::$messages['MOD_FUNCTIONS_MODERATE'],
+            Logging::$messages['ADM_FUNCTIONS_REPORTS'],
             $_SESSION['user'], $_SERVER['REMOTE_ADDR']);
     Logging::close_log();
 
-    $boards = ($is_admin == true) ? boards_get_all() : boards_get_moderatable($_SESSION['user']);
+    $boards = boards_get_all();
     $output = '';
-    $smarty->assign('is_admin', $is_admin);
     $smarty->assign('boards', $boards);
     $smarty->assign('ATTACHMENT_TYPE_FILE', Config::ATTACHMENT_TYPE_FILE);
     $smarty->assign('ATTACHMENT_TYPE_LINK', Config::ATTACHMENT_TYPE_LINK);
     $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
     $smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
-    $output .= $smarty->fetch('moderate_header.tpl');
+    $output .= $smarty->fetch('reports_header.tpl');
     date_default_timezone_set(Config::DEFAULT_TIMEZONE);
 
     // Request posts. Apply defined filter to posts and show.
     if (isset($_POST['filter'])
             && isset($_POST['filter_board'])
-            && isset($_POST['filter_date_time'])
-            && isset($_POST['filter_number'])
-            && $_POST['filter_board'] != ''
-            && ($_POST['filter_date_time'] != '' || $_POST['filter_number'] != '')) {
+            && $_POST['filter_board'] != '') {
 
         // Board filter.
         if ($_POST['filter_board'] == 'all') {
-            if ($is_admin) {
-                $filter_boards = $boards;
-            } else {
-                throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
-            }
+            $filter_boards = $boards;
         } else {
             $filter_boards = array();
             foreach ($boards as $board) {
@@ -82,33 +71,8 @@ try {
             }
         }
 
-        // Date-Time filter.
-        if ($_POST['filter_date_time'] != '') {
-            $filter_date_time = date_format(date_create($_POST['filter_date_time']), 'U');
-
-            // Filters posts whose datetime equal or greater than defined value.
-            $fileter = function($filter_date_time, $post) {
-                date_default_timezone_set(Config::DEFAULT_TIMEZONE);
-                if (date_format(date_create($post['date_time']), 'U') >= $filter_date_time) {
-                    return true;
-                }
-                return false;
-            };
-            $posts = posts_get_filtred_by_boards($filter_boards, $fileter, $filter_date_time);
-        } elseif($_POST['filter_number'] != '') {
-            $filter_number = posts_check_number($_POST['filter_number']);
-
-            // Filters posts whose number equal or greater than defined value.
-            $fileter = function($filter_number, $post) {
-                if ($post['number'] >= $filter_number) {
-                    return true;
-                }
-                return false;
-            };
-            $posts = posts_get_filtred_by_boards($filter_boards, $fileter, $filter_number);
-        }
-
         // Generate list of filtered posts.
+        $posts = posts_get_reported_by_boards($filter_boards);
         $posts_attachments = posts_attachments_get_by_posts($posts);
         $attachments = attachments_get_by_posts($posts);
         foreach ($posts as $post) {
@@ -164,7 +128,7 @@ try {
             $smarty->assign('post', $post);
             $smarty->assign('attachments', $post_attachments);
             $smarty->assign('board', $filter_boards[0]);
-            $output .= $smarty->fetch('moderate_post.tpl');
+            $output .= $smarty->fetch('reports_post.tpl');
         }
     }
 
@@ -174,7 +138,7 @@ try {
             && isset($_POST['del_type'])
             && ($_POST['ban_type'] != 'none' || $_POST['del_type'] != 'none')) {
 
-        $posts = posts_get_by_boards($boards);
+        $posts = posts_get_reported_by_boards($boards);
         foreach ($posts as $post) {
 
             // If post was marked do action.
@@ -186,23 +150,28 @@ try {
 
                         // Ban for 1 hour by default.
                         bans_add($post['ip'], $post['ip'], '', date('Y-m-d H:i:s', time() + (60 * 60)));
+                        reports_delete($post['id']);
                         break;
                     case 'hard':
                         hard_ban_add($post['ip'], $post['ip']);
+                        reports_delete($post['id']);
                         break;
                 }
 
                 // Remove post(s) or attachment?
                 switch ($_POST['del_type']) {
                     case 'post':
+                        reports_delete($post['id']);
                         posts_delete($post['id']);
                         break;
                     case 'file':
+                        reports_delete($post['id']);
                         posts_attachments_delete_by_post($post['id']);
                         break;
                     case 'last':
 
                         // Delete all posts posted from this IP-address in last hour.
+                        reports_delete($post['id']);
                         posts_delete_last($post['id'], date(Config::DATETIME_FORMAT, time() - (60 * 60)));
                         break;
                 }
@@ -210,7 +179,7 @@ try {
         }
     }
 
-    $output .= $smarty->fetch('moderate_footer.tpl');
+    $output .= $smarty->fetch('reports_footer.tpl');
     echo $output;
 
     DataExchange::releaseResources();

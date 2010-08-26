@@ -34,5 +34,6 @@
 <a href="{$DIR_PATH}/admin/archive.php">Произвести архивирование.</a><br>
 <a href="{$DIR_PATH}/admin/delete_marked.php">Удалить помеченные на удаление сообщения, нити, связи сообщений и вложений.</a><br>
 <a href="{$DIR_PATH}/admin/delete_dangling_attachments.php">Удаление висячих вложений.</a><br>
-<a href="{$DIR_PATH}/admin/update_macrochan.php">Загрузить новые данные с макрочана.</a>
+<a href="{$DIR_PATH}/admin/update_macrochan.php">Загрузить новые данные с макрочана.</a><br>
+<a href="{$DIR_PATH}/admin/reports.php">Жалобы.</a>
 <br><br><a href="{$DIR_PATH}/">На главную</a>

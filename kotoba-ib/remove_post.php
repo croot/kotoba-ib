@@ -24,8 +24,7 @@ include Config::ABS_PATH . '/securimage/securimage.php';
 try {
     kotoba_session_start();
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'],
-            $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
     if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);

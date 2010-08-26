@@ -1843,6 +1843,29 @@ function posts_get_filtred_by_boards($boards, $filter)
 	return $filtred_posts;
 }
 /**
+ * Получает сообщения, на которые поступила жалоба, с заданных досок.
+ * @param array $boards Доски.
+ * @return array
+ * Возвращает сообщения:<br>
+ * 'id' - Идентификатор.<br>
+ * 'board' - Идентификатор доски.<br>
+ * 'board_name' - Имя доски.<br>
+ * 'thread' - Идентификатор нити.<br>
+ * 'thread_number' - Номер нити.<br>
+ * 'number' - Номер.<br>
+ * 'password' - Пароль.<br>
+ * 'name' - Имя отправителя.<br>
+ * 'tripcode' - Трипкод.<br>
+ * 'ip' - IP-адрес отправителя.<br>
+ * 'subject' - Тема.<br>
+ * 'date_time' - Время сохранения.<br>
+ * 'text' - Текст.<br>
+ * 'sage' - Флаг поднятия нити.
+ */
+function posts_get_reported_by_boards($boards) {
+    return db_posts_get_reported_by_boards(DataExchange::getDBLink(), $boards);
+}
+/**
  * Получает заданное сообщение, доступное для просмотра заданному пользователю.
  * @param string|int $post_id Идентификатор сообщения.
  * @param string|int $user_id Идентификатор пользователя.
@@ -1990,7 +2013,30 @@ function posts_videos_add($post, $video, $deleted) { // Java CC
     db_posts_videos_add(DataExchange::getDBLink(), $post, $video, $deleted);
 }
 
-/**********************
+/* ********************
+ * Работа с жалобами. *
+ **********************/
+
+/**
+ *
+ */
+function reports_add($post_id) {
+    db_reports_add(DataExchange::getDBLink(), $post_id);
+}
+/**
+ *
+ */
+function reports_delete($post_id) {
+    db_reports_delete(DataExchange::getDBLink(), $post_id);
+}
+/**
+ *
+ */
+function reports_get_all() {
+    return db_reports_get_all(DataExchange::getDBLink());
+}
+
+/* ********************
  * Работа со стилями. *
  **********************/
 
