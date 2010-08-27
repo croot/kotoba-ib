@@ -9,5 +9,6 @@
  * See license.txt for more info.*
  *********************************}
 </div>
+</div>
 <br clear="left">
 <hr>

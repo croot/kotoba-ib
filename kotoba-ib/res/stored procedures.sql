@@ -2296,14 +2296,10 @@ end|
 
 -- Выбирает с заданной доски доступные для просмотра пользователю нити и
 -- количество сообщений в них.
---
--- Аргументы:
--- board_id - Идентификатор доски.
--- user_id - Идентификатор пользователя.
 create procedure sp_threads_get_visible_by_board
 (
-	board_id int,
-	user_id int
+    board_id int,   -- Идентификатор доски.
+    user_id int     -- Идентификатор пользователя.
 )
 begin
 	select q1.id, q1.original_post, q1.bump_limit, q1.sticky, q1.sage,

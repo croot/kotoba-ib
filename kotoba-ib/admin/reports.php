@@ -136,7 +136,8 @@ try {
     if(isset($_POST['action'])
             && isset($_POST['ban_type'])
             && isset($_POST['del_type'])
-            && ($_POST['ban_type'] != 'none' || $_POST['del_type'] != 'none')) {
+            && isset($_POST['report_act'])
+            && ($_POST['ban_type'] != 'none' || $_POST['del_type'] != 'none' || $_POST['report_act'])) {
 
         $posts = posts_get_reported_by_boards($boards);
         foreach ($posts as $post) {
@@ -144,34 +145,33 @@ try {
             // If post was marked do action.
             if (isset($_POST["mark_{$post['id']}"])) {
 
+                if ($_POST['report_act']) {
+                    reports_delete($post['id']);
+                }
+
                 // Ban poster?
                 switch ($_POST['ban_type']) {
                     case 'simple':
 
                         // Ban for 1 hour by default.
                         bans_add($post['ip'], $post['ip'], '', date('Y-m-d H:i:s', time() + (60 * 60)));
-                        reports_delete($post['id']);
                         break;
                     case 'hard':
                         hard_ban_add($post['ip'], $post['ip']);
-                        reports_delete($post['id']);
                         break;
                 }
 
                 // Remove post(s) or attachment?
                 switch ($_POST['del_type']) {
                     case 'post':
-                        reports_delete($post['id']);
                         posts_delete($post['id']);
                         break;
                     case 'file':
-                        reports_delete($post['id']);
                         posts_attachments_delete_by_post($post['id']);
                         break;
                     case 'last':
 
                         // Delete all posts posted from this IP-address in last hour.
-                        reports_delete($post['id']);
                         posts_delete_last($post['id'], date(Config::DATETIME_FORMAT, time() - (60 * 60)));
                         break;
                 }
