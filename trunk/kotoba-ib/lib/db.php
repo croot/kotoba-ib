@@ -2331,10 +2331,8 @@ function threads_get_moderatable_by_id($thread_id, $user_id) { // Java CC
  * 'with_attachments' - Флаг вложений.<br>
  * 'posts_count' - Число доступных для просмотра сообщений.</p>
  */
-function threads_get_visible_by_board($board_id, $page, $user_id,
-        $threads_per_page) { // Java CC
-    return db_threads_get_visible_by_board(DataExchange::getDBLink(), $board_id,
-        $page, $user_id, $threads_per_page);
+function threads_get_visible_by_board($board_id, $page, $user_id, $threads_per_page) { // Java CC
+    return db_threads_get_visible_by_board(DataExchange::getDBLink(), $board_id, $page, $user_id, $threads_per_page);
 }
 /**
  * Ищет с заданной страницы доски доступные для просмотра пользователю нити

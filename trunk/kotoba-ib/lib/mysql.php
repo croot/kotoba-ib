@@ -3252,8 +3252,7 @@ function db_threads_get_moderatable_by_id($link, $thread_id, $user_id) { // Java
  * 'with_attachments' - Флаг вложений.<br>
  * 'posts_count' - Число доступных для просмотра сообщений.</p>
  */
-function db_threads_get_visible_by_board($link, $board_id, $page, $user_id,
-        $threads_per_page) {
+function db_threads_get_visible_by_board($link, $board_id, $page, $user_id, $threads_per_page) {
     $threads = array();
     $sticky_threads = array();
 
@@ -3269,8 +3268,7 @@ function db_threads_get_visible_by_board($link, $board_id, $page, $user_id,
     // Число выбранных не закреплённых нитей.
     $received = 0;
 
-    $result = mysqli_query($link,
-            "call sp_threads_get_visible_by_board($board_id, $user_id)");
+    $result = mysqli_query($link, "call sp_threads_get_visible_by_board($board_id, $user_id)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }

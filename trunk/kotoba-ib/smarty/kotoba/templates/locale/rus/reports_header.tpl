@@ -45,11 +45,15 @@
 			[<input type="radio" name="ban_type" value="simple">Бан]<br>
 			[<input type="radio" name="ban_type" value="hard">Бан в фаерволе]
 		</td>
-		<td colspan="2">Тип удаления<br>
+		<td>Тип удаления<br>
 			[<input type="radio" name="del_type" value="none" checked>Не удалять]<br>
 			[<input type="radio" name="del_type" value="post">Удалить сообщение]<br>
 			[<input type="radio" name="del_type" value="file">Удалить файл]<br>
 			[<input type="radio" name="del_type" value="last">Удалить последние сообщения]
+		</td>
+		<td>Действие с жалобой<br>
+			[<input type="radio" name="report_act" value=1 checked> Удалить]<br>
+			[<input type="radio" name="report_act" value=0> Не удалять]
 		</td>
 		<td><input type="submit" name="action" value="Ок"> <input type="reset" value="Сброс"></td>
 	</tr>
