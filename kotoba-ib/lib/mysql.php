@@ -3742,9 +3742,7 @@ function db_user_groups_get_all($link)
  * @param string|null $password Пароль для удаления сообщений.
  * @param string|null $goto Перенаправление.
  */
-function db_users_edit_by_keyword($link, $keyword, $posts_per_thread,
-        $threads_per_page, $lines_per_post, $language, $stylesheet, $password,
-        $goto) { // Java CC
+function db_users_edit_by_keyword($link, $keyword, $posts_per_thread, $threads_per_page, $lines_per_post, $language, $stylesheet, $password, $goto) { // Java CC
     if ($posts_per_thread === null) {
         $posts_per_thread = 'null';
     }
@@ -3756,10 +3754,7 @@ function db_users_edit_by_keyword($link, $keyword, $posts_per_thread,
     }
     $password = ($password === null? 'null' : "'$password'");
     $goto = ($goto === null? 'null' : "'$goto'");
-    if(!mysqli_query($link,
-            "call sp_users_edit_by_keyword('$keyword', $posts_per_thread,
-            $threads_per_page, $lines_per_post, $language, $stylesheet,
-            $password, $goto)")) {
+    if (!mysqli_query($link, "call sp_users_edit_by_keyword('$keyword', $posts_per_thread, $threads_per_page, $lines_per_post, $language, $stylesheet, $password, $goto)")) {
         throw new CommonException(mysqli_error($link));
     }
     db_cleanup_link($link);
