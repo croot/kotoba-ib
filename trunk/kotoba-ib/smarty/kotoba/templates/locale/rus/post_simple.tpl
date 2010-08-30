@@ -39,7 +39,7 @@
                 {$simple_post.date_time}
                 <span class="reflink">
                     <span onclick="insert('>>{$simple_post.number}');">#</span>
-                    <a href="{$DIR_PATH}/{$board.name}/{$thread[0].original_post}#{$simple_post.number}">{$simple_post.number}</a>
+                    <a href="{$DIR_PATH}/{$board.name}/{$thread.original_post}#{$simple_post.number}">{$simple_post.number}</a>
                 </span>
                 <span class="extrabtns">
                     {if $simple_post.with_attachments}

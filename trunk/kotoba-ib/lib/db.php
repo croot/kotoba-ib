@@ -1681,25 +1681,20 @@ function posts_check_text_size($text) { // Java CC
 /**
  * Урезает текст сообщения.
  * TODO: Урезание в длину.
- * @param message string <p>Текст сообщения.</p>
- * @param preview_lines mixed <p>Количество строк, которые нужно оставить.</p>
- * @param is_cutted boolean <p>Ссылка на флаг урезанного сообщения.</p>
- * @return string
- * Возвращает урезанный текст.
+ * @param string $message Текст сообщения.
+ * @param mixed $preview_lines Количество строк, которые нужно оставить.
+ * @param boolean $is_cutted Ссылка на флаг урезанного сообщения.
+ * @return string Возвращает урезанный текст.
  */
-function posts_corp_text(&$message, $preview_lines, &$is_cutted)
-{
-	$lines = explode('<br>', $message);
-	if(count($lines) > $preview_lines)
-	{
-		$is_cutted = 1;
-		return implode('<br>', array_slice($lines, 0, $preview_lines));
-	}
-	else
-	{
-		$is_cutted = 0;
-		return $message;
-	}
+function posts_corp_text(&$message, $preview_lines, &$is_cutted) { // Java CC
+    $lines = explode('<br>', $message);
+    if (count($lines) > $preview_lines) {
+        $is_cutted = true;
+        return implode('<br>', array_slice($lines, 0, $preview_lines));
+    } else {
+        $is_cutted = false;
+        return $message;
+    }
 }
 /**
  * Удаляет сообщение с заданным идентификатором.

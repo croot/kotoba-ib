@@ -69,7 +69,6 @@
         <a href="{$DIR_PATH}/remove_upload.php?post={$original_post.id}&submit=1"><img src="{$DIR_PATH}/css/delfile.png" alt="[Удалить файл]" title="Удалить файл" border="0"/></a>
     {/if}
 </span>
-[<a href="{$DIR_PATH}/{$board.name}/{$thread.original_post}">Ответить</a>]
 {if $sticky}
     Нить закреплена.
 {/if}
