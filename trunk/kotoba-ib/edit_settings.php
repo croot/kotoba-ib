@@ -75,9 +75,7 @@ try {
         }
 
         $goto = users_check_goto($_POST['goto']);
-        users_edit_by_keyword($keyword_hash, $threads_per_page,
-                $posts_per_thread, $lines_per_post, $stylesheet_id,
-                $language_id, null, $goto);
+        users_edit_by_keyword($keyword_hash, $posts_per_thread, $threads_per_page, $lines_per_post, $language_id, $stylesheet_id, null, $goto);
         load_user_settings($keyword_hash); // Потому что нужно получить id пользователя.
     }
 

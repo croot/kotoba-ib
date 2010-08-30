@@ -2818,11 +2818,8 @@ function users_check_threads_per_page($threads_per_page) { // Java CC
  * @param string|null $password Пароль для удаления сообщений.
  * @param string|null $goto Перенаправление.
  */
-function users_edit_by_keyword($keyword, $posts_per_thread, $threads_per_page,
-        $lines_per_post, $language, $stylesheet, $password, $goto) { // Java CC
-    db_users_edit_by_keyword(DataExchange::getDBLink(), $keyword,
-            $posts_per_thread, $threads_per_page, $lines_per_post, $language,
-            $stylesheet, $password, $goto);
+function users_edit_by_keyword($keyword, $posts_per_thread, $threads_per_page, $lines_per_post, $language, $stylesheet, $password, $goto) { // Java CC
+    db_users_edit_by_keyword(DataExchange::getDBLink(), $keyword, $posts_per_thread, $threads_per_page, $lines_per_post, $language, $stylesheet, $password, $goto);
 }
 /**
  * Получает всех пользователей.
