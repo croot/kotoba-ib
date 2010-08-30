@@ -16,14 +16,14 @@ require_once Config::ABS_PATH . '/lib/errors.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/wrappers.php';
 require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
 require_once Config::ABS_PATH . '/lib/events.php';
 
 try {
     kotoba_session_start();
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'],
-            $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
     if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
@@ -208,60 +208,14 @@ try {
                     $p['ip'] = long2ip($p['ip']);
                     $original_post = $p;
                 } else { // Ответ в нить.
-                    $p['with_attachments'] = false; // Fake field.
-                    $p['text'] = posts_corp_text($p['text'],
-                            $_SESSION['lines_per_post'], $is_cutted);
-                    $p['text_cutted'] = $is_cutted; // Fake field.
-                    foreach ($posts_attachments as $pa) {
-                        if ($pa['post'] == $p['id']) {
-                            foreach ($attachments as $a) {
-                                if ($a['attachment_type'] == $pa['attachment_type']) {
-                                    switch ($a['attachment_type']) {
-                                        case Config::ATTACHMENT_TYPE_FILE:
-                                            if ($a['id'] == $pa['file']) {
-                                                $a['file_link'] = Config::DIR_PATH . "/{$board['name']}/other/{$a['name']}";
-                                                $a['thumbnail_link'] = Config::DIR_PATH . "/img/{$a['thumbnail']}";
-                                                $p['with_attachments'] = true;
-                                                array_push($simple_attachments, $a);
-                                            }
-                                            break;
-                                        case Config::ATTACHMENT_TYPE_IMAGE:
-                                            if ($a['id'] == $pa['image']) {
-                                                $a['image_link'] = Config::DIR_PATH . "/{$board['name']}/img/{$a['name']}";
-                                                $a['thumbnail_link'] = Config::DIR_PATH . "/{$board['name']}/thumb/{$a['thumbnail']}";
-                                                $p['with_attachments'] = true;
-                                                array_push($simple_attachments, $a);
-                                            }
-                                            break;
-                                        case Config::ATTACHMENT_TYPE_LINK:
-                                            if ($a['id'] == $pa['link']) {
-                                                $p['with_attachments'] = true;
-                                                array_push($simple_attachments, $a);
-                                            }
-                                            break;
-                                        case Config::ATTACHMENT_TYPE_VIDEO:
-                                            if ($a['id'] == $pa['video']) {
-                                                $smarty->assign('code', $a['code']);
-                                                $a['video_link'] = $smarty->fetch('youtube.tpl');
-                                                $p['with_attachments'] = true;
-                                                array_push($simple_attachments, $a);
-                                            }
-                                            break;
-                                        default:
-                                            throw new CommonException('Not supported.');
-                                            break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    $p['ip'] = long2ip($p['ip']);
-                    $smarty->assign('simple_post', $p);
-                    $smarty->assign('simple_attachments', $simple_attachments);
-                    $smarty->assign('thread', array($t));
-                    $boards_posts_html .= $smarty->fetch('post_simple.tpl');
-                    $smarty->assign('thread', $t);
-                    $simple_attachments = array();
+                    $boards_posts_html .= post_simple_generate_html($smarty,
+                            $board,
+                            $t,
+                            $p,
+                            $posts_attachments,
+                            $attachments,
+                            true,
+                            $_SESSION['lines_per_post']);
                 }
             }
         }
