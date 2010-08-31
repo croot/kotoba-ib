@@ -89,7 +89,69 @@ function post_simple_generate_html($smarty, $board, $thread, $post, $posts_attac
  * Формирует html-код оригинального сообщения.
  * @param SmartyKotobaSetup $smarty Шаблонизатор.
  */
-function post_original_generate_html($smarty) {
+function post_original_generate_html($smarty, $board, $thread, $post, $posts_attachments, $attachments, $crop, $lines_per_post, $show_skipped, $posts_per_thread, $show_reply) {
+    $original_attachments = array();
+    $is_cutted = false;
 
+    if ($crop) {
+        $post['text'] = posts_corp_text($post['text'], $lines_per_post, $is_cutted);
+    }
+    $post['text_cutted'] = $is_cutted; // Fake field.
+
+    foreach ($posts_attachments as $pa) {
+        if ($pa['post'] == $post['id']) {
+            foreach ($attachments as $a) {
+                if ($a['attachment_type'] == $pa['attachment_type']) {
+                    switch ($a['attachment_type']) {
+                        case Config::ATTACHMENT_TYPE_FILE:
+                            if ($a['id'] == $pa['file']) {
+                                $a['file_link'] = Config::DIR_PATH . "/{$board['name']}/other/{$a['name']}";
+                                $a['thumbnail_link'] = Config::DIR_PATH . "/img/{$a['thumbnail']}";
+                                $post['with_attachments'] = true;
+                                array_push($original_attachments, $a);
+                            }
+                            break;
+                        case Config::ATTACHMENT_TYPE_IMAGE:
+                            if ($a['id'] == $pa['image']) {
+                                $a['image_link'] = Config::DIR_PATH . "/{$board['name']}/img/{$a['name']}";
+                                $a['thumbnail_link'] = Config::DIR_PATH . "/{$board['name']}/thumb/{$a['thumbnail']}";
+                                $post['with_attachments'] = true;
+                                array_push($original_attachments, $a);
+                            }
+                            break;
+                        case Config::ATTACHMENT_TYPE_LINK:
+                            if ($a['id'] == $pa['link']) {
+                                $post['with_attachments'] = true;
+                                array_push($original_attachments, $a);
+                            }
+                            break;
+                        case Config::ATTACHMENT_TYPE_VIDEO:
+                            if ($a['id'] == $pa['video']) {
+                                $smarty->assign('code', $a['code']);
+                                $a['video_link'] = $smarty->fetch('youtube.tpl');
+                                $post['with_attachments'] = true;
+                                array_push($original_attachments, $a);
+                            }
+                            break;
+                        default:
+                            throw new CommonException('Not supported.');
+                            break;
+                    }
+                }
+            }
+        }
+    }
+    $post['ip'] = long2ip($post['ip']);
+    $smarty->assign('sticky', $thread['sticky']);
+    $smarty->assign('show_skipped', $show_skipped);
+    if ($show_skipped) {
+
+        // - 1 is original post.
+        $smarty->assign('skipped', ($thread['posts_count'] - $posts_per_thread - 1));
+    }
+    $smarty->assign('original_post', $post);
+    $smarty->assign('original_attachments', $original_attachments);
+    $smarty->assign('show_reply', $show_reply);
+    return $smarty->fetch('post_original.tpl');
 }
 ?>

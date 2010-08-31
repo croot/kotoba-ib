@@ -17,6 +17,7 @@
 	$hidden_threads - скрытые пользователем нити на текущей доске.
 *}
 </div>
+</div>
 <br clear="left">
 <hr>
 {if count($hidden_threads) > 0}

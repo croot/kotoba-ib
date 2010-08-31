@@ -2543,8 +2543,7 @@ function db_posts_get_visible_by_number($link, $board_id, $post_number,
  * 'text' - Текст.<br>
  * 'sage' - Флаг поднятия нити.</p>
  */
-function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id,
-        $filter, $args) {
+function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id, $filter, $args) {
     $posts = array();
     $arg = count($args);
     foreach ($threads as $t) {

@@ -23,6 +23,9 @@
     $original_post - оригинальное сообщение.
     $original_attachments - вложения.
     $sticky - флаг закрепления.
+    $show_skipped - показывать количество не показанных сообщений.
+    $skipped - количество не показанных сообщений.
+    $show_reply - показывать ссылку на нить.
 *}
 <div>
 {if $original_post.with_attachments}
@@ -69,6 +72,9 @@
         <a href="{$DIR_PATH}/remove_upload.php?post={$original_post.id}&submit=1"><img src="{$DIR_PATH}/css/delfile.png" alt="[Удалить файл]" title="Удалить файл" border="0"/></a>
     {/if}
 </span>
+{if $show_reply}
+[<a href="{$DIR_PATH}/{$board.name}/{$thread.original_post}">Ответить</a>]
+{/if}
 {if $sticky}
     Нить закреплена.
 {/if}
@@ -77,4 +83,11 @@
 {/if}
 <blockquote>
 {$original_post.text}
+{if $original_post.text_cutted}
+    <div class="abbrev">Нажмите "Ответ" для просмотра сообщения целиком.</div>
+{/if}
 </blockquote>
+{if $show_skipped && $skipped > 0}
+    <span class="omittedposts">Сообщений пропущено: {$skipped}</span>
+{/if}
+<div>
