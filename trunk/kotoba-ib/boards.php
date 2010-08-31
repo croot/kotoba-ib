@@ -51,16 +51,16 @@ try {
         $password = $_SESSION['password'];
     }
 
-    /*
-     * Доски нужны для вывода списка досок, поэтому получим все и среди них
-     * будем искать запрашиваемую.
-     */
     $boards = boards_get_visible($_SESSION['user']);
     $board = null;
+    $banners_board_id = null;
     foreach ($boards as $b) {
         if ($b['name'] == $board_name) {
             $board = $b;
-            break;
+        }
+
+        if ($b['name'] == 'misc') {
+            $banners_board_id = $b['id'];
         }
     }
     if (!$board) {
@@ -78,8 +78,7 @@ try {
         throw new LimitException(LimitException::$messages['MAX_PAGE']);
     }
 
-    $threads = threads_get_visible_by_board($board['id'], $page,
-            $_SESSION['user'], $_SESSION['threads_per_page']);
+    $threads = threads_get_visible_by_board($board['id'], $page, $_SESSION['user'], $_SESSION['threads_per_page']);
 
     $p_filter = function($posts_per_thread, $thread, $post) {
         static $recived = 0;
@@ -116,6 +115,11 @@ try {
     $upload_types = upload_types_get_by_board($board['id']);
     $macrochan_tags = macrochan_tags_get_all();
 
+    if ($banners_board_id) {
+        $banners = images_get_by_board($banners_board_id);
+        $smarty->assign('banner', $banners[rand(0, count($banners) - 1)]);
+    }
+
     $board['annotation'] = html_entity_decode($board['annotation'], ENT_QUOTES, Config::MB_ENCODING);
     $smarty->assign('board', $board);
     $smarty->assign('boards', $boards);
@@ -145,8 +149,6 @@ try {
     $boards_html = $smarty->fetch('board_header.tpl');
     $boards_thread_html = ''; // Код предпросмотра нити.
     $boards_posts_html = ''; // Код сообщений из препдпросмотра нитей.
-    $original_attachments = array(); // Массив вложений оригинального сообщения.
-    $simple_attachments = array(); // Массив вложений сообщения.
     foreach ($threads as $t) {
         $smarty->assign('thread', $t);
         foreach ($posts as $p) {
@@ -192,7 +194,6 @@ try {
         $boards_html .= $boards_thread_html;
         $boards_thread_html = '';
         $boards_posts_html = '';
-        $original_attachments = array();
     }
     $smarty->assign('hidden_threads', $hidden_threads);
     $boards_html .= $smarty->fetch('board_footer.tpl');

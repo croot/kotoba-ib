@@ -1,0 +1,311 @@
+html, body {
+
+background:#FFFFEE;
+
+color:#090E00;
+font-family: serif;
+}
+
+a {
+
+color:#DD0000;
+}
+
+a:hover {
+
+color:#0000EE;
+
+
+}
+
+.reflink a:hover{
+
+font-weight: bold;
+
+}
+
+.adminbar {
+
+text-align:right;
+
+clear:both;
+	background:inherit;
+
+float:right;
+
+}
+
+.logo {
+	clear:both;
+	text-align:center;
+	font-size:2em;
+	color:#800000;
+	width:100%;
+}
+
+.replymode {
+	background:#D0AB65;
+	text-align:center;
+	padding:2px;
+	color:#FFFFFF;
+	width:100%;
+}
+
+.catalogmode {
+	background:#D0AB65;
+	text-align:center;
+	padding:2px;
+	color:#FFFFFF;
+	width:100%;
+}
+
+.postarea {
+}
+
+.rules {
+	/*font-size:0.7em;*/
+	width: 468px;
+	font-size: 10px;
+	font-family: serif;
+}
+
+.rules li {
+	margin-left: 1em;
+	/*text-indent: 0em;*/
+}
+
+.postblock {
+	background:#F1C984;
+	color:#403C0F;
+	font-weight:800;
+}
+
+.footer {
+	text-align:center;
+	font-size:12px;
+	font-family:serif;
+}
+
+.passvalid {
+	background:#EEAA88;
+	text-align:center;
+	width:100%;
+	color:#ffffff;
+}
+
+.dellist {
+	font-weight: bold;
+	text-align:center;
+}
+
+.delbuttons {
+	text-align:center;
+	padding-bottom:4px;
+
+}
+
+.managehead {
+	background:#AAAA66;
+	color:#400000;
+	padding:0px;
+}
+
+.postlists {
+	background:#FFFFFF;
+	width:100%;
+	padding:0px;
+	color:#800000;
+}
+
+.row1 {
+
+background:#EEEECC;
+
+color:#090E00;
+
+}
+
+.row2 {
+
+background:#DDDDAA;
+
+color:#090E00;
+
+}
+
+.unkfunc {
+
+background:inherit;
+
+color:#789922;
+
+}
+
+.filesize {
+
+text-decoration:none;
+font-family:sans-serif;
+
+font-size: 10px;
+}
+
+.filetitle {
+	background:inherit;
+
+
+	color:#CC1105;
+font-weight:800;
+
+}
+
+.postername {
+
+color:#310000;
+
+font-family:sans-serif;
+}
+
+.postertrip {
+	color:#228854;
+}
+
+.oldpost {
+	color:#CC1105;
+	font-weight:800;
+}
+
+.omittedposts {
+	color:#707070;
+}
+
+.reply {
+
+background: #FFECB2;
+color: #090E00;
+
+border: 1px solid #F9E0A8;
+
+}
+.replyhl {
+
+background: #FFECB2;
+
+color: #090E00;
+
+}
+
+.doubledash {
+ 	vertical-align:top;
+	clear:both;
+	float:left;
+}
+
+.replytitle {
+	font-size: 1.5em;	color:#CC1105;
+	font-weight:800;
+}
+
+.commentpostername {
+	color:#117743;
+	font-weight:800;
+}
+
+.thumbnailmsg {
+	font-size: small;
+	color:#800000;
+}
+
+.abbrev {
+	color:#707070;
+}
+
+.highlight {
+	background: #FFECB2;	color:#800000;
+	border: 2px dashed #EEAA88;
+}
+
+
+#watchedthreads {
+	background: #FFECB2 !important;
+}
+
+
+.reflinkpreview {
+	background: #FFECB2 !important;
+}
+.userdelete table tr td {
+	border: 1px solid #F9E0A8;
+
+
+}
+table {
+	border-style: none;
+
+
+}
+button {
+border: 1px solid #F9E0A8;
+
+ background-color: #FFECB2;	
+}
+
+.hidethread {
+background: transparent url('./icons/red/icons.png') -32px -16px no-repeat;
+
+}
+
+
+
+.unhidethread {
+
+background: transparent url('./icons/red/icons.png') -48px 0px no-repeat;
+
+}
+
+
+
+.watchthread {
+
+background: transparent url('./icons/red/icons.png') -32px 0px no-repeat;
+
+}
+
+
+
+.expandthread {
+
+background: transparent url('./icons/red/icons.png') 0px -16px no-repeat;
+
+}
+
+
+
+.quickreply {
+
+background: transparent url('./icons/red/icons.png') 0px 0px no-repeat;
+
+}
+
+
+
+.hidewatchedthreads {
+
+background: transparent url('./icons/red/icons.png') -48px -16px no-repeat;
+
+}
+
+
+
+.refreshwatchedthreads {
+
+background: transparent url('./icons/red/icons.png') -16px -16px no-repeat;
+
+}
+
+
+
+.restorewatchedthreads {
+
+background: transparent url('./icons/green/icons.gif') -16px 0px no-repeat;
+
+}
