@@ -1935,8 +1935,7 @@ function posts_get_visible_filtred_by_threads($threads, $user_id, $filter) { // 
     for ($i = 3; $i < $numargs; $i++) { // Пропустим первые 3 аргумента фукнции.
         array_push($args, func_get_arg($i));
     }
-    return db_posts_get_visible_filtred_by_threads(DataExchange::getDBLink(),
-        $threads, $user_id, $filter, $args);
+    return db_posts_get_visible_filtred_by_threads(DataExchange::getDBLink(), $threads, $user_id, $filter, $args);
 }
 /**
  * Очищает и размечает текст сообщения заданной доски.

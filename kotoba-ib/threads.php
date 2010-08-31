@@ -69,8 +69,7 @@ try {
     // Нить была заархивирована.
     if ($thread['archived']) {
         DataExchange::releaseResources();
-        header('Location: ' . Config::DIR_PATH . "/{$board['name']}/arch/"
-            . "{$thread['original_post']}.html");
+        header('Location: ' . Config::DIR_PATH . "/{$board['name']}/arch/" . "{$thread['original_post']}.html");
         exit;
     }
 
@@ -82,30 +81,34 @@ try {
 
     $filter = function($posts_per_thread, $thread, $post) {
         static $recived = 0;
+        static $prev_thread = null;
+
+        if ($prev_thread !== $thread) {
+            $recived = 0;
+            $prev_thread = $thread;
+        }
+
         if ($thread['original_post'] == $post['number']) {
             return true;
         }
         $recived++;
-        if ($recived > $thread['posts_count'] - $posts_per_thread) {
+        if ($recived >= $thread['posts_count'] - $posts_per_thread) {
             return true;
         }
         return false;
     };
-    $posts = posts_get_visible_filtred_by_threads(array($thread),
-            $_SESSION['user'], $filter, $thread['posts_count']);
+    $posts = posts_get_visible_filtred_by_threads(array($thread), $_SESSION['user'], $filter, $thread['posts_count']);
 
     $posts_attachments = posts_attachments_get_by_posts($posts);
     $attachments = attachments_get_by_posts($posts);
 
-    $ht_filter = function($user, $hidden_thread)
-    {
+    $ht_filter = function($user, $hidden_thread) {
         if ($hidden_thread['user'] == $user) {
             return true;
         }
         return false;
     };
-    $hidden_threads = hidden_threads_get_filtred_by_boards(array($board),
-            $ht_filter, $_SESSION['user']);
+    $hidden_threads = hidden_threads_get_filtred_by_boards(array($board), $ht_filter, $_SESSION['user']);
 
     $upload_types = upload_types_get_by_board($board['id']);
     $macrochan_tags = macrochan_tags_get_all();
@@ -144,59 +147,24 @@ try {
         if (!$board['force_anonymous'] && $board['default_name'] !== null && $p['name'] === null) {
             $p['name'] = $board['default_name'];
         }
-        
-        // Оригинальное сообщение.
+
         if ($thread['original_post'] == $p['number']) {
-            $p['with_attachments'] = false; // Fake field.
-            foreach ($posts_attachments as $pa) {
-                if ($pa['post'] == $p['id']) {
-                    foreach ($attachments as $a) {
-                        if ($a['attachment_type'] == $pa['attachment_type']) {
-                            switch ($a['attachment_type']) {
-                                case Config::ATTACHMENT_TYPE_FILE:
-                                    if ($a['id'] == $pa['file']) {
-                                        $a['file_link'] = Config::DIR_PATH . "/{$board['name']}/other/{$a['name']}";
-                                        $a['thumbnail_link'] = Config::DIR_PATH . "/img/{$a['thumbnail']}";
-                                        $p['with_attachments'] = true;
-                                        array_push($original_attachments, $a);
-                                    }
-                                    break;
-                                case Config::ATTACHMENT_TYPE_IMAGE:
-                                    if ($a['id'] == $pa['image']) {
-                                        $a['image_link'] = Config::DIR_PATH . "/{$board['name']}/img/{$a['name']}";
-                                        $a['thumbnail_link'] = Config::DIR_PATH . "/{$board['name']}/thumb/{$a['thumbnail']}";
-                                        $p['with_attachments'] = true;
-                                        array_push($original_attachments, $a);
-                                    }
-                                    break;
-                                case Config::ATTACHMENT_TYPE_LINK:
-                                    if ($a['id'] == $pa['link']) {
-                                        $p['with_attachments'] = true;
-                                        array_push($original_attachments, $a);
-                                    }
-                                    break;
-                                case Config::ATTACHMENT_TYPE_VIDEO:
-                                    if ($a['id'] == $pa['video']) {
-                                        $smarty->assign('code', $a['code']);
-                                        $a['video_link'] = $smarty->fetch('youtube.tpl');
-                                        $p['with_attachments'] = true;
-                                        array_push($original_attachments, $a);
-                                    }
-                                    break;
-                                default:
-                                    throw new CommonException('Not supported.');
-                                    break;
-                            }
-                        }
-                    }
-                }
-            }
-            $p['ip'] = long2ip($p['ip']);
-            $smarty->assign('original_post', $p);
-            $smarty->assign('original_attachments', $original_attachments);
-            $smarty->assign('sticky', $thread['sticky']);
-            $view_thread_html = $smarty->fetch('post_original.tpl');
+
+            // Оригинальное сообщение.
+            $view_thread_html = post_original_generate_html($smarty,
+                    $board,
+                    $thread,
+                    $p,
+                    $posts_attachments,
+                    $attachments,
+                    false,
+                    null,
+                    false,
+                    null,
+                    false);
         } else {
+
+            // Ответ в нить.
             $view_posts_html .= post_simple_generate_html($smarty,
                     $board,
                     $thread,
