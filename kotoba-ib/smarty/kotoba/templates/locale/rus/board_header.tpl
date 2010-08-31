@@ -28,6 +28,7 @@
 	$goto - переход к нити или доске.
 	$macrochan_tags - теги макросов.
         $name - имя
+        $banner - баннер.
 
 Специальные переменные (не входит в котобу):
 	$event_daynight_active - запущен ли эвент времени суток.
@@ -40,6 +41,9 @@
 <script src="{$DIR_PATH}/kotoba.js"></script>
 <div class="navbar">{include file='board_list.tpl' boards=$boards DIR_PATH=$DIR_PATH} [<a href="{$DIR_PATH}/">Главная</a>]</div>
 
+{if isset($banner)}
+<div class="logo"><img src="{$DIR_PATH}/misc/img/{$banner.name}" alt="{$banner.name}" width="{$banner.widht}" height="{$banner.height}"></div>
+{/if}
 <div class="logo">{$ib_name} — /{$board.name}/ {$board.title}</div>
 {if $enable_search}
     <div class="search">

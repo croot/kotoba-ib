@@ -1409,6 +1409,50 @@ function db_images_add($link, $hash, $name, $widht, $height, $size, $thumbnail, 
 	return $row['id'];
 }
 /**
+ * Получает все изоражения с заданной доски.
+ * @param MySQLi $link Связь с базой данных.
+ * @param int $board_id Идентификатор доски.
+ * @return array
+ * Возвращает вложенные изображения:<br>
+ * 'id' - Идентификатор.<br>
+ * 'hash' - Хеш.<br>
+ * 'name' - Имя.<br>
+ * 'widht' - Ширина.<br>
+ * 'height' - Высота.<br>
+ * 'size' - Размер в байтах.<br>
+ * 'thumbnail' - Уменьшенная копия.<br>
+ * 'thumbnail_w' - Ширина уменьшенной копии.<br>
+ * 'thumbnail_h' - Высота уменьшенной копии.<br>
+ * 'attachment_type' - Тип вложения (изображение).
+ */
+function db_images_get_by_board($link, $board_id) { // Java CC
+    $result = mysqli_query($link, "call sp_images_get_by_board($board_id)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $images = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while (($row = mysqli_fetch_assoc($result)) != null) {
+            array_push($images,
+                array('id' => $row['id'],
+                      'hash' => $row['hash'],
+                      'name' => $row['name'],
+                      'widht' => $row['widht'],
+                      'height' => $row['height'],
+                      'size' => $row['size'],
+                      'thumbnail' => $row['thumbnail'],
+                      'thumbnail_w' => $row['thumbnail_w'],
+                      'thumbnail_h' => $row['thumbnail_h'],
+                      'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE));
+        }
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $images;
+}
+/**
  * Получает вложенные в заданное сообщение изображения.
  * @param MySQLi $link Связь с базой данных.
  * @param string|int $post_id Идентификатор сообщения.

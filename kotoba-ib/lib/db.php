@@ -1179,10 +1179,8 @@ function hidden_threads_get_visible($board_id, $thread_num, $user_id)
  * @return string
  * Возвращает идентификатор вложенного изображения.
  */
-function images_add($hash, $name, $widht, $height, $size, $thumbnail,
-        $thumbnail_w, $thumbnail_h) { // Java CC
-    return db_images_add(DataExchange::getDBLink(), $hash, $name, $widht,
-        $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h);
+function images_add($hash, $name, $widht, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h) { // Java CC
+    return db_images_add(DataExchange::getDBLink(), $hash, $name, $widht, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h);
 }
 /**
  * Проверяет, удовлетворяет ли загружаемое изображение ограничениям по размеру.
@@ -1192,6 +1190,25 @@ function images_check_size($size) { // Java CC
     if ($size < Config::MIN_IMGSIZE) {
         throw new LimitException(LimitException::$messages['MIN_IMG_SIZE']);
     }
+}
+/**
+ * Получает все изоражения с заданной доски.
+ * @param int $board_id Идентификатор доски.
+ * @return array
+ * Возвращает вложенные изображения:<br>
+ * 'id' - Идентификатор.<br>
+ * 'hash' - Хеш.<br>
+ * 'name' - Имя.<br>
+ * 'widht' - Ширина.<br>
+ * 'height' - Высота.<br>
+ * 'size' - Размер в байтах.<br>
+ * 'thumbnail' - Уменьшенная копия.<br>
+ * 'thumbnail_w' - Ширина уменьшенной копии.<br>
+ * 'thumbnail_h' - Высота уменьшенной копии.<br>
+ * 'attachment_type' - Тип вложения (изображение).
+ */
+function images_get_by_board($board_id) { // Java CC
+    return db_images_get_by_board(DataExchange::getDBLink(), $board_id);
 }
 /**
  * Получает одинаковые вложенные изображения на заданной доски.

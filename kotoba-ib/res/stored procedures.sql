@@ -52,6 +52,7 @@ drop procedure if exists sp_hidden_threads_get_visible|
 drop procedure if exists sp_images_add|
 drop procedure if exists sp_images_get_by_post|
 drop procedure if exists sp_images_get_dangling|
+drop procedure if exists sp_images_get_by_board|
 drop procedure if exists sp_images_get_same|
 
 drop procedure if exists sp_languages_add|
@@ -1041,6 +1042,19 @@ begin
     insert into images (hash, name, widht, height, size, thumbnail, thumbnail_w, thumbnail_h)
         values (_hash, _name, _widht, _height, _size, _thumbnail, _thumbnail_w, _thumbnail_h);
     select last_insert_id() as id;
+end|
+
+-- Выбирает все изоражения с заданной доски.
+create procedure sp_images_get_by_board
+(
+    _board int  -- Идентификатор доски.
+)
+begin
+    select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail, i.thumbnail_w, i.thumbnail_h
+        from images i
+        join posts_images pi on pi.image = i.id
+        join posts p on pi.post = p.id
+        where p.board = _board;
 end|
 
 -- Выбирает изображения, вложенные в заданное сообщение.

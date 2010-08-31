@@ -53,10 +53,14 @@ try {
      */
     $boards = boards_get_visible($_SESSION['user']);
     $board = null;
+    $banners_board_id = null;
     foreach ($boards as $b) {
         if ($b['name'] == $board_name) {
             $board = $b;
-            break;
+        }
+
+        if ($b['name'] == 'misc') {
+            $banners_board_id = $b['id'];
         }
     }
     if (!$board) {
@@ -112,6 +116,11 @@ try {
 
     $upload_types = upload_types_get_by_board($board['id']);
     $macrochan_tags = macrochan_tags_get_all();
+
+    if ($banners_board_id) {
+        $banners = images_get_by_board($banners_board_id);
+        $smarty->assign('banner', $banners[rand(0, count($banners) - 1)]);
+    }
 
     $board['annotation'] = html_entity_decode($board['annotation'], ENT_QUOTES, Config::MB_ENCODING);
     $smarty->assign('board', $board);
