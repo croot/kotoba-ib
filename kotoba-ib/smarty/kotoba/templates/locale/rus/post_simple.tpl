@@ -31,6 +31,12 @@
             <td class="reply">
                 <a name="{$simple_post.number}"></a>
                 <a href="{$DIR_PATH}/remove_post.php?post={$simple_post.id}&submit=1"><img src="{$DIR_PATH}/css/delete.png" alt="[Удалить]" title="Удалить сообщение" border="0"/></a>
+                <span class="extrabtns">
+                    {if $simple_post.with_attachments}
+                        <a href="{$DIR_PATH}/remove_upload.php?post={$simple_post.id}&submit=1"><img src="{$DIR_PATH}/css/delfile.png" alt="[Удалить файл]" title="Удалить файл" border="0"/></a>
+                    {/if}
+                    <a href="{$DIR_PATH}/report.php?post={$simple_post.id}&submit=1"><img src="{$DIR_PATH}/css/report.png" alt="[Пожаловаться]" title="Пожаловаться на сообщение" border="0"/></a>
+                </span>
                 <span class="filetitle">{$simple_post.subject}</span>
                 <span class="postername">{$simple_post.name}</span>
                 {if $simple_post.tripcode != null}
@@ -40,12 +46,6 @@
                 <span class="reflink">
                     <span onclick="insert('>>{$simple_post.number}');">#</span>
                     <a href="{$DIR_PATH}/{$board.name}/{$thread.original_post}#{$simple_post.number}">{$simple_post.number}</a>
-                </span>
-                <span class="extrabtns">
-                    {if $simple_post.with_attachments}
-                        <a href="{$DIR_PATH}/remove_upload.php?post={$simple_post.id}&submit=1"><img src="{$DIR_PATH}/css/delfile.png" alt="[Удалить файл]" title="Удалить файл" border="0"/></a>
-                    {/if}
-                    <a href="{$DIR_PATH}/report.php?post={$simple_post.id}&submit=1"><img src="{$DIR_PATH}/css/report.png" alt="[Пожаловаться]" title="Пожаловаться на сообщение" border="0"/></a>
                 </span>
                 {if $is_admin}
                     {include file='mod_mini_panel.tpl' post_id=$simple_post.id ip=$simple_post.ip board_name=$board.name post_num=$simple_post.number}
