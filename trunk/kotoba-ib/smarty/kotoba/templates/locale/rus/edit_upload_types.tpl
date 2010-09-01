@@ -74,5 +74,5 @@
 <input type="hidden" name="submited" value="1">
 <input type="reset" value="Сброс"> <input type="submit" value="Сохранить">
 </form>
-<a href="{$DIR_PATH}/">На главную</a>
+<br><br><a href="{$DIR_PATH}/">На главную</a>
 {include file='footer.tpl'}

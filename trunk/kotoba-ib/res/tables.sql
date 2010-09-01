@@ -384,3 +384,14 @@ create table reports    -- Жалобы.
     constraint foreign key (post) references posts (id) on delete restrict on update restrict
 )
 engine=InnoDB|
+
+-- Заметки:
+-- Спамфильтр осуществляет фильтрацию текста сообщений от спама. Спам ищется
+-- в тексте сообщений по Шаблонам.
+create table spamfilter            -- Спамфильтр.
+(
+    id int not null auto_increment, -- Идентификатор.
+    pattern varchar(256) not null,  -- Шаблон.
+    primary key (id)
+)
+engine=InnoDB|

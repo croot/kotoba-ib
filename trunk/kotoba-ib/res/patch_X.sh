@@ -7,7 +7,8 @@ then
     exit 1
 fi
 
-echo "delimiter |
+echo "-- Apply example: mysql -u root -D kotoba < patch_10.sql
+delimiter |
 
 drop function if exists versioning_table_exists|
 
@@ -31,6 +32,7 @@ begin
     select version into @version from db_version;
     if (@version < $VERSION and $VERSION - @version = 1) then
         -- ACTUAL CODE HERE
+        -- Do not forget update version nuber in data.sql script.
 
         update db_version set version = $VERSION limit 1;
         select 'Patch $VERSION was appied.';

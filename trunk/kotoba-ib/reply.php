@@ -111,6 +111,14 @@ try {
 	$subject = str_replace("\r", '', $subject);
 
     posts_check_text_size($_POST['text']);
+    if (Config::ENABLE_SPAMFILTER) {
+        $spam_filter = spamfilter_get_all();
+        foreach ($spam_filter as $record) {
+            if (preg_match("/{$record['pattern']}/", $_POST['text']) > 0) {
+                throw new CommonException(CommonException::$messages['SPAM_DETECTED']);
+            }
+        }
+    }
 	$text = htmlentities($_POST['text'], ENT_QUOTES, Config::MB_ENCODING);
     $text = transform($text);
 	posts_check_text_size($text);

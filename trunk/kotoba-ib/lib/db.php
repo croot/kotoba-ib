@@ -1594,8 +1594,7 @@ function posts_add($board_id, $thread_id, $user_id, $password, $name, $tripcode,
  * @param id mixed <p>Идентификатор сообщения.</p>
  * @param text string <p>Текст.</p>
  */
-function posts_add_text_by_id($id, $text)
-{
+function posts_add_text_by_id($id, $text) {
 	db_posts_add_text_by_id(DataExchange::getDBLink(), $id, $text);
 }
 /**
@@ -2045,6 +2044,45 @@ function reports_delete($post_id) {
  */
 function reports_get_all() {
     return db_reports_get_all(DataExchange::getDBLink());
+}
+
+/* *************************
+ * Работа со спамфильтром. *
+ ***************************/
+
+/**
+ * Добавляет шаблон в спамфильтр.
+ * @param string $pattern Шаблон.
+ */
+function spamfilter_add($pattern) { // Java CC
+	db_spamfilter_add(DataExchange::getDBLink(), $pattern);
+}
+/**
+ * Проверяет корректность шаблона спамфильтра.
+ * @return string Возвращает безопасный для использования шаблон спамфильтра.
+ */
+function spamfilter_check_pattern($pattern) {
+    if (strlen($pattern) > 256) {
+        throw new FormatException(FormatException::$messages['SPAMFILTER_PATTERN']);
+    }
+    return $pattern;
+}
+/**
+ * Удаляет шаблон из спамфильтра.
+ * @param int $id Идентификатор шаблона.
+ */
+function spamfilter_delete($id) { // Java CC
+	db_spamfilter_delete(DataExchange::getDBLink(), $id);
+}
+/**
+ * Получает все шаблоны спамфильтра.
+ * @return array
+ * Возвращает стили:<br>
+ * 'id' - Идентификатор.<br>
+ * 'pattern' - Шаблон.
+ */
+function spamfilter_get_all() { // Java CC
+    return db_spamfilter_get_all(DataExchange::getDBLink());
 }
 
 /* ********************
