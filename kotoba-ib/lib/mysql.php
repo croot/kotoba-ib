@@ -376,27 +376,32 @@ function db_words_edit($link, $id, $word, $replace)
 /**
  * Получает все слова.
  * @return array
- * Возвращает слова:<p>
- * 'id' - идентификатор.<br>
- * 'word' - слово для замены.<br>
- * 'replace' - замена.</p>
+ * Возвращает слова:<br>
+ * 'id' - Идентификатор.<br>
+ * 'board_id' - Идентификатор доски.<br>
+ * 'word' - Слово для замены.<br>
+ * 'replace' - Замена.
  */
-function db_words_get_all($link)
-{
-	$result = mysqli_query($link, 'call sp_words_get_all()');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$words = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) !== null)
-			array_push($words,
-				array('id' => $row['id'],
-						'board_id' => $row['board_id'],
-						'word' => $row['word'],
-						'replace' => $row['replace']));
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $words;
+function db_words_get_all($link) {
+    $result = mysqli_query($link, 'call sp_words_get_all()');
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $words = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while(($row = mysqli_fetch_assoc($result)) != null){
+            array_push($words,
+                array('id' => $row['id'],
+                      'board_id' => $row['board_id'],
+                      'word' => $row['word'],
+                      'replace' => $row['replace']));
+        }
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $words;
 }
 /**
  * Получает все слова по идентификатору доски.

@@ -323,7 +323,7 @@ create table posts_videos   -- Связь сообщений и вложенно
 )
 engine=InnoDB|
 
-create table words                      -- Таблица вордфильтра.
+create table words                      -- Таблица фильтра слов.
 (
     id int not null auto_increment,     -- Идентификатор замены.
     board_id int not null,              -- Идентификатор доски.
