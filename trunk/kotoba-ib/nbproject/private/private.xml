@@ -7,13 +7,8 @@
             <line>802</line>
         </file>
         <file>
-            <url>res/stored%20procedures.sql</url>
-            <line>54</line>
-            <line>1047</line>
-        </file>
-        <file>
             <url>lib/mysql.php</url>
-            <line>1245</line>
+            <line>1250</line>
         </file>
     </editor-bookmarks>
 </project-private>

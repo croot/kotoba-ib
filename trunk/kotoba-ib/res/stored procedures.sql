@@ -2935,7 +2935,7 @@ end|
 -- Выбирает все слова, их замени и идентификаторы из таблицы вордфильтра.
 create procedure sp_words_get_all ()
 begin
-    select id, word, `replace`
+    select id, board_id, word, `replace`
     from words;
 end|
 

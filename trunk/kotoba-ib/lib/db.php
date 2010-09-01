@@ -485,14 +485,14 @@ function words_edit($id, $word, $replace)
 /**
  * Получает все слова.
  * @return array
- * Возвращает слова:<p>
+ * Возвращает слова:<br>
  * 'id' - идентификатор.<br>
+ * 'board_id' - Идентификатор доски.<br>
  * 'word' - слово для замены.<br>
- * 'replace' - замена.</p>
+ * 'replace' - замена.
  */
-function words_get_all()
-{
-	return db_words_get_all(DataExchange::getDBLink());
+function words_get_all() {
+    return db_words_get_all(DataExchange::getDBLink());
 }
 /**
  * Получает все слова по идентификатору доски.
