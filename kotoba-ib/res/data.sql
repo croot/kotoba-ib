@@ -29,3 +29,6 @@ insert into acl (`group`, `view`, `change`, `moderate`) values (1, 1, 0, 0)|
 insert into acl (`group`, `view`, `change`, `moderate`) values (2, 1, 1, 0)|
 insert into acl (`group`, `view`, `change`, `moderate`) values (3, 1, 1, 1)|
 insert into acl (`group`, `view`, `change`, `moderate`) values (4, 1, 1, 1)|
+
+-- Текущая версия БД
+insert into db_version (version) values (3)|

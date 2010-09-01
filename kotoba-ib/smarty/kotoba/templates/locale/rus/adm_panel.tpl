@@ -28,7 +28,8 @@
 <a href="{$DIR_PATH}/admin/edit_upload_types.php">Типы загружаемых файлов.</a><br>
 <a href="{$DIR_PATH}/admin/edit_board_upload_types.php">Типов загружаемых файлов для досок.</a><br>
 <a href="{$DIR_PATH}/admin/edit_languages.php">Языки.</a><br>
-<a href="{$DIR_PATH}/admin/edit_words.php">Фильтрация слов.</a><br><br>
+<a href="{$DIR_PATH}/admin/edit_words.php">Фильтрация слов.</a><br>
+<a href="{$DIR_PATH}/admin/edit_spamfilter.php">Спамфильтр.</a><br><br>
 
 <a href="{$DIR_PATH}/admin/moderate.php">Основной скрипт модератора.</a><br>
 <a href="{$DIR_PATH}/admin/archive.php">Произвести архивирование.</a><br>

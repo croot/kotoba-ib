@@ -33,6 +33,7 @@ CommonException::$messages['REMOTE_ADDR'] = 'Не верный адрес кли
 CommonException::$messages['REPLACE_FOR_WORD'] = 'Введите замену для слова.';
 CommonException::$messages['SESSION_START'] = 'Не удалось начать сессию.';
 CommonException::$messages['SETLOCALE'] = 'Неудача при установке локали.';
+CommonException::$messages['SPAM_DETECTED'] = 'Спам.';
 CommonException::$messages['TEXT_UNICODE'] = 'В тексте обнаружены не юникод символы.';
 CommonException::$messages['THREAD_ARCHIVED'] = 'Нить заархивирована.';
 CommonException::$messages['TOO_LONG'] = 'Одно из слов имеет длину более 100 символов.';
@@ -97,6 +98,8 @@ FormatException::$messages['POPDOWN_HANDLER_NAME'] = 'Имя обработчи�
 FormatException::$messages['POST_ID'] = 'Идентификатор сообщения имеет не верный формат.';
 FormatException::$messages['POST_NUMBER'] = 'Номер сообщения имеет не верный формат.';
 FormatException::$messages['POST_PASSWORD'] = 'Пароль для удаления сообщения имеет не верный формат.';
+
+FormatException::$messages['SPAMFILTER_PATTERN'] = 'Шаблон спамфильтра имеет не верный формат.';
 
 FormatException::$messages['STYLESHEET_ID'] = 'Идентификатор стиля имеет не верный формат.';
 FormatException::$messages['STYLESHEET_NAME'] = 'Имя файла стиля имеет не верный формат.';

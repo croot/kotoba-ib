@@ -118,6 +118,10 @@ drop procedure if exists sp_reports_add|
 drop procedure if exists sp_reports_delete|
 drop procedure if exists sp_reports_get_all|
 
+drop procedure if exists sp_spamfilter_add|
+drop procedure if exists sp_spamfilter_delete|
+drop procedure if exists sp_spamfilter_get_all|
+
 drop procedure if exists sp_stylesheets_add|
 drop procedure if exists sp_stylesheets_delete|
 drop procedure if exists sp_stylesheets_get_all|
@@ -1958,6 +1962,34 @@ end|
 create procedure sp_reports_get_all ()
 begin
     select post from reports;
+end|
+
+-- ---------------------------
+--  Работа со спамфильтром. --
+-- ---------------------------
+
+-- Добавляет шаблон в спамфильтр.
+create procedure sp_spamfilter_add
+(
+    _pattern varchar(256)   -- Шаблон.
+)
+begin
+    insert into spamfilter (pattern) values (_pattern);
+end|
+
+-- Удаляет шаблон из спамфильтра.
+create procedure sp_spamfilter_delete
+(
+    _id int -- Идентификатор шаблона.
+)
+begin
+    delete from spamfilter where id = _id;
+end|
+
+-- Выбирает все шаблоны спамфильтра.
+create procedure sp_spamfilter_get_all ()
+begin
+    select id, pattern from spamfilter;
 end|
 
 -- ----------------------

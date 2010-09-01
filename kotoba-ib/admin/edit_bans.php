@@ -84,14 +84,12 @@ try {
             $reload_bans = true;
             if (isset($_POST['post'])) {
                 if (isset($_POST['add_text'])) {
-                    posts_edit_specifed_addtext(posts_check_id($_POST['post'])
-                            , $smarty->fetch('uwb4tp.tpl'));
+                    posts_add_text_by_id(posts_check_id($_POST['post']) , $smarty->fetch('uwb4tp.tpl'));
                 } elseif (isset($_POST['del_post'])) {
                     posts_delete(posts_check_id($_POST['post']));
                 } elseif (isset($_POST['del_all'])) {
                     date_default_timezone_set(Config::DEFAULT_TIMEZONE);
-                    posts_delete_last(posts_check_id($_POST['post']),
-                            date(Config::DATETIME_FORMAT, time() - (60 * 60)));
+                    posts_delete_last(posts_check_id($_POST['post']), date(Config::DATETIME_FORMAT, time() - (60 * 60)));
                 }
             }
         }

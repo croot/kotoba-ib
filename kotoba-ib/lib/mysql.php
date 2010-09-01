@@ -2199,9 +2199,8 @@ function db_posts_add($link, $board_id, $thread_id, $user_id, $password, $name,
  * @param id mixed <p>Идентификатор сообщения.</p>
  * @param text string <p>Текст.</p>
  */
-function db_posts_add_text_by_id($link, $id, $text)
-{
-	if(!mysqli_query($link, 'call sp_posts_add_text_by_id(' . $id . ', \''
+function db_posts_add_text_by_id($link, $id, $text) {
+	if(!mysqli_query($link, 'call sp_posts_edit_text_by_id(' . $id . ', \''
 			. $text . '\')'))
 	{
 		throw new CommonException(mysqli_error($link));
@@ -2954,24 +2953,78 @@ function db_reports_get_all($link) {
     return $reports;
 }
 
+/* *************************
+ * Работа со спамфильтром. *
+ ***************************/
+
+/**
+ * Добавляет шаблон в спамфильтр.
+ * @param MySQLi $link Связь с базой данных.
+ * @param string $pattern Шаблон.
+ */
+function db_spamfilter_add($link, $pattern) { // Java CC
+	if (!mysqli_query($link, "call sp_spamfilter_add('$pattern')")) {
+		throw new CommonException(mysqli_error($link));
+    }
+	db_cleanup_link($link);
+}
+/**
+ * Удаляет шаблон из спамфильтра.
+ * @param MySQLi $link Связь с базой данных.
+ * @param int $id Идентификатор шаблона.
+ */
+function db_spamfilter_delete($link, $id) { // Java CC
+	if (!mysqli_query($link, "call sp_spamfilter_delete($id)")) {
+		throw new CommonException(mysqli_error($link));
+    }
+	db_cleanup_link($link);
+}
+/**
+ * Получает все шаблоны спамфильтра.
+ * @param MySQLi $link Связь с базой данных.
+ * @return array
+ * Возвращает стили:<br>
+ * 'id' - Идентификатор.<br>
+ * 'pattern' - Шаблон.
+ */
+function db_spamfilter_get_all($link) { // Java CC
+    $result = mysqli_query($link, 'call sp_spamfilter_get_all()');
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $patterns = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while (($row = mysqli_fetch_assoc($result)) != null) {
+            array_push($patterns,
+                    array('id' => $row['id'],
+                          'pattern' => $row['pattern']));
+        }
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $patterns;
+}
+
 /* ********************
  * Работа со стилями. *
  **********************/
 
 /**
  * Добавляет стиль.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param name string <p>Имя файла стиля.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param string $name Имя файла стиля.
  */
-function db_stylesheets_add($link, $name)
-{
-	if(!mysqli_query($link, 'call sp_stylesheets_add(\'' . $name . '\')'))
+function db_stylesheets_add($link, $name) {
+	if (!mysqli_query($link, "call sp_stylesheets_add('$name')")) {
 		throw new CommonException(mysqli_error($link));
+    }
 	db_cleanup_link($link);
 }
 /**
  * Удаляет заданный стиль.
- * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param MySQLi $link Связь с базой данных.
  * @param id mixed <p>Идентификатор стиля.</p>
  */
 function db_stylesheets_delete($link, $id)
