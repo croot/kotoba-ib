@@ -22,6 +22,7 @@ begin
     select version into @version from db_version;
     if (@version < 1 and 1 - @version = 1) then
         create table hard_ban (range_beg varchar(15) not null, range_end varchar(15) not null) engine=InnoDB;
+
         update db_version set version = 1 limit 1;
         select 'Patch 1 was appied.';
     else
