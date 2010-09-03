@@ -46,12 +46,23 @@ try {
             $_SESSION['user'], $_SERVER['REMOTE_ADDR']);
     Logging::close_log();
 
+    // Get necessary data.
+    $boards = boards_get_all();
+
     // Move thread.
     if (isset($_POST['submited'])) {
 
+        // Validate input data.
+        $src_board['id'] = boards_check_id($_POST['src_board']);
+        $thread['original_post'] = threads_check_original_post($_POST['thread']);
+        $dst_board['id'] = boards_check_id($_POST['dst_board']);
+
+        $thread = threads_get_by_original_post($src_board, $thread['original_post']);
+        threads_move_thread($thread['id'], $dst_board['id']);
     }
 
     // Display move thread form.
+    $smarty->assign('boards', $boards);
     $smarty->display('move_thread.tpl');
 
     DataExchange::releaseResources();
