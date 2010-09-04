@@ -3232,6 +3232,47 @@ function db_threads_get_archived($link)
 	return $threads;
 }
 /**
+ * Получает нить по номеру нити и идентификатору доски.
+ * @param MySQLi $link Связь с базой данных.
+ * @param string|int $board Идентификатор доски.
+ * @param string|int $original_post Номер нити.
+ * @return array|null
+ * Возвращает нить:<br>
+ * 'id' - Идентификатор.<br>
+ * 'board' - Идентификатор доски.<br>
+ * 'original_post' - Номер оригинального сообщения.<br>
+ * 'bump_limit' - Специфичный для нити бамплимит.<br>
+ * 'archived' - Флаг архивирования.<br>
+ * 'sage' - Флаг поднятия нити.<br>
+ * 'sticky' - Флаг закрепления.<br>
+ * 'with_attachments' - Флаг вложений.<br>
+ * Или null, если нить не найдена, помечена на удаленение или архивирование.
+ */
+function db_threads_get_by_original_post($link, $board, $original_post) { // Java CC
+    $result = mysqli_query($link, "call sp_threads_get_by_original_post($board, $original_post)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $thread = null;
+    if(mysqli_affected_rows($link) > 0) {
+		while(($row = mysqli_fetch_assoc($result)) != null) {
+			$thread = array('id' => $row['id'],
+                            'board' => $board,
+                            'original_post' => $row['original_post'],
+                            'bump_limit' => $row['bump_limit'],
+                            'sage' => $row['sage'],
+                            'sticky' => $row['sticky'],
+                            'with_attachments' => $row['with_attachments'],
+                            'archived' => $row['archived']);
+        }
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $thread;
+}
+/**
  * Получает заданную нить, доступную для редактирования заданному пользователю.
  * @param MySQLi $link Связь с базой данных.
  * @param int $thread_id Идентификатор нити.
@@ -3512,11 +3553,8 @@ function db_threads_search_visible_by_board($link, $board_id, $page, $user_id,
  * 'with_attachments' - Флаг вложений.<br>
  * 'posts_count' - Число доступных для просмотра сообщений в нити.</p>
  */
-function db_threads_get_visible_by_original_post($link, $board, $original_post,
-        $user_id) { // Java CC
-    $result = mysqli_query($link,
-            "call sp_threads_get_visible_by_original_post($board,
-            $original_post, $user_id)");
+function db_threads_get_visible_by_original_post($link, $board, $original_post, $user_id) { // Java CC
+    $result = mysqli_query($link, "call sp_threads_get_visible_by_original_post($board, $original_post, $user_id)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
@@ -3574,6 +3612,18 @@ function db_threads_get_visible_count($link, $user_id, $board_id) { // Java CC
         db_cleanup_link($link);
         return 0;
     }
+}
+/**
+ * Перемещает нить.
+ * @param MySQLi $link Связь с базой данных.
+ * @param string|int $thread_id Идентификатор нити, которую нужно переместить.
+ * @param string|int $board_id Идентификатор доски, на которую нужно переместить нить.
+ */
+function db_threads_move_thread($link, $thread_id, $board_id) {
+    if (!mysqli_query($link, "call sp_threads_move_thread($thread_id, $board_id)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+    db_cleanup_link($link);
 }
 
 /* ********************************************
