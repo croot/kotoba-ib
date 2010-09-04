@@ -2316,6 +2316,25 @@ function threads_get_archived()
 	return db_threads_get_archived(DataExchange::getDBLink());
 }
 /**
+ * Получает нить по номеру нити и идентификатору доски.
+ * @param string|int $board Идентификатор доски.
+ * @param string|int $original_post Номер нити.
+ * @return array
+ * Возвращает нить:<br>
+ * 'id' - Идентификатор.<br>
+ * 'board' - Идентификатор доски.<br>
+ * 'original_post' - Номер оригинального сообщения.<br>
+ * 'bump_limit' - Специфичный для нити бамплимит.<br>
+ * 'archived' - Флаг архивирования.<br>
+ * 'sage' - Флаг поднятия нити.<br>
+ * 'sticky' - Флаг закрепления.<br>
+ * 'with_attachments' - Флаг вложений.<br>
+ * Или null, если нить не найдена, помечена на удаленение или архивирование.
+ */
+function threads_get_by_original_post($board, $original_post) {
+    return db_threads_get_by_original_post(DataExchange::getDBLink(), $board, $original_post);
+}
+/**
  * Получает заданную нить, доступную для изменения заданному пользователю.
  * @param int $thread_id Идентификатор нити.
  * @param int $user_id Идентификатор пользователя.
@@ -2413,7 +2432,7 @@ function threads_search_visible_by_board($board_id, $page, $user_id,
  * @param string|int $original_post Номер нити.
  * @param string|int $user_id Идентификатор пользователя.
  * @return array
- * Возвращает нить:<p>
+ * Возвращает нить:<br>
  * 'id' - Идентификатор.<br>
  * 'board' - Идентификатор доски.<br>
  * 'original_post' - Номер оригинального сообщения.<br>
@@ -2422,12 +2441,10 @@ function threads_search_visible_by_board($board_id, $page, $user_id,
  * 'sage' - Флаг поднятия нити.<br>
  * 'sticky' - Флаг закрепления.<br>
  * 'with_attachments' - Флаг вложений.<br>
- * 'posts_count' - Число доступных для просмотра сообщений в нити.</p>
+ * 'posts_count' - Число доступных для просмотра сообщений в нити.
  */
-function threads_get_visible_by_original_post($board, $original_post, $user_id)
-{
-    return db_threads_get_visible_by_original_post(DataExchange::getDBLink(),
-            $board, $original_post, $user_id);
+function threads_get_visible_by_original_post($board, $original_post, $user_id) {
+    return db_threads_get_visible_by_original_post(DataExchange::getDBLink(), $board, $original_post, $user_id);
 }
 /**
  * Вычисляет количество нитей, доступных для просмотра заданному пользователю
@@ -2440,6 +2457,14 @@ function threads_get_visible_by_original_post($board, $original_post, $user_id)
 function threads_get_visible_count($user_id, $board_id) { // Java CC
     return db_threads_get_visible_count(DataExchange::getDBLink(), $user_id,
         $board_id);
+}
+/**
+ * Перемещает нить.
+ * @param string|int $thread_id Идентификатор нити, которую нужно переместить.
+ * @param string|int $board_id Идентификатор доски, на которую нужно переместить нить.
+ */
+function threads_move_thread($thread_id, $board_id) {
+    db_threads_move_thread(DataExchange::getDBLink(), $thread_id, $board_id);
 }
 
 /**********************************************

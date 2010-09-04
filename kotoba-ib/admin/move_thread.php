@@ -57,7 +57,7 @@ try {
         $thread['original_post'] = threads_check_original_post($_POST['thread']);
         $dst_board['id'] = boards_check_id($_POST['dst_board']);
 
-        $thread = threads_get_by_original_post($src_board, $thread['original_post']);
+        $thread = threads_get_by_original_post($src_board['id'], $thread['original_post']);
         threads_move_thread($thread['id'], $dst_board['id']);
     }
 

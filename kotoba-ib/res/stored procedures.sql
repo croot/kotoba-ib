@@ -134,12 +134,14 @@ drop procedure if exists sp_threads_edit_deleted|
 drop procedure if exists sp_threads_edit_original_post|
 drop procedure if exists sp_threads_get_all|
 drop procedure if exists sp_threads_get_archived|
+drop procedure if exists sp_threads_get_by_original_post|
 drop procedure if exists sp_threads_get_changeable_by_id|
 drop procedure if exists sp_threads_get_moderatable|
 drop procedure if exists sp_threads_get_moderatable_by_id|
 drop procedure if exists sp_threads_get_visible_by_board|
 drop procedure if exists sp_threads_get_visible_by_original_post|
 drop procedure if exists sp_threads_get_visible_count|
+drop procedure if exists sp_threads_move_thread|
 drop procedure if exists sp_threads_search_visible_by_board|
 
 drop procedure if exists sp_upload_handlers_add|
@@ -2172,6 +2174,21 @@ begin
 	where deleted = 0 and archived = 1;
 end|
 
+-- Выбирает нить по номеру нити и идентификатору доски.
+create procedure sp_threads_get_by_original_post
+(
+    _board int,         -- Идентификатор доски.
+    _original_post int  -- Номер оригинального сообщения.
+)
+begin
+    select id, original_post, bump_limit, sticky, archived, sage, with_attachments
+        from threads
+        where original_post = _original_post
+            and board = _board
+            and deleted = 0
+            and archived = 0;
+end|
+
 -- Выбирает заданную нить, доступную для редактирования заданному пользователю.
 --
 -- Аргументы:
@@ -2530,6 +2547,16 @@ begin
 			-- просмотр разрешен конкретной группе.
 			and a5.`view` = 1)
 	group by t.id) q;
+end|
+
+-- Перемещает нить.
+create procedure sp_threads_move_thread
+(
+    _id int,    -- Идентификатор нити, которую нужно переместить.
+    _board int  -- Идентификатор доски, на которую нужно переместить нить.
+)
+begin
+    
 end|
 
 -- Ищет с заданной доски доступные для просмотра пользователю нити и
