@@ -2556,7 +2556,36 @@ create procedure sp_threads_move_thread
     _board int  -- Идентификатор доски, на которую нужно переместить нить.
 )
 begin
-    
+    declare _bump_limit int;
+    declare _sage bit;
+    declare _with_attachments bit;
+
+    declare _user int;
+    declare _password varchar(128);
+    declare _name varchar(128);
+    declare _tripcode varchar(128);
+    declare _ip bigint;
+    declare _subject varchar(128);
+    declare _date_time datetime;
+    declare _text text;
+
+    declare done int default 0;
+    declare `c` cursor for select `user`, password, `name`, tripcode, ip, subject, date_time, text, sage from posts where thread = _id;
+    declare continue handler for not found set done = 1;
+
+    select bump_limit, sage, with_attachments
+            into _bump_limit, _sage, _with_attachments
+        from threads where id = _id;
+    call sp_threads_add(_board, null, _bump_limit, _sage, _with_attachments);
+
+    open `c`;
+        repeat
+            fetch `c` into _user, _password, _name, _tripcode, _ip, _subject, _date_time, _text, _sage;
+            if (not done) then
+                call sp_posts_add(_board, _id, _user, _password, _name, _tripcode, _ip, _subject, _date_time, _text, _sage);
+            end if;
+        until done end repeat;
+    close `c`;
 end|
 
 -- Ищет с заданной доски доступные для просмотра пользователю нити и

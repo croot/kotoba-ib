@@ -81,12 +81,14 @@ function render_latex($code, $hash) {
 
     // Run PS file through ImageMagick to create PNG file.
     $command = Config::CONVERT_BINARY . " -density 120 $hash.ps $hash.png";
+    var_dump($command);
     exec($command);
 
     // Copy the file to the cache directory.
     copy("$hash.png", Config::ABS_PATH . "/latexcache/$hash.png");
 
     chdir($current_dir);
+    exit;
 }
 /**
  * Removes temporary files after render TeX code with specifed hash.
