@@ -3077,14 +3077,14 @@ function db_stylesheets_get_all($link) { // Java CC
  * @param int $sage Флаг поднятия нити.
  * @param int|null $with_attachments Флаг вложений.
  * @return array|null
- * Возвращает нить:<p>
+ * Возвращает нить:<br>
  * 'id' - Идентификатор.<br>
  * 'board' - Идентификатор доски.<br>
  * 'original_post' - Номер оригинального сообщения.<br>
  * 'bump_limit' - Специфичный для нити бамплимит.<br>
  * 'sage' - Флаг поднятия нити.<br>
  * 'sticky' - Флаг закрепления.<br>
- * 'with_attachments' - Флаг вложений.</p>
+ * 'with_attachments' - Флаг вложений.<br>
  * Или null, если что-то пошло не так.
  */
 function db_threads_add($link, $board_id, $original_post, $bump_limit, $sage, $with_attachments) { // Java CC
@@ -3098,16 +3098,13 @@ function db_threads_add($link, $board_id, $original_post, $bump_limit, $sage, $w
         $with_attachments = 'null';
     }
 
-    $result = mysqli_query($link,
-            "call sp_threads_add($board_id, $original_post, $bump_limit, $sage,
-            $with_attachments)");
+    $result = mysqli_query($link, "call sp_threads_add($board_id, $original_post, $bump_limit, $sage, $with_attachments)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
 
     $thread = null;
-    if (mysqli_affected_rows($link) > 0
-            && ($row = mysqli_fetch_assoc($result)) != null) {
+    if (mysqli_affected_rows($link) > 0 && ($row = mysqli_fetch_assoc($result)) != null) {
         $thread = array('id' => $row['id'],
                         'board' => $row['board'],
                         'original_post' => $row['original_post'],
