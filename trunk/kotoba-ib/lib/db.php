@@ -2170,20 +2170,18 @@ function stylesheets_get_all() { // Java CC
  * @param int $sage Флаг поднятия нити.
  * @param int|null $with_attachments Флаг вложений.
  * @return array|null
- * Возвращает нить:<p>
+ * Возвращает нить:<br>
  * 'id' - Идентификатор.<br>
  * 'board' - Идентификатор доски.<br>
  * 'original_post' - Номер оригинального сообщения.<br>
  * 'bump_limit' - Специфичный для нити бамплимит.<br>
  * 'sage' - Флаг поднятия нити.<br>
  * 'sticky' - Флаг закрепления.<br>
- * 'with_attachments' - Флаг вложений.</p>
+ * 'with_attachments' - Флаг вложений.<br>
  * Или null, если что-то пошло не так.
  */
-function threads_add($board_id, $original_post, $bump_limit, $sage,
-        $with_attachments) { // Java CC
-    return db_threads_add(DataExchange::getDBLink(), $board_id, $original_post,
-            $bump_limit, $sage, $with_attachments);
+function threads_add($board_id, $original_post, $bump_limit, $sage, $with_attachments) { // Java CC
+    return db_threads_add(DataExchange::getDBLink(), $board_id, $original_post, $bump_limit, $sage, $with_attachments);
 }
 /**
  * Проверяет корректность специфичного для нити бамплимита.

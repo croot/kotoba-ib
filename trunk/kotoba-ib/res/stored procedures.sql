@@ -2560,6 +2560,7 @@ begin
     declare _sage bit;
     declare _with_attachments bit;
 
+    declare _thread int;
     declare _user int;
     declare _password varchar(128);
     declare _name varchar(128);
@@ -2569,20 +2570,43 @@ begin
     declare _date_time datetime;
     declare _text text;
 
+    declare post_number int;    -- New original post number.
+
     declare done int default 0;
-    declare `c` cursor for select `user`, password, `name`, tripcode, ip, subject, date_time, text, sage from posts where thread = _id;
+    -- All posts except original.
+    declare `c` cursor for select p.`user`, p.password, p.`name`, p.tripcode, p.ip, p.subject, p.date_time, p.text, p.sage
+        from posts p
+        join threads t on p.thread = t.id and t.id = _id
+        where p.number != t.original_post;
     declare continue handler for not found set done = 1;
 
     select bump_limit, sage, with_attachments
             into _bump_limit, _sage, _with_attachments
         from threads where id = _id;
     call sp_threads_add(_board, null, _bump_limit, _sage, _with_attachments);
+    -- TODO: А что если ещё какой-то тред будет создан между моментов вызова sp_threads_add() и этим селектом?
+    select last_insert_id() into _thread;
 
+    -- Calculate new original post number and add new original post.
+    select max(number) into post_number from posts where board = _board;
+    if(post_number is null) then
+        set post_number = 1;
+    else
+        set post_number = post_number + 1;
+    end if;
+    insert into posts (board, thread, number, user, password, name, tripcode, ip, subject, date_time, text, sage, deleted)
+        select _board, _thread, post_number, p.user, p.password, p.name, p.tripcode, p.ip, p.subject, p.date_time, p.text, p.sage, 0
+            from posts p
+            join threads t on p.thread = t.id and t.id = _id
+        where p.number = t.original_post;
+    call sp_threads_edit_original_post(_thread, post_number);
+
+    -- Move another posts of thread.
     open `c`;
         repeat
             fetch `c` into _user, _password, _name, _tripcode, _ip, _subject, _date_time, _text, _sage;
             if (not done) then
-                call sp_posts_add(_board, _id, _user, _password, _name, _tripcode, _ip, _subject, _date_time, _text, _sage);
+                call sp_posts_add(_board, _thread, _user, _password, _name, _tripcode, _ip, _subject, _date_time, _text, _sage);
             end if;
         until done end repeat;
     close `c`;
