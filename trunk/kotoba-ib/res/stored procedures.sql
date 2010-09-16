@@ -2559,7 +2559,6 @@ begin
     declare _bump_limit int;
     declare _sage bit;
     declare _with_attachments bit;
-
     declare _thread int;
     declare _user int;
     declare _password varchar(128);
@@ -2570,15 +2569,28 @@ begin
     declare _date_time datetime;
     declare _text text;
 
-    declare post_number int;    -- New original post number.
+    -- New original post number.
+    declare _number int;
 
+    declare old_original_post_id int;
+    declare new_original_post_id int;
+    declare attachment_id int default null;
     declare done int default 0;
-    -- All posts except original.
-    declare `c` cursor for select p.`user`, p.password, p.`name`, p.tripcode, p.ip, p.subject, p.date_time, p.text, p.sage
+
+    -- Select all posts except original.
+    declare `c` cursor for
+        select p.`user`, p.password, p.`name`, p.tripcode,
+               p.ip, p.subject, p.date_time, p.text, p.sage
+            from posts p
+            join threads t on p.thread = t.id and t.id = _id
+            where p.number != t.original_post;
+
+    declare continue handler for not found set done = 1;
+
+    select p.id into old_original_post_id
         from posts p
         join threads t on p.thread = t.id and t.id = _id
-        where p.number != t.original_post;
-    declare continue handler for not found set done = 1;
+        where p.number = t.original_post;
 
     select bump_limit, sage, with_attachments
             into _bump_limit, _sage, _with_attachments
@@ -2587,29 +2599,60 @@ begin
     -- TODO: А что если ещё какой-то тред будет создан между моментов вызова sp_threads_add() и этим селектом?
     select last_insert_id() into _thread;
 
-    -- Calculate new original post number and add new original post.
-    select max(number) into post_number from posts where board = _board;
-    if(post_number is null) then
-        set post_number = 1;
+    -- Calculate new original post number and add copy original post.
+    select max(number) into _number from posts where board = _board;
+    if(_number is null) then
+        set _number = 1;
     else
-        set post_number = post_number + 1;
+        set _number = _number + 1;
     end if;
-    insert into posts (board, thread, number, user, password, name, tripcode, ip, subject, date_time, text, sage, deleted)
-        select _board, _thread, post_number, p.user, p.password, p.name, p.tripcode, p.ip, p.subject, p.date_time, p.text, p.sage, 0
-            from posts p
-            join threads t on p.thread = t.id and t.id = _id
-        where p.number = t.original_post;
-    call sp_threads_edit_original_post(_thread, post_number);
+    insert into posts (board, thread, number, user, password, name,
+                       tripcode, ip, subject, date_time, text,
+                       sage, deleted)
+        select _board, _thread, _number, user, password, name,
+               tripcode, ip, subject, date_time, text,
+               sage, 0
+            from posts
+            where id = old_original_post_id;
+    select last_insert_id() into new_original_post_id;
+    call sp_threads_edit_original_post(_thread, _number);
 
-    -- Move another posts of thread.
+    -- Copy another posts of thread.
     open `c`;
         repeat
-            fetch `c` into _user, _password, _name, _tripcode, _ip, _subject, _date_time, _text, _sage;
+            fetch `c` into _user, _password, _name, _tripcode, _ip, _subject,
+                           _date_time, _text, _sage;
             if (not done) then
-                call sp_posts_add(_board, _thread, _user, _password, _name, _tripcode, _ip, _subject, _date_time, _text, _sage);
+                call sp_posts_add(_board, _thread, _user, _password, _name,
+                                  _tripcode, _ip, _subject, _date_time, _text,
+                                  _sage);
             end if;
         until done end repeat;
     close `c`;
+
+    -- Copy attachments of original post.
+
+    /*insert into files (hash, name, size, thumbnail, thumbnail_w, thumbnail_h)
+        select f.hash, f.name, f.size, f.thumbnail, f.thumbnail_w, f.thumbnail_h
+            from files f
+            join posts_files pf on pf.file = f.id
+                and pf.post = old_original_post_id;
+    select last_insert_id() into attachment_id;
+    if(attachment_id is not null) then
+        insert into posts_files (post, file)
+            values (new_original_post_id, attachment_id);
+    end if;
+
+    insert into images (hash, name, widht, height, size, thumbnail, thumbnail_w, thumbnail_h)
+        select i.hash, i.name, i.widht, i.height, i.size, i.thumbnail, i.thumbnail_w, i.thumbnail_h
+            from images i
+            join posts_images pi on pi.image = i.id
+                and pi.post = old_original_post_id;
+    select last_insert_id() into attachment_id;
+    if(attachment_id is not null) then
+        insert into posts_images (post, image)
+            values (new_original_post_id, attachment_id);
+    end if;*/
 end|
 
 -- Ищет с заданной доски доступные для просмотра пользователю нити и
