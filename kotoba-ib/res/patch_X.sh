@@ -1,6 +1,12 @@
-# $./patch_X.ps1 10 > patch_10.sql
+# $./patch_X.sh kotoba2 10 > patch_10.sql
 
-VERSION=$1
+DBNAME=$1
+if [ -z $DBNAME ]
+then
+    echo "Error. Database name not specifed."
+    exit 1
+fi
+VERSION=$2
 if [ -z $VERSION ]
 then
     echo "Error. Patch version not specifed."
@@ -17,7 +23,7 @@ returns int
 deterministic
 begin
     declare result int default 0;
-    select count(table_name) into result from information_schema.tables where table_schema = 'kotoba2' and table_name = 'db_version';
+    select count(table_name) into result from information_schema.tables where table_schema = '$DBNAME' and table_name = 'db_version';
     return result;
 end|
 

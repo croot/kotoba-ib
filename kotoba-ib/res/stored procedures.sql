@@ -34,6 +34,7 @@ drop procedure if exists sp_categories_get_all|
 
 drop procedure if exists sp_files_add|
 drop procedure if exists sp_files_get_by_post|
+drop procedure if exists sp_files_get_by_thread|
 drop procedure if exists sp_files_get_dangling|
 drop procedure if exists sp_files_get_same|
 
@@ -51,6 +52,7 @@ drop procedure if exists sp_hidden_threads_get_visible|
 
 drop procedure if exists sp_images_add|
 drop procedure if exists sp_images_get_by_post|
+drop procedure if exists sp_images_get_by_thread|
 drop procedure if exists sp_images_get_dangling|
 drop procedure if exists sp_images_get_by_board|
 drop procedure if exists sp_images_get_same|
@@ -61,6 +63,7 @@ drop procedure if exists sp_languages_get_all|
 
 drop procedure if exists sp_links_add|
 drop procedure if exists sp_links_get_by_post|
+drop procedure if exists sp_links_get_by_thread|
 drop procedure if exists sp_links_get_dangling|
 
 drop procedure if exists sp_macrochan_tags_add|
@@ -167,6 +170,7 @@ drop procedure if exists sp_users_set_password|
 
 drop procedure if exists sp_videos_add|
 drop procedure if exists sp_videos_get_by_post|
+drop procedure if exists sp_videos_get_by_thread|
 drop procedure if exists sp_videos_get_dangling|
 
 drop procedure if exists sp_words_add|
@@ -796,6 +800,18 @@ begin
         join files f on f.id = pf.file and pf.post = post_id;
 end|
 
+-- Выбирает файлы, вложенные в нить.
+create procedure sp_files_get_by_thread
+(
+    thread_id int -- Идентификатор нити.
+)
+begin
+    select f.id, f.hash, f.name, f.size, f.thumbnail, f.thumbnail_w, f.thumbnail_h
+        from files f
+        join posts_files pf on pf.file = f.id
+        join posts p on p.id = pf.post and p.thread = thread_id;
+end|
+
 -- Выбирает висячие файлы.
 create procedure sp_files_get_dangling ()
 begin
@@ -1074,6 +1090,18 @@ begin
         join images i on i.id = pi.image and pi.post = post_id;
 end|
 
+-- Выбирает изображения, вложенные в нить.
+create procedure sp_images_get_by_thread
+(
+    thread_id int -- Идентификатор нити.
+)
+begin
+    select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail, i.thumbnail_w, i.thumbnail_h
+        from images i
+        join posts_images pi on i.id = pi.image
+        join posts p on p.id = pi.post and p.thread = thread_id;
+end|
+
 -- Выбирает висячие изображения.
 create procedure sp_images_get_dangling ()
 begin
@@ -1191,6 +1219,19 @@ begin
             l.thumbnail_h
         from posts_links pl
         join links l on l.id = pl.link and pl.post = post_id;
+end|
+
+-- Выбирает ссылки на изображения, вложенные в нить.
+create procedure sp_links_get_by_thread
+(
+    thread_id int -- Идентификатор нити.
+)
+begin
+    select l.id, l.url, l.widht, l.height, l.size, l.thumbnail, l.thumbnail_w,
+            l.thumbnail_h
+        from links l
+        join posts_links pl on l.id = pl.link
+        join posts p on p.id = pl.post and p.thread = thread_id;
 end|
 
 -- Выбирает висячие ссылки на изображения.
@@ -2560,6 +2601,7 @@ begin
     declare _sage bit;
     declare _with_attachments bit;
     declare _thread int;
+    declare post_id int;
     declare _user int;
     declare _password varchar(128);
     declare _name varchar(128);
@@ -2574,12 +2616,14 @@ begin
 
     declare old_original_post_id int;
     declare new_original_post_id int;
+    declare new_post_id int;
     declare attachment_id int default null;
+    declare attachments_count int;
     declare done int default 0;
 
     -- Select all posts except original.
     declare `c` cursor for
-        select p.`user`, p.password, p.`name`, p.tripcode,
+        select p.id, p.`user`, p.password, p.`name`, p.tripcode,
                p.ip, p.subject, p.date_time, p.text, p.sage
             from posts p
             join threads t on p.thread = t.id and t.id = _id
@@ -2592,6 +2636,7 @@ begin
         join threads t on p.thread = t.id and t.id = _id
         where p.number = t.original_post;
 
+    -- Copy thread.
     select bump_limit, sage, with_attachments
             into _bump_limit, _sage, _with_attachments
         from threads where id = _id;
@@ -2599,7 +2644,7 @@ begin
     -- TODO: А что если ещё какой-то тред будет создан между моментов вызова sp_threads_add() и этим селектом?
     select last_insert_id() into _thread;
 
-    -- Calculate new original post number and add copy original post.
+    -- Calculate new original post number and copy original post.
     select max(number) into _number from posts where board = _board;
     if(_number is null) then
         set _number = 1;
@@ -2617,42 +2662,177 @@ begin
     select last_insert_id() into new_original_post_id;
     call sp_threads_edit_original_post(_thread, _number);
 
+    create temporary table tmp_posts
+    (
+        old_id int not null,
+        new_id int not null
+    )
+    engine=InnoDB;
+
     -- Copy another posts of thread.
     open `c`;
         repeat
-            fetch `c` into _user, _password, _name, _tripcode, _ip, _subject,
-                           _date_time, _text, _sage;
+            fetch `c` into post_id, _user, _password, _name, _tripcode, _ip,
+                           _subject, _date_time, _text, _sage;
             if (not done) then
                 call sp_posts_add(_board, _thread, _user, _password, _name,
                                   _tripcode, _ip, _subject, _date_time, _text,
                                   _sage);
+                select last_insert_id() into new_post_id;
+                insert into tmp_posts (old_id, new_id)
+                    values (post_id, new_post_id);
             end if;
         until done end repeat;
     close `c`;
 
     -- Copy attachments of original post.
 
-    /*insert into files (hash, name, size, thumbnail, thumbnail_w, thumbnail_h)
-        select f.hash, f.name, f.size, f.thumbnail, f.thumbnail_w, f.thumbnail_h
-            from files f
-            join posts_files pf on pf.file = f.id
-                and pf.post = old_original_post_id;
-    select last_insert_id() into attachment_id;
-    if(attachment_id is not null) then
-        insert into posts_files (post, file)
-            values (new_original_post_id, attachment_id);
+    set attachments_count = 0;
+    select count(f.id) into attachments_count
+        from files f
+        join posts_files pf on pf.file = f.id
+            and pf.post = old_original_post_id;
+    if (attachments_count > 0) then
+        insert into files (hash, name, size, thumbnail, thumbnail_w, thumbnail_h)
+            select f.hash, f.name, f.size, f.thumbnail, f.thumbnail_w, f.thumbnail_h
+                from files f
+                join posts_files pf on pf.file = f.id
+                    and pf.post = old_original_post_id;
+        select last_insert_id() into attachment_id;
+        insert into posts_files (post, file, deleted)
+            values (new_original_post_id, attachment_id, 0);
     end if;
 
-    insert into images (hash, name, widht, height, size, thumbnail, thumbnail_w, thumbnail_h)
-        select i.hash, i.name, i.widht, i.height, i.size, i.thumbnail, i.thumbnail_w, i.thumbnail_h
-            from images i
-            join posts_images pi on pi.image = i.id
-                and pi.post = old_original_post_id;
-    select last_insert_id() into attachment_id;
-    if(attachment_id is not null) then
-        insert into posts_images (post, image)
-            values (new_original_post_id, attachment_id);
-    end if;*/
+    set attachments_count = 0;
+    select count(i.id) into attachments_count
+        from images i
+        join posts_images pi on pi.image = i.id
+            and pi.post = old_original_post_id;
+    if (attachments_count > 0) then
+        insert into images (hash, name, widht, height, size, thumbnail, thumbnail_w, thumbnail_h)
+            select i.hash, i.name, i.widht, i.height, i.size, i.thumbnail, i.thumbnail_w, i.thumbnail_h
+                from images i
+                join posts_images pi on pi.image = i.id
+                    and pi.post = old_original_post_id;
+        select last_insert_id() into attachment_id;
+        insert into posts_images (post, image, deleted)
+            values (new_original_post_id, attachment_id, 0);
+    end if;
+
+    set attachments_count = 0;
+    select count(l.id) into attachments_count
+        from links l
+        join posts_links pl on pl.link = l.id
+            and pl.post = old_original_post_id;
+    if (attachments_count > 0) then
+        insert into links (url, widht, height, size, thumbnail, thumbnail_w, thumbnail_h)
+            select l.url, l.widht, l.height, l.size, l.thumbnail, l.thumbnail_w, l.thumbnail_h
+                from links l
+                join posts_links pl on pl.link = l.id
+                    and pl.post = old_original_post_id;
+        select last_insert_id() into attachment_id;
+        insert into posts_links (post, link, deleted)
+            values (new_original_post_id, attachment_id, 0);
+    end if;
+
+    set attachments_count = 0;
+    select count(v.id) into attachments_count
+        from videos v
+        join posts_videos pv on pv.video = v.id
+            and pv.post = old_original_post_id;
+    if (attachments_count > 0) then
+        insert into videos (code, widht, height)
+            select v.code, v.widht, v.height
+                from videos v
+                join posts_videos pv on pv.video = v.id
+                    and pv.post = old_original_post_id;
+        select last_insert_id() into attachment_id;
+        insert into posts_videos (post, video, deleted)
+            values (new_original_post_id, attachment_id, 0);
+    end if;
+
+    -- Copy another posts attachments.
+
+    set done = 0;
+    open `c`;
+        repeat
+            fetch `c` into post_id, _user, _password, _name, _tripcode, _ip,
+                           _subject, _date_time, _text, _sage;
+            if (not done) then
+                select new_id into new_post_id
+                    from tmp_posts
+                    where old_id = post_id;
+
+                set attachments_count = 0;
+                select count(f.id) into attachments_count
+                    from files f
+                    join posts_files pf on pf.file = f.id
+                        and pf.post = post_id;
+                if (attachments_count > 0) then
+                    insert into files (hash, name, size, thumbnail, thumbnail_w, thumbnail_h)
+                        select f.hash, f.name, f.size, f.thumbnail, f.thumbnail_w, f.thumbnail_h
+                            from files f
+                            join posts_files pf on pf.file = f.id
+                                and pf.post = post_id;
+                    select last_insert_id() into attachment_id;
+                    insert into posts_files (post, file, deleted)
+                        values (new_post_id, attachment_id, 0);
+                end if;
+
+                set attachments_count = 0;
+                select count(i.id) into attachments_count
+                    from images i
+                    join posts_images pi on pi.image = i.id
+                        and pi.post = post_id;
+                if (attachments_count > 0) then
+                    insert into images (hash, name, widht, height, size, thumbnail, thumbnail_w, thumbnail_h)
+                        select i.hash, i.name, i.widht, i.height, i.size, i.thumbnail, i.thumbnail_w, i.thumbnail_h
+                            from images i
+                            join posts_images pi on pi.image = i.id
+                                and pi.post = post_id;
+                    select last_insert_id() into attachment_id;
+                    insert into posts_images (post, image, deleted)
+                        values (new_post_id, attachment_id, 0);
+                end if;
+
+                set attachments_count = 0;
+                select count(l.id) into attachments_count
+                    from links l
+                    join posts_links pl on pl.link = l.id
+                        and pl.post = post_id;
+                if (attachments_count > 0) then
+                    insert into links (url, widht, height, size, thumbnail, thumbnail_w, thumbnail_h)
+                        select l.url, l.widht, l.height, l.size, l.thumbnail, l.thumbnail_w, l.thumbnail_h
+                            from links l
+                            join posts_links pl on pl.link = l.id
+                                and pl.post = post_id;
+                    select last_insert_id() into attachment_id;
+                    insert into posts_links (post, link, deleted)
+                        values (new_post_id, attachment_id, 0);
+                end if;
+
+                set attachments_count = 0;
+                select count(v.id) into attachments_count
+                    from videos v
+                    join posts_videos pv on pv.video = v.id
+                        and pv.post = post_id;
+                if (attachments_count > 0) then
+                    insert into videos (code, widht, height)
+                        select v.code, v.widht, v.height
+                            from videos v
+                            join posts_videos pv on pv.video = v.id
+                                and pv.post = post_id;
+                    select last_insert_id() into attachment_id;
+                    insert into posts_videos (post, video, deleted)
+                        values (new_post_id, attachment_id, 0);
+                end if;
+            end if;
+        until done end repeat;
+    close `c`;
+
+    drop table tmp_posts;
+
+    call sp_threads_edit_deleted(_id);
 end|
 
 -- Ищет с заданной доски доступные для просмотра пользователю нити и
@@ -3015,17 +3195,26 @@ begin
 end|
 
 -- Выбирает видео, вложенные в заданное сообщение.
-
--- Аргументы:
--- post_id - Идентификатор сообщения.
 create procedure sp_videos_get_by_post
 (
-    post_id int
+    post_id int -- Идентификатор сообщения.
 )
 begin
     select v.id, v.code, v.widht, v.height
         from posts_videos pv
         join videos v on v.id = pv.video and pv.post = post_id;
+end|
+
+-- Выбирает видео, вложенные в нить.
+create procedure sp_videos_get_by_thread
+(
+    thread_id int -- Идентификатор нити.
+)
+begin
+    select v.id, v.code, v.widht, v.height
+        from videos v
+        join posts_videos pv on v.id = pv.video
+        join posts p on p.id = pv.post and p.thread = thread_id;
 end|
 
 -- Выбирает висячие видео.

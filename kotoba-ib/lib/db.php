@@ -238,6 +238,38 @@ function attachments_get_by_posts($posts) { // Java CC
     return $attachments;
 }
 /**
+ * Получает вложения нити.
+ * @param int|string $thread_id Идентификатор нити.
+ * @return array
+ * Возвращает вложения:<br>
+ * 'id' - Идентификатор.<br>
+ * ... - Атрибуты, зависящие от конкретного типа вложения.<br>
+ * 'attachment_type' - Тип вложения.
+ */
+function attachments_get_by_thread($thread_id) { // Java CC
+    $attachments = array();
+    $tmp = null;
+
+    $tmp = db_files_get_by_thread(DataExchange::getDBLink(), $thread_id);
+    if (count($tmp) > 0) {
+        $attachments = array_merge($attachments, $tmp);
+    }
+    $tmp = db_images_get_by_thread(DataExchange::getDBLink(), $thread_id);
+    if (count($tmp) > 0) {
+        $attachments = array_merge($attachments, $tmp);
+    }
+    $tmp = db_links_get_by_thread(DataExchange::getDBLink(), $thread_id);
+    if (count($tmp) > 0) {
+        $attachments = array_merge($attachments, $tmp);
+    }
+    $tmp = db_videos_get_by_thread(DataExchange::getDBLink(), $thread_id);
+    if (count($tmp) > 0) {
+        $attachments = array_merge($attachments, $tmp);
+    }
+
+    return $attachments;
+}
+/**
  * Получает висячие вложения.
  * @return array
  * Возвращает вложения:<br>
