@@ -1099,6 +1099,46 @@ function db_files_get_by_post($link, $post_id) {
     return $files;
 }
 /**
+ * Получает файлы, вложенные в нить.
+ * @param MySQLi $link Связь с базой данных.
+ * @param int|string $thread_id Идентификатор нити.
+ * @return array
+ * Возвращает вложенные файлы:<br>
+ * 'id' - Идентификатор.<br>
+ * 'hash' - Хеш.<br>
+ * 'name' - Имя.<br>
+ * 'size' - Размер в байтах.<br>
+ * 'thumbnail' - Уменьшенная копия.<br>
+ * 'thumbnail_w' - Ширина уменьшенной копии.<br>
+ * 'thumbnail_h' - Высота уменьшенной копии.<br>
+ * 'attachment_type' - Тип вложения.
+ */
+function db_files_get_by_thread($link, $thread_id) {
+    $result = mysqli_query($link, "call sp_files_get_by_thread($thread_id)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $files = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while (($row = mysqli_fetch_assoc($result)) != null) {
+            array_push($files,
+                array('id' => $row['id'],
+                      'hash' => $row['hash'],
+                      'name' => $row['name'],
+                      'size' => $row['size'],
+                      'thumbnail' => $row['thumbnail'],
+                      'thumbnail_w' => $row['thumbnail_w'],
+                      'thumbnail_h' => $row['thumbnail_h'],
+                      'attachment_type' => Config::ATTACHMENT_TYPE_FILE));
+        }
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $files;
+}
+/**
  * Получает висячие вложения.
  * @param MySQLi $link Связь с базой данных.
  * @return array
@@ -1502,6 +1542,50 @@ function db_images_get_by_post($link, $post_id) { // Java CC
 	return $images;
 }
 /**
+ * Получает изображения, вложенные в нить.
+ * @param MySQLi $link Связь с базой данных.
+ * @param int|string $thread_id Идентификатор нити.
+ * @return array
+ * Возвращает вложенные изображения:<br>
+ * 'id' - Идентификатор.<br>
+ * 'hash' - Хеш.<br>
+ * 'name' - Имя.<br>
+ * 'widht' - Ширина.<br>
+ * 'height' - Высота.<br>
+ * 'size' - Размер в байтах.<br>
+ * 'thumbnail' - Уменьшенная копия.<br>
+ * 'thumbnail_w' - Ширина уменьшенной копии.<br>
+ * 'thumbnail_h' - Высота уменьшенной копии.<br>
+ * 'attachment_type' - Тип вложения (изображение).
+ */
+function db_images_get_by_thread($link, $thread_id) { // Java CC
+    $result = mysqli_query($link, "call sp_images_get_by_thread($thread_id)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $images = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while (($row = mysqli_fetch_assoc($result)) != null) {
+            array_push($images,
+                array('id' => $row['id'],
+                      'hash' => $row['hash'],
+                      'name' => $row['name'],
+                      'widht' => $row['widht'],
+                      'height' => $row['height'],
+                      'size' => $row['size'],
+                      'thumbnail' => $row['thumbnail'],
+                      'thumbnail_w' => $row['thumbnail_w'],
+                      'thumbnail_h' => $row['thumbnail_h'],
+                      'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE));
+        }
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $images;
+}
+/**
  * Получает висячие изображения.
  * @param MySQLi $link Связь с базой данных.
  * @return array
@@ -1718,6 +1802,48 @@ function db_links_get_by_post($link, $post_id)
                           'thumbnail_w' => $row['thumbnail_w'],
                           'thumbnail_h' => $row['thumbnail_h'],
                           'attachment_type' => Config::ATTACHMENT_TYPE_LINK));
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $links;
+}
+/**
+ * Получает ссылки на изображения, вложенные в нить.
+ * @param MySQLi $link Связь с базой данных.
+ * @param int|string $thread_id Идентификатор нити.
+ * @return array
+ * Возвращает ссылки на вложенные изображения:<br>
+ * 'id' - Идентификатор.<br>
+ * 'url' - URL.<br>
+ * 'widht' - Ширина.<br>
+ * 'height' - Высота.<br>
+ * 'size' - Размер в байтах.<br>
+ * 'thumbnail' - URL уменьшенной копии.<br>
+ * 'thumbnail_w' - Ширина уменьшенной копии.<br>
+ * 'thumbnail_h' - Высота уменьшенной копии.<br>
+ * 'attachment_type'- Тип вложения.
+ */
+function db_links_get_by_thread($link, $thread_id) { // Java CC
+    $result = mysqli_query($link, "call sp_links_get_by_thread($thread_id)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $links = array();
+    if(mysqli_affected_rows($link) > 0) {
+        while(($row = mysqli_fetch_assoc($result)) != null) {
+            array_push($links,
+                array('id' => $row['id'],
+                      'url' => $row['url'],
+                      'widht' => $row['widht'],
+                      'height' => $row['height'],
+                      'size' => $row['size'],
+                      'thumbnail' => $row['thumbnail'],
+                      'thumbnail_w' => $row['thumbnail_w'],
+                      'thumbnail_h' => $row['thumbnail_h'],
+                      'attachment_type' => Config::ATTACHMENT_TYPE_LINK));
+        }
+    }
+
     mysqli_free_result($result);
     db_cleanup_link($link);
     return $links;
@@ -4064,6 +4190,40 @@ function db_videos_get_by_post($link, $post_id)
                           'widht' => $row['widht'],
                           'height' => $row['height'],
                           'attachment_type' => Config::ATTACHMENT_TYPE_VIDEO));
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $videos;
+}
+/**
+ * Получает видео, вложенные в нить.
+ * @param MySQLi $link Связь с базой данных.
+ * @param int|string $thread_id Идентификатор нити.
+ * @return array
+ * Возвращает вложенное видео:<br>
+ * 'id' - Идентификатор.<br>
+ * 'code' - HTML-код.<br>
+ * 'widht' - Ширина.<br>
+ * 'height' - Высота.<br>
+ * 'attachment_type' - Тип вложения.
+ */
+function db_videos_get_by_thread($link, $thread_id) {
+    $result = mysqli_query($link, "call sp_videos_get_by_thread($thread_id)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $videos = array();
+    if(mysqli_affected_rows($link) > 0) {
+        while(($row = mysqli_fetch_assoc($result)) != null) {
+            array_push($videos,
+                array('id' => $row['id'],
+                      'code' => $row['code'],
+                      'widht' => $row['widht'],
+                      'height' => $row['height'],
+                      'attachment_type' => Config::ATTACHMENT_TYPE_VIDEO));
+        }
+    }
+
     mysqli_free_result($result);
     db_cleanup_link($link);
     return $videos;

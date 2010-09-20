@@ -57,8 +57,41 @@ try {
         $thread['original_post'] = threads_check_original_post($_POST['thread']);
         $dst_board['id'] = boards_check_id($_POST['dst_board']);
 
+        foreach ($boards as $board) {
+            if ($board['id'] == $src_board['id']) {
+                $src_board = $board;
+            }
+            if ($board['id'] == $dst_board['id']) {
+                $dst_board = $board;
+            }
+        }
+
         $thread = threads_get_by_original_post($src_board['id'], $thread['original_post']);
         threads_move_thread($thread['id'], $dst_board['id']);
+
+        // Copy files.
+        $attachments = attachments_get_by_thread($thread['id']);
+        foreach ($attachments as $a) {
+            switch($a['attachment_type']) {
+                case Config::ATTACHMENT_TYPE_FILE:
+                    copy(Config::ABS_PATH . "/{$src_board['name']}/other/{$a['name']}",
+                         Config::ABS_PATH . "/{$dst_board['name']}/other/{$a['name']}");
+                    break;
+                case Config::ATTACHMENT_TYPE_IMAGE:
+                    $res = copy(Config::ABS_PATH . "/{$src_board['name']}/img/{$a['name']}",
+                         Config::ABS_PATH . "/{$dst_board['name']}/img/{$a['name']}");
+                    $res = copy(Config::ABS_PATH . "/{$src_board['name']}/thumb/{$a['thumbnail']}",
+                         Config::ABS_PATH . "/{$dst_board['name']}/thumb/{$a['thumbnail']}");
+                    break;
+                case Config::ATTACHMENT_TYPE_LINK:
+                    break;
+                case Config::ATTACHMENT_TYPE_VIDEO:
+                    break;
+                default:
+                    throw new CommonException('Not supported.');
+                    break;
+            }
+        }
     }
 
     // Display move thread form.
