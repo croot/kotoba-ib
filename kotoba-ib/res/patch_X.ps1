@@ -15,7 +15,7 @@ returns int
 deterministic
 begin
     declare result int default 0;
-    select count(table_name) into result from information_schema.tables where table_schema = 'kotoba2' and table_name = 'db_version';
+    select count(table_name) into result from information_schema.tables where table_schema = database() and table_name = 'db_version';
     return result;
 end|
 
