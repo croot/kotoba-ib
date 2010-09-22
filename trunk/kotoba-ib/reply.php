@@ -25,8 +25,7 @@ include Config::ABS_PATH . '/securimage/securimage.php';
 try {
     kotoba_session_start();
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'],
-            $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
     if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
@@ -40,20 +39,19 @@ try {
     }
 
     /* TODO: Логичней было бы если бы проверка была вне фунции. */
-    $thread = threads_get_changeable_by_id(threads_check_id($_POST['t']),
-            $_SESSION['user']);
+    $thread = threads_get_changeable_by_id(threads_check_id($_POST['t']), $_SESSION['user']);
     if ($thread['archived']) {
         throw new CommonException(CommonException::$messages['THREAD_ARCHIVED']);
     }
 
     $board = boards_get_by_id($thread['board']);
 
-    if (!is_admin()
-            && (($board['enable_captcha'] === null && Config::ENABLE_CAPTCHA)
-            || $board['enable_captcha'])) {
-        $securimage = new Securimage();
-        if (!isset($_POST['captcha_code'])
-                || $securimage->check($_POST['captcha_code']) == false) {
+    if (!is_admin() && (($board['enable_captcha'] === null && Config::ENABLE_CAPTCHA) || $board['enable_captcha'])) {
+        /*$securimage = new Securimage();
+        if (!isset($_POST['captcha_code']) || $securimage->check($_POST['captcha_code']) == false) {
+            throw new CommonException(CommonException::$messages['CAPTCHA']);
+        }*/
+        if (!isset($_POST['captcha_code']) || !isset($_SESSION['captcha_code']) || $_POST['captcha_code'] != $_SESSION['captcha_code']) {
             throw new CommonException(CommonException::$messages['CAPTCHA']);
         }
     }
@@ -313,8 +311,7 @@ try {
     DataExchange::releaseResources();
 
     if ($_SESSION['goto'] == 't') {
-        header('Location: ' . Config::DIR_PATH
-            . "/{$board['name']}/{$thread['original_post']}/");
+        header('Location: ' . Config::DIR_PATH . "/{$board['name']}/{$thread['original_post']}/");
     } else {
         header('Location: ' . Config::DIR_PATH . "/{$board['name']}/");
     }

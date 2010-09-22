@@ -13,6 +13,11 @@
  * Скрипт, создающий изображение для капчи.
  */
 
+require '../config.php';
+require Config::ABS_PATH . '/lib/errors.php';
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
+require Config::ABS_PATH . '/lib/misc.php';
+
 // <editor-fold defaultstate="collapsed" desc="Font">
 $font = array('а' => array(4, array(0, 2, 1, 1, 2, 1, 3, 2, 3, 5, 4, 6), array(3, 3, 1, 3, 0, 4, 0, 5, 1, 6, 2, 6, 3, 5)),
               'б' => array(3, array(3, 0, 0, 0, 0, 6, 2, 6, 3, 5, 3, 4, 2, 3, 0, 3)),
@@ -80,7 +85,7 @@ function getrandchar() {
     return $chars[rand(0, count($font) - 2)];
 }
 
-session_start();
+kotoba_session_start();
 
 $im = imagecreate(100, 30);
 
@@ -98,4 +103,5 @@ header('Content-type: image/png');
 
 imagepng($im);
 imagedestroy($im);
+$_SESSION['captcha_code'] = $word;
 ?>
