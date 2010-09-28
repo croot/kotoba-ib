@@ -2420,14 +2420,14 @@ function threads_get_moderatable_by_id($thread_id, $user_id) { // Java CC
  * @param string|int $user_id Идентификатор пользователя.
  * @param string|int $threads_per_page Количество нитей на странице.
  * @return array
- * Возвращает нити:<p>
+ * Возвращает нити:<br>
  * 'id' - Идентификатор.<br>
  * 'original_post' - Номер оригинального сообщения.<br>
  * 'bump_limit' - Специфичный для нити бамплимит.<br>
  * 'sage' - Флаг поднятия нити.<br>
  * 'sticky' - Флаг закрепления.<br>
  * 'with_attachments' - Флаг вложений.<br>
- * 'posts_count' - Число доступных для просмотра сообщений.</p>
+ * 'posts_count' - Число доступных для просмотра сообщений.
  */
 function threads_get_visible_by_board($board_id, $page, $user_id, $threads_per_page) { // Java CC
     return db_threads_get_visible_by_board(DataExchange::getDBLink(), $board_id, $page, $user_id, $threads_per_page);
