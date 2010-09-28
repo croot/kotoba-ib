@@ -11,296 +11,296 @@
 
 class Config
 {
-	/* *****************
-	 * Общие настройки *
-	 *******************/
+    /* *****************
+     * Общие настройки *
+     *******************/
 
-	/*
-	 * Путь от корня документов к директории, где хранится index.php.
-	 * Например: /kotoba
-	 */
-	const DIR_PATH = '/kotoba';
+    /*
+     * Путь от корня документов к директории, где хранится index.php.
+     * Например: /kotoba
+     */
+    const DIR_PATH = '/kotoba';
 
-	/*
-	 * Абсолютный путь к директории, в которую установлена Котоба.
-	 * Например: c:/Apache/htdocs/kotoba
-	 * или /var/www/html/kotoba
-	 */
-	const ABS_PATH = 'c:/Apache/htdocs/kotoba';
+    /*
+     * Абсолютный путь к директории, в которую установлена Котоба.
+     * Например: c:/Apache/htdocs/kotoba
+     * или /var/www/html/kotoba
+     */
+    const ABS_PATH = 'c:/Apache/htdocs/kotoba';
 
-	/*
-	 * Абсолютный путь к директории для хранения временных файлов.
+    /*
+     * Абсолютный путь к директории для хранения временных файлов.
      * Например: C:/Temp
-	 * или /tmp
-	 */
-	const TMP_PATH = 'C:/Temp';
+     * или /tmp
+     */
+    const TMP_PATH = 'C:/Temp';
 
-	/*
-	 * Разрешить загружать одинакоые файлы. Значения: true или false.
-	 */
-	const ALLOW_SAME_FILES = false;
+    /*
+     * Разрешить загружать одинакоые файлы. Значения: true или false.
+     */
+    const ALLOW_SAME_FILES = false;
 
-	/*
-	 * en: Kotoba uses frames
-	 * ru: Использовать фреймовый интерфейс. Значения: 0 или 1.
-	 */
-	const FRAMED_INTERFACE = 0;
+    /*
+     * en: Kotoba uses frames
+     * ru: Использовать фреймовый интерфейс. Значения: 0 или 1.
+     */
+    const FRAMED_INTERFACE = 0;
 
-	// Формат даты и времени сохранения сообщений. См. описание фукнции date().
-	const DATETIME_FORMAT = 'Y-m-d H:i:s';
+    // Формат даты и времени сохранения сообщений. См. описание фукнции date().
+    const DATETIME_FORMAT = 'Y-m-d H:i:s';
 
-	// Имена локали.
-	static $LOCALE_NAMES = array('ru_RU.UTF-8', 'ru', 'rus', 'russian');
+    // Имена локали.
+    static $LOCALE_NAMES = array('ru_RU.UTF-8', 'ru', 'rus', 'russian');
 
-	/*
-	 * Язык для фукнций работы с многобайтовыми строками. См. описание фукнции
-	 * mb_language().
-	 */
-	const MB_LANGUAGE = 'ru';
+    /*
+     * Язык для фукнций работы с многобайтовыми строками. См. описание фукнции
+     * mb_language().
+     */
+    const MB_LANGUAGE = 'ru';
 
-	/*
-	 * Кодировка для фукнций работы с многобайтовыми строками.
-	 */
-	const MB_ENCODING = 'UTF-8';
+    /*
+     * Кодировка для фукнций работы с многобайтовыми строками.
+     */
+    const MB_ENCODING = 'UTF-8';
 
-	/*
-	 * Кодировка для обмена данными с базой данных.
-	 */
-	const SQL_ENCODING = 'utf8';
+    /*
+     * Кодировка для обмена данными с базой данных.
+     */
+    const SQL_ENCODING = 'utf8';
 
-	// Часовой пояс.
-	const DEFAULT_TIMEZONE = 'Europe/Moscow';
+    // Часовой пояс.
+    const DEFAULT_TIMEZONE = 'Europe/Moscow';
 
-	// Название имейджборды.
-	const IB_NAME = 'My imageboard';
+    // Название имейджборды.
+    const IB_NAME = 'My imageboard';
 
-	// Включение интеграции с макрочаном.
-	const ENABLE_MACRO = false;
+    // Включение интеграции с макрочаном.
+    const ENABLE_MACRO = false;
 
-	// Включение постинга видео с ютуба.
-	const ENABLE_YOUTUBE = false;
+    // Включение постинга видео с ютуба.
+    const ENABLE_YOUTUBE = false;
 
-	// Включение капчи.
-	const ENABLE_CAPTCHA = true;
+    // Включение капчи.
+    const ENABLE_CAPTCHA = true;
 
-	// Включение поиска.
-	const ENABLE_SEARCH = true;
+    // Включение поиска.
+    const ENABLE_SEARCH = true;
 
-	// Включение фильтра слов.
-	const ENABLE_WORDFILTER = true;
+    // Включение фильтра слов.
+    const ENABLE_WORDFILTER = true;
 
     // Включение фильтрации спама.
     const ENABLE_SPAMFILTER = true;
 
-	/* *******************************************************
-	 * Настройки пользователя Гость (настройки по умолчанию) *
-	 *********************************************************/
+    /* *******************************************************
+     * Настройки пользователя Гость (настройки по умолчанию) *
+     *********************************************************/
 
-	/*
-	 * Идентифиатор пользователя Гость.
-	 */
-	const GUEST_ID = 1;
+    /*
+     * Идентифиатор пользователя Гость.
+     */
+    const GUEST_ID = 1;
 
-	/*
-	 * Число нитей на странице просмотра доски.
-	 */
-	const THREADS_PER_PAGE = 10;
+    /*
+     * Число нитей на странице просмотра доски.
+     */
+    const THREADS_PER_PAGE = 10;
 
-	/*
-	 * Число сообщений в нити на странице просмотра доски.
-	 */
-	const POSTS_PER_THREAD = 5;
+    /*
+     * Число сообщений в нити на странице просмотра доски.
+     */
+    const POSTS_PER_THREAD = 5;
 
-	/*
-	 * Сообщения, в которых число строк превышает это число будут урезаны
-	 * при просмотре доски.
-	 */
-	const LINES_PER_POST = 15;
+    /*
+     * Сообщения, в которых число строк превышает это число будут урезаны
+     * при просмотре доски.
+     */
+    const LINES_PER_POST = 15;
 
-	//Стиль оформления страниц.
-	const STYLESHEET = 'kotoba.css';
+    //Стиль оформления страниц.
+    const STYLESHEET = 'kotoba.css';
 
-	/*
-	 * Язык.
-	 *
-	 * Замечание: Этот язык будет использоваться для ведения логов и административных скриптов.
-	 * Подразумевается, что родной язык администратора тот же, что и у гостей. То есть
-	 * администраторы и модераторы автоматически используют язык по умолчанию.
-	 */
-	const LANGUAGE = 'rus';
+    /*
+     * Язык.
+     *
+     * Замечание: Этот язык будет использоваться для ведения логов и административных скриптов.
+     * Подразумевается, что родной язык администратора тот же, что и у гостей. То есть
+     * администраторы и модераторы автоматически используют язык по умолчанию.
+     */
+    const LANGUAGE = 'rus';
 
-	/* ***********************
-	 * Настройки базы данных *
-	 *************************/
+    /* ***********************
+     * Настройки базы данных *
+     *************************/
 
-	/*
-	 * en: database host
-	 * ru: Доменное имя или адрес узла сети, где расположен серевер базы данных.
-	 */
-	const DB_HOST = 'localhost';
+    /*
+     * en: database host
+     * ru: Доменное имя или адрес узла сети, где расположен серевер базы данных.
+     */
+    const DB_HOST = 'localhost';
 
-	/*
-	 * en: database username
-	 * ru: Имя пользователя для доступа к базе данных.
-	 */
-	const DB_USER = 'root';
+    /*
+     * en: database username
+     * ru: Имя пользователя для доступа к базе данных.
+     */
+    const DB_USER = 'root';
 
-	/*
-	 * en: database password
-	 * ru: Пароль для доступа к базе данных.
-	 */
-	const DB_PASS = '';
+    /*
+     * en: database password
+     * ru: Пароль для доступа к базе данных.
+     */
+    const DB_PASS = '';
 
-	/*
-	 * en: database name
-	 * ru: Имя используемой базы данных Котобы.
-	 */
-	const DB_BASENAME = 'mydb';
+    /*
+     * en: database name
+     * ru: Имя используемой базы данных Котобы.
+     */
+    const DB_BASENAME = 'mydb';
 
-	/* ************************
-	 * Работа с изображениями *
-	 **************************/
+    /* ************************
+     * Работа с изображениями *
+     **************************/
 
-	 /*
-	 * en: try load libgd support for image processing
-	 * ru: Использовать libgd для обработки изображений.
-	 */
-	const TRY_IMAGE_GD = 1;
+     /*
+     * en: try load libgd support for image processing
+     * ru: Использовать libgd для обработки изображений.
+     */
+    const TRY_IMAGE_GD = 1;
 
-	/*
-	 * en: try load imagemagick support for image processing
-	 * ru: Использовать imagemagick для обработки изображений.
-	 */
-	const TRY_IMAGE_IM = 0;
+    /*
+     * en: try load imagemagick support for image processing
+     * ru: Использовать imagemagick для обработки изображений.
+     */
+    const TRY_IMAGE_IM = 0;
 
-	/*
-	 * Мнимальная ширина загружаемого изображения.
-	 */
-	const MIN_IMGWIDTH = 32;
+    /*
+     * Мнимальная ширина загружаемого изображения.
+     */
+    const MIN_IMGWIDTH = 32;
 
-	/*
-	 * Минимальная высота загружаемого изображения.
-	 */
-	const MIN_IMGHEIGHT = 32;
+    /*
+     * Минимальная высота загружаемого изображения.
+     */
+    const MIN_IMGHEIGHT = 32;
 
-	// Минимальный размер загружаемого изображения в байтах.
-	const MIN_IMGSIZE = 1000;
+    // Минимальный размер загружаемого изображения в байтах.
+    const MIN_IMGSIZE = 1000;
 
-	/*
-	 * en: small image over that limit wouldn't
-	 * ru: Минимальный размер изображения в байтах.
-	 */
-	const SMALLIMAGE_LIMIT_FILE_SIZE = 1048576;
+    /*
+     * en: small image over that limit wouldn't
+     * ru: Минимальный размер изображения в байтах.
+     */
+    const SMALLIMAGE_LIMIT_FILE_SIZE = 1048576;
 
-	// Ширина уменьшенной копии файлов.
-	const THUMBNAIL_WIDTH = 200;
+    // Ширина уменьшенной копии файлов.
+    const THUMBNAIL_WIDTH = 200;
 
-	// Высота уменьшенной копии файлов.
-	const THUMBNAIL_HEIGHT = 200;
+    // Высота уменьшенной копии файлов.
+    const THUMBNAIL_HEIGHT = 200;
 
-	/* *************
-	 * Ограничения *
-	 ***************/
+    /* *************
+     * Ограничения *
+     ***************/
 
-	/*
-	 * Глобальный бамплимит.
-	 */
-	const BUMPLIMIT = 30;
+    /*
+     * Глобальный бамплимит.
+     */
+    const BUMPLIMIT = 30;
 
-	/*
-	 * Минимальное и максимальное число строк сообщения,
-	 * отображаемое на странице просмотра доски.
-	 */
-	const MIN_LINESPERPOST= 1;
-	const MAX_LINESPERPOST = 50;
+    /*
+     * Минимальное и максимальное число строк сообщения,
+     * отображаемое на странице просмотра доски.
+     */
+    const MIN_LINESPERPOST= 1;
+    const MAX_LINESPERPOST = 50;
 
-	/*
-	 * Минимальное и максимальное количество сообщений
-	 * в нити на страние просмотра доски.
-	 */
-	const MIN_POSTSPERTHREAD = 1;
-	const MAX_POSTSPERTHREAD = 20;
+    /*
+     * Минимальное и максимальное количество сообщений
+     * в нити на страние просмотра доски.
+     */
+    const MIN_POSTSPERTHREAD = 1;
+    const MAX_POSTSPERTHREAD = 20;
 
-	/*
-	 * Минимальное и максимальное количество нитей на страние просмотра доски.
-	 */
-	const MIN_THREADSPERPAGE = 3;
-	const MAX_THREADSPERPAGE = 30;
+    /*
+     * Минимальное и максимальное количество нитей на страние просмотра доски.
+     */
+    const MIN_THREADSPERPAGE = 3;
+    const MAX_THREADSPERPAGE = 30;
 
-	/*
-	 * en: No more than pages in board preview
-	 * ru: Максимальное количество страниц в просмотре доски.
-	 */
-	const PAGES_ONBOARD = 11;
+    /*
+     * en: No more than pages in board preview
+     * ru: Максимальное количество страниц в просмотре доски.
+     */
+    const PAGES_ONBOARD = 11;
 
-	/*
-	 * Число постов доски, по достижению которого начинают тонуть нити.
-	 */
-	const POST_LIMIT = 600;
+    /*
+     * Число постов доски, по достижению которого начинают тонуть нити.
+     */
+    const POST_LIMIT = 600;
 
-	// Максимальная длина текста сообщения в байтах.
-	const MAX_MESSAGE_LENGTH = 30000;
+    // Максимальная длина текста сообщения в байтах.
+    const MAX_MESSAGE_LENGTH = 30000;
 
-	// Максимальная длина аннотации в байтах.
-	const MAX_ANNOTATION_LENGTH = 30000;
+    // Максимальная длина аннотации в байтах.
+    const MAX_ANNOTATION_LENGTH = 30000;
 
-	/*
-	 * Максимальная длина темы в байтах.
-	 */
-	const MAX_THEME_LENGTH = 120;
+    /*
+     * Максимальная длина темы в байтах.
+     */
+    const MAX_THEME_LENGTH = 120;
 
-	/*
-	 * Максимальная длина имени в байтах.
-	 */
-	const MAX_NAME_LENGTH = 64;
+    /*
+     * Максимальная длина имени в байтах.
+     */
+    const MAX_NAME_LENGTH = 64;
 
-	/*
-	 * Время жизни сессии и кукис в секундах. Используется для параметров
-	 * session.gc_maxlifetime и session.cookie_lifetime.
-	 * 86400 = 60 * 60 * 24 = один день.
-	 */
-	const SESSION_LIFETIME = 86400;
+    /*
+     * Время жизни сессии и кукис в секундах. Используется для параметров
+     * session.gc_maxlifetime и session.cookie_lifetime.
+     * 86400 = 60 * 60 * 24 = один день.
+     */
+    const SESSION_LIFETIME = 86400;
 
-	/* 
-	 * Максимальная длина сслыки на файл, имени загружаемого файла или кода
-	 * видео.
-	 */
-	const MAX_FILE_LINK = 2048;
+    /*
+     * Максимальная длина сслыки на файл, имени загружаемого файла или кода
+     * видео.
+     */
+    const MAX_FILE_LINK = 2048;
 
-	/*
-	 * ip адеса администраторов. Если вы хотите ограничить административный
-	 * доступ заданными адресами, то перечислите их в массиве. В противном
-	 * случае оставьте массив пустым.
-	 */
-	static $ADMIN_IPS = array();
+    /*
+     * ip адеса администраторов. Если вы хотите ограничить административный
+     * доступ заданными адресами, то перечислите их в массиве. В противном
+     * случае оставьте массив пустым.
+     */
+    static $ADMIN_IPS = array();
 
-	/* ***********************
-	 * Группы пользователей. *
-	 *************************/
+    /* ***********************
+     * Группы пользователей. *
+     *************************/
 
-	const ADM_GROUP_NAME = 'Administrators';
-	const MOD_GROUP_NAME = 'Moderators';
-	const USR_GROUP_NAME = 'Users';
-	const GST_GROUP_NAME = 'Guests';
+    const ADM_GROUP_NAME = 'Administrators';
+    const MOD_GROUP_NAME = 'Moderators';
+    const USR_GROUP_NAME = 'Users';
+    const GST_GROUP_NAME = 'Guests';
 
-	/*
-	 * Группы модераторов. Все группы модераторов досок также должны быть
-	 * добавлены сюда.
-	 */
-	static $MOD_GROUPS = array(Config::MOD_GROUP_NAME);
+    /*
+     * Группы модераторов. Все группы модераторов досок также должны быть
+     * добавлены сюда.
+     */
+    static $MOD_GROUPS = array(Config::MOD_GROUP_NAME);
 
-	/* ********
-	 * Разное *
-	 **********/
+    /* ********
+     * Разное *
+     **********/
 
-	/*
-	 * Типы вложений. (Не изменяте эти настройки, если вы на 100% не уверены в
-	 * том, что делаете.)
-	 */
-	const ATTACHMENT_TYPE_FILE = 1;
-	const ATTACHMENT_TYPE_LINK = 2;
-	const ATTACHMENT_TYPE_VIDEO = 3;
-	const ATTACHMENT_TYPE_IMAGE = 4;
+    /*
+     * Типы вложений. (Не изменяте эти настройки, если вы на 100% не уверены в
+     * том, что делаете.)
+     */
+    const ATTACHMENT_TYPE_FILE = 1;
+    const ATTACHMENT_TYPE_LINK = 2;
+    const ATTACHMENT_TYPE_VIDEO = 3;
+    const ATTACHMENT_TYPE_IMAGE = 4;
 
     /*
      * LaTeX

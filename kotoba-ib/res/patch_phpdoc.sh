@@ -1,137 +1,54 @@
 #!/bin/sh
 
-# $ ./patch_phpdoc.sh /home/sorc/kotoba2
-ABS_PATH=$1
+# $1 - command name.
+# $2 - returned value.
+# $3 - Additional comment.
+function check_retval {
+    if [ $2 -ne 0 ]; then
+        echo "Error. $1 return $2. $3"
+        exit 1
+    fi
+}
 
-CUR_DIR=`pwd`
-cp -r $ABS_PATH/res/phpdoc/* $ABS_PATH/phpdoc/
+# $ ./patch_phpdoc.sh /var/www/html/kotoba/phpdoc /var/www/html/kotoba/res/phpdoc
+PHPDOC_PATH=$1
+PATCHES_PATH=$2
 
 #
 # Patch Setup.inc.php to support UTF-8
 #
-TARGET_DIR="$ABS_PATH/phpdoc/phpDocumentor"
-if ! [ -d $TARGET_DIR ]
-then
-    echo "Error. Directory $TARGET_DIR not exist."
-    exit 1
-fi
-if ! [ -f $TARGET_DIR/Setup.inc.php ]
-then
-    echo "Error. Regular file $TARGET_DIR/Setup.inc.php not exist."
-    exit 1
-fi
-if ! [ -f $TARGET_DIR/Setup.inc.php.patch ]
-then
-    echo "Error. Regular file $TARGET_DIR/Setup.inc.php.patch not exist."
-    exit 1
-fi
-
-echo "Change directory to $TARGET_DIR"
-cd $TARGET_DIR
-dos2unix $TARGET_DIR/Setup.inc.php
-patch $TARGET_DIR/Setup.inc.php $TARGET_DIR/Setup.inc.php.patch
-echo "Go back to $CUR_DIR"
-cd $CUR_DIR
+echo "Patch Setup.inc.php."
+patch $PHPDOC_PATH/phpDocumentor/Setup.inc.php $PATCHES_PATH/phpDocumentor/Setup.inc.php.patch
+check_retval "patch" $?
 
 #
 # Patch Converter.inc to fix timezone error.
 #
-TARGET_DIR="$ABS_PATH/phpdoc/phpDocumentor"
-if ! [ -d $TARGET_DIR ]
-then
-    echo "Error. Directory $TARGET_DIR not exist."
-    exit 1
-fi
-if ! [ -f $TARGET_DIR/Converter.inc ]
-then
-    echo "Error. Regular file $TARGET_DIR/Converter.inc not exist."
-    exit 1
-fi
-if ! [ -f $TARGET_DIR/Converter.inc.patch ]
-then
-    echo "Error. Regular file $TARGET_DIR/Converter.inc.patch not exist."
-    exit 1
-fi
-
-echo "Change directory to $TARGET_DIR"
-cd $TARGET_DIR
-dos2unix $TARGET_DIR/Converter.inc
-patch $TARGET_DIR/Converter.inc $TARGET_DIR/Converter.inc.patch
-echo "Go back to $CUR_DIR"
-cd $CUR_DIR
+echo "Patch Converter.inc."
+patch $PHPDOC_PATH/phpDocumentor/Converter.inc $PATCHES_PATH/phpDocumentor/Converter.inc.patch
+check_retval "patch" $?
 
 #
 # Patch Smarty_Compiler.class.php to fix timezone error.
 #
-TARGET_DIR="$ABS_PATH/phpdoc/phpDocumentor/Smarty-2.6.0/libs"
-if ! [ -d $TARGET_DIR ]
-then
-    echo "Error. Directory $TARGET_DIR not exist."
-    exit 1
-fi
-if ! [ -f $TARGET_DIR/Smarty_Compiler.class.php ]
-then
-    echo "Error. Regular file $TARGET_DIR/Smarty_Compiler.class.php not exist."
-    exit 1
-fi
-if ! [ -f $TARGET_DIR/Smarty_Compiler.class.php.patch ]
-then
-    echo "Error. Regular file $TARGET_DIR/Smarty_Compiler.class.php.patch not exist."
-    exit 1
-fi
-
-echo "Change directory to $TARGET_DIR"
-cd $TARGET_DIR
-dos2unix $TARGET_DIR/Smarty_Compiler.class.php
-patch $TARGET_DIR/Smarty_Compiler.class.php $TARGET_DIR/Smarty_Compiler.class.php.patch
-echo "Go back to $CUR_DIR"
-cd $CUR_DIR
+echo "Patch Smarty_Compiler.class.php."
+patch $PHPDOC_PATH/phpDocumentor/Smarty-2.6.0/libs/Smarty_Compiler.class.php $PATCHES_PATH/phpDocumentor/Smarty-2.6.0/libs/Smarty_Compiler.class.php.patch
+check_retval "patch" $?
 
 #
 # Patch header.tpl to support UTF-8
 #
-TARGET_DIR="$ABS_PATH/phpdoc/phpDocumentor/Converters/HTML/Smarty/templates/PHP/templates"
-if ! [ -d $TARGET_DIR ]
-then
-    echo "Error. Directory $TARGET_DIR not exist."
-    exit 1
-fi
-if ! [ -f $TARGET_DIR/header.tpl ]
-then
-    echo "Error. Regular file $TARGET_DIR/header.tpl not exist."
-    exit 1
-fi
-if ! [ -f $TARGET_DIR/header.tpl.patch ]
-then
-    echo "Error. Regular file $TARGET_DIR/header.tpl.patch not exist."
-    exit 1
-fi
-
-echo "Change directory to $TARGET_DIR"
-cd $TARGET_DIR
-dos2unix $TARGET_DIR/header.tpl
-patch $TARGET_DIR/header.tpl $TARGET_DIR/header.tpl.patch
+echo "Patch header.tpl."
+patch $PHPDOC_PATH/phpDocumentor/Converters/HTML/Smarty/templates/PHP/templates/header.tpl $PATCHES_PATH/phpDocumentor/Converters/HTML/Smarty/templates/PHP/templates/header.tpl.patch
+check_retval "patch" $?
 
 #
 # Rename tamplate cause Smarty expect .tpl extension (bug in some PHPDoc distribs)
 #
-if [ -f $TARGET_DIR/pkgelementindex.tp ]
+if [ -f $PHPDOC_PATH/phpDocumentor/Converters/HTML/Smarty/templates/PHP/templates/pkgelementindex.tp ]
 then
-    echo "Rename $TARGET_DIR/pkgelementindex.tp to $TARGET_DIR/pkgelementindex.tpl"
-    mv pkgelementindex.tp pkgelementindex.tpl
+    echo "Rename $PHPDOC_PATH/phpDocumentor/Converters/HTML/Smarty/templates/PHP/templates/pkgelementindex.tp to $PHPDOC_PATH/phpDocumentor/Converters/HTML/Smarty/templates/PHP/templates/pkgelementindex.tpl"
+    mv $PHPDOC_PATH/phpDocumentor/Converters/HTML/Smarty/templates/PHP/templates/pkgelementindex.tp $PHPDOC_PATH/phpDocumentor/Converters/HTML/Smarty/templates/PHP/templates/pkgelementindex.tpl
 fi
-echo "Go back to $CUR_DIR"
-cd $CUR_DIR
-
-#
-# Change generation script new lines o UNIX format and ser execute permision
-#
-TARGET_DIR="$ABS_PATH/phpdoc"
-echo "Change directory to $TARGET_DIR"
-cd $TARGET_DIR
-dos2unix ./phpdoc
-chmod u+x ./phpdoc
-echo "Go back to $CUR_DIR"
-cd $CUR_DIR
 
 exit 0
