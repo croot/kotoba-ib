@@ -93,61 +93,46 @@ echo "Create documentation."
 ./generate_doc.sh $DEST_DIR
 
 #
-# 8. Generate .htaccess.
+# 8. Add requied directives to httpd.conf.
+#
+echo "Add requied directives to httpd.conf."
+echo "
+
+### Kotoba
+#
+# Options requied or recommended for Kotoba.
+
+<Directory \"$2\">
+    AllowOverride FileInfo Limit Indexes
+</Directory>
+<DirectoryMatch \"\\.svn\">
+    Options FollowSymLinks
+    AllowOverride None
+    Order deny,allow
+    Deny from all
+</DirectoryMatch>" >> /etc/httpd/conf/httpd.conf
+
+#
+# 9. Generate .htaccess.
 #
 echo "Generate .htaccess."
-echo "<Directory \"$1\">
-    <IfModule dir_module>
-        DirectoryIndex index.php
-    </IfModule>
-
-    RewriteEngine On
-    RewriteRule ^([\w]{1,16})/$ $2/boards.php?board=\$1 [NE,L]
-    RewriteRule ^([\w]{1,16})$ $2/boards.php?board=\$1 [NE,L]
-    RewriteRule ^([\w]{1,16})/([\d]+)/$ $2/threads.php?board=\$1&thread=\$2 [NE,L]
-    RewriteRule ^([\w]{1,16})/([\d]+)$ $2/threads.php?board=\$1&thread=\$2 [NE,L]
-    RewriteRule ^([\w]{1,16})/p([\d]+)/$ $2/boards.php?board=\$1&page=\$2 [NE,L]
-    RewriteRule ^([\w]{1,16})/p([\d]+)$ $2/boards.php?board=\$1&page=\$2 [NE,L]
-</Directory>
-<Directory \"$1/log\">
-    Options FollowSymLinks
-    AllowOverride None
-    Order deny,allow
-    Deny from all
-</Directory>
-<Directory \"$1/res\">
-    Options FollowSymLinks
-    AllowOverride None
-    Order deny,allow
-    Deny from all
-</Directory>
-<Directory \"$1/sessions\">
-    Options FollowSymLinks
-    AllowOverride None
-    Order deny,allow
-    Deny from all
-</Directory>
-<Directory \"$1/smarty\">
-    Options FollowSymLinks
-    AllowOverride None
-    Order deny,allow
-    Deny from all
-</Directory>
-<Directory \"$1/stat\">
-    Options FollowSymLinks
-    AllowOverride None
-    Order deny,allow
-    Deny from all
-</Directory>
-<DirectoryMatch \"\.svn\">
-    Options FollowSymLinks
-    AllowOverride None
-    Order deny,allow
-    Deny from all
-</DirectoryMatch>" > $1/.htaccess
+echo "DirectoryIndex index.php
+RewriteEngine On
+RewriteRule ^([\w]{1,16})/$ $2/boards.php?board=\$1 [NE,L]
+RewriteRule ^([\w]{1,16})$ $2/boards.php?board=\$1 [NE,L]
+RewriteRule ^([\w]{1,16})/([\d]+)/$ $2/threads.php?board=\$1&thread=\$2 [NE,L]
+RewriteRule ^([\w]{1,16})/([\d]+)$ $2/threads.php?board=\$1&thread=\$2 [NE,L]
+RewriteRule ^([\w]{1,16})/p([\d]+)/$ $2/boards.php?board=\$1&page=\$2 [NE,L]
+RewriteRule ^([\w]{1,16})/p([\d]+)$ $2/boards.php?board=\$1&page=\$2 [NE,L]" > $1/.htaccess
 
 #
-# 9. Grant permissions to Apache.
+# 10. Create Kotoba configuration file.
+#
+echo "Create Kotoba configuration file."
+cp $2/config.default $2/config.php 
+
+#
+# 11. Grant permissions to Apache.
 #
 echo "Grant permissions to Apache."
 chown -R apache:apache $1
