@@ -2413,12 +2413,10 @@ function threads_get_moderatable_by_id($thread_id, $user_id) { // Java CC
             $thread_id, $user_id);
 }
 /**
- * Получает с заданной страницы доски доступные для просмотра пользователю нити
- * и количество сообщений в них.
+ * Получает нити доски, доступные для просмотра пользователю, и фильтрует их.
  * @param string|int $board_id Идентификатор доски.
- * @param string|int $page Номер страницы.
  * @param string|int $user_id Идентификатор пользователя.
- * @param string|int $threads_per_page Количество нитей на странице.
+ * @param object $filter Фильтр (лямбда).
  * @return array
  * Возвращает нити:<br>
  * 'id' - Идентификатор.<br>
@@ -2429,8 +2427,33 @@ function threads_get_moderatable_by_id($thread_id, $user_id) { // Java CC
  * 'with_attachments' - Флаг вложений.<br>
  * 'posts_count' - Число доступных для просмотра сообщений.
  */
-function threads_get_visible_by_board($board_id, $page, $user_id, $threads_per_page) { // Java CC
-    return db_threads_get_visible_by_board(DataExchange::getDBLink(), $board_id, $page, $user_id, $threads_per_page);
+function threads_get_visible_filtred_by_board($board_id, $user_id, $filter) { // Java CC
+    $filtred_threads = array();
+    $threads = db_threads_get_visible_by_board(DataExchange::getDBLink(), $board_id, $user_id);
+
+    // Conut of threads_get_visible_filtred_by_board() arguments.
+    $numargs = func_num_args();
+
+    // Arguments for filter function.
+    $fargs = array();
+
+    // Skip 3 first arguments: $board_id, $user_id and $filter.
+    $fargn = 0;
+    for ($i = 3; $i < $numargs; $i++) {
+        $fargs[$fargn++] = func_get_arg($i);
+    }
+
+    foreach ($threads as $thread) {
+
+        // We pass 1 more argument to filter function.
+        $fargs[$fargn] = $thread;
+
+		if (call_user_func_array($filter, $fargs)) {
+			array_push($filtred_threads, $thread);
+        }
+    }
+
+    return $filtred_threads;
 }
 /**
  * Ищет с заданной страницы доски доступные для просмотра пользователю нити

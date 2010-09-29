@@ -90,6 +90,7 @@
 <ul style="margin-left: 10pt; margin-top: 0pt; margin-bottom: 0pt; padding-left: 0pt;">
 <li>Типы файлов, доступных для загрузки: {section name=i loop=$upload_types} {$upload_types[i].extension}{/section}</li>
 <li>Бамплимит доски: {$board.bump_limit}</li>
+<li><a href="{$DIR_PATH}/catalog.php?board={$board.name}">Каталог нитей</a></li>
 </ul>
 {$board.annotation}
 </td></tr>

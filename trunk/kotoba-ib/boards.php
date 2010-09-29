@@ -78,9 +78,45 @@ try {
         throw new LimitException(LimitException::$messages['MAX_PAGE']);
     }
 
-    $threads = threads_get_visible_by_board($board['id'], $page, $_SESSION['user'], $_SESSION['threads_per_page']);
+    $tfilter = function($page, $threads_per_page, $thread) {
+        // Количество нитей, которое нужно пропустить.
+        $skip = $threads_per_page * ($page - 1);
 
-    $p_filter = function($posts_per_thread, $thread, $post) {
+        // Номер записи с не закреплённой нитью. Начинается с 1.
+        static $number = 0;
+
+        // Число выбранных не закреплённых нитей.
+        static $received = 0;
+
+        if ($thread['sticky']) {
+            if ($page == 1) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            $number++;
+            if ($number > $skip && $received < $threads_per_page) {
+                $received++;
+                return true;
+            } else {
+                return false;
+            }
+        }
+    };
+    $threads = threads_get_visible_filtred_by_board($board['id'], $_SESSION['user'], $tfilter, $page, $_SESSION['threads_per_page']);
+    $sticky_threads = array();
+    $other_threads = array();
+    foreach ($threads as $thread) {
+        if ($thread['sticky']) {
+            array_push($sticky_threads, $thread);
+        } else {
+            array_push($other_threads, $thread);
+        }
+    }
+    $threads = array_merge($sticky_threads, $other_threads);
+
+    $pfilter = function($posts_per_thread, $thread, $post) {
         static $recived = 0;
         static $prev_thread = null;
 
@@ -98,19 +134,19 @@ try {
         }
         return false;
     };
+    $posts = posts_get_visible_filtred_by_threads($threads, $_SESSION['user'], $pfilter, $_SESSION['posts_per_thread']);
 
-    $posts = posts_get_visible_filtred_by_threads($threads, $_SESSION['user'], $p_filter, $_SESSION['posts_per_thread']);
-
+    // TODO: What if attachments disables on this board?
     $posts_attachments = posts_attachments_get_by_posts($posts);
     $attachments = attachments_get_by_posts($posts);
 
-    $ht_filter = function ($user, $hidden_thread) {
+    $htfilter = function ($user, $hidden_thread) {
         if ($hidden_thread['user'] == $user) {
             return true;
         }
         return false;
     };
-    $hidden_threads = hidden_threads_get_filtred_by_boards(array($board), $ht_filter, $_SESSION['user']);
+    $hidden_threads = hidden_threads_get_filtred_by_boards(array($board), $htfilter, $_SESSION['user']);
 
     $upload_types = upload_types_get_by_board($board['id']);
     $macrochan_tags = macrochan_tags_get_all();
