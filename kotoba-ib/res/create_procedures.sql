@@ -2231,56 +2231,52 @@ begin
 end|
 
 -- Выбирает заданную нить, доступную для редактирования заданному пользователю.
---
--- Аргументы:
--- thread_id - Идентификатор нити.
--- user_id - Идентификатор пользователя.
 create procedure sp_threads_get_changeable_by_id
 (
-	thread_id int,
-	user_id int
+    thread_id int,  -- Идентификатор нити.
+    user_id int     -- Идентификатор пользователя.
 )
 begin
-	select t.id, t.board, t.original_post, t.bump_limit, t.archived, t.sage,
-		t.with_attachments
-	from threads t
-	join user_groups ug on ug.user = user_id
-	left join hidden_threads ht on t.id = ht.thread and ug.user = ht.user
-	-- Правила для конкретной группы и нити.
-	left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
-	-- Правило для всех групп и конкретной нити.
-	left join acl a2 on a2.`group` is null and a2.thread = t.id
-	-- Правила для конкретной группы и доски.
-	left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
-	-- Правило для всех групп и конкретной доски.
-	left join acl a4 on a4.`group` is null and a4.board = t.board
-	-- Правило для конкретной групы.
-	left join acl a5 on a5.`group` = ug.`group` and a5.board is null
-		and a5.thread is null and a5.post is null
-	where t.id = thread_id
-		and (t.deleted = 0 or t.deleted is null)
-		and ht.thread is null
-		-- Нить должна быть доступна для просмотра.
-			-- Просмотр нити не запрещен конкретной группе и
-		and ((a1.`view` = 1 or a1.`view` is null)
-			-- просмотр нити не запрещен всем группам и
-			and (a2.`view` = 1 or a2.`view` is null)
-			-- просмотр доски не запрещен конкретной группе и
-			and (a3.`view` = 1 or a3.`view` is null)
-			-- просмотр доски не запрещен всем группам и
-			and (a4.`view` = 1 or a4.`view` is null)
-			-- просмотр разрешен конкретной группе.
-			and a5.`view` = 1)
-		-- Нить должна быть доступна для редактирования.
-			-- Редактирование нити разрешено конкретной группе или
-		and (a1.change = 1
-				-- редактирование нити не запрещено конкретной группе и
-				-- разрешено всем группам или
-				or (a1.change is null and a2.change = 1)
-				-- редактирование нити не запрещено ни конкретной группе ни
-				-- всем, и конкретной группе редактирование разрешено.
-				or (a1.change is null and a2.change is null and a5.change = 1))
-	group by t.id;
+    select t.id, t.board, t.original_post, t.bump_limit, t.archived, t.sage,
+            t.with_attachments
+        from threads t
+        join user_groups ug on ug.user = user_id
+        left join hidden_threads ht on t.id = ht.thread and ug.user = ht.user
+        -- Правила для конкретной группы и нити.
+        left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+        -- Правило для всех групп и конкретной нити.
+        left join acl a2 on a2.`group` is null and a2.thread = t.id
+        -- Правила для конкретной группы и доски.
+        left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
+        -- Правило для всех групп и конкретной доски.
+        left join acl a4 on a4.`group` is null and a4.board = t.board
+        -- Правило для конкретной групы.
+        left join acl a5 on a5.`group` = ug.`group` and a5.board is null
+            and a5.thread is null and a5.post is null
+        where t.id = thread_id
+            and (t.deleted = 0 or t.deleted is null)
+            and ht.thread is null
+            -- Нить должна быть доступна для просмотра.
+                -- Просмотр нити не запрещен конкретной группе и
+            and ((a1.`view` = 1 or a1.`view` is null)
+                -- просмотр нити не запрещен всем группам и
+                and (a2.`view` = 1 or a2.`view` is null)
+                -- просмотр доски не запрещен конкретной группе и
+                and (a3.`view` = 1 or a3.`view` is null)
+                -- просмотр доски не запрещен всем группам и
+                and (a4.`view` = 1 or a4.`view` is null)
+                -- просмотр разрешен конкретной группе.
+                and a5.`view` = 1)
+            -- Нить должна быть доступна для редактирования.
+                -- Редактирование нити разрешено конкретной группе или
+            and (a1.change = 1
+                -- редактирование нити не запрещено конкретной группе и
+                -- разрешено всем группам или
+                or (a1.change is null and a2.change = 1)
+                -- редактирование нити не запрещено ни конкретной группе ни
+                -- всем, и конкретной группе редактирование разрешено.
+                or (a1.change is null and a2.change is null and a5.change = 1))
+        group by t.id;
 end|
 
 -- Выбирает нити, доступные для модерирования заданному пользователю.

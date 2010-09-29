@@ -88,6 +88,16 @@ function post_simple_generate_html($smarty, $board, $thread, $post, $posts_attac
 /**
  * Формирует html-код оригинального сообщения.
  * @param SmartyKotobaSetup $smarty Шаблонизатор.
+ * @param array $board Доска.
+ * @param array $thread Нить.
+ * @param array $post Сообщение.
+ * @param array $posts_attachments Связи вложений с сообщениями.
+ * @param array $attachments Вложения.
+ * @param boolean $crop Флаг урезания текста сообщения.
+ * @param int $lines_per_post Количество строк, которые нужно
+ * @param boolean $show_skipped Флаг показа количества не показанных сообщений.
+ * @param int $posts_per_thread Количество показываемых сообщений в нити.
+ * @param int $show_reply Показывать ссылку на просмотр нити и ответ.
  */
 function post_original_generate_html($smarty, $board, $thread, $post, $posts_attachments, $attachments, $crop, $lines_per_post, $show_skipped, $posts_per_thread, $show_reply) {
     $original_attachments = array();
