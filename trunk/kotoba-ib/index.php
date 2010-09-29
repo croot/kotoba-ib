@@ -14,6 +14,7 @@
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/wrappers.php';
 
 try {
     kotoba_session_start();
@@ -36,6 +37,86 @@ try {
         $smarty->assign('boards_exist', true);
         $smarty->assign('boards', $boards);
     }
+
+    $news_html = "";
+    foreach ($boards as $board) {
+        if ($board['name'] == Config::NEWS_BOARD) {
+            $smarty->assign('board', $board);
+
+            // Pass all threads.
+            $tfilter = function($thread) {
+                return true;
+            };
+            $threads = threads_get_visible_filtred_by_board($board['id'], $_SESSION['user'], $tfilter);
+
+            // Pass all posts.
+            $pfilter = function($thread, $post) {
+                return true;
+            };
+            $posts = posts_get_visible_filtred_by_threads($threads, $_SESSION['user'], $pfilter);
+
+            $posts_attachments = posts_attachments_get_by_posts($posts);
+            $attachments = attachments_get_by_posts($posts);
+
+            $smarty->assign('ATTACHMENT_TYPE_FILE', Config::ATTACHMENT_TYPE_FILE);
+            $smarty->assign('ATTACHMENT_TYPE_LINK', Config::ATTACHMENT_TYPE_LINK);
+            $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
+            $smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
+
+            $news_thread_html = '';
+            $news_posts_html = '';
+
+            foreach ($threads as $t) {
+                $smarty->assign('thread', $t);
+                foreach ($posts as $p) {
+
+                    // Сообщение принадлежит текущей нити.
+                    if ($t['id'] == $p['thread']) {
+
+                        // Имя отправителя по умолчанию.
+                        if (!$board['force_anonymous'] && $board['default_name'] && !$p['name']) {
+                            $p['name'] = $board['default_name'];
+                        }
+
+                        if ($t['original_post'] == $p['number']) {
+
+                            // Оригинальное сообщение.
+                            $news_thread_html .= post_original_generate_html($smarty,
+                                    $board,
+                                    $t,
+                                    $p,
+                                    $posts_attachments,
+                                    $attachments,
+                                    false,
+                                    null,
+                                    false,
+                                    null,
+                                    false);
+                        } else {
+
+                            // Ответ в нить.
+                            $news_posts_html .= post_simple_generate_html($smarty,
+                                    $board,
+                                    $t,
+                                    $p,
+                                    $posts_attachments,
+                                    $attachments,
+                                    false,
+                                    null);
+                        }
+                    }
+                }
+                $news_thread_html .= $news_posts_html;
+                $news_thread_html .= $smarty->fetch('board_thread_footer.tpl');
+                $news_html .= $news_thread_html;
+                $news_thread_html = '';
+                $news_posts_html = '';
+            }
+            break;
+        }
+    }
+
+    $smarty->assign('news_html', $news_html);
     $smarty->assign('version', '$Revision$');
     $smarty->assign('date', '$Date$');
     $smarty->assign('ib_name', Config::IB_NAME);
