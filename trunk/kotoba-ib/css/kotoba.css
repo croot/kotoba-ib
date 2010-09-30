@@ -262,3 +262,10 @@ form {display: inline;
 {
 	float: right;
 }
+
+.reflinkpreview {
+    position: absolute;
+    padding: 5px;
+    background: #b6d885;
+    border: 1px dotted;
+}
