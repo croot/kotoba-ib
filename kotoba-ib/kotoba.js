@@ -129,3 +129,63 @@ var resizeMaster = (function ()
         }
     }
 }())
+
+/*
+ * Next 3 functions copypasted from Kusaba ^_^
+ */
+function addreflinkpreview(e) {
+    ainfo = this.getAttribute('class').split('|');
+
+    var previewdiv = document.createElement('div');
+
+    previewdiv.setAttribute("id", "preview" + this.getAttribute('href'));
+    previewdiv.setAttribute('class', 'reflinkpreview');
+    if (e.pageX) {
+        previewdiv.style.left = '' + (e.pageX + 10) + 'px';
+    } else {
+        previewdiv.style.left = (e.clientX + 10);
+    }
+
+    var previewdiv_content = document.createTextNode('');
+    previewdiv.appendChild(previewdiv_content);
+    var parentelement = this.parentNode;
+    var newelement = parentelement.insertBefore(previewdiv, this);
+
+    new Ajax.Request('/~sorc/post.php?board=' + ainfo[1] + '&thread=' + ainfo[2] + '&post=' + ainfo[3],
+    {
+        method:'get',
+        onSuccess: function(transport){
+            var response = transport.responseText || "something went wrong (blank response)";
+
+            newelement.innerHTML = response;
+        },
+        onFailure: function(){ alert('wut'); }
+    });
+}
+
+function delreflinkpreview(e) {
+    var previewelement = document.getElementById('preview' + this.getAttribute('href'));
+
+    if (previewelement) {
+        previewelement.parentNode.removeChild(previewelement);
+    }
+}
+
+function addpreviewevents() {
+    var aelements = document.getElementsByTagName('a');
+    var aelement;
+    var ainfo;
+    for(var i=0;i<aelements.length;i++){
+        aelement = aelements[i];
+        if (aelement.getAttribute('class')) {
+            if (aelement.getAttribute('class').substr(0, 4) == 'ref|') {
+                aelement.addEventListener('mouseover', addreflinkpreview, false)
+                aelement.addEventListener('mouseout', delreflinkpreview, false)
+            }
+        }
+    }
+}
+
+window.onload=function() {
+	addpreviewevents();
+}
