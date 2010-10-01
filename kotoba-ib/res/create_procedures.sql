@@ -32,6 +32,8 @@ drop procedure if exists sp_categories_add|
 drop procedure if exists sp_categories_delete|
 drop procedure if exists sp_categories_get_all|
 
+drop procedure if exists sp_favorites_get_by_user|
+
 drop procedure if exists sp_files_add|
 drop procedure if exists sp_files_get_by_post|
 drop procedure if exists sp_files_get_by_thread|
@@ -767,6 +769,55 @@ end|
 create procedure sp_categories_get_all ()
 begin
 	select id, name from categories;
+end|
+
+-- ------------------------------
+-- Работа с избранными нитями. --
+-- ------------------------------
+
+-- Выбирает избранные нити пользователя.
+create procedure sp_favorites_get_by_user
+(
+    _user int    -- Идентификатор пользователя.
+)
+begin
+    select  u.id as user_id,
+            u.keyword as user_keyword,
+            u.posts_per_thread as user_posts_per_thread,
+            u.threads_per_page as user_threads_per_page,
+            u.lines_per_post as user_lines_per_post,
+            u.language as user_language,
+            u.stylesheet as user_stylesheet,
+            u.password as user_password,
+            u.`goto` as user_goto,
+            t.id as thread_id,
+            t.board as thread_board,
+            t.original_post as thread_original_post,
+            t.bump_limit as thread_bump_limit,
+            t.deleted as thread_deleted,
+            t.archived as thread_archived,
+            t.sage as thread_sage,
+            t.sticky as thread_sticky,
+            t.with_attachments as thread_with_attachments,
+            b.id as board_id,
+            b.name as board_name,
+            b.title as board_title,
+            b.annotation as board_annotation,
+            b.bump_limit as board_bump_limit,
+            b.force_anonymous as board_force_anonymous,
+            b.default_name as board_default_name,
+            b.with_attachments as board_with_attachments,
+            b.enable_macro as board_enable_macro,
+            b.enable_youtube as board_enable_youtube,
+            b.enable_captcha as board_enable_captcha,
+            b.same_upload as board_same_upload,
+            b.popdown_handler as board_popdown_handler,
+            b.category as board_category,
+            f.last_readed
+        from favorites f
+        join users u on u.id = u.user and u.id = _user
+        join threads t on t.id = f.thread
+        join boards b on b.id = t.id;
 end|
 
 -- -------------------------------

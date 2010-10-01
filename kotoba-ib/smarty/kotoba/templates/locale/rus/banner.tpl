@@ -9,18 +9,10 @@
  * See license.txt for more info.*
  *********************************}
 {*
-Код заголовка всех страниц Котобы.
+Код баннера.
 
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $STYLESHEET - стиль (см. config.default).
-    $page_title - заголовок страницы.
+    $banner - баннер.
 *}
-<html>
-<head>
-    <title>{$page_title}</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <link rel="stylesheet" type="text/css" href="{$DIR_PATH}/css/global.css">
-    <link rel="stylesheet" type="text/css" href="{$DIR_PATH}/css/{$STYLESHEET}">
-</head>
-<body>
+<div class="logo"><img src="{$DIR_PATH}/misc/img/{$banner.name}" alt="{$banner.name}" width="{$banner.widht}" height="{$banner.height}"></div>
