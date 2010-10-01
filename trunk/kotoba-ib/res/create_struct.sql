@@ -147,7 +147,7 @@ create table boards                         -- Доски.
     same_upload varchar(32) not null,       -- Политика загрузки одинаковых файлов.
     popdown_handler int not null,           -- Идентификатор обработчика автоматического удаления нитей.
     category int not null,                  -- Идентификатор категории.
-      primary key (id),
+    primary key (id),
     unique key (name),
     constraint foreign key (category) references categories (id) on delete restrict on update restrict,
     constraint foreign key (popdown_handler) references popdown_handlers (id) on delete restrict on update restrict
@@ -399,6 +399,17 @@ create table spamfilter             -- Спамфильтр.
     id int not null auto_increment, -- Идентификатор.
     pattern varchar(256) not null,  -- Шаблон.
     primary key (id)
+)
+engine=InnoDB;
+
+CREATE TABLE favorites          -- Избранные нити.
+(
+    user int not null,          -- Идентификатор пользователя.
+    thread int not null,        -- Идентификатор нити.
+    last_readed int not null,   -- Номер последнего прочитанного сообщения в нити.
+    unique key (user, thread),
+    constraint foreign key (user) references users (id) on delete restrict on update restrict,
+    constraint foreign key (thread) references threads (id) on delete restrict on update restrict
 )
 engine=InnoDB;
 

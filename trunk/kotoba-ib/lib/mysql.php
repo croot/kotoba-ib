@@ -1030,6 +1030,74 @@ function db_categories_get_all($link)
 	return $categories;
 }
 
+/*******************************
+ * Работа с избранными нитями. *
+ *******************************/
+
+/**
+ * Добавляет нить в избранное.
+ * @param MySQLi $link Связь с базой данных.
+ * @param string|int $thread Идентификатор нити.
+ */
+function db_favorites_add($link, $thread) {
+
+}
+
+/**
+ * Удаляет нить из избранного.
+ * @param MySQLi $link Связь с базой данных.
+ * @param string|int $thread Идентификатор нити.
+ */
+function db_favorites_delete($link, $thread) {
+
+}
+
+/**
+ * Получает избранные нити пользователя.
+ * @param MySQLi $link Связь с базой данных.
+ * @param string|int $user Идентификатор пользователя.
+ * @return array
+ * Возвращает избранные нити:<br>
+ * user - Пользователь:<br>
+ * |_ id - Идентификатор.<br>
+ * |_ keyword - Хеш ключевого слова.<br>
+ * |_ posts_per_thread - Число сообщений в нити на странице просмотра доски.<br>
+ * |_ threads_per_page - Число нитей на странице просмотра доски.<br>
+ * |_ lines_per_post - Количество строк в предпросмотре сообщения.<br>
+ * |_ language - Идентификатор языка.<br>
+ * |_ stylesheet - Идентификатор стиля.<br>
+ * |_ password - Пароль для удаления сообщений.<br>
+ * |_ goto - Перенаправление.<br>
+ * thread - Нить:<br>
+ * |_ id - Идентификатор.<br>
+ * |_ board - Доска:<br>
+ * |___|_ id - Идентификатор.<br>
+ * |___|_ name - Имя.<br>
+ * |___|_ title - Заголовок.<br>
+ * |___|_ annotation - Аннотация.<br>
+ * |___|_ bump_limit - Специфичный для доски бамплимит.<br>
+ * |___|_ force_anonymous - Флаг отображения имени отправителя.<br>
+ * |___|_ default_name - Имя отправителя по умолчанию.<br>
+ * |___|_ with_attachments - Флаг вложений.<br>
+ * |___|_ enable_macro - Включение интеграции с макрочаном.<br>
+ * |___|_ enable_youtube - Включение вложения видео с ютуба.<br>
+ * |___|_ enable_captcha - Включение капчи.<br>
+ * |___|_ same_upload - Политика загрузки одинаковых файлов.<br>
+ * |___|_ popdown_handler - Идентификатор обработчика автоматического удаления нитей.<br>
+ * |___|_ category - Идентификатор категории.<br>
+ * |_ original_post - Номер оригинального сообщения.<br>
+ * |_ bump_limit - Специфичный для нити бамплимит.<br>
+ * |_ deleted - Пометка на удаление.<br>
+ * |_ archived - Флаг архивирования.<br>
+ * |_ sage - Флаг поднятия нити.<br>
+ * |_ sticky - Флаг закрепления.<br>
+ * |_ with_attachments - Флаг вложений.<br>
+ * last_readed - Номер последнего прочитанного сообщения в нити.
+ */
+function db_favorites_get_by_user($link, $user) {
+    return array(array('board' => 'b', 'thread' => '1', 'subject' => 'Новый нубтайп!', 'name' => 'Соус', 'unread' => '0'), array('board' => 'azu', 'thread' => '32', 'subject' => 'Фоточки топлесс', 'name' => 'Конека', 'unread' => '90'));
+}
+
 /* ******************************
  * Работа с вложенными файлами. *
  ********************************/
@@ -1360,7 +1428,8 @@ function db_hidden_threads_get_by_boards($link, $boards) { // Java CC
                 array_push($threads,
                         array('thread' => $row['thread'],
                               'thread_number' => $row['original_post'],
-                              'user' => $row['user']));
+                              'user' => $row['user'],
+                              'board_name' => $b['name']));
             }
         }
 

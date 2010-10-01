@@ -9,18 +9,20 @@
  * See license.txt for more info.*
  *********************************}
 {*
-Код заголовка всех страниц Котобы.
+Код панели навигации.
 
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $STYLESHEET - стиль (см. config.default).
-    $page_title - заголовок страницы.
+    $boards - доски.
 *}
-<html>
-<head>
-    <title>{$page_title}</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <link rel="stylesheet" type="text/css" href="{$DIR_PATH}/css/global.css">
-    <link rel="stylesheet" type="text/css" href="{$DIR_PATH}/css/{$STYLESHEET}">
-</head>
-<body>
+<div class="navbar">
+{assign var="category" value=""}
+{section name=i loop=$boards}
+{if $category != $boards[i].category_name}{if $smarty.section.i.index > 0}]
+{/if}
+[{assign var="category" value=$boards[i].category_name} {$category}: {else} / {/if}
+<a href="{$DIR_PATH}/{$boards[i].name}/">{$boards[i].name}</a>{/section}
+{if $smarty.section.i.index > 0}]
+{/if}
+[<a href="{$DIR_PATH}/">Главная</a>]
+</div>

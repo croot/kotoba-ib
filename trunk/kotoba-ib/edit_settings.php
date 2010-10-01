@@ -9,7 +9,7 @@
 * See license.txt for more info.*
 *********************************/
 
-// Скрипт редактирования настроек пользователя.
+// Edit user settings script.
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
@@ -18,11 +18,12 @@ require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
 
 try {
+    // Initialization.
     kotoba_session_start();
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'],
-            $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
+    // Check if remote host was banned.
     if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
@@ -37,12 +38,12 @@ try {
     $stylesheets = stylesheets_get_all();
     $languages = languages_get_all();
 
-    if(isset($_POST['keyword_load'])) {
+    if (isset($_POST['keyword_load'])) {
         session_destroy();
         kotoba_session_start();
         $keyword_hash = md5(users_check_keyword($_POST['keyword_load']));
         load_user_settings($keyword_hash);
-    } elseif(isset($_POST['keyword_save'])) {
+    } elseif (isset($_POST['keyword_save'])) {
         session_destroy();
         kotoba_session_start();
         $keyword_hash = md5(users_check_keyword($_POST['keyword_save']));
@@ -79,32 +80,56 @@ try {
         load_user_settings($keyword_hash); // Потому что нужно получить id пользователя.
     }
 
+    if ($smarty->language != $_SESSION['language'] || $smarty->stylesheet != $_SESSION['stylesheet']) {
+        // Язык и\или стиль оформления изменился после изменения настроек.
+        $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    }
+
+    $boards = boards_get_visible($_SESSION['user']);
+    $htfilter = function ($user, $hidden_thread) {
+        if ($hidden_thread['user'] == $user) {
+            return true;
+        }
+        return false;
+    };
+    $hidden_threads = hidden_threads_get_filtred_by_boards($boards, $htfilter, $_SESSION['user']);
+
+    // Get banner if it.
+    foreach ($boards as $b) {
+        if ($b['name'] == 'misc') {
+            $banners = images_get_by_board($b['id']);
+            $smarty->assign('banner', $banners[rand(0, count($banners) - 1)]);
+            break;
+        }
+    }
+
+    // Clean up.
     DataExchange::releaseResources();
 
-    if($smarty->language != $_SESSION['language']
-            || $smarty->stylesheet != $_SESSION['stylesheet']) {
-        // Язык и\или стиль оформления изменился после изменения настроек.
-        $smarty = new SmartyKotobaSetup($_SESSION['language'],
-                $_SESSION['stylesheet']);
-    }
+    // Assigning variables to smarty and display html code.
+    $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('threads_per_page', $_SESSION['threads_per_page']);
     $smarty->assign('posts_per_thread', $_SESSION['posts_per_thread']);
     $smarty->assign('lines_per_post', $_SESSION['lines_per_post']);
-    $smarty->assign('language', $_SESSION['language']);
     $smarty->assign('languages', $languages);
+    $smarty->assign('language', $_SESSION['language']);
     $smarty->assign('stylesheets', $stylesheets);
     $smarty->assign('goto', $_SESSION['goto']);
+    $smarty->assign('favorites', favorites_get_by_user($_SESSION['user']));
+    $smarty->assign('hidden_threads', $hidden_threads);
+    $smarty->assign('boards', $boards);
     $smarty->display('edit_settings.tpl');
-} catch(FormatException $fe) {
+
+    exit(0);
+} catch (FormatException $fe) {
     $smarty->assign('msg', $fe->__toString());
     DataExchange::releaseResources();
-    if($fe->getReason() == FormatException::$messages['STYLESHEET_ID']
-            || $fe->getReason() == FormatException::$messages['LANGUAGE_ID']) {
+    if ($fe->getReason() == FormatException::$messages['STYLESHEET_ID'] || $fe->getReason() == FormatException::$messages['LANGUAGE_ID']) {
         header('Location: http://z0r.de/?id=114');
         exit;
     }
     die($smarty->fetch('error.tpl'));
-} catch(Exception $e) {
+} catch (Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();
     die($smarty->fetch('error.tpl'));

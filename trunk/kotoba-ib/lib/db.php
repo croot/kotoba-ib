@@ -94,6 +94,39 @@ function create_language_directories($code) { // Java CC
     chmod($dir, 0777);
 }
 
+/*******************************
+ * Работа с избранными нитями. *
+ *******************************/
+
+/**
+ * Добавляет нить в избранное.
+ * @param string|int $thread Идентификатор нити.
+ */
+function favorites_add($thread) {
+    db_favorites_add(DataExchange::getDBLink(), $thread);
+}
+
+/**
+ * Удаляет нить из избранного.
+ * @param string|int $thread Идентификатор нити.
+ */
+function favorites_delete($thread) {
+    db_favorites_delete(DataExchange::getDBLink(), $thread);
+}
+
+/**
+ * Получает избранные нити пользователя.
+ * @param string|int $user Идентификатор пользователя.
+ * @return array
+ * Возвращает избранные нити:<br>
+ * 'user' - Идентификатор пользователя.<br>
+ * 'thread' - Идентификатор нити.<br>
+ * 'last_readed' - Номер последнего прочитанного сообщения в нити.
+ */
+function favorites_get_by_user($user) {
+    return db_favorites_get_by_user(DataExchange::getDBLink(), $user);
+}
+
 /***************************************
  * Работа со списком контроля доступа. *
  ***************************************/
@@ -1148,14 +1181,13 @@ function hidden_threads_delete($thread_id, $user_id)
  * @param object $filter Фильтр (лямбда).
  * @param mixed $paramname,... Аргументы для фильтра (не обязательны).
  * @return array
- * Возвращает скрытые нити:<p>
+ * Возвращает скрытые нити:<br>
  * 'user' - Пользователь.<br>
  * 'thread' - Нить.<br>
- * 'thread_number' - Номер оригинального сообщения.</p>
+ * 'thread_number' - Номер оригинального сообщения.
  */
 function hidden_threads_get_filtred_by_boards($boards, $filter) { // Java CC
-    $threads = db_hidden_threads_get_by_boards(DataExchange::getDBLink(),
-            $boards);
+    $threads = db_hidden_threads_get_by_boards(DataExchange::getDBLink(), $boards);
     $filtred_threads = array();
     $filter_args = array();
     $filter_argn = 0;
