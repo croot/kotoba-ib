@@ -61,6 +61,7 @@ function drawtext($image, $xshift, $yshift, $text, $color) {
     mb_regex_encoding('UTF-8');
     $text = preg_split('/(?<!^)(?!$)/u', mb_strtolower($text));
     $char_space = 7;
+
     for ($i = 0; $i < count($text); $i++) {
         if (isset($font[$text[$i]])) {
             $curves = array_slice($font[$text[$i]], 1, count($font[$text[$i]]));
