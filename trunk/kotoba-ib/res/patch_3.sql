@@ -24,9 +24,9 @@ begin
         create table spamfilter (id int not null auto_increment, pattern varchar(256) not null, primary key (id)) engine=InnoDB;
 
         update db_version set version = 3 limit 1;
-        select 'Patch 3 was appied.';
+        select 'Patch 3 was applied.';
     else
-        select 'Patch 3 cannot be appied.';
+        select 'Patch 3 cannot be applied.';
     end if;
 end|
 

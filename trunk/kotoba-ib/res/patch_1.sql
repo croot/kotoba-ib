@@ -24,9 +24,9 @@ begin
         create table hard_ban (range_beg varchar(15) not null, range_end varchar(15) not null) engine=InnoDB;
 
         update db_version set version = 1 limit 1;
-        select 'Patch 1 was appied.';
+        select 'Patch 1 was applied.';
     else
-        select 'Patch 1 cannot be appied.';
+        select 'Patch 1 cannot be applied.';
     end if;
 end|
 

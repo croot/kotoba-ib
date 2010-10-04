@@ -35,9 +35,9 @@ begin
         -- Do not forget update version nuber in data.sql script.
 
         update db_version set version = $VERSION limit 1;
-        select 'Patch $VERSION was appied.';
+        select 'Patch $VERSION was applied.';
     else
-        select 'Patch $VERSION cannot be appied.';
+        select 'Patch $VERSION cannot be applied.';
     end if;
 end|
 

@@ -116,6 +116,7 @@ try {
         }
     }
 
+    $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('news_html', $news_html);
     $smarty->assign('version', '$Revision$');
     $smarty->assign('date', '$Date$');

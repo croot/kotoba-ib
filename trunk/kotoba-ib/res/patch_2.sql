@@ -24,9 +24,9 @@ begin
         create table reports (post int not null, constraint foreign key (post) references posts (id) on delete restrict on update restrict) engine=InnoDB;
 
         update db_version set version = 2 limit 1;
-        select 'Patch 2 was appied.';
+        select 'Patch 2 was applied.';
     else
-        select 'Patch 2 cannot be appied.';
+        select 'Patch 2 cannot be applied.';
     end if;
 end|
 

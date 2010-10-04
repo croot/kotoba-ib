@@ -129,7 +129,7 @@ RewriteRule ^([\w]{1,16})/p([\d]+)$ $2/boards.php?board=\$1&page=\$2 [NE,L]" > $
 # 10. Create Kotoba configuration file.
 #
 echo "Create Kotoba configuration file."
-cp $2/config.default $2/config.php 
+cp $1/config.default $1/config.php 
 
 #
 # 11. Grant permissions to Apache.
