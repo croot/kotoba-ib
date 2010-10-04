@@ -92,6 +92,12 @@ class Config
     // Включение фильтрации спама.
     const ENABLE_SPAMFILTER = true;
 
+    // Включение перевода текста сообщения.
+    const ENABLE_TRANSLATION = true;
+
+    // Включение отображения страны автора сообщения.
+    const ENABLE_GEOIP = true;
+
     // Имя доски новостей.
     const NEWS_BOARD = 'n';
 

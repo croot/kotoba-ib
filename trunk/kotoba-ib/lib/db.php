@@ -63,11 +63,11 @@ class DataExchange
  */
 function create_directories($name) { // Java CC
     $base = Config::ABS_PATH . "/$name";
-    if(@mkdir ($base)) { // Hide warning when directory exists.
+    if(mkdir ($base)) { // Hide warning when directory exists.
         chmod ($base, 0777);
         foreach (array("arch", "img", "thumb") as $dir) {
             $subdir = "$base/$dir";
-            if (@mkdir($subdir)) { // Hide warning when directory exists.
+            if (mkdir($subdir)) { // Hide warning when directory exists.
                 chmod($subdir, 0777);
             } else {
                 return false;

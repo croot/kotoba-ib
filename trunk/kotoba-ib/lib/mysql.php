@@ -48,8 +48,15 @@ function db_cleanup_link($link) {
 		if (($result = mysqli_store_result($link)) != false) {
 			mysqli_free_result($result);
         }
+        mysqli_next_result($link);
 	}
-	while (mysqli_next_result($link));
+	while (mysqli_more_results($link));
+    /*do {
+		if (($result = mysqli_store_result($link)) != false) {
+			mysqli_free_result($result);
+        }
+	}
+	while (mysqli_next_result($link));*/
 	if (mysqli_errno($link)) {
 		throw new CommonException(mysqli_error($link));
     }
