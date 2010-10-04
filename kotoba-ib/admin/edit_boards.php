@@ -121,7 +121,9 @@ try {
                         $new_default_name, $new_with_attachments, $new_macro,
                         $new_youtube, $new_captcha, $new_same_upload,
                         $new_popdown_handler, $new_category);
-                create_directories($new_name);
+                if (!create_directories($new_name)) {
+                    throw new CommonException('Directories creation failed.');
+                }
                 $reload_boards = true;
             }
         }// Создание новой доски.

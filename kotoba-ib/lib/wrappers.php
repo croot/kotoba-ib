@@ -81,8 +81,10 @@ function post_simple_generate_html($smarty, $board, $thread, $post, $posts_attac
         }
     }
     $post['ip'] = long2ip($post['ip']);
-    $geoip = @geoip_record_by_name($post['ip']);
-    $smarty->assign('country', array('name' => $geoip['country_name'], 'code' => strtolower($geoip['country_code'])));
+    if ($post['ip'] != '127.0.0.1') {
+        $geoip = geoip_record_by_name($post['ip']);
+        $smarty->assign('country', array('name' => $geoip['country_name'], 'code' => strtolower($geoip['country_code'])));
+    }
     $smarty->assign('simple_post', $post);
     $smarty->assign('simple_attachments', $post_attachments);
     return $smarty->fetch('post_simple.tpl');
@@ -154,8 +156,10 @@ function post_original_generate_html($smarty, $board, $thread, $post, $posts_att
         }
     }
     $post['ip'] = long2ip($post['ip']);
-    $geoip = @geoip_record_by_name($post['ip']);
-    $smarty->assign('country', array('name' => $geoip['country_name'], 'code' => strtolower($geoip['country_code'])));
+    if ($post['ip'] != '127.0.0.1') {
+        $geoip = geoip_record_by_name($post['ip']);
+        $smarty->assign('country', array('name' => $geoip['country_name'], 'code' => strtolower($geoip['country_code'])));
+    }
     $smarty->assign('sticky', $thread['sticky']);
     $smarty->assign('show_skipped', $show_skipped);
     if ($show_skipped) {

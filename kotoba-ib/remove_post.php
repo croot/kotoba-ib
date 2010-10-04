@@ -19,7 +19,6 @@ require_once Config::ABS_PATH . '/lib/misc.php';
 require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
 require_once Config::ABS_PATH . '/lib/upload_handlers.php';
 require_once Config::ABS_PATH . '/lib/mark.php';
-include Config::ABS_PATH . '/securimage/securimage.php';
 
 try {
     kotoba_session_start();

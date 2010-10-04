@@ -20,7 +20,6 @@ require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
 require_once Config::ABS_PATH . '/lib/upload_handlers.php';
 require_once Config::ABS_PATH . '/lib/mark.php';
 require_once Config::ABS_PATH . '/lib/latex_render.php';
-include Config::ABS_PATH . '/securimage/securimage.php';
 
 try {
     kotoba_session_start();
@@ -139,6 +138,7 @@ try {
             $uploaded_file_path = $_FILES['file']['tmp_name'];
             $uploaded_file_name = $_FILES['file']['name'];
             $uploaded_file_ext = get_extension($uploaded_file_name);
+            $uploaded_file_ext = mb_strtolower($uploaded_file_ext, Config::MB_ENCODING);
             $upload_types = upload_types_get_by_board($board['id']);
             $found = false;
             $upload_type = null;
