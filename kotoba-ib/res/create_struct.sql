@@ -450,4 +450,4 @@ insert into acl (`group`, `view`, `change`, `moderate`) values (3, 1, 1, 1);
 insert into acl (`group`, `view`, `change`, `moderate`) values (4, 1, 1, 1);
 
 -- Текущая версия БД.
-insert into db_version (version) values (3);
+insert into db_version (version) values (4);
