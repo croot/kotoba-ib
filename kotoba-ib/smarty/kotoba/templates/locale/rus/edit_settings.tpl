@@ -66,8 +66,9 @@
 <h4>Избранные нити:</h4>
 {if count($favorites) > 0}
 {section name=i loop=$favorites}
-<a href="" title="Нажмите, чтобы перейти к нити">/{$favorites[i].board}/{$favorites[i].thread}/</a> <span class="filetitle">{$favorites[i].subject}</span> <span class="postername">{$favorites[i].name}</span> {if $favorites[i].unread > 0}<span style="color:red;">{$favorites[i].unread} новых сообщений!</span>{else}0 новых сообщений.{/if} <a href="" title="Удалить из избранного">[X]</a><br/>
+<a href="{$DIR_PATH}/{$favorites[i].thread.board.name}/{$favorites[i].thread.original_post}/" title="Нажмите, чтобы перейти к нити">/{$favorites[i].thread.board.name}/{$favorites[i].thread.original_post}/</a> <span class="filetitle">{$favorites[i].post.subject}</span> <span class="postername">{$favorites[i].post.name}</span> {if $favorites[i].unread > 0}<span style="color:red;">{$favorites[i].unread} новых сообщений!</span>{else}0 новых сообщений.{/if} <a href="{$DIR_PATH}/favorites.php?action=delete&thread={$favorites[i].thread.id}" title="Удалить из избранного">[X]</a><br/>
 {/section}
+<br/><a href="{$DIR_PATH}/favorites.php?action=mark_all_readed" title="Отметить все нити прочитанными">Отметить все нити прочитанными</a><br/>
 {else}
 У вас нет избранных нитей.<br/>
 {/if}

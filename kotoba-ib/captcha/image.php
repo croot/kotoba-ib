@@ -89,8 +89,14 @@ kotoba_session_start();
 
 $im = imagecreate(100, 30);
 
-$bg = imagecolorallocate($im, 255, 100, 255);
-$textcolor = imagecolorallocate($im, 0, 0, 255);
+if (isset($_SESSION['stylesheet']) && $_SESSION['stylesheet'] == 'kusaba.css') {
+    $bg = imagecolorallocate($im, 238, 255, 238);
+} elseif (isset($_SESSION['stylesheet']) && $_SESSION['stylesheet'] == 'futaba.css') {
+    $bg = imagecolorallocate($im, 255, 255, 238);
+} else {
+    $bg = imagecolorallocate($im, 255, 100, 255);
+}
+$textcolor = imagecolorallocate($im, 0, 0, 0);
 
 $word = "";
 for ($i = 0; $i < 5; $i++) {

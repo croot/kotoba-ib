@@ -247,7 +247,7 @@ function kotoba_mark(&$text, $board)
 						{
 							$found = true;
 							$output .= "link:$link_num";
-							$links[$link_num++] = "<a href=\"" . Config::DIR_PATH . "/{$post_data['board']}/{$post_data['thread']}#{$post_data['post']}\">{$tokens[$j]}</a>";
+							$links[$link_num++] = "<a class=\"ref|{$post_data['board']}|{$post_data['thread']}|{$post_data['post']}\" href=\"" . Config::DIR_PATH . "/{$post_data['board']}/{$post_data['thread']}#{$post_data['post']}\">{$tokens[$j]}</a>";
 							break;
 						}
 					if(!$found)

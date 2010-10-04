@@ -1,13 +1,13 @@
 <?php
 /* ***********************************
-* Этот файл является частью Kotoba. *
-* Файл license.txt содержит условия *
-* распространения Kotoba.           *
-*************************************/
+ * Этот файл является частью Kotoba. *
+ * Файл license.txt содержит условия *
+ * распространения Kotoba.           *
+ *************************************/
 /* *******************************
-* This file is part of Kotoba.  *
-* See license.txt for more info.*
-*********************************/
+ * This file is part of Kotoba.  *
+ * See license.txt for more info.*
+ *********************************/
 
 // Edit user settings script.
 
@@ -103,6 +103,38 @@ try {
         }
     }
 
+    // Get favorites.
+    $favorites = favorites_get_by_user($_SESSION['user']);
+    $threads = array();
+    foreach ($favorites as $f) {
+        array_push($threads, $f['thread']);
+    }
+    $pfilter = function($thread, $post) {
+        // Pass all posts of thread.
+        return true;
+    };
+    $posts = posts_get_visible_filtred_by_threads($threads, $_SESSION['user'], $pfilter);
+    foreach ($favorites as &$f) {
+        $unread = 0;
+        foreach ($posts as $post) {
+            if ($f['thread']['id'] == $post['thread'] && $f['thread']['original_post'] == $post['number']) {
+                $f['post'] = $post;
+            }
+            if ($f['thread']['id'] == $post['thread'] && $post['number'] > $f['last_readed']) {
+                $unread++;
+            }
+        }
+        $f['unread'] = $unread;
+    }
+    $cmp = function($a, $b) {
+      if ($a['unread'] == $b['unread']) {
+          return $a['post']['number'] > $b['post']['number'] ? -1 : 1;
+      } else {
+          return $a['unread']> $b['unread'] ? -1 : 1;
+      }
+    };
+    usort($favorites, $cmp);
+
     // Clean up.
     DataExchange::releaseResources();
 
@@ -115,7 +147,7 @@ try {
     $smarty->assign('language', $_SESSION['language']);
     $smarty->assign('stylesheets', $stylesheets);
     $smarty->assign('goto', $_SESSION['goto']);
-    $smarty->assign('favorites', favorites_get_by_user($_SESSION['user']));
+    $smarty->assign('favorites', $favorites);
     $smarty->assign('hidden_threads', $hidden_threads);
     $smarty->assign('boards', $boards);
     $smarty->display('edit_settings.tpl');

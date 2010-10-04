@@ -15,17 +15,18 @@
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
     $STYLESHEET - стиль оформления (см. config.default).
     $ib_name - название имейджборды  (см. config.default).
+    $board - просматриваемая доска.
+    $page - номер просматриваемой страницы.
+    $show_control - показывать ссылку на страницу административных фукнций и фукнций модераторов в панели администратора.
+    $boards - доски.
     $enable_macro - Включение интеграции с макрочаном (см. config.default).
     $enable_youtube - Включение постинга видео с ютуба (см. config.default).
     $enable_search - Включение поиска по тексту сообщений (см. config.default).
     $enable_captcha - Включение каптчи.
-    $board - просматриваемая доска.
-    $boards - доски.
     $is_admin - флаг администратора.
     $password - пароль для удаления сообщений.
     $upload_types - типы файлов, доступных для загрузки на просматриваемой доске.
     $pages - номера страниц.
-    $page - номер просматриваемой страницы.
     $goto - переход к нити или доске.
     $macrochan_tags - теги макросов.
     $name - имя
@@ -35,13 +36,19 @@
     $event_daynight_active - запущен ли эвент времени суток.
     $event_daynight_code - код, добавляемый к html коду страницы, эвентом.
 *}
-{include file='header.tpl' page_title="`$ib_name` — /`$board.name`/ `$board.title`. Просмотр, страница $page" DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
+{include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title="`$ib_name` — /`$board.name`/ `$board.title`. Просмотр, страница $page"}
+
 {* Начало кода эвента времени суток (не входит в котобу). *}
 {if isset($event_daynight_active) && $event_daynight_active}{$event_daynight_code}{/if}
 {* Конец кода эвента времени суток. *}
+
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
 <script src="{$DIR_PATH}/kotoba.js"></script>
 <script src="{$DIR_PATH}/protoaculous-compressed.js"></script>
-<div class="navbar">{include file='board_list.tpl' boards=$boards DIR_PATH=$DIR_PATH} [<a href="{$DIR_PATH}/">Главная</a>]</div>
+
+{include file='adminbar.tpl' DIR_PATH=$DIR_PATH show_control=$show_control}
+
+{include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
 
 {if isset($banner)}
 <div class="logo"><img src="{$DIR_PATH}/misc/img/{$banner.name}" alt="{$banner.name}" width="{$banner.widht}" height="{$banner.height}"></div>
@@ -83,7 +90,7 @@
 	{/if}
 	{if $enable_youtube}<tr valign="top"><td class="postblock">Youtube: </td><td><input type="text" name="youtube_video_code" size="30"></td></tr>{/if}
 {/if}
-{if $enable_captcha}<tr valign="top"><td class="postblock">Капча: </td><td><a href="#" onclick="document.getElementById('captcha').src = '{$DIR_PATH}/captcha/image.php?' + Math.random(); return false"><img border="0" id="captcha" src="{$DIR_PATH}/captcha/image.php" alt="Kotoba capcha v0.4" /></a> <input type="text" name="captcha_code" size="10" maxlength="6" /><td></tr>{/if}
+{if $enable_captcha}<tr valign="top"><td class="postblock">Капча: </td><td><a href="#" onclick="document.getElementById('captcha').src = '{$DIR_PATH}/captcha/image.php?' + Math.random(); return false"><img border="0" id="captcha" src="{$DIR_PATH}/captcha/image.php" alt="Kotoba capcha v0.4" /></a> <input type="text" name="captcha_code" size="10" maxlength="6" /></tr>{/if}
 <tr valign="top"><td class="postblock">Пароль: </td><td><input type="password" name="password" size="30" value="{$password}"></td></tr>
 <tr valign="top"><td class="postblock">Перейти: </td><td>(нить: <input type="radio" name="goto" value="t"{if $goto == 't'} checked{/if}>) (доска: <input type="radio" name="goto" value="b"{if $goto == 'b'} checked{/if}>)</td></tr>
 

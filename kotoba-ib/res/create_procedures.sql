@@ -32,7 +32,11 @@ drop procedure if exists sp_categories_add|
 drop procedure if exists sp_categories_delete|
 drop procedure if exists sp_categories_get_all|
 
+drop procedure if exists sp_favorites_add|
+drop procedure if exists sp_favorites_delete|
 drop procedure if exists sp_favorites_get_by_user|
+drop procedure if exists sp_favorites_mark_readed|
+drop procedure if exists sp_favorites_mark_readed_all|
 
 drop procedure if exists sp_files_add|
 drop procedure if exists sp_files_get_by_post|
@@ -775,6 +779,37 @@ end|
 -- Работа с избранными нитями. --
 -- ------------------------------
 
+-- Adds thread to user's favorites.
+create procedure sp_favorites_add
+(
+    _user int,      -- User id.
+    _thread int     -- Thread id.
+)
+begin
+    declare last_num int default 0;
+
+    select max(p.number) into last_num
+        from threads t
+        join posts p on p.thread = t.id and p.thread = _thread
+        where t.deleted = 0 and t.archived = 0 and p.deleted = 0
+        order by p.number;
+
+    if (last_num > 0) then
+        insert into favorites (user, thread, last_readed)
+            values (_user, _thread, last_num);
+    end if;
+end|
+
+-- Removes thread from user's favorites.
+create procedure sp_favorites_delete
+(
+    _user int,      -- User id.
+    _thread int     -- Thread id.
+)
+begin
+    delete from favorites where user = _user and thread = _thread;
+end|
+
 -- Выбирает избранные нити пользователя.
 create procedure sp_favorites_get_by_user
 (
@@ -815,9 +850,57 @@ begin
             b.category as board_category,
             f.last_readed
         from favorites f
-        join users u on u.id = u.user and u.id = _user
+        join users u on u.id = f.user and u.id = _user
         join threads t on t.id = f.thread
-        join boards b on b.id = t.id;
+        join boards b on b.id = t.board;
+end|
+
+-- Mark thread as readed in user favorites. If thread is null then marks 
+create procedure sp_favorites_mark_readed
+(
+    _user int,      -- User id.
+    _thread int     -- Thread id.
+)
+begin
+    declare last_num int default 0;
+
+    select max(p.number) into last_num
+        from threads t
+        join posts p on p.thread = t.id and p.thread = _thread
+        where t.deleted = 0 and t.archived = 0 and p.deleted = 0
+        order by p.number;
+
+    update favorites set last_readed = last_num
+        where user = _user and thread = _thread;
+end|
+
+-- Mark all threads as readed.
+create procedure sp_favorites_mark_readed_all
+(
+    _user int   -- User id.
+)
+begin
+    declare last_num int default 0;
+    declare done int default 0;
+    declare _thread int;
+    declare `c` cursor for select thread from favorites where user = _user;
+    declare continue handler for not found set done = 1;
+
+    open `c`;
+    repeat
+        fetch `c` into _thread;
+        if(not done) then
+            select max(p.number) into last_num
+                from threads t
+                join posts p on p.thread = t.id and p.thread = _thread
+                where t.deleted = 0 and t.archived = 0 and p.deleted = 0
+                order by p.number;
+
+            update favorites set last_readed = last_num
+                where user = _user and thread = _thread;
+        end if;
+    until done end repeat;
+    close `c`;
 end|
 
 -- -------------------------------

@@ -37,6 +37,7 @@
                     {/if}
                     <a href="{$DIR_PATH}/report.php?post={$simple_post.id}&submit=1"><img src="{$DIR_PATH}/css/report.png" alt="[Пожаловаться]" title="Пожаловаться на сообщение" border="0"/></a>
                 </span>
+                <span title="{$country.name}" class="country"><img src="http://410chan.ru/css/flags/{$country.code}.gif" alt="{$country.name}"></span>&nbsp;
                 <span class="filetitle">{$simple_post.subject}</span>
                 <span class="postername">{$simple_post.name}</span>
                 {if $simple_post.tripcode != null}
@@ -76,12 +77,13 @@
                         {$simple_attachments[0].video_link}
                     {/if}
                 {/if}
-                <blockquote>
+                <blockquote id="post{$simple_post.number}">
                     {$simple_post.text}
                     {if $simple_post.text_cutted == 1}
                         <div class="abbrev">Нажмите "Ответ" для просмотра сообщения целиком.</div>
                     {/if}
                 </blockquote>
+                <blockquote id="translation{$simple_post.number}"></blockquote><a href="#" onclick="javascript:translate('{$simple_post.number}'); return false;">Lolšto?</a>
             </td>
         </tr>
     </tbody>

@@ -156,6 +156,9 @@ try {
         $smarty->assign('banner', $banners[rand(0, count($banners) - 1)]);
     }
 
+    $favorites = favorites_get_by_user($_SESSION['user']);
+
+    $smarty->assign('show_control', is_admin() || is_mod());
     $board['annotation'] = html_entity_decode($board['annotation'], ENT_QUOTES, Config::MB_ENCODING);
     $smarty->assign('board', $board);
     $smarty->assign('boards', $boards);
@@ -188,6 +191,15 @@ try {
     $boards_posts_html = ''; // Код сообщений из препдпросмотра нитей.
     foreach ($threads as $t) {
         $smarty->assign('thread', $t);
+
+        $smarty->assign('show_favorites', true);
+        foreach ($favorites as $f) {
+            if ($t['id'] == $f['thread']['id']) {
+                $smarty->assign('show_favorites', false);
+                break;
+            }
+        }
+
         foreach ($posts as $p) {
 
             // Сообщение принадлежит текущей нити.

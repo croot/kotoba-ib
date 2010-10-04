@@ -43,12 +43,8 @@ try {
     $board = boards_get_changeable_by_id(boards_check_id($_POST['board']),
             $_SESSION['user']);
 
-    if (!is_admin()
-            && (($board['enable_captcha'] === null && Config::ENABLE_CAPTCHA)
-            || $board['enable_captcha'])) {
-        $securimage = new Securimage();
-        if (!isset($_POST['captcha_code'])
-                || $securimage->check($_POST['captcha_code']) == false) {
+    if (!is_admin() && (($board['enable_captcha'] === null && Config::ENABLE_CAPTCHA) || $board['enable_captcha'])) {
+        if (!isset($_POST['captcha_code']) || !isset($_SESSION['captcha_code']) || $_POST['captcha_code'] != $_SESSION['captcha_code']) {
             throw new CommonException(CommonException::$messages['CAPTCHA']);
         }
     }
