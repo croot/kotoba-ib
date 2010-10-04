@@ -1009,25 +1009,33 @@ function db_categories_delete($link, $id)
 	db_cleanup_link($link);
 }
 /**
- * Получает все категории.
- * @param link MySQLi <p>Связь с базой данных.</p>
+ * Получает категории.
+ * @param MySQLi $link Связь с базой данных.
  * @return array
- * Возвращает категории:<p>
- * 'id' - Идентификатор.<br>
- * 'name' - Имя.</p>
+ * Возвращает категории:<br>
+ * id - Идентификатор.<br>
+ * name - Имя.
  */
-function db_categories_get_all($link)
-{
-	if(($result = mysqli_query($link, 'call sp_categories_get_all()')) == false)
-		throw new CommonException(mysqli_error($link));
-	$categories = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) != null)
-			array_push($categories, array('id' => $row['id'],
-					'name' => $row['name']));
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $categories;
+function db_categories_get_all($link) { // Java CC.
+    // Query.
+    if (($result = mysqli_query($link, 'call sp_categories_get_all()')) == false)
+        throw new CommonException(mysqli_error($link));
+
+    // Collect data from query result.
+    $categories = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while (($row = mysqli_fetch_assoc($result)) != null) {
+            array_push($categories,
+                       array('id' => $row['id'],
+                             'name' => $row['name']));
+        }
+    }
+
+    // Cleanup.
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+
+    return $categories;
 }
 
 /*******************************
@@ -1035,21 +1043,31 @@ function db_categories_get_all($link)
  *******************************/
 
 /**
- * Добавляет нить в избранное.
- * @param MySQLi $link Связь с базой данных.
- * @param string|int $thread Идентификатор нити.
+ * Adds thread to user's favorites.
+ * @param MySQLi $link Link to database.
+ * @param string|int $user User id.
+ * @param string|int $thread Thread id.
  */
-function db_favorites_add($link, $thread) {
+function db_favorites_add($link, $user, $thread) {
+    if (!mysqli_query($link, "call sp_favorites_add($user, $thread)")) {
+        throw new CommonException(mysqli_error($link));
+    }
 
+    db_cleanup_link($link);
 }
 
 /**
- * Удаляет нить из избранного.
- * @param MySQLi $link Связь с базой данных.
- * @param string|int $thread Идентификатор нити.
+ * Removes thread from user's favorites.
+ * @param MySQLi $link Link to database.
+ * @param string|int $user User id.
+ * @param string|int $thread Thread id.
  */
-function db_favorites_delete($link, $thread) {
+function db_favorites_delete($link, $user, $thread) {
+    if (!mysqli_query($link, "call sp_favorites_delete($user, $thread)")) {
+        throw new CommonException(mysqli_error($link));
+    }
 
+    db_cleanup_link($link);
 }
 
 /**
@@ -1094,8 +1112,79 @@ function db_favorites_delete($link, $thread) {
  * |_ with_attachments - Флаг вложений.<br>
  * last_readed - Номер последнего прочитанного сообщения в нити.
  */
-function db_favorites_get_by_user($link, $user) {
-    return array(array('board' => 'b', 'thread' => '1', 'subject' => 'Новый нубтайп!', 'name' => 'Соус', 'unread' => '0'), array('board' => 'azu', 'thread' => '32', 'subject' => 'Фоточки топлесс', 'name' => 'Конека', 'unread' => '90'));
+function db_favorites_get_by_user($link, $user) { // Java CC.
+    // Query.
+    if ( ($result = mysqli_query($link, "call sp_favorites_get_by_user($user)")) == false) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    // Collect data from query result.
+    $favorites = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while (($row = mysqli_fetch_assoc($result)) != null) {
+            array_push($favorites,
+                array('user' => array('id' => $row['user_id'],
+                                      'keyword' => $row['user_keyword'],
+                                      'posts_per_thread' => $row['user_posts_per_thread'],
+                                      'threads_per_page' => $row['user_threads_per_page'],
+                                      'lines_per_post' => $row['user_lines_per_post'],
+                                      'language' => $row['user_language'],
+                                      'stylesheet' => $row['user_stylesheet'],
+                                      'password' => $row['user_password'],
+                                      'goto' => $row['user_goto']),
+                      'thread' => array('id' => $row['thread_id'],
+                                        'board' => array('id' => $row['board_id'],
+                                                         'name' => $row['board_name'],
+                                                         'title' => $row['board_title'],
+                                                         'annotation' => $row['board_annotation'],
+                                                         'bump_limit' => $row['board_bump_limit'],
+                                                         'force_anonymous' => $row['board_force_anonymous'],
+                                                         'default_name' => $row['board_default_name'],
+                                                         'with_attachments' => $row['board_with_attachments'],
+                                                         'enable_macro' => $row['board_enable_macro'],
+                                                         'enable_youtube' => $row['board_enable_youtube'],
+                                                         'enable_captcha' => $row['board_enable_captcha'],
+                                                         'same_upload' => $row['board_same_upload'],
+                                                         'popdown_handler' => $row['board_popdown_handler'],
+                                                         'category' => $row['board_category']),
+                                        'original_post' => $row['thread_original_post'],
+                                        'bump_limit' => $row['thread_bump_limit'],
+                                        'deleted' => $row['thread_deleted'],
+                                        'archived' => $row['thread_archived'],
+                                        'sage' => $row['thread_sage'],
+                                        'sticky' => $row['thread_sticky'],
+                                        'with_attachments' => $row['thread_with_attachments']),
+                      'last_readed' => $row['last_readed']));
+        }
+    }
+
+    // Cleanup.
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+
+    return $favorites;
+    // return array(array('board' => 'b', 'thread' => '1', 'subject' => 'Новый нубтайп!', 'name' => 'Соус', 'unread' => '0'), array('board' => 'azu', 'thread' => '32', 'subject' => 'Фоточки топлесс', 'name' => 'Конека', 'unread' => '90'));
+}
+
+/**
+ * Mark thread as readed in user favorites. If thread is null then marks all
+ * threads as readed.
+ * @param MySQLi $link Link to database.
+ * @param string|int $user User id.
+ * @param string|int $thread Thread id.
+ */
+function db_favorites_mark_readed($link, $user, $thread) {
+    if ($thread === null) {
+        if (!mysqli_query($link, "call sp_favorites_mark_readed_all($user)")) {
+            throw new CommonException(mysqli_error($link));
+        }
+    } else {
+        if (!mysqli_query($link, "call sp_favorites_mark_readed($user, $thread)")) {
+            throw new CommonException(mysqli_error($link));
+        }
+    }
+
+    db_cleanup_link($link);
 }
 
 /* ******************************

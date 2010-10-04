@@ -189,3 +189,31 @@ function addpreviewevents() {
 window.onload=function() {
 	addpreviewevents();
 }
+
+var path = "http://410chan.ru";
+
+google.load("language", "1");
+
+function hide(id) {
+    var container = document.getElementById("translation" + id);
+    container.innerHTML="";
+    container.style.visibility=false;
+}
+
+function translate(id) {
+    var container = document.getElementById("translation" + id);
+    container.innerHTML = '<img src="' + path + '/css/icons/flower.gif">';
+
+    var obj = document.getElementById("post" + id);
+    var text = obj.innerHTML;
+    var closelink = "";
+    //var closelink = "<a href=\"#\" onclick=\"javascript: hide('"+id+"'); return false;\">x</a>&nbsp;";
+    google.language.translate(text, "", "en", function(result) {
+        if (!result.error) {
+            container.innerHTML = closelink + "<strong>Translated from " + result.detectedSourceLanguage + ":</strong><br>\n" + result.translation;
+        }
+        else {
+            container.innerHTML = closelink + "<strong>Error: " + result.error.message + "</strong>";
+        }
+    });
+}

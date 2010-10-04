@@ -185,12 +185,17 @@ try {
                     null);
         }
     }
+
+    favorites_mark_readed($_SESSION['user'], $thread['id']);
+
+    DataExchange::releaseResources();
+
     $view_html .= $view_thread_html . $view_posts_html;
     $smarty->assign('hidden_threads', $hidden_threads);
     $view_html .= $smarty->fetch('threads_footer.tpl');
-    DataExchange::releaseResources();
     echo $view_html;
-    exit;
+
+    exit(0);
 } catch(Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();

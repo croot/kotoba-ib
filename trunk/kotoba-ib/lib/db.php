@@ -99,19 +99,21 @@ function create_language_directories($code) { // Java CC
  *******************************/
 
 /**
- * Добавляет нить в избранное.
- * @param string|int $thread Идентификатор нити.
+ * Adds thread to user's favorites.
+ * @param string|int $user User id.
+ * @param string|int $thread Thread id.
  */
-function favorites_add($thread) {
-    db_favorites_add(DataExchange::getDBLink(), $thread);
+function favorites_add($user, $thread) {
+    db_favorites_add(DataExchange::getDBLink(), $user, $thread);
 }
 
 /**
- * Удаляет нить из избранного.
- * @param string|int $thread Идентификатор нити.
+ * Removes thread from user's favorites.
+ * @param string|int $user User id.
+ * @param string|int $thread Thread id.
  */
-function favorites_delete($thread) {
-    db_favorites_delete(DataExchange::getDBLink(), $thread);
+function favorites_delete($user, $thread) {
+    db_favorites_delete(DataExchange::getDBLink(), $user, $thread);
 }
 
 /**
@@ -119,12 +121,54 @@ function favorites_delete($thread) {
  * @param string|int $user Идентификатор пользователя.
  * @return array
  * Возвращает избранные нити:<br>
- * 'user' - Идентификатор пользователя.<br>
- * 'thread' - Идентификатор нити.<br>
- * 'last_readed' - Номер последнего прочитанного сообщения в нити.
+ * user - Пользователь:<br>
+ * |_ id - Идентификатор.<br>
+ * |_ keyword - Хеш ключевого слова.<br>
+ * |_ posts_per_thread - Число сообщений в нити на странице просмотра доски.<br>
+ * |_ threads_per_page - Число нитей на странице просмотра доски.<br>
+ * |_ lines_per_post - Количество строк в предпросмотре сообщения.<br>
+ * |_ language - Идентификатор языка.<br>
+ * |_ stylesheet - Идентификатор стиля.<br>
+ * |_ password - Пароль для удаления сообщений.<br>
+ * |_ goto - Перенаправление.<br>
+ * thread - Нить:<br>
+ * |_ id - Идентификатор.<br>
+ * |_ board - Доска:<br>
+ * |___|_ id - Идентификатор.<br>
+ * |___|_ name - Имя.<br>
+ * |___|_ title - Заголовок.<br>
+ * |___|_ annotation - Аннотация.<br>
+ * |___|_ bump_limit - Специфичный для доски бамплимит.<br>
+ * |___|_ force_anonymous - Флаг отображения имени отправителя.<br>
+ * |___|_ default_name - Имя отправителя по умолчанию.<br>
+ * |___|_ with_attachments - Флаг вложений.<br>
+ * |___|_ enable_macro - Включение интеграции с макрочаном.<br>
+ * |___|_ enable_youtube - Включение вложения видео с ютуба.<br>
+ * |___|_ enable_captcha - Включение капчи.<br>
+ * |___|_ same_upload - Политика загрузки одинаковых файлов.<br>
+ * |___|_ popdown_handler - Идентификатор обработчика автоматического удаления нитей.<br>
+ * |___|_ category - Идентификатор категории.<br>
+ * |_ original_post - Номер оригинального сообщения.<br>
+ * |_ bump_limit - Специфичный для нити бамплимит.<br>
+ * |_ deleted - Пометка на удаление.<br>
+ * |_ archived - Флаг архивирования.<br>
+ * |_ sage - Флаг поднятия нити.<br>
+ * |_ sticky - Флаг закрепления.<br>
+ * |_ with_attachments - Флаг вложений.<br>
+ * last_readed - Номер последнего прочитанного сообщения в нити.
  */
 function favorites_get_by_user($user) {
     return db_favorites_get_by_user(DataExchange::getDBLink(), $user);
+}
+
+/**
+ * Mark thread as readed in user favorites. If thread is null then marks all
+ * threads as readed.
+ * @param string|int $user User id.
+ * @param string|int $thread Thread id.
+ */
+function favorites_mark_readed($user, $thread = null) {
+    db_favorites_mark_readed(DataExchange::getDBLink(), $user, $thread);
 }
 
 /***************************************

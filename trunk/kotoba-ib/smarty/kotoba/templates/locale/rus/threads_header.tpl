@@ -38,6 +38,7 @@
 {* Начало кода эвента времени суток (не входит в котобу). *}
 {if isset($event_daynight_active) && $event_daynight_active}{$event_daynight_code}{/if}
 {* Конец кода эвента времени суток. *}
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
 <script src="{$DIR_PATH}/kotoba.js"></script>
 <div class="navbar">{include file='board_list.tpl' boards=$boards DIR_PATH=$DIR_PATH} [<a href="{$DIR_PATH}/">Главная</a>]</div>
 
@@ -73,7 +74,7 @@
 	{/if}
 	{if $enable_youtube}<tr valign="top"><td class="postblock">Youtube: </td><td><input type="text" name="youtube_video_code" size="30"></td></tr>{/if}
 {/if}
-{if $enable_captcha}<tr valign="top"><td class="postblock">Капча: </td><td><a href="#" onclick="document.getElementById('captcha').src = '{$DIR_PATH}/captcha/image.php'; return false"><img border="0" id="captcha" src="{$DIR_PATH}/captcha/image.php" alt="Kotoba capcha v0.4" /></a> <input type="text" name="captcha_code" size="10" maxlength="6" /></tr>{/if}
+{if $enable_captcha}<tr valign="top"><td class="postblock">Капча: </td><td><a href="#" onclick="document.getElementById('captcha').src = '{$DIR_PATH}/captcha/image.php?' + Math.random(); return false"><img border="0" id="captcha" src="{$DIR_PATH}/captcha/image.php" alt="Kotoba capcha v0.4" /></a> <input type="text" name="captcha_code" size="10" maxlength="6" /></tr>{/if}
 <tr valign="top"><td class="postblock">Пароль: </td><td><input type="password" name="password" size="30" value="{$password}"></td></tr>
 <tr valign="top"><td class="postblock">Перейти: </td><td>(нить: <input type="radio" name="goto" value="t"{if $goto == 't'} checked{/if}>) (доска: <input type="radio" name="goto" value="b"{if $goto == 'b'} checked{/if}>)</td></tr>
 <tr valign="top"><td class="postblock">Sage: </td><td><input type="checkbox" name="sage" value="sage"></td></tr>
