@@ -22,7 +22,10 @@
     $enable_macro - Включение интеграции с макрочаном (см. config.default).
     $enable_youtube - Включение постинга видео с ютуба (см. config.default).
     $enable_search - Включение поиска по тексту сообщений (см. config.default).
-    $enable_captcha - Включение каптчи.
+    $enable_captcha - Включение каптчи (см. config.default).
+    $enable_translation - Включение перевода текста сообщения (см. config.default).
+    $enable_geoip - Включение отображения страны автора сообщения (см. config.default).
+    $enable_shi - Включение рисования (см. config.default).
     $is_admin - флаг администратора.
     $password - пароль для удаления сообщений.
     $upload_types - типы файлов, доступных для загрузки на просматриваемой доске.
@@ -42,7 +45,8 @@
 {if isset($event_daynight_active) && $event_daynight_active}{$event_daynight_code}{/if}
 {* Конец кода эвента времени суток. *}
 
-<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+{if $enable_translation}<script type="text/javascript" src="http://www.google.com/jsapi"></script>{/if}
+
 <script src="{$DIR_PATH}/kotoba.js"></script>
 <script src="{$DIR_PATH}/protoaculous-compressed.js"></script>
 
@@ -106,6 +110,18 @@
 </table>
 <input type="hidden" name="board" value="{$board.id}">
 </form>
+{if $board.with_attachments && $enable_shi}
+<form action="{$DIR_PATH}/lib/shi_applet.php" method="post">
+    Наоекакать: <select name="painter">
+        <option value="shi_normal" selected="selected">Shi Normal</option>
+        <option value="shi_pro">Shi Pro</option>
+    </select>
+    Ширина: <input type="text" name="x" size="3" value="640" />
+    Высота: <input type="text" name="y" size="3" value="480" />
+    <input type="submit" value="Рисовать" />
+</form>
+{/if}
+
 </div>
 {literal}<script type="text/javascript">
 <!--

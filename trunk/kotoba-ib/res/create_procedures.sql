@@ -716,29 +716,29 @@ end|
 -- user_id - идентификатор пользователя.
 create procedure sp_boards_get_visible
 (
-	user_id int
+    user_id int
 )
 begin
-	select b.id, b.name, b.title, b.annotation, b.bump_limit, b.force_anonymous,
-		b.default_name, b.with_attachments, b.enable_macro, b.enable_youtube,
-		b.enable_captcha, b.same_upload, b.popdown_handler, b.category,
-		ct.name as category_name
-	from boards b
-	join categories ct on ct.id = b.category
-	join user_groups ug on ug.user = user_id
-	left join acl a1 on ug.`group` = a1.`group` and b.id = a1.board
-	left join acl a2 on a2.`group` is null and b.id = a2.board
-	left join acl a3 on ug.`group` = a3.`group` and a3.board is null
-		and a3.thread is null and a3.post is null
-	where
-		-- Доска не запрещена для просмотра группе и
-		(a1.`view` = 1 or a1.`view` is null)
-		-- доска не запрещена для просмотра всем и
-		and (a2.`view` = 1 or a2.`view` is null)
-		-- группе разрешен просмотр.
-		and a3.`view` = 1
-	group by b.id
-	order by b.category, b.name;
+    select b.id, b.name, b.title, b.annotation, b.bump_limit, b.force_anonymous,
+            b.default_name, b.with_attachments, b.enable_macro, b.enable_youtube,
+            b.enable_captcha, b.enable_translation, b.enable_geoip, b.enable_shi,
+            b.same_upload, b.popdown_handler, b.category, ct.name as category_name
+        from boards b
+        join categories ct on ct.id = b.category
+        join user_groups ug on ug.user = user_id
+        left join acl a1 on ug.`group` = a1.`group` and b.id = a1.board
+        left join acl a2 on a2.`group` is null and b.id = a2.board
+        left join acl a3 on ug.`group` = a3.`group` and a3.board is null
+            and a3.thread is null and a3.post is null
+        where
+            -- Доска не запрещена для просмотра группе и
+            (a1.`view` = 1 or a1.`view` is null)
+            -- доска не запрещена для просмотра всем и
+            and (a2.`view` = 1 or a2.`view` is null)
+            -- группе разрешен просмотр.
+            and a3.`view` = 1
+        group by b.id
+        order by b.category, b.name;
 end|
 
 -- -------------------------

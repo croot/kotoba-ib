@@ -27,6 +27,8 @@
     $skipped - количество не показанных сообщений.
     $show_reply - показывать ссылку на нить.
     $show_favorites - показывать ссылку на добавление нити в избранное.
+    $enable_translation - Включение перевода текста сообщения (см. config.default).
+    $enable_geoip - Включение отображения страны автора сообщения (см. config.default).
 *}
 <div>
 {if $original_post.with_attachments}
@@ -66,7 +68,8 @@
         <a href="{$DIR_PATH}/favorites.php?action=add&thread={$thread.id}"><img src="{$DIR_PATH}/css/favorites.png" alt="[В Избранное]" title="Добавить нить в избранное" border="0"/></a>
     {/if}
 </span>
-<span title="{$country.name}" class="country"><img src="http://410chan.ru/css/flags/{$country.code}.gif" alt="{$country.name}"></span>&nbsp;
+{if $enable_geoip}<span title="{$country.name}" class="country"><img src="http://410chan.ru/css/flags/{$country.code}.gif" alt="{$country.name}"></span>&nbsp;{/if}
+
 <span class="filetitle">{$original_post.subject}</span>
 <span class="postername">{$original_post.name}</span>
 {if $original_post.tripcode != null}
@@ -92,7 +95,8 @@
     <div class="abbrev">Нажмите "Ответ" для просмотра сообщения целиком.</div>
 {/if}
 </blockquote>
-<blockquote id="translation{$thread.original_post}"></blockquote><a href="#" onclick="javascript:translate('{$thread.original_post}'); return false;">Lolšto?</a>
+{if $enable_translation}<blockquote id="translation{$thread.original_post}"></blockquote><a href="#" onclick="javascript:translate('{$thread.original_post}'); return false;">Lolšto?</a>{/if}
+
 {if $show_skipped && $skipped > 0}
     <span class="omittedposts">Сообщений пропущено: {$skipped}</span>
 {/if}

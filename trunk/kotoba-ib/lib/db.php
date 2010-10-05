@@ -988,25 +988,28 @@ function boards_get_moderatable($user_id)
 	return db_boards_get_moderatable(DataExchange::getDBLink(), $user_id);
 }
 /**
- * Получает доски, доступные для просмотра заданному пользователю.
+ * Получает доски, доступные для просмотра пользователю.
  * @param string|int $user_id Идентификатор пользователя.
  * @return array
- * Возвращает доски:<p>
- * 'id' - идентификатор.<br>
- * 'name' - имя.<br>
- * 'title' - заголовок.<br>
- * 'annotation' - аннотация.<br>
- * 'bump_limit' - специфичный для доски бамплимит.<br>
- * 'force_anonymous' - флаг отображения имени отправителя.<br>
- * 'default_name' - имя отправителя по умолчанию.<br>
- * 'with_attachments' - флаг вложений.<br>
- * 'enable_macro' - включение интеграции с макрочаном.<br>
- * 'enable_youtube' - включение вложения видео с ютуба.<br>
- * 'enable_captcha' - включение капчи.<br>
- * 'same_upload' - политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
- * 'category' - категория.<br>
- * 'category_name' - Имя категории.</p>
+ * Возвращает доски:<br>
+ * id - идентификатор.<br>
+ * name - имя.<br>
+ * title - заголовок.<br>
+ * annotation - аннотация.<br>
+ * bump_limit - спецефиный для доски бамплимит.<br>
+ * force_anonymous - флаг отображения имени отправителя.<br>
+ * default_name - имя отправителя по умолчанию.<br>
+ * with_attachments - флаг вложений.<br>
+ * enable_macro - включение интеграции с макрочаном.<br>
+ * enable_youtube - включение вложения видео с ютуба.<br>
+ * enable_captcha - включение капчи.<br>
+ * enable_translation - Включение перевода текста сообщения.<br>
+ * enable_geoip - Включение отображения страны автора сообщения.<br>
+ * enable_shi - Включение рисования.<br>
+ * same_upload - политика загрузки одинаковых файлов.<br>
+ * popdown_handler - обработчик автоматического удаления нитей.<br>
+ * category - категория.<br>
+ * category_name - Имя категории.
  */
 function boards_get_visible($user_id) { // Java CC
     return db_boards_get_visible(DataExchange::getDBLink(), $user_id);

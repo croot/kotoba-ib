@@ -93,10 +93,13 @@ class Config
     const ENABLE_SPAMFILTER = true;
 
     // Включение перевода текста сообщения.
-    const ENABLE_TRANSLATION = true;
+    const ENABLE_TRANSLATION = false;
 
     // Включение отображения страны автора сообщения.
-    const ENABLE_GEOIP = true;
+    const ENABLE_GEOIP = false;
+
+    // Включение рисования.
+    const ENABLE_SHI = false;
 
     // Имя доски новостей.
     const NEWS_BOARD = 'n';

@@ -935,26 +935,29 @@ function db_boards_get_moderatable($link, $user_id)
 	return $boards;
 }
 /**
- * Получает доски, доступные для просмотра заданному пользователю.
+ * Получает доски, доступные для просмотра пользователю.
  * @param MySQLi $link Связь с базой данных.
  * @param string|int $user_id Идентификатор пользователя.
  * @return array
- * Возвращает доски:<p>
- * 'id' - идентификатор.<br>
- * 'name' - имя.<br>
- * 'title' - заголовок.<br>
- * 'annotation' - аннотация.<br>
- * 'bump_limit' - спецефиный для доски бамплимит.<br>
- * 'force_anonymous' - флаг отображения имени отправителя.<br>
- * 'default_name' - имя отправителя по умолчанию.<br>
- * 'with_attachments' - флаг вложений.<br>
- * 'enable_macro' - включение интеграции с макрочаном.<br>
- * 'enable_youtube' - включение вложения видео с ютуба.<br>
- * 'enable_captcha' - включение капчи.<br>
- * 'same_upload' - политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
- * 'category' - категория.<br>
- * 'category_name' - Имя категории.</p>
+ * Возвращает доски:<br>
+ * id - идентификатор.<br>
+ * name - имя.<br>
+ * title - заголовок.<br>
+ * annotation - аннотация.<br>
+ * bump_limit - спецефиный для доски бамплимит.<br>
+ * force_anonymous - флаг отображения имени отправителя.<br>
+ * default_name - имя отправителя по умолчанию.<br>
+ * with_attachments - флаг вложений.<br>
+ * enable_macro - включение интеграции с макрочаном.<br>
+ * enable_youtube - включение вложения видео с ютуба.<br>
+ * enable_captcha - включение капчи.<br>
+ * enable_translation - Включение перевода текста сообщения.<br>
+ * enable_geoip - Включение отображения страны автора сообщения.<br>
+ * enable_shi - Включение рисования.<br>
+ * same_upload - политика загрузки одинаковых файлов.<br>
+ * popdown_handler - обработчик автоматического удаления нитей.<br>
+ * category - категория.<br>
+ * category_name - Имя категории.
  */
 function db_boards_get_visible($link, $user_id) { // Java CC
     $result = mysqli_query($link, "call sp_boards_get_visible($user_id)");
@@ -977,6 +980,9 @@ function db_boards_get_visible($link, $user_id) { // Java CC
                       'enable_macro' => $row['enable_macro'],
                       'enable_youtube' => $row['enable_youtube'],
                       'enable_captcha' => $row['enable_captcha'],
+                      'enable_translation' => $row['enable_translation'],
+                      'enable_geoip' => $row['enable_geoip'],
+                      'enable_shi' => $row['enable_shi'],
                       'same_upload' => $row['same_upload'],
                       'popdown_handler' => $row['popdown_handler'],
                       'category' => $row['category'],

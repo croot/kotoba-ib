@@ -141,9 +141,18 @@ create table boards                         -- Доски.
     -- Этот флаг не может быть null, так как для него нет родительского
     -- значения, которое можно было бы унаследовать.
     with_attachments bit not null,          -- Флаг вложений.
+
+    -- Следующие флаги могут принимать 3 значения:
+    -- null - унаследовано из config.php.
+    -- 1 - включено.
+    -- 0 - отключено.
     enable_macro bit default null,          -- Включение интеграции с макрочаном.
     enable_youtube bit default null,        -- Включение вложения видео с ютуба.
     enable_captcha bit default null,        -- Включение капчи.
+    enable_translation bit default null,    -- Включение перевода текста сообщения.
+    enable_geoip bit default null,          -- Включение отображения страны автора сообщения.
+    enable_shi bit default null,            -- Включение рисования.
+
     same_upload varchar(32) not null,       -- Политика загрузки одинаковых файлов.
     popdown_handler int not null,           -- Идентификатор обработчика автоматического удаления нитей.
     category int not null,                  -- Идентификатор категории.
@@ -450,4 +459,4 @@ insert into acl (`group`, `view`, `change`, `moderate`) values (3, 1, 1, 1);
 insert into acl (`group`, `view`, `change`, `moderate`) values (4, 1, 1, 1);
 
 -- Текущая версия БД.
-insert into db_version (version) values (4);
+insert into db_version (version) values (5);
