@@ -21,6 +21,8 @@
     $thread - нить.
     $simple_post - сообщение.
     $simple_attachments - вложения.
+    $enable_translation - Включение перевода текста сообщения (см. config.default).
+    $enable_geoip - Включение отображения страны автора сообщения (см. config.default).
 *}
 <table>
     <tbody>
@@ -37,7 +39,8 @@
                     {/if}
                     <a href="{$DIR_PATH}/report.php?post={$simple_post.id}&submit=1"><img src="{$DIR_PATH}/css/report.png" alt="[Пожаловаться]" title="Пожаловаться на сообщение" border="0"/></a>
                 </span>
-                <span title="{$country.name}" class="country"><img src="http://410chan.ru/css/flags/{$country.code}.gif" alt="{$country.name}"></span>&nbsp;
+                {if $enable_geoip}<span title="{$country.name}" class="country"><img src="http://410chan.ru/css/flags/{$country.code}.gif" alt="{$country.name}"></span>&nbsp;{/if}
+
                 <span class="filetitle">{$simple_post.subject}</span>
                 <span class="postername">{$simple_post.name}</span>
                 {if $simple_post.tripcode != null}
@@ -83,7 +86,8 @@
                         <div class="abbrev">Нажмите "Ответ" для просмотра сообщения целиком.</div>
                     {/if}
                 </blockquote>
-                <blockquote id="translation{$simple_post.number}"></blockquote><a href="#" onclick="javascript:translate('{$simple_post.number}'); return false;">Lolšto?</a>
+                {if $enable_translation}<blockquote id="translation{$simple_post.number}"></blockquote><a href="#" onclick="javascript:translate('{$simple_post.number}'); return false;">Lolšto?</a>{/if}
+
             </td>
         </tr>
     </tbody>
