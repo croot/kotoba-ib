@@ -34,29 +34,31 @@
 <div class="logo"><img src="{$DIR_PATH}/misc/img/{$banner.name}" alt="{$banner.name}" width="{$banner.widht}" height="{$banner.height}"></div>
 {/if}
 
+<br />
+<br />
 <div style="float: left;">
 {section name=i loop=$posts}
 <a href="{$DIR_PATH}/{$board.name}/{$posts[i].number}">
-<table border="1" style="float: left; min-height: 250px; height: 250px; min-width: 250px; width: 250px;">
+<table border="1" style="float: left; min-height: 150px; height: 150px; min-width: 150px; width: 150px;">
 {if $board.with_attachments}
 {section name=j loop=$posts_attachments}
 {section name=k loop=$attachments}
 {if $attachments[k].attachment_type == $ATTACHMENT_TYPE_FILE}
 {if $posts[i].id == $posts_attachments[j].post && $posts_attachments[j].file == $attachments[k].id}
-    <tr><td rowspan="3"><img src="{$DIR_PATH}/img/{$attachments[k].thumbnail}" class="thumb" width="{$attachments[k].thumbnail_w}" height="{$attachments[k].thumbnail_h}"></td></tr>
+    <tr><td rowspan="3"><img src="{$DIR_PATH}/img/{$attachments[k].thumbnail}" class="thumb" width="80"></td></tr>
 {/if}
 {elseif $attachments[k].attachment_type == $ATTACHMENT_TYPE_IMAGE}
 {if $posts[i].id == $posts_attachments[j].post && $posts_attachments[j].image == $attachments[k].id}
-    <tr><td rowspan="3"><img src="{$DIR_PATH}/{$board.name}/thumb/{$attachments[k].thumbnail}" class="thumb" width="{$attachments[k].thumbnail_w}" height="{$attachments[k].thumbnail_h}"></td></tr>
+    <tr><td rowspan="3"><img src="{$DIR_PATH}/{$board.name}/thumb/{$attachments[k].thumbnail}" class="thumb" width="80"></td></tr>
 {/if}
 {elseif $attachments[k].attachment_type == $ATTACHMENT_TYPE_LINK}
 {if $posts[i].id == $posts_attachments[j].post && $posts_attachments[j].link == $attachments[k].id}
-    <tr><td rowspan="3"><img src="{$attachments[k].thumbnail}" class="thumb" width="{$attachments[k].thumbnail_w}" height="{$attachments[k].thumbnail_h}"></td></tr>
+    <tr><td rowspan="3"><img src="{$attachments[k].thumbnail}" class="thumb" width="80"></td></tr>
 {/if}
 {elseif $attachments[k].attachment_type == $ATTACHMENT_TYPE_VIDEO}
 {if $posts[i].id == $posts_attachments[j].post && $posts_attachments[j].video == $attachments[k].id}
     <tr><td rowspan="3"><br><br>
-    {include file='youtube.tpl' code=$attachments[k].code}
+    {*include file='youtube.tpl' code=$attachments[k].code*}
     </td></tr>
 {/if}
 {/if}

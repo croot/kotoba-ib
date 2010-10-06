@@ -130,13 +130,20 @@ try {
 	posts_check_text_size($text);
 
 	$attachment_type = null;
-    if ($thread['with_attachments']
-            || ($thread['with_attachments'] === null && $board['with_attachments'])) {
-        if ($_FILES['file']['error'] != UPLOAD_ERR_NO_FILE) {
-            check_upload_error($_FILES['file']['error']);
-            $uploaded_file_size = $_FILES['file']['size'];
-            $uploaded_file_path = $_FILES['file']['tmp_name'];
-            $uploaded_file_name = $_FILES['file']['name'];
+    if ($thread['with_attachments'] || ($thread['with_attachments'] === null && $board['with_attachments'])) {
+        if ($_FILES['file']['error'] != UPLOAD_ERR_NO_FILE || use_oekaki()) {
+            if (!use_oekaki()) {
+                check_upload_error($_FILES['file']['error']);
+                $uploaded_file_path = $_FILES['file']['tmp_name'];
+                $uploaded_file_name = $_FILES['file']['name'];
+                $uploaded_file_size = $_FILES['file']['size'];
+            } else {
+                $uploaded_file_path = Config::ABS_PATH . "/shi/{$_SESSION['oekaki']['file']}";
+                $uploaded_file_name = $_SESSION['oekaki']['file'];
+                if ( ($uploaded_file_size = filesize($uploaded_file_path)) === false) {
+                    throw new Exception('Cannot calculate filesize.');
+                }
+            }
             $uploaded_file_ext = get_extension($uploaded_file_name);
             $uploaded_file_ext = mb_strtolower($uploaded_file_ext, Config::MB_ENCODING);
             $upload_types = upload_types_get_by_board($board['id']);
@@ -159,16 +166,16 @@ try {
                 $attachment_type = Config::ATTACHMENT_TYPE_FILE;
             }
         } elseif (($board['enable_macro'] === null && Config::ENABLE_MACRO || $board['enable_macro'])
-                && isset($_POST['macrochan_tag'])
-                && $_POST['macrochan_tag'] != '') {
+                  && isset($_POST['macrochan_tag'])
+                  && $_POST['macrochan_tag'] != '') {
             /* TODO Actually macrochan tag entity is a pair: id, name. Is
              * $macrochan_tag should be $macrochan_tag_name?
              */
             $macrochan_tag = macrochan_tags_check($_POST['macrochan_tag']);
             $attachment_type = Config::ATTACHMENT_TYPE_LINK;
         } elseif (($board['enable_youtube'] === null && Config::ENABLE_YOUTUBE || $board['enable_youtube'])
-                && isset($_POST['youtube_video_code'])
-                && $_POST['youtube_video_code'] != '') {
+                  && isset($_POST['youtube_video_code'])
+                  && $_POST['youtube_video_code'] != '') {
             $youtube_video_code = videos_check_code($_POST['youtube_video_code']);
             $attachment_type = Config::ATTACHMENT_TYPE_VIDEO;
         }
@@ -180,8 +187,7 @@ try {
     }
 
     if ($attachment_type !== null) {
-        if ($attachment_type == Config::ATTACHMENT_TYPE_FILE
-                || $attachment_type == Config::ATTACHMENT_TYPE_IMAGE) {
+        if ($attachment_type == Config::ATTACHMENT_TYPE_FILE || $attachment_type == Config::ATTACHMENT_TYPE_IMAGE) {
             $file_hash = calculate_file_hash($uploaded_file_path);
             $file_exists = false;
             $same_attachments = null;
@@ -229,27 +235,42 @@ try {
             if ($file_exists) {
                 $attachment_id = $same_attachments[0]['id'];
             } else {
-                $img_dimensions = image_get_dimensions($upload_type,
-                    $uploaded_file_path);
-                if($img_dimensions['x'] < Config::MIN_IMGWIDTH
-                        && $img_dimensions['y'] < Config::MIN_IMGHEIGHT) {
+                $img_dimensions = image_get_dimensions($upload_type, $uploaded_file_path);
+                if($img_dimensions['x'] < Config::MIN_IMGWIDTH && $img_dimensions['y'] < Config::MIN_IMGHEIGHT) {
                     throw new LimitException(LimitException::$messages['MIN_IMG_DIMENTIONS']);
                 }
-                $abs_img_path = Config::ABS_PATH
-                    . "/{$board['name']}/img/{$file_names[0]}";
-                $abs_thumb_path = Config::ABS_PATH
-                    . "/{$board['name']}/thumb/{$file_names[1]}";
-                move_uploded_file($uploaded_file_path, $abs_img_path);
-                $force = $upload_type['upload_handler_name'] === 'thumb_internal_png'
-                    ? true : false;	// TODO Unhardcode handler name.
-                $thumb_dimensions = create_thumbnail($abs_img_path,
-                    $abs_thumb_path, $img_dimensions, $upload_type,
-                    Config::THUMBNAIL_WIDTH, Config::THUMBNAIL_HEIGHT,
-                    $force);
-                $attachment_id = images_add($file_hash, $file_names[0],
-                    $img_dimensions['x'], $img_dimensions['y'],
-                    $uploaded_file_size, $file_names[1], $thumb_dimensions['x'],
-                    $thumb_dimensions['y']);
+                $abs_img_path = Config::ABS_PATH . "/{$board['name']}/img/{$file_names[0]}";
+                $abs_thumb_path = Config::ABS_PATH . "/{$board['name']}/thumb/{$file_names[1]}";
+                if (!use_oekaki()) {
+                    move_uploded_file($uploaded_file_path, $abs_img_path);
+
+                    // TODO Unhardcode handler name.
+                    $force = $upload_type['upload_handler_name'] === 'thumb_internal_png' ? true : false;
+
+                    $thumb_dimensions = create_thumbnail($abs_img_path,
+                                                         $abs_thumb_path,
+                                                         $img_dimensions,
+                                                         $upload_type,
+                                                         Config::THUMBNAIL_WIDTH,
+                                                         Config::THUMBNAIL_HEIGHT,
+                                                         $force);
+                } else {
+                    copy_uploded_file($uploaded_file_path, $abs_img_path);
+                    copy_uploded_file(Config::ABS_PATH . "/shi/{$_SESSION['oekaki']['thumbnail']}",
+                                      $abs_thumb_path);
+                    $thumb_dimensions = array('x' => Config::THUMBNAIL_WIDTH,
+                                              'y' => Config::THUMBNAIL_HEIGHT);
+                }
+                $spoiler = (isset($_POST['spoiler']) && $_POST['spoiler'] == '1') ? true : false;
+                $attachment_id = images_add($file_hash,
+                                            $file_names[0],
+                                            $img_dimensions['x'],
+                                            $img_dimensions['y'],
+                                            $uploaded_file_size,
+                                            $file_names[1],
+                                            $thumb_dimensions['x'],
+                                            $thumb_dimensions['y'],
+                                            $spoiler);
             }
         } elseif ($attachment_type == Config::ATTACHMENT_TYPE_LINK) {
             $macrochan_image = macrochan_images_get_random($macrochan_tag);
@@ -307,13 +328,15 @@ try {
     }
 
     DataExchange::releaseResources();
+    unset($_SESSION['oekaki']);
 
     if ($_SESSION['goto'] == 't') {
         header('Location: ' . Config::DIR_PATH . "/{$board['name']}/{$thread['original_post']}/");
     } else {
         header('Location: ' . Config::DIR_PATH . "/{$board['name']}/");
     }
-    exit;
+
+    exit(0);
 } catch (Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();

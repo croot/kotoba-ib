@@ -42,7 +42,7 @@
         <span class="filesize">Файл: <a target="_blank" href="{$original_attachments[0].image_link}">{$original_attachments[0].name}</a>-({$original_attachments[0].size} Байт, {$original_attachments[0].widht}x{$original_attachments[0].height})</span>
         <br>
         <a target="_blank" href="{$original_attachments[0].image_link}">
-            <img src="{$original_attachments[0].thumbnail_link}" class="thumb" width="{$original_attachments[0].thumbnail_w}" height="{$original_attachments[0].thumbnail_h}">
+            <img src="{if $original_attachments[0].spoiler}{$DIR_PATH}/img/spoiler.png{else}{$original_attachments[0].thumbnail_link}{/if}" class="thumb"{if !$original_attachments[0].spoiler} width="{$original_attachments[0].thumbnail_w}" height="{$original_attachments[0].thumbnail_h}{/if}">
         </a>
     {elseif $original_attachments[0].attachment_type == $ATTACHMENT_TYPE_LINK}
         <span class="filesize">Файл: <a target="_blank" href="{$original_attachments[0].url}">{$original_attachments[0].url}</a>-({$original_attachments[0].size} Байт, {$original_attachments[0].widht}x{$original_attachments[0].height})</span>
@@ -95,7 +95,7 @@
     <div class="abbrev">Нажмите "Ответ" для просмотра сообщения целиком.</div>
 {/if}
 </blockquote>
-{if $enable_translation}<blockquote id="translation{$thread.original_post}"></blockquote><a href="#" onclick="javascript:translate('{$thread.original_post}'); return false;">Lolšto?</a>{/if}
+{if $enable_translation && $original_post.text}<blockquote id="translation{$thread.original_post}"></blockquote><a href="#" onclick="javascript:translate('{$thread.original_post}'); return false;">Lolšto?</a>{/if}
 
 {if $show_skipped && $skipped > 0}
     <span class="omittedposts">Сообщений пропущено: {$skipped}</span>

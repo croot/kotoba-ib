@@ -69,6 +69,7 @@ create table images                     -- Вложенные изображен
     thumbnail varchar(256) not null,    -- Уменьшенная копия.
     thumbnail_w int not null,           -- Ширина уменьшенной копии.
     thumbnail_h int not null,           -- Высота уменьшенной копии.
+    spoiler bit default 0,              -- Флаг спойлера.
     primary key (id)
 )
 engine=InnoDB;
@@ -459,4 +460,4 @@ insert into acl (`group`, `view`, `change`, `moderate`) values (3, 1, 1, 1);
 insert into acl (`group`, `view`, `change`, `moderate`) values (4, 1, 1, 1);
 
 -- Текущая версия БД.
-insert into db_version (version) values (5);
+insert into db_version (version) values (6);

@@ -21,6 +21,9 @@
     $tools - тип набора инструментов (pro, normal).
     $ip - IP-адрес художника.
     $time - время начала рисования.
+    $file - имя файла рисунка.
+    $board - имя доски.
+    $thread - номер нити.
 *}
 <html>
 <head>
@@ -43,8 +46,8 @@
     <param name="res.zip" value="res_{$tools}.zip" />
     <param name="tools" value="{$tools}" />
     <param name="layer_count" value="3" />
-    <param name="url_save" value="{$DIR_PATH}/lib/shi_save.php" />
-    <param name="url_exit" value="{$DIR_PATH}/lib/shi_exit.php?ip={$ip}&time={$time}&painter=shi_{$tools}" />
+    <param name="url_save" value="{$DIR_PATH}/lib/shi_save.php?file={$file}" />
+    <param name="url_exit" value="{$DIR_PATH}/lib/shi_exit.php?file={$file}&time={$time}&painter=shi_{$tools}&board={$board}&thread={$thread}" />
     <param name="send_header" value="{$ip}" />
 </applet>
 {include file='footer.tpl'}

@@ -13,26 +13,27 @@
 
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-	$STYLESHEET - стиль оформления (см. config.default).
-	$ib_name - название имейджборды (см. config.default).
-	$enable_macro - Включение интеграции с макрочаном (см. config.default).
-	$enable_youtube - Включение постинга видео с ютуба (см. config.default).
-        $enable_captcha - Включение каптчи.
-	$board - доска, на которой расположена просматриваемая нить.
-	$boards - доски.
-	$threads - просматриваемая нить.
-	$thread - просматриваемая нить.
-	$is_moderatable - текущая нить доступна для модерирования.
-	$is_admin - флаг администратора.
-	$password - пароль для удаления сообщений.
-	$upload_types - типы файлов, доступные для загрузки.
-	$goto - переход к нити или доске.
-        $name - имя
-        $banner - баннер.
+    $STYLESHEET - стиль оформления (см. config.default).
+    $ib_name - название имейджборды (см. config.default).
+    $enable_macro - Включение интеграции с макрочаном (см. config.default).
+    $enable_youtube - Включение постинга видео с ютуба (см. config.default).
+    $enable_captcha - Включение каптчи.
+    $board - доска, на которой расположена просматриваемая нить.
+    $boards - доски.
+    $threads - просматриваемая нить.
+    $thread - просматриваемая нить.
+    $is_moderatable - текущая нить доступна для модерирования.
+    $is_admin - флаг администратора.
+    $password - пароль для удаления сообщений.
+    $upload_types - типы файлов, доступные для загрузки.
+    $goto - переход к нити или доске.
+    $name - имя
+    $banner - баннер.
+    $oekaki - данные о рисунке.
 
 Специальные переменные (не входит в котобу):
-	$event_daynight_active - запущен ли эвент времени суток.
-	$event_daynight_code - код, добавляемый к html коду страницы, эвентом.
+    $event_daynight_active - запущен ли эвент времени суток.
+    $event_daynight_code - код, добавляемый к html коду страницы, эвентом.
 *}
 {include file='header.tpl' page_title="Просмотр нити `$thread.original_post`" DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
 {* Начало кода эвента времени суток (не входит в котобу). *}
@@ -59,7 +60,10 @@
 <tr valign="top"><td class="postblock">Тема: </td><td><input type="text" name="subject" size="56"> <input type="submit" value="Ответить"></td></tr>
 <tr valign="top"><td class="postblock">Сообщение: </td><td><textarea name="text" rows="7" cols="50"></textarea><img id="resizer" src="{$DIR_PATH}/flower.png"></td></tr>
 {if $thread.with_attachments || ($thread.with_attachments === null && $board.with_attachments)}
-	<tr valign="top"><td class="postblock">Файл: </td><td><input type="file" name="file" size="54"></td></tr>
+	<tr valign="top"><td class="postblock">Файл: </td><td><input type="file" name="file" size="54"> Спойлер: <input type="checkbox" name="spoiler" value="1" /></td></tr>
+	{if $oekaki}
+        <tr valign="top"><td class="postblock">Мой рисунок: </td><td><a href="{$DIR_PATH}/shi/{$oekaki.file}"><img border="0" src="{$DIR_PATH}/shi/{$oekaki.thumbnail}" align="middle" /></a> Использовать вместо файла: <input type="checkbox" name="use_oekaki" value="1"></td></tr>
+        {/if}
 	{if $enable_macro}
 		<tr valign="top"><td class="postblock">Макрос: </td>
 		<td>
@@ -74,7 +78,7 @@
 	{/if}
 	{if $enable_youtube}<tr valign="top"><td class="postblock">Youtube: </td><td><input type="text" name="youtube_video_code" size="30"></td></tr>{/if}
 {/if}
-{if $enable_captcha}<tr valign="top"><td class="postblock">Капча: </td><td><a href="#" onclick="document.getElementById('captcha').src = '{$DIR_PATH}/captcha/image.php?' + Math.random(); return false"><img border="0" id="captcha" src="{$DIR_PATH}/captcha/image.php" alt="Kotoba capcha v0.4" /></a> <input type="text" name="captcha_code" size="10" maxlength="6" /></tr>{/if}
+{if $enable_captcha}<tr valign="top"><td class="postblock">Капча: </td><td><a href="#" onclick="document.getElementById('captcha').src = '{$DIR_PATH}/captcha/image.php?' + Math.random(); return false"><img border="0" id="captcha" src="{$DIR_PATH}/captcha/image.php" alt="Kotoba capcha v0.4" align="middle" /></a> <input type="text" name="captcha_code" size="10" maxlength="6" /></tr>{/if}
 <tr valign="top"><td class="postblock">Пароль: </td><td><input type="password" name="password" size="30" value="{$password}"></td></tr>
 <tr valign="top"><td class="postblock">Перейти: </td><td>(нить: <input type="radio" name="goto" value="t"{if $goto == 't'} checked{/if}>) (доска: <input type="radio" name="goto" value="b"{if $goto == 'b'} checked{/if}>)</td></tr>
 <tr valign="top"><td class="postblock">Sage: </td><td><input type="checkbox" name="sage" value="sage"></td></tr>
@@ -85,6 +89,7 @@
 <li>Бамплимит доски: {$board.bump_limit}</li>
 <li>Бамплимит нити: {$thread.bump_limit}</li>
 <li>Число сообщений: {$thread.posts_count}</li>
+<li><a href="{$DIR_PATH}/catalog.php?board={$board.name}">Каталог нитей</a></li>
 </ul>
 {$board.annotation}
 </td></tr>
@@ -92,6 +97,19 @@
 </table>
 <input type="hidden" name="t" value="{$thread.id}">
 </form>
+{if $thread.with_attachments || ($thread.with_attachments === null && $board.with_attachments) && $enable_shi}
+<form action="{$DIR_PATH}/lib/shi_applet.php" method="post">
+    <input type="hidden" name="board" value="{$board.name}">
+    <input type="hidden" name="thread" value="{$thread.original_post}">
+    Наоекакать: <select name="painter">
+        <option value="shi_normal" selected="selected">Shi Normal</option>
+        <option value="shi_pro">Shi Pro</option>
+    </select>
+    Ширина: <input type="text" name="x" size="3" value="640" />
+    Высота: <input type="text" name="y" size="3" value="480" />
+    <input type="submit" value="Рисовать" />
+</form>
+{/if}
 </div>
 {literal}<script type="text/javascript">
 <!--

@@ -35,7 +35,7 @@ class SmartyKotobaSetup extends Smarty { // Java CC
     var $stylesheet;
 
     function SmartyKotobaSetup($language = Config::LANGUAGE,
-            $stylesheet = Config::STYLESHEET) {
+                               $stylesheet = Config::STYLESHEET) {
         // Try to fix warning on strftime.
         date_default_timezone_set(Config::DEFAULT_TIMEZONE);
 
@@ -43,14 +43,10 @@ class SmartyKotobaSetup extends Smarty { // Java CC
         $this->language = $language;
         $this->stylesheet = $stylesheet;
 
-        $this->template_dir = Config::ABS_PATH
-                . "/smarty/kotoba/templates/locale/$language/";
-        $this->compile_dir = Config::ABS_PATH
-                . "/smarty/kotoba/templates_c/locale/$language/";
-        $this->config_dir = Config::ABS_PATH
-                . "/smarty/kotoba/config/$language/";
-        $this->cache_dir = Config::ABS_PATH
-                . "/smarty/kotoba/cache/$language/";
+        $this->template_dir = Config::ABS_PATH . "/smarty/kotoba/templates/locale/$language/";
+        $this->compile_dir = Config::ABS_PATH . "/smarty/kotoba/templates_c/locale/$language/";
+        $this->config_dir = Config::ABS_PATH . "/smarty/kotoba/config/$language/";
+        $this->cache_dir = Config::ABS_PATH . "/smarty/kotoba/cache/$language/";
         $this->caching = 0;
 
         $this->assign('DIR_PATH', Config::DIR_PATH);
@@ -199,23 +195,24 @@ function check_utf8($text) { // Java CC
 }
 /**
  * Создаёт имена для загружаемого файла и уменьшенной копии (если это
- * изображение), с которыми они будут сохранены.
+ * изображение).
  * @param string $ext Расширение файла, с которым он будет сохранён.
  * @return array
- * Возвращает имена файлов:<p>
- * 0 - новое имя загружаемого файла.<br>
+ * Возвращает имена файлов:<br>
+ * 0 - имя загружаемого файла.<br>
  * 1 - имя уменьшенной копии (для изображений)<br>
- * 2 - новое имя файла без расширения.</p>
+ * 2 - имя загружаемого файла без расширения.
  */
 function create_filenames($ext) {
 	list($usec, $sec) = explode(' ', microtime());
+
 	// Три знака после запятой.
-	$saved_filename = $sec . substr($usec, 2, 5);
+	$filename = $sec . substr($usec, 2, 5);
+
 	// Имена всех миниатюр заканчиваются на t.
-	$saved_thumbname = $saved_filename . 't.' . $ext;
-	$raw_filename = $saved_filename;
-	$saved_filename .= ".$ext";
-	return array($saved_filename, $saved_thumbname, $raw_filename);
+	return array("$filename.$ext",
+                 "{$filename}t.$ext",
+                 $filename);
 }
 /**
  * Создаёт трипкод.
@@ -246,6 +243,16 @@ function calculate_tripcode($name) { // Java CC
 function move_uploded_file($source, $dest) { // Java CC
     if (!@rename($source, $dest)) {
         throw new UploadException(UploadException::$messages['UPLOAD_SAVE']);
+    }
+}
+/**
+ * Копирует загруженный файл на постоянное место хранения.
+ * @param string $source Путь к загруженному файлу.
+ * @param string $dest Путь, куда должен быть сохранён загруженный файл.
+ */
+function copy_uploded_file($source, $dest) { // Java CC
+    if (!@copy($source, $dest)) {
+        throw new UploadException('Cannot copy file.');
     }
 }
 /**
@@ -285,6 +292,12 @@ function show_same_attachments($smarty, $board_name, $same_attachments) { // Jav
     $smarty->assign('same_uploads', $same_attachments);
     $smarty->assign('board_name', $board_name);
     $smarty->display('same_uploads.tpl');
+}
+/**
+ *
+ */
+function use_oekaki() {
+    return isset($_POST['use_oekaki']) && $_POST['use_oekaki'] == '1' && isset($_SESSION['oekaki']) && is_array($_SESSION['oekaki']);
 }
 /**
  * Проверяет, не произошло ли ошибки при загрузке файла.
