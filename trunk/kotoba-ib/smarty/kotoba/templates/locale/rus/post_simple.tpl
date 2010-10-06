@@ -66,7 +66,7 @@
                         <span class="filesize">Файл: <a target="_blank" href="{$simple_attachments[0].image_link}">{$simple_attachments[0].name}</a>-({$simple_attachments[0].size} Байт, {$simple_attachments[0].widht}x{$simple_attachments[0].height})</span>
                         <br>
                         <a target="_blank" href="{$simple_attachments[0].image_link}">
-                            <img src="{$simple_attachments[0].thumbnail_link}" class="thumb" width="{$simple_attachments[0].thumbnail_w}" height="{$simple_attachments[0].thumbnail_h}">
+                            <img src="{if $simple_attachments[0].spoiler}{$DIR_PATH}/img/spoiler.png{else}{$simple_attachments[0].thumbnail_link}{/if}" class="thumb"{if !$simple_attachments[0].spoiler} width="{$simple_attachments[0].thumbnail_w}" height="{$simple_attachments[0].thumbnail_h}{/if}">
                         </a>
                     {elseif $simple_attachments[0].attachment_type == $ATTACHMENT_TYPE_LINK}
                         <span class="filesize">Файл: <a target="_blank" href="{$simple_attachments[0].url}">{$simple_attachments[0].url}</a>-({$simple_attachments[0].size} Байт, {$simple_attachments[0].widht}x{$simple_attachments[0].height})</span>
@@ -86,7 +86,7 @@
                         <div class="abbrev">Нажмите "Ответ" для просмотра сообщения целиком.</div>
                     {/if}
                 </blockquote>
-                {if $enable_translation}<blockquote id="translation{$simple_post.number}"></blockquote><a href="#" onclick="javascript:translate('{$simple_post.number}'); return false;">Lolšto?</a>{/if}
+                {if $enable_translation && $simple_post.text}<blockquote id="translation{$simple_post.number}"></blockquote><a href="#" onclick="javascript:translate('{$simple_post.number}'); return false;">Lolšto?</a>{/if}
 
             </td>
         </tr>

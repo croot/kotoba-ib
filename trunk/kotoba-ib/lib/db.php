@@ -1287,11 +1287,12 @@ function hidden_threads_get_visible($board_id, $thread_num, $user_id)
  * @param string $thumbnail Уменьшенная копия.
  * @param int $thumbnail_w Ширина уменьшенной копии.
  * @param int $thumbnail_h Высота уменьшенной копии.
+ * @param boolean $spoiler Флаг спойлера.
  * @return string
  * Возвращает идентификатор вложенного изображения.
  */
-function images_add($hash, $name, $widht, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h) { // Java CC
-    return db_images_add(DataExchange::getDBLink(), $hash, $name, $widht, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h);
+function images_add($hash, $name, $widht, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h, $spoiler) { // Java CC
+    return db_images_add(DataExchange::getDBLink(), $hash, $name, $widht, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h, $spoiler);
 }
 /**
  * Проверяет, удовлетворяет ли загружаемое изображение ограничениям по размеру.

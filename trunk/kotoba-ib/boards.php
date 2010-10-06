@@ -186,6 +186,9 @@ try {
     $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
     $smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
     $smarty->assign('name', $_SESSION['name']);
+    if (isset($_SESSION['oekaki'])) {
+        $smarty->assign('oekaki', $_SESSION['oekaki']);
+    }
 
     //event_daynight($smarty);
 

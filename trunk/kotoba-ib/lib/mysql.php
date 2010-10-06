@@ -1608,13 +1608,15 @@ function db_hidden_threads_get_visible($link, $board_id, $thread_num, $user_id)
  * @param string $thumbnail Уменьшенная копия.
  * @param int $thumbnail_w Ширина уменьшенной копии.
  * @param int $thumbnail_h Высота уменьшенной копии.
+ * @param boolean $spoiler Флаг спойлера.
  * @return string
  * Возвращает идентификатор вложенного изображения.
  */
-function db_images_add($link, $hash, $name, $widht, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h) { // Java CC
+function db_images_add($link, $hash, $name, $widht, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h, $spoiler) { // Java CC
     $hash = ($hash == null ? 'null' : "'$hash'");
+    $spoiler = ($spoiler ? '1' : '0');
 
-    $result = mysqli_query($link, "call sp_images_add($hash, '$name', $widht, $height, $size, '$thumbnail', $thumbnail_w, $thumbnail_h)");
+    $result = mysqli_query($link, "call sp_images_add($hash, '$name', $widht, $height, $size, '$thumbnail', $thumbnail_w, $thumbnail_h, $spoiler)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
@@ -1639,6 +1641,7 @@ function db_images_add($link, $hash, $name, $widht, $height, $size, $thumbnail, 
  * 'thumbnail' - Уменьшенная копия.<br>
  * 'thumbnail_w' - Ширина уменьшенной копии.<br>
  * 'thumbnail_h' - Высота уменьшенной копии.<br>
+ * 'spoiler' - Флаг спойлера.<br>
  * 'attachment_type' - Тип вложения (изображение).
  */
 function db_images_get_by_board($link, $board_id) { // Java CC
@@ -1660,6 +1663,7 @@ function db_images_get_by_board($link, $board_id) { // Java CC
                       'thumbnail' => $row['thumbnail'],
                       'thumbnail_w' => $row['thumbnail_w'],
                       'thumbnail_h' => $row['thumbnail_h'],
+                      'spoiler' => $row['spoiler'],
                       'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE));
         }
     }
@@ -1683,6 +1687,7 @@ function db_images_get_by_board($link, $board_id) { // Java CC
  * 'thumbnail' - Уменьшенная копия.<br>
  * 'thumbnail_w' - Ширина уменьшенной копии.<br>
  * 'thumbnail_h' - Высота уменьшенной копии.<br>
+ * 'spoiler' - Флаг спойлера.<br>
  * 'attachment_type' - Тип вложения (изображение).
  */
 function db_images_get_by_post($link, $post_id) { // Java CC
@@ -1704,6 +1709,7 @@ function db_images_get_by_post($link, $post_id) { // Java CC
 						'thumbnail' => $row['thumbnail'],
 						'thumbnail_w' => $row['thumbnail_w'],
 						'thumbnail_h' => $row['thumbnail_h'],
+                        'spoiler' => $row['spoiler'],
 						'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE));
         }
     }
@@ -1727,6 +1733,7 @@ function db_images_get_by_post($link, $post_id) { // Java CC
  * 'thumbnail' - Уменьшенная копия.<br>
  * 'thumbnail_w' - Ширина уменьшенной копии.<br>
  * 'thumbnail_h' - Высота уменьшенной копии.<br>
+ * 'spoiler' - Флаг спойлера.<br>
  * 'attachment_type' - Тип вложения (изображение).
  */
 function db_images_get_by_thread($link, $thread_id) { // Java CC
@@ -1748,6 +1755,7 @@ function db_images_get_by_thread($link, $thread_id) { // Java CC
                       'thumbnail' => $row['thumbnail'],
                       'thumbnail_w' => $row['thumbnail_w'],
                       'thumbnail_h' => $row['thumbnail_h'],
+                      'spoiler' => $row['spoiler'],
                       'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE));
         }
     }
@@ -1770,6 +1778,7 @@ function db_images_get_by_thread($link, $thread_id) { // Java CC
  * 'thumbnail' - Уменьшенная копия.<br>
  * 'thumbnail_w' - Ширина уменьшенной копии.<br>
  * 'thumbnail_h' - Высота уменьшенной копии.<br>
+ * 'spoiler' - Флаг спойлера.<br>
  * 'attachment_type' - Тип вложения (изображение).
  */
 function db_images_get_dangling($link) { // Java CC
@@ -1783,15 +1792,16 @@ function db_images_get_dangling($link) { // Java CC
         while (($row = mysqli_fetch_assoc($result)) != null) {
             array_push($images,
                 array('id' => $row['id'],
-                       'hash' => $row['hash'],
-                       'name' => $row['name'],
-                       'widht' => $row['widht'],
-                       'height' => $row['height'],
-                       'size' => $row['size'],
-                       'thumbnail' => $row['thumbnail'],
-                       'thumbnail_w' => $row['thumbnail_w'],
-                       'thumbnail_h' => $row['thumbnail_h'],
-                       'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE));
+                      'hash' => $row['hash'],
+                      'name' => $row['name'],
+                      'widht' => $row['widht'],
+                      'height' => $row['height'],
+                      'size' => $row['size'],
+                      'thumbnail' => $row['thumbnail'],
+                      'thumbnail_w' => $row['thumbnail_w'],
+                      'thumbnail_h' => $row['thumbnail_h'],
+                      'spoiler' => $row['spoiler'],
+                      'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE));
         }
     }
 
@@ -1816,6 +1826,7 @@ function db_images_get_dangling($link) { // Java CC
  * 'thumbnail' - Уменьшенная копия.<br>
  * 'thumbnail_w' - Ширина уменьшенной копии.<br>
  * 'thumbnail_h' - Высота уменьшенной копии.</p>
+ * 'spoiler' - Флаг спойлера.<br>
  * 'post_number' - Номер сообщения, в которое вложено изображение.<br>
  * 'thread_number' - Номер нити с сообщением, в которое вложено	изображение.<br>
  * 'attachment_type' - Тип вложения.<br>
@@ -1840,6 +1851,7 @@ function db_images_get_same($link, $board_id, $user_id, $image_hash) { // Java C
                       'thumbnail' => $row['thumbnail'],
                       'thumbnail_w' => $row['thumbnail_w'],
                       'thumbnail_h' => $row['thumbnail_h'],
+                      'spoiler' => $row['spoiler'],
                       'post_number' => $row['number'],
                       'thread_number' => $row['original_post'],
                       'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE,

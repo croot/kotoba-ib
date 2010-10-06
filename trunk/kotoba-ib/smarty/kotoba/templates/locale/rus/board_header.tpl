@@ -34,6 +34,7 @@
     $macrochan_tags - теги макросов.
     $name - имя
     $banner - баннер.
+    $oekaki - данные о рисунке.
 
 Специальные переменные (не входит в котобу):
     $event_daynight_active - запущен ли эвент времени суток.
@@ -79,7 +80,10 @@
 <tr valign="top"><td class="postblock">Тема: </td><td><input type="text" name="subject" size="48"> <input type="submit" value="Создать нить"></td></tr>
 <tr valign="top"><td class="postblock">Сообщение: </td><td><textarea name="text" rows="7" cols="50"></textarea><img id="resizer" src="{$DIR_PATH}/flower.png"></td></tr>
 {if $board.with_attachments}
-	<tr valign="top"><td class="postblock">Файл: </td><td><input type="file" name="file" size="54"></td></tr>
+	<tr valign="top"><td class="postblock">Файл: </td><td><input type="file" name="file" size="54"> Спойлер: <input type="checkbox" name="spoiler" value="1" /></td></tr>
+	{if $oekaki}
+        <tr valign="top"><td class="postblock">Мой рисунок: </td><td><a href="{$DIR_PATH}/shi/{$oekaki.file}"><img border="0" src="{$DIR_PATH}/shi/{$oekaki.thumbnail}" align="middle" /></a> Использовать вместо файла: <input type="checkbox" name="use_oekaki" value="1"></td></tr>
+        {/if}
 	{if $enable_macro}
 	<tr valign="top"><td class="postblock">Макрос: </td>
 	<td>
@@ -94,7 +98,7 @@
 	{/if}
 	{if $enable_youtube}<tr valign="top"><td class="postblock">Youtube: </td><td><input type="text" name="youtube_video_code" size="30"></td></tr>{/if}
 {/if}
-{if $enable_captcha}<tr valign="top"><td class="postblock">Капча: </td><td><a href="#" onclick="document.getElementById('captcha').src = '{$DIR_PATH}/captcha/image.php?' + Math.random(); return false"><img border="0" id="captcha" src="{$DIR_PATH}/captcha/image.php" alt="Kotoba capcha v0.4" /></a> <input type="text" name="captcha_code" size="10" maxlength="6" /></tr>{/if}
+{if $enable_captcha}<tr valign="top"><td class="postblock">Капча: </td><td><a href="#" onclick="document.getElementById('captcha').src = '{$DIR_PATH}/captcha/image.php?' + Math.random(); return false"><img border="0" id="captcha" src="{$DIR_PATH}/captcha/image.php" alt="Kotoba capcha v0.4" align="middle" /></a> <input type="text" name="captcha_code" size="10" maxlength="6" /></tr>{/if}
 <tr valign="top"><td class="postblock">Пароль: </td><td><input type="password" name="password" size="30" value="{$password}"></td></tr>
 <tr valign="top"><td class="postblock">Перейти: </td><td>(нить: <input type="radio" name="goto" value="t"{if $goto == 't'} checked{/if}>) (доска: <input type="radio" name="goto" value="b"{if $goto == 'b'} checked{/if}>)</td></tr>
 
@@ -112,6 +116,7 @@
 </form>
 {if $board.with_attachments && $enable_shi}
 <form action="{$DIR_PATH}/lib/shi_applet.php" method="post">
+    <input type="hidden" name="board" value="{$board.name}">
     Наоекакать: <select name="painter">
         <option value="shi_normal" selected="selected">Shi Normal</option>
         <option value="shi_pro">Shi Pro</option>

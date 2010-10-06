@@ -42,12 +42,19 @@ try {
     if (!isset($_POST['y']) || !ctype_digit($_POST['y']) || strlen($_POST['y']) > 3) {
         throw new Exception('y');
     }
+    if (isset($_POST['board'])) {
+        $smarty->assign('board', boards_check_name($_POST['board']));
+    }
+    if (isset($_POST['thread'])) {
+        $smarty->assign('thread', threads_check_original_post($_POST['thread']));
+    }
     if ($_POST['painter'] == 'shi_pro') {
         $tools = 'pro';
     } elseif ($_POST['painter'] == 'shi_normal') {
         $tools = 'normal';
     }
     date_default_timezone_set('Europe/Moscow');
+    $file_names = create_filenames('png');
 
     // Cleanup.
     DataExchange::releaseResources();
@@ -59,6 +66,7 @@ try {
     $smarty->assign('tools', $tools);
     $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
     $smarty->assign('time', time());
+    $smarty->assign('file', $file_names[2]);
     $smarty->display('shi_applet.tpl');
 
     exit(0);

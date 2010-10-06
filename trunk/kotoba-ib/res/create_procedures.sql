@@ -57,10 +57,10 @@ drop procedure if exists sp_hidden_threads_get_by_board|
 drop procedure if exists sp_hidden_threads_get_visible|
 
 drop procedure if exists sp_images_add|
+drop procedure if exists sp_images_get_by_board|
 drop procedure if exists sp_images_get_by_post|
 drop procedure if exists sp_images_get_by_thread|
 drop procedure if exists sp_images_get_dangling|
-drop procedure if exists sp_images_get_by_board|
 drop procedure if exists sp_images_get_same|
 
 drop procedure if exists sp_languages_add|
@@ -1192,11 +1192,12 @@ create procedure sp_images_add
     _size int,                  -- Размер в байтах.
     _thumbnail varchar(256),    -- Уменьшенная копия.
     _thumbnail_w int,           -- Ширина уменьшенной копии.
-    _thumbnail_h int            -- Высота уменьшенной копии.
+    _thumbnail_h int,           -- Высота уменьшенной копии.
+    _spoiler bit                -- Флаг спойлера.
 )
 begin
-    insert into images (hash, name, widht, height, size, thumbnail, thumbnail_w, thumbnail_h)
-        values (_hash, _name, _widht, _height, _size, _thumbnail, _thumbnail_w, _thumbnail_h);
+    insert into images (hash, name, widht, height, size, thumbnail, thumbnail_w, thumbnail_h, spoiler)
+        values (_hash, _name, _widht, _height, _size, _thumbnail, _thumbnail_w, _thumbnail_h, _spoiler);
     select last_insert_id() as id;
 end|
 
@@ -1206,7 +1207,7 @@ create procedure sp_images_get_by_board
     _board int  -- Идентификатор доски.
 )
 begin
-    select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail, i.thumbnail_w, i.thumbnail_h
+    select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail, i.thumbnail_w, i.thumbnail_h, i.spoiler
         from images i
         join posts_images pi on pi.image = i.id
         join posts p on pi.post = p.id
@@ -1219,7 +1220,7 @@ create procedure sp_images_get_by_post
     post_id int -- Идентификатор сообщения.
 )
 begin
-    select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail, i.thumbnail_w, i.thumbnail_h
+    select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail, i.thumbnail_w, i.thumbnail_h, i.spoiler
         from posts_images pi
         join images i on i.id = pi.image and pi.post = post_id;
 end|
@@ -1230,7 +1231,7 @@ create procedure sp_images_get_by_thread
     thread_id int -- Идентификатор нити.
 )
 begin
-    select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail, i.thumbnail_w, i.thumbnail_h
+    select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail, i.thumbnail_w, i.thumbnail_h, i.spoiler
         from images i
         join posts_images pi on i.id = pi.image
         join posts p on p.id = pi.post and p.thread = thread_id;
@@ -1239,7 +1240,7 @@ end|
 -- Выбирает висячие изображения.
 create procedure sp_images_get_dangling ()
 begin
-    select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail, i.thumbnail_w, i.thumbnail_h
+    select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail, i.thumbnail_w, i.thumbnail_h, i.spoiler
         from images i
         left join posts_images pi on pi.image = i.id
         where pi.post is null;
@@ -1254,7 +1255,7 @@ create procedure sp_images_get_same
 )
 begin
 	select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail,
-                    i.thumbnail_w, i.thumbnail_h, p.number, t.original_post,
+                    i.thumbnail_w, i.thumbnail_h, i.spoiler, p.number, t.original_post,
                     max(case
                             when a1.`view` = 0 then 0
                             when a2.`view` = 0 then 0
