@@ -27,8 +27,9 @@
  * @param boolean $crop Флаг урезания текста сообщения.
  * @param int $lines_per_post Количество строк, которые нужно
  * оставить при урезании текста сообщения.
+ * @param boolean $author_admin Сообщение было оставлено администратором.
  */
-function post_simple_generate_html($smarty, $board, $thread, $post, $posts_attachments, $attachments, $crop, $lines_per_post) {
+function post_simple_generate_html($smarty, $board, $thread, $post, $posts_attachments, $attachments, $crop, $lines_per_post, $author_admin) {
     $post_attachments = array();
     $is_cutted = false;
 
@@ -87,6 +88,9 @@ function post_simple_generate_html($smarty, $board, $thread, $post, $posts_attac
     }
     $smarty->assign('simple_post', $post);
     $smarty->assign('simple_attachments', $post_attachments);
+    $tripcode = calculate_tripcode("#{$post['ip']}");
+    $smarty->assign('postid', $tripcode[1]);
+    $smarty->assign('author_admin', $author_admin);
     return $smarty->fetch('post_simple.tpl');
 }
 /**
@@ -102,8 +106,9 @@ function post_simple_generate_html($smarty, $board, $thread, $post, $posts_attac
  * @param boolean $show_skipped Флаг показа количества не показанных сообщений.
  * @param int $posts_per_thread Количество показываемых сообщений в нити.
  * @param int $show_reply Показывать ссылку на просмотр нити и ответ.
+ * @param boolean $author_admin Сообщение было оставлено администратором.
  */
-function post_original_generate_html($smarty, $board, $thread, $post, $posts_attachments, $attachments, $crop, $lines_per_post, $show_skipped, $posts_per_thread, $show_reply) {
+function post_original_generate_html($smarty, $board, $thread, $post, $posts_attachments, $attachments, $crop, $lines_per_post, $show_skipped, $posts_per_thread, $show_reply, $author_admin) {
     $original_attachments = array();
     $is_cutted = false;
 
@@ -170,6 +175,9 @@ function post_original_generate_html($smarty, $board, $thread, $post, $posts_att
     $smarty->assign('original_post', $post);
     $smarty->assign('original_attachments', $original_attachments);
     $smarty->assign('show_reply', $show_reply);
+    $tripcode = calculate_tripcode("#{$post['ip']}");
+    $smarty->assign('postid', $tripcode[1]);
+    $smarty->assign('author_admin', $author_admin);
     return $smarty->fetch('post_original.tpl');
 }
 ?>

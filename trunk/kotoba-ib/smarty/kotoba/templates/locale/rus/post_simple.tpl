@@ -23,6 +23,9 @@
     $simple_attachments - вложения.
     $enable_translation - Включение перевода текста сообщения (см. config.default).
     $enable_geoip - Включение отображения страны автора сообщения (см. config.default).
+    $enable_postid - Включение идентификатора поста.
+    $postid - Идентификатор поста.
+    $author_admin - Сообщение было оставлено администратором.
 *}
 <table>
     <tbody>
@@ -43,17 +46,15 @@
 
                 <span class="filetitle">{$simple_post.subject}</span>
                 <span class="postername">{$simple_post.name}</span>
-                {if $simple_post.tripcode != null}
-                    <span class="postertrip">!{$simple_post.tripcode}</span>
-                {/if}
+                {if $simple_post.tripcode != null}<span class="postertrip">!{$simple_post.tripcode}</span>{/if}
+                {if $author_admin} <span class="admin">❀❀&nbsp;Админ&nbsp;❀❀</span>{/if}
                 {$simple_post.date_time}
                 <span class="reflink">
                     <span onclick="insert('>>{$simple_post.number}');">#</span>
                     <a href="{$DIR_PATH}/{$board.name}/{$thread.original_post}#{$simple_post.number}">{$simple_post.number}</a>
                 </span>
-                {if $is_admin}
-                    {include file='mod_mini_panel.tpl' post_id=$simple_post.id ip=$simple_post.ip board_name=$board.name post_num=$simple_post.number}
-                {/if}
+                {if $enable_postid} ID:{$postid}{/if}
+                {if $is_admin} {include file='mod_mini_panel.tpl' post_id=$simple_post.id ip=$simple_post.ip board_name=$board.name post_num=$simple_post.number}{/if}
                 <br>
                 {if $simple_post.with_attachments}
                     {if $simple_attachments[0].attachment_type == $ATTACHMENT_TYPE_FILE}

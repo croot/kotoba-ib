@@ -559,50 +559,66 @@ function db_boards_edit($link, $id, $title, $annotation, $bump_limit,
 }
 /**
  * Получает все доски.
- * @param link MySQLi <p>Связь с базой данных.</p>
+ * @param MySQLi $link Связь с базой данных.
  * @return array
- * Возвращает доски:<p>
- * 'id' - идентификатор.<br>
- * 'name' - имя.<br>
- * 'title' - заголовок.<br>
- * 'annotation' - аннотация.<br>
- * 'bump_limit' - специфичный для доски бамплимит.<br>
- * 'force_anonymous' - флаг отображения имени отправителя.<br>
- * 'default_name' - имя отправителя по умолчанию.<br>
- * 'with_attachments' - флаг вложений.<br>
- * 'enable_macro' - включение интеграции с макрочаном.<br>
- * 'enable_youtube' - включение вложения видео с ютуба.<br>
- * 'enable_captcha' - включение капчи.<br>
- * 'same_upload' - политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
- * 'category' - категория.</p>
+ * Возвращает доски:<br>
+ * id - идентификатор.<br>
+ * name - имя.<br>
+ * title - заголовок.<br>
+ * annotation - аннотация.<br>
+ * bump_limit - специфичный для доски бамплимит.<br>
+ * force_anonymous - флаг отображения имени отправителя.<br>
+ * default_name - имя отправителя по умолчанию.<br>
+ * with_attachments - флаг вложений.<br>
+ * enable_macro - включение интеграции с макрочаном.<br>
+ * enable_youtube - включение вложения видео с ютуба.<br>
+ * enable_captcha - включение капчи.<br>
+ * enable_translation - включение перевода текста сообщения.<br>
+ * enable_geoip - включение отображения страны автора сообщения.<br>
+ * enable_shi - включение рисования.<br>
+ * enable_postid - включение идентификатора поста.<br>
+ * same_upload - политика загрузки одинаковых файлов.<br>
+ * popdown_handler - обработчик автоматического удаления нитей.<br>
+ * category - категория.
  */
-function db_boards_get_all($link)
-{
-	$result = mysqli_query($link, 'call sp_boards_get_all()');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$boards = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) !== null)
-			array_push($boards,
-				array('id' => $row['id'],
-						'name' => $row['name'],
-						'title' => $row['title'],
-						'annotation' => $row['annotation'],
-						'bump_limit' => $row['bump_limit'],
-						'force_anonymous' => $row['force_anonymous'],
-						'default_name' => $row['default_name'],
-						'with_attachments' => $row['with_attachments'],
-						'enable_macro' => $row['enable_macro'],
-						'enable_youtube' => $row['enable_youtube'],
-						'enable_captcha' => $row['enable_captcha'],
-						'same_upload' => $row['same_upload'],
-						'popdown_handler' => $row['popdown_handler'],
-						'category' => $row['category']));
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $boards;
+function db_boards_get_all($link) {
+
+    // Query.
+    $result = mysqli_query($link, 'call sp_boards_get_all()');
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    // Collect data from query result.
+    $boards = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while (($row = mysqli_fetch_assoc($result)) !== null) {
+            array_push($boards,
+                array('id' => $row['id'],
+                      'name' => $row['name'],
+                      'title' => $row['title'],
+                      'annotation' => $row['annotation'],
+                      'bump_limit' => $row['bump_limit'],
+                      'force_anonymous' => $row['force_anonymous'],
+                      'default_name' => $row['default_name'],
+                      'with_attachments' => $row['with_attachments'],
+                      'enable_macro' => $row['enable_macro'],
+                      'enable_youtube' => $row['enable_youtube'],
+                      'enable_captcha' => $row['enable_captcha'],
+                      'enable_translation' => $row['enable_translation'],
+                      'enable_geoip' => $row['enable_geoip'],
+                      'enable_shi' => $row['enable_shi'],
+                      'enable_postid' => $row['enable_postid'],
+                      'same_upload' => $row['same_upload'],
+                      'popdown_handler' => $row['popdown_handler'],
+                      'category' => $row['category']));
+        }
+    }
+
+    // Cleanup.
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $boards;
 }
 /**
  * Получает заданную доску.
@@ -944,20 +960,21 @@ function db_boards_get_moderatable($link, $user_id)
  * name - имя.<br>
  * title - заголовок.<br>
  * annotation - аннотация.<br>
- * bump_limit - спецефиный для доски бамплимит.<br>
+ * bump_limit - специфичный для доски бамплимит.<br>
  * force_anonymous - флаг отображения имени отправителя.<br>
  * default_name - имя отправителя по умолчанию.<br>
  * with_attachments - флаг вложений.<br>
  * enable_macro - включение интеграции с макрочаном.<br>
  * enable_youtube - включение вложения видео с ютуба.<br>
  * enable_captcha - включение капчи.<br>
- * enable_translation - Включение перевода текста сообщения.<br>
- * enable_geoip - Включение отображения страны автора сообщения.<br>
- * enable_shi - Включение рисования.<br>
+ * enable_translation - включение перевода текста сообщения.<br>
+ * enable_geoip - включение отображения страны автора сообщения.<br>
+ * enable_shi - включение рисования.<br>
+ * enable_postid - включение идентификатора поста.<br>
  * same_upload - политика загрузки одинаковых файлов.<br>
  * popdown_handler - обработчик автоматического удаления нитей.<br>
  * category - категория.<br>
- * category_name - Имя категории.
+ * category_name - имя категории.
  */
 function db_boards_get_visible($link, $user_id) { // Java CC
     $result = mysqli_query($link, "call sp_boards_get_visible($user_id)");
@@ -983,6 +1000,7 @@ function db_boards_get_visible($link, $user_id) { // Java CC
                       'enable_translation' => $row['enable_translation'],
                       'enable_geoip' => $row['enable_geoip'],
                       'enable_shi' => $row['enable_shi'],
+                      'enable_postid' => $row['enable_postid'],
                       'same_upload' => $row['same_upload'],
                       'popdown_handler' => $row['popdown_handler'],
                       'category' => $row['category'],
@@ -2831,52 +2849,55 @@ function db_posts_get_visible_by_id($link, $post_id, $user_id) { // Java CC
 }
 /**
  * Получает заданное сообщение, доступное для просмотра заданному пользователю.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param post_number mixed <p>Номер сообщения.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param string|int $board_id Идентификатор доски.
+ * @param string|int $post_number Номер сообщения.
+ * @param string|int $user_id Идентификатор пользователя.
  * @return array
- * Возвращает сообщение:<p>
- * 'id' - Идентификатор.<br>
- * 'thread' - Идентификатор нити.<br>
- * 'number' - Номер.<br>
- * 'password' - Пароль.<br>
- * 'name' - Имя отправителя.<br>
- * 'tripcode' - Трипкод.<br>
- * 'ip' - IP-адрес отправителя.<br>
- * 'subject' - Тема.<br>
- * 'date_time' - Время сохранения.<br>
- * 'text' - Текст.<br>
- * 'sage' - Флаг поднятия нити.</p>
+ * Возвращает сообщение:<br>
+ * id - Идентификатор.<br>
+ * thread - Идентификатор нити.<br>
+ * number - Номер.<br>
+ * password - Пароль.<br>
+ * name - Имя отправителя.<br>
+ * tripcode - Трипкод.<br>
+ * ip - IP-адрес отправителя.<br>
+ * subject - Тема.<br>
+ * date_time - Время сохранения.<br>
+ * text - Текст.<br>
+ * sage - Флаг поднятия нити.
  */
-function db_posts_get_visible_by_number($link, $board_id, $post_number,
-	$user_id)
-{
-	$result = mysqli_query($link, 'call sp_posts_get_visible_by_number('
-			. $board_id . ', ' . $post_number . ', ' . $user_id . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$post = null;
-	if(mysqli_affected_rows($link) > 0
-		&& ($row = mysqli_fetch_assoc($result)) != null)
-	{
-		$post['id'] = $row['id'];
-		$post['thread'] = $row['thread'];
-		$post['number'] = $row['number'];
-		$post['password'] = $row['password'];
-		$post['name'] = $row['name'];
-		$post['tripcode'] = $row['tripcode'];
-		$post['ip'] = $row['ip'];
-		$post['subject'] = $row['subject'];
-		$post['date_time'] = $row['date_time'];
-		$post['text'] = $row['text'];
-		$post['sage'] = $row['sage'];
-	}
-	if($post === null)
-		throw new NodataException(NodataException::$messages['POST_NOT_FOUND']);
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $post;
+function db_posts_get_visible_by_number($link, $board_id, $post_number, $user_id) {
+    // Query.
+    $result = mysqli_query($link, "call sp_posts_get_visible_by_number($board_id, $post_number, $user_id)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    // Collect data from query result.
+    $post = null;
+    if(mysqli_affected_rows($link) > 0 && ($row = mysqli_fetch_assoc($result)) != null) {
+        $post['id'] = $row['id'];
+        $post['thread'] = $row['thread'];
+        $post['number'] = $row['number'];
+        $post['user'] = $row['user'];
+        $post['password'] = $row['password'];
+        $post['name'] = $row['name'];
+        $post['tripcode'] = $row['tripcode'];
+        $post['ip'] = $row['ip'];
+        $post['subject'] = $row['subject'];
+        $post['date_time'] = $row['date_time'];
+        $post['text'] = $row['text'];
+        $post['sage'] = $row['sage'];
+    }
+    if ($post === null) {
+        throw new NodataException(NodataException::$messages['POST_NOT_FOUND']);
+    }
+
+    // Cleanup.
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $post;
 }
 /**
  * Для каждой нити получает отфильтрованные сообщения, доступные для просмотра
@@ -2887,18 +2908,19 @@ function db_posts_get_visible_by_number($link, $board_id, $post_number,
  * @param Object $filter Фильтр (лямбда).
  * @param array $args Аргументы для фильтра.
  * @return array
- * Возвращает сообщения:<p>
- * 'id' - Идентификатор.<br>
- * 'thread' - Идентификатор нити.<br>
- * 'number' - Номер.<br>
- * 'password' - Пароль.<br>
- * 'name' - Имя отправителя.<br>
- * 'tripcode' - Трипкод.<br>
- * 'ip' - IP-адрес отправителя.<br>
- * 'subject' - Тема.<br>
- * 'date_time' - Время сохранения.<br>
- * 'text' - Текст.<br>
- * 'sage' - Флаг поднятия нити.</p>
+ * Возвращает сообщения:<br>
+ * id - Идентификатор.<br>
+ * thread - Идентификатор нити.<br>
+ * number - Номер.<br>
+ * user - Идентификатор автора.<br>
+ * password - Пароль.<br>
+ * name - Имя отправителя.<br>
+ * tripcode - Трипкод.<br>
+ * ip - IP-адрес отправителя.<br>
+ * subject - Тема.<br>
+ * date_time - Время сохранения.<br>
+ * text - Текст.<br>
+ * sage - Флаг поднятия нити.
  */
 function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id, $filter, $args) {
     $posts = array();
@@ -2918,6 +2940,7 @@ function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id, $fil
                         array('id' => $row['id'],
                               'thread' => $row['thread'],
                               'number' => $row['number'],
+                              'user' => $row['user'],
                               'password' => $row['password'],
                               'name' => $row['name'],
                               'tripcode' => $row['tripcode'],
@@ -4200,6 +4223,33 @@ function db_users_get_all($link)
     mysqli_free_result($result);
     db_cleanup_link($link);
     return $users;
+}
+/**
+ * Получает всех пользователей, являющихся администратрами.
+ * @param MySQLi $link Связь с базой данных.
+ * @return array
+ * Возвращает пользователей:<br>
+ * id - Идентификатор.
+ */
+function db_users_get_admins($link) {
+    // Query.
+    $result = mysqli_query($link, 'call sp_users_get_admins()');
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    // Collect data from query result.
+    $admins = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while(($row = mysqli_fetch_assoc($result)) !== null) {
+            array_push($admins, array('id' => $row['id']));
+        }
+    }
+
+    // Cleanup.
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $admins;
 }
 /**
  * Получает ползователя с заданным ключевым словом.

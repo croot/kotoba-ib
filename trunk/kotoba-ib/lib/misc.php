@@ -221,6 +221,8 @@ function create_filenames($ext) {
  * @return array
  * Возвращает имя отправителя со сгенерированным трипкодом, если было задано
  * ключевое слово или просто имя отправителя, если ключевое слово задано не было.
+ * 0 - Имя отправителя.
+ * 1 - Трипкод.
  */
 function calculate_tripcode($name) { // Java CC
     @list($first, $code) = @preg_split("/[#!]/", $name);

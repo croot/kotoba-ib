@@ -9,7 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-// Скрипт редактирования досок.
+// Edit boards script.
 
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';
@@ -20,10 +20,12 @@ require Config::ABS_PATH . '/lib/db.php';
 require Config::ABS_PATH . '/lib/misc.php';
 
 try {
+    // Initialization.
     kotoba_session_start();
     locale_setup();
     $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
+    // Check if remote host was banned.
     if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
@@ -35,60 +37,61 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
+    // Check permission and write message to log file.
     if (!is_admin()) {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
     }
     Logging::write_msg(Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log',
-            Logging::$messages['ADMIN_FUNCTIONS_EDIT_BOARDS'],
-            $_SESSION['user'], $_SERVER['REMOTE_ADDR']);
+                       Logging::$messages['ADMIN_FUNCTIONS_EDIT_BOARDS'],
+                       $_SESSION['user'],
+                       $_SERVER['REMOTE_ADDR']);
     Logging::close_log();
 
     $popdown_handlers = popdown_handlers_get_all();
     $categories = categories_get_all();
     $boards = boards_get_all();
-    $reload_boards = false; // Были ли произведены изменения.
+    $reload_boards = false;
 
     if (isset($_POST['submited'])) {
 
-        // Создание новой доски.
+        // New board creation.
 		if (isset($_POST['new_name'])
-                    && isset($_POST['new_title'])
-                    && isset($_POST['new_annotation'])
-                    && isset($_POST['new_bump_limit'])
-                    && isset($_POST['new_default_name'])
-                    && isset($_POST['new_same_upload'])
-                    && isset($_POST['new_popdown_handler'])
-                    && isset($_POST['new_category'])
-                    && $_POST['new_name'] != ''
-                    && $_POST['new_bump_limit'] != ''
-                    && $_POST['new_same_upload'] != ''
-                    && $_POST['new_popdown_handler'] != ''
-                    && $_POST['new_category'] != '') {
+                && isset($_POST['new_title'])
+                && isset($_POST['new_annotation'])
+                && isset($_POST['new_bump_limit'])
+                && isset($_POST['new_default_name'])
+                && isset($_POST['new_enable_macro'])
+                && isset($_POST['new_enable_youtube'])
+                && isset($_POST['new_enable_captcha'])
+                && isset($_POST['new_enable_translation'])
+                && isset($_POST['new_enable_geoip'])
+                && isset($_POST['new_enable_shi'])
+                && isset($_POST['new_enable_postid'])
+                && isset($_POST['new_same_upload'])
+                && isset($_POST['new_popdown_handler'])
+                && isset($_POST['new_category'])
+                && $_POST['new_name'] != ''
+                && $_POST['new_bump_limit'] != ''
+                && $_POST['new_same_upload'] != ''
+                && $_POST['new_popdown_handler'] != ''
+                && $_POST['new_category'] != '') {
 
             $new_name = boards_check_name($_POST['new_name']);
             $new_title = boards_check_title($_POST['new_title']);
             $new_annotation = boards_check_annotation($_POST['new_annotation']);
             $new_bump_limit = boards_check_bump_limit($_POST['new_bump_limit']);
-            if (isset($_POST['new_force_anonymous'])) {
-                $new_force_anonymous = 1;
-            } else {
-                $new_force_anonymous = 0;
-            }
+            $new_force_anonymous = isset($_POST['new_force_anonymous']) ? 1 : 0;
             $new_default_name = boards_check_default_name($_POST['new_default_name']);
-            if (isset($_POST['new_with_attachments'])) {
-                $new_with_attachments = 1;
+            $new_with_attachments = isset($_POST['new_with_attachments']) ? 1 : 0;
+            if ($_POST['new_enable_macro'] === '') {
+                $new_enable_macro = null;
             } else {
-                $new_with_attachments = 0;
+                $new_enable_macro = $_POST['new_enable_macro'] ? 1 : 0;
             }
-            if (isset($_POST['new_macro'])) {
-                $new_macro = 1;
+            if ($_POST['new_enable_youtube'] === '') {
+                $new_enable_youtube = null;
             } else {
-                $new_macro = 0;
-            }
-            if (isset($_POST['new_youtube'])) {
-                $new_youtube = 1;
-            } else {
-                $new_youtube = 0;
+                $new_enable_youtube = $_POST['new_enable_youtube'] ? 1 : 0;
             }
             if (isset($_POST['new_captcha'])) {
                 $new_captcha = 1;
@@ -108,8 +111,8 @@ try {
                 if ($board['name'] == $new_name && $found = true) {
                     boards_edit($board['id'], $new_title, $new_annotation,
                             $new_bump_limit, $new_force_anonymous,
-                            $new_default_name, $new_with_attachments, $new_macro,
-                            $new_youtube, $new_captcha, $new_same_upload,
+                            $new_default_name, $new_with_attachments, $new_enable_macro,
+                            $new_enable_youtube, $new_captcha, $new_same_upload,
                             $new_popdown_handler, $new_category);
                     $reload_boards = true;
                     break;
@@ -118,8 +121,8 @@ try {
             if (!$found) {
                 boards_add($new_name, $new_title, $new_annotation,
                         $new_bump_limit, $new_force_anonymous,
-                        $new_default_name, $new_with_attachments, $new_macro,
-                        $new_youtube, $new_captcha, $new_same_upload,
+                        $new_default_name, $new_with_attachments, $new_enable_macro,
+                        $new_enable_youtube, $new_captcha, $new_same_upload,
                         $new_popdown_handler, $new_category);
                 if (!create_directories($new_name)) {
                     throw new CommonException('Directories creation failed.');
@@ -190,25 +193,25 @@ try {
 			}
 			// Была ли включена интеграция с макрочаном?
 			$param_name = "macro_{$board['id']}";
-			$new_macro = $board['enable_macro'];
+			$new_enable_macro = $board['enable_macro'];
 			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['enable_macro']) {
 				// Флаг был установлен 0 -> 1
-				$new_macro = 1;
+				$new_enable_macro = 1;
 			}
 			if (!isset($_POST[$param_name]) && $board['enable_macro']) {
 				// Флаг был снят 1 -> 0
-				$new_macro = 0;
+				$new_enable_macro = 0;
 			}
 			// Было ли разрешено видео с ютуба?
 			$param_name = "youtube_{$board['id']}";
-			$new_youtube = $board['enable_youtube'];
+			$new_enable_youtube = $board['enable_youtube'];
 			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['enable_youtube']) {
 				// Флаг был установлен 0 -> 1
-				$new_youtube = 1;
+				$new_enable_youtube = 1;
 			}
 			if (!isset($_POST[$param_name]) && $board['enable_youtube']) {
 				// Флаг был снят 1 -> 0
-				$new_youtube = 0;
+				$new_enable_youtube = 0;
 			}
 			// Была ли включена капча?
 			$param_name = "captcha_{$board['id']}";
@@ -249,8 +252,8 @@ try {
                     || $new_force_anonymous != $board['force_anonymous']
                     || $new_default_name != $board['default_name']
                     || $new_with_attachments != $board['with_attachments']
-                    || $new_macro != $board['enable_macro']
-                    || $new_youtube != $board['enable_youtube']
+                    || $new_enable_macro != $board['enable_macro']
+                    || $new_enable_youtube != $board['enable_youtube']
                     || $new_captcha != $board['enable_captcha']
                     || $new_same_upload != $board['same_upload']
                     || $new_popdown_handler != $board['popdown_handler']
@@ -263,7 +266,7 @@ try {
                             $new_force_anonymous,
                             $new_default_name,
                             $new_with_attachments,
-                            $new_macro, $new_youtube,
+                            $new_enable_macro, $new_enable_youtube,
                             $new_captcha,
                             $new_same_upload,
                             $new_popdown_handler,
@@ -286,6 +289,7 @@ try {
         $boards = boards_get_all();
     }
     DataExchange::releaseResources();
+    $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('popdown_handlers', $popdown_handlers);
     $smarty->assign('categories', $categories);
     $smarty->assign('boards', $boards);

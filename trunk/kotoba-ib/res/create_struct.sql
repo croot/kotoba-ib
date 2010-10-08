@@ -153,6 +153,7 @@ create table boards                         -- Доски.
     enable_translation bit default null,    -- Включение перевода текста сообщения.
     enable_geoip bit default null,          -- Включение отображения страны автора сообщения.
     enable_shi bit default null,            -- Включение рисования.
+    enable_postid bit default null,         -- Включение идентификатора сообщения.
 
     same_upload varchar(32) not null,       -- Политика загрузки одинаковых файлов.
     popdown_handler int not null,           -- Идентификатор обработчика автоматического удаления нитей.
