@@ -101,6 +101,9 @@ class Config
     // Включение рисования.
     const ENABLE_SHI = false;
 
+    // Включение идентификатора поста.
+    const ENABLE_POSTID = false;
+
     // Имя доски новостей.
     const NEWS_BOARD = 'n';
 

@@ -158,8 +158,10 @@ try {
 
     $favorites = favorites_get_by_user($_SESSION['user']);
 
+    $admins = users_get_admins();
+
     $smarty->assign('show_control', is_admin() || is_mod());
-    $board['annotation'] = html_entity_decode($board['annotation'], ENT_QUOTES, Config::MB_ENCODING);
+    $board['annotation'] = $board['annotation'] ? html_entity_decode($board['annotation'], ENT_QUOTES, Config::MB_ENCODING) : $board['annotation'];
     $smarty->assign('board', $board);
     $smarty->assign('boards', $boards);
     $smarty->assign('is_admin', is_admin());
@@ -181,6 +183,7 @@ try {
     $smarty->assign('enable_translation', ($board['enable_translation'] === null) ? Config::ENABLE_TRANSLATION : $board['enable_translation']);
     $smarty->assign('enable_geoip', ($board['enable_geoip'] === null) ? Config::ENABLE_GEOIP : $board['enable_geoip']);
     $smarty->assign('enable_shi', ($board['enable_shi'] === null) ? Config::ENABLE_SHI : $board['enable_shi']);
+    $smarty->assign('enable_postid', ($board['enable_postid'] === null) ? Config::ENABLE_POSTID : $board['enable_postid']);
     $smarty->assign('ATTACHMENT_TYPE_FILE', Config::ATTACHMENT_TYPE_FILE);
     $smarty->assign('ATTACHMENT_TYPE_LINK', Config::ATTACHMENT_TYPE_LINK);
     $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
@@ -211,6 +214,14 @@ try {
             // Сообщение принадлежит текущей нити.
             if ($t['id'] == $p['thread']) {
 
+                $author_admin = false;
+                foreach ($admins as $admin) {
+                    if ($p['user'] == $admin['id']) {
+                        $author_admin = true;
+                        break;
+                    }
+                }
+
                 // Имя отправителя по умолчанию.
                 if (!$board['force_anonymous'] && $board['default_name'] && !$p['name']) {
                     $p['name'] = $board['default_name'];
@@ -229,7 +240,8 @@ try {
                             $_SESSION['lines_per_post'],
                             true,
                             $_SESSION['posts_per_thread'],
-                            true);
+                            true,
+                            $author_admin);
                 } else {
 
                     // Ответ в нить.
@@ -240,7 +252,8 @@ try {
                             $posts_attachments,
                             $attachments,
                             true,
-                            $_SESSION['lines_per_post']);
+                            $_SESSION['lines_per_post'],
+                            $author_admin);
                 }
             }
         }

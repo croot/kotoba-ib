@@ -29,6 +29,9 @@
     $show_favorites - показывать ссылку на добавление нити в избранное.
     $enable_translation - Включение перевода текста сообщения (см. config.default).
     $enable_geoip - Включение отображения страны автора сообщения (см. config.default).
+    $enable_postid - Включение идентификатора поста.
+    $postid - Идентификатор поста.
+    $author_admin - Сообщение было оставлено администратором.
 *}
 <div>
 {if $original_post.with_attachments}
@@ -72,32 +75,22 @@
 
 <span class="filetitle">{$original_post.subject}</span>
 <span class="postername">{$original_post.name}</span>
-{if $original_post.tripcode != null}
-    <span class="postertrip">!{$original_post.tripcode}</span>
-{/if}
+{if $original_post.tripcode != null}<span class="postertrip">!{$original_post.tripcode}</span>{/if}
+{if $author_admin} <span class="admin">❀❀&nbsp;Админ&nbsp;❀❀</span>{/if}
 {$original_post.date_time}
 <span class="reflink">
     <span onclick="insert('>>{$original_post.number}');">#</span>
     <a href="{$DIR_PATH}/{$board.name}/{$thread.original_post}#{$original_post.number}">{$original_post.number}</a>
 </span>
-{if $show_reply}
-[<a href="{$DIR_PATH}/{$board.name}/{$thread.original_post}">Ответить</a>]
-{/if}
-{if $sticky}
-    Нить закреплена.
-{/if}
-{if $is_admin}
-    {include file='mod_mini_panel.tpl' post_id=$original_post.id ip=$original_post.ip board_name=$board.name post_num=$original_post.number}
-{/if}
+{if $enable_postid} ID:{$postid}{/if}
+{if $show_reply} [<a href="{$DIR_PATH}/{$board.name}/{$thread.original_post}">Ответить</a>]{/if}
+{if $sticky} Нить закреплена.{/if}
+{if $is_admin} {include file='mod_mini_panel.tpl' post_id=$original_post.id ip=$original_post.ip board_name=$board.name post_num=$original_post.number}{/if}
 <blockquote id="post{$thread.original_post}">
 {$original_post.text}
-{if $original_post.text_cutted}
-    <div class="abbrev">Нажмите "Ответ" для просмотра сообщения целиком.</div>
-{/if}
+{if $original_post.text_cutted}<div class="abbrev">Нажмите "Ответ" для просмотра сообщения целиком.</div>{/if}
 </blockquote>
 {if $enable_translation && $original_post.text}<blockquote id="translation{$thread.original_post}"></blockquote><a href="#" onclick="javascript:translate('{$thread.original_post}'); return false;">Lolšto?</a>{/if}
 
-{if $show_skipped && $skipped > 0}
-    <span class="omittedposts">Сообщений пропущено: {$skipped}</span>
-{/if}
+{if $show_skipped && $skipped > 0}<span class="omittedposts">Сообщений пропущено: {$skipped}</span>{/if}
 <div>

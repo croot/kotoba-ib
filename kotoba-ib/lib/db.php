@@ -32,27 +32,27 @@ require_once Config::ABS_PATH . '/lib/mysql.php';
  * Просто обёртка во избежание возни с глобальной переменной.
  * @package database
  */
-class DataExchange
-{
-	private static $link = null;
+class DataExchange {
+    private static $link = null;
 
-	/**
-	 * Возвращает связь с базой данных.
-	 */
-	static function getDBLink()
-	{
-		if(self::$link == null)
-			self::$link = db_connect();
-		return self::$link;
-	}
-	/**
-	 * Освобождает используемые ресурсы.
-	 */
-	static function releaseResources()
-	{
-		if(self::$link != null && self::$link instanceof MySQLi)
-			mysqli_close(self::$link);
-	}
+    /**
+     * Возвращает связь с базой данных.
+     */
+    static function getDBLink() {
+        if (self::$link == null) {
+            self::$link = db_connect();
+        }
+        return self::$link;
+    }
+
+    /**
+     * Освобождает используемые ресурсы.
+     */
+    static function releaseResources() {
+        if (self::$link != null && self::$link instanceof MySQLi) {
+            mysqli_close(self::$link);
+        }
+    }
 }
 /**
  * Создаёт необходимые директории при создании доски.
@@ -666,23 +666,15 @@ function boards_check_annotation($annotation) { // Java CC.
 /**
  * Проверяет корректность специфичного для доски бамплимита.
  * @param string $bump_limit Специфичный для доски бамплимит.
- * @return string
+ * @return int
  * Возвращает безопасный для использования специфичный для доски бамплимит.
  */
 function boards_check_bump_limit($bump_limit) { // Java CC
-	$length = strlen($bump_limit);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if ($length <= $max_int_length && $length >= 1) {
-		$bump_limit = RawUrlEncode($bump_limit);
-		$length = strlen($bump_limit);
-		if ($length > $max_int_length || (ctype_digit($bump_limit) === false)
-                || $length < 1) {
-			throw new FormatException(FormatException::$messages['BOARD_BUMP_LIMIT']);
-		}
-	} else {
-		throw new FormatException(FormatException::$messages['BOARD_BUMP_LIMIT']);
+    if (is_string($bump_limit) && ($intval = intval($bump_limit)) > 0) {
+        return $intval;
     }
-	return $bump_limit;
+
+    throw new FormatException(FormatException::$messages['BOARD_BUMP_LIMIT']);
 }
 /**
  * Проверяет корректность имени отправителя по умолчанию.
@@ -818,20 +810,24 @@ function boards_edit($id, $title, $annotation, $bump_limit, $force_anonymous,
  * Получает все доски.
  * @return array
  * Возвращает доски:<br>
- * 'id' - идентификатор.<br>
- * 'name' - имя.<br>
- * 'title' - заголовок.<br>
- * 'annotation' - аннотация.<br>
- * 'bump_limit' - специфичный для доски бамплимит.<br>
- * 'force_anonymous' - флаг отображения имени отправителя.<br>
- * 'default_name' - имя отправителя по умолчанию.<br>
- * 'with_attachments' - флаг вложений.<br>
- * 'enable_macro' - включение интеграции с макрочаном.<br>
- * 'enable_youtube' - включение вложения видео с ютуба.<br>
- * 'enable_captcha' - включение капчи.<br>
- * 'same_upload' - политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
- * 'category' - категория.
+ * id - идентификатор.<br>
+ * name - имя.<br>
+ * title - заголовок.<br>
+ * annotation - аннотация.<br>
+ * bump_limit - специфичный для доски бамплимит.<br>
+ * force_anonymous - флаг отображения имени отправителя.<br>
+ * default_name - имя отправителя по умолчанию.<br>
+ * with_attachments - флаг вложений.<br>
+ * enable_macro - включение интеграции с макрочаном.<br>
+ * enable_youtube - включение вложения видео с ютуба.<br>
+ * enable_captcha - включение капчи.<br>
+ * enable_translation - включение перевода текста сообщения.<br>
+ * enable_geoip - включение отображения страны автора сообщения.<br>
+ * enable_shi - включение рисования.<br>
+ * enable_postid - включение идентификатора поста.<br>
+ * same_upload - политика загрузки одинаковых файлов.<br>
+ * popdown_handler - обработчик автоматического удаления нитей.<br>
+ * category - категория.
  */
 function boards_get_all() {
     return db_boards_get_all(DataExchange::getDBLink());
@@ -996,20 +992,21 @@ function boards_get_moderatable($user_id)
  * name - имя.<br>
  * title - заголовок.<br>
  * annotation - аннотация.<br>
- * bump_limit - спецефиный для доски бамплимит.<br>
+ * bump_limit - специфичный для доски бамплимит.<br>
  * force_anonymous - флаг отображения имени отправителя.<br>
  * default_name - имя отправителя по умолчанию.<br>
  * with_attachments - флаг вложений.<br>
  * enable_macro - включение интеграции с макрочаном.<br>
  * enable_youtube - включение вложения видео с ютуба.<br>
  * enable_captcha - включение капчи.<br>
- * enable_translation - Включение перевода текста сообщения.<br>
- * enable_geoip - Включение отображения страны автора сообщения.<br>
- * enable_shi - Включение рисования.<br>
+ * enable_translation - включение перевода текста сообщения.<br>
+ * enable_geoip - включение отображения страны автора сообщения.<br>
+ * enable_shi - включение рисования.<br>
+ * enable_postid - включение идентификатора поста.<br>
  * same_upload - политика загрузки одинаковых файлов.<br>
  * popdown_handler - обработчик автоматического удаления нитей.<br>
  * category - категория.<br>
- * category_name - Имя категории.
+ * category_name - имя категории.
  */
 function boards_get_visible($user_id) { // Java CC
     return db_boards_get_visible(DataExchange::getDBLink(), $user_id);
@@ -2014,27 +2011,25 @@ function posts_get_visible_by_id($post_id, $user_id) { // Java CC
 }
 /**
  * Получает заданное сообщение, доступное для просмотра заданному пользователю.
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param post_number mixed <p>Номер сообщения.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * @param string|int $board_id Идентификатор доски.
+ * @param string|int $post_number Номер сообщения.
+ * @param string|int $user_id Идентификатор пользователя.
  * @return array
- * Возвращает сообщение:<p>
- * 'id' - Идентификатор.<br>
- * 'thread' - Идентификатор нити.<br>
- * 'number' - Номер.<br>
- * 'password' - Пароль.<br>
- * 'name' - Имя отправителя.<br>
- * 'tripcode' - Трипкод.<br>
- * 'ip' - IP-адрес отправителя.<br>
- * 'subject' - Тема.<br>
- * 'date_time' - Время сохранения.<br>
- * 'text' - Текст.<br>
- * 'sage' - Флаг поднятия нити.</p>
+ * Возвращает сообщение:<br>
+ * id - Идентификатор.<br>
+ * thread - Идентификатор нити.<br>
+ * number - Номер.<br>
+ * password - Пароль.<br>
+ * name - Имя отправителя.<br>
+ * tripcode - Трипкод.<br>
+ * ip - IP-адрес отправителя.<br>
+ * subject - Тема.<br>
+ * date_time - Время сохранения.<br>
+ * text - Текст.<br>
+ * sage - Флаг поднятия нити.
  */
-function posts_get_visible_by_number($board_id, $post_number, $user_id)
-{
-	return db_posts_get_visible_by_number(DataExchange::getDBLink(), $board_id,
-			$post_number, $user_id);
+function posts_get_visible_by_number($board_id, $post_number, $user_id) {
+    return db_posts_get_visible_by_number(DataExchange::getDBLink(), $board_id, $post_number, $user_id);
 }
 /**
  * Для каждой нити получает отфильтрованные сообщения, доступные для просмотра
@@ -2044,18 +2039,19 @@ function posts_get_visible_by_number($board_id, $post_number, $user_id)
  * @param object $filter Фильтр (лямбда).
  * @param mixed $paramname,... Аргументы для фильтра (не обязательны).
  * @return array
- * Возвращает сообщения:<p>
- * 'id' - Идентификатор.<br>
- * 'thread' - Идентификатор нити.<br>
- * 'number' - Номер.<br>
- * 'password' - Пароль.<br>
- * 'name' - Имя отправителя.<br>
- * 'tripcode' - Трипкод.<br>
- * 'ip' - IP-адрес отправителя.<br>
- * 'subject' - Тема.<br>
- * 'date_time' - Время сохранения.<br>
- * 'text' - Текст.<br>
- * 'sage' - Флаг поднятия нити.</p>
+ * Возвращает сообщения:<br>
+ * id - Идентификатор.<br>
+ * thread - Идентификатор нити.<br>
+ * number - Номер.<br>
+ * user - Идентификатор автора.<br>
+ * password - Пароль.<br>
+ * name - Имя отправителя.<br>
+ * tripcode - Трипкод.<br>
+ * ip - IP-адрес отправителя.<br>
+ * subject - Тема.<br>
+ * date_time - Время сохранения.<br>
+ * text - Текст.<br>
+ * sage - Флаг поднятия нити.
  */
 function posts_get_visible_filtred_by_threads($threads, $user_id, $filter) { // Java CC
     $numargs = func_num_args();
@@ -3037,6 +3033,15 @@ function users_edit_by_keyword($keyword, $posts_per_thread, $threads_per_page, $
 function users_get_all()
 {
 	return db_users_get_all(DataExchange::getDBLink());
+}
+/**
+ * Получает всех пользователей, являющихся администратрами.
+ * @return array
+ * Возвращает пользователей:<br>
+ * id - Идентификатор.
+ */
+function users_get_admins() {
+    return db_users_get_admins(DataExchange::getDBLink());
 }
 /**
  * Получает ползователя с заданным ключевым словом.

@@ -58,6 +58,8 @@ try {
             $posts_attachments = posts_attachments_get_by_posts($posts);
             $attachments = attachments_get_by_posts($posts);
 
+            $admins = users_get_admins();
+
             $smarty->assign('ATTACHMENT_TYPE_FILE', Config::ATTACHMENT_TYPE_FILE);
             $smarty->assign('ATTACHMENT_TYPE_LINK', Config::ATTACHMENT_TYPE_LINK);
             $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
@@ -72,6 +74,14 @@ try {
 
                     // Сообщение принадлежит текущей нити.
                     if ($t['id'] == $p['thread']) {
+
+                        $author_admin = false;
+                        foreach ($admins as $admin) {
+                            if ($p['user'] == $admin['id']) {
+                                $author_admin = true;
+                                break;
+                            }
+                        }
 
                         // Имя отправителя по умолчанию.
                         if (!$board['force_anonymous'] && $board['default_name'] && !$p['name']) {
@@ -91,7 +101,8 @@ try {
                                     null,
                                     false,
                                     null,
-                                    false);
+                                    false,
+                                    $author_admin);
                         } else {
 
                             // Ответ в нить.
@@ -102,7 +113,8 @@ try {
                                     $posts_attachments,
                                     $attachments,
                                     false,
-                                    null);
+                                    null,
+                                    $author_admin);
                         }
                     }
                 }
