@@ -19,247 +19,239 @@
  * @package exceptions
  */
 class CommonException extends Exception {
-	static $messages;
-	private $reason;
-	/**
-	 * Создаёт новое исключение с заданным сообщением.
-	 * @param message string <p>Сообщение.</p>
-	 */
-	public function __construct($message)
-	{
-		$this->reason = $message;
-		parent::__construct($message);
-	}
-	/**
-	 * Возвращает данные об исключении.
-	 */
-	public function __toString()
-	{
-		return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
-	}
-	/**
-	 * Возвращает причину произошедшей ошибки.
-	 */
-	public function getReason()
-	{
-		return $this->reason;
-	}
+    static $messages;
+    private $reason;
+    /**
+     * Создаёт новое исключение с заданным сообщением.
+     * @param string $message Сообщение.
+     */
+    public function __construct($message) {
+        $this->reason = $message;
+        parent::__construct($message);
+    }
+    /**
+     * Возвращает данные об исключении.
+     * @return string
+     */
+    public function __toString() {
+        return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
+    }
+    /**
+     * Возвращает причину произошедшей ошибки.
+     * @return string
+     */
+    public function getReason() {
+        return $this->reason;
+    }
 }
 /**
  * Ошибки поиска.
  * @package exceptions
  */
 class SearchException extends Exception {
-	static $messages;
-	private $reason;
-	/**
-	 * Создаёт новое исключение с заданным сообщением.
-	 * @param message string <p>Сообщение.</p>
-	 */
-	public function __construct($message)
-	{
-		$this->reason = $message;
-		parent::__construct($message);
-	}
-	/**
-	 * Возвращает данные об исключении.
-	 */
-	public function __toString()
-	{
-		return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
-	}
-	/**
-	 * Возвращает причину произошедшей ошибки.
-	 */
-	public function getReason()
-	{
-		return $this->reason;
-	}
+    static $messages;
+    private $reason;
+    /**
+     * Создаёт новое исключение с заданным сообщением.
+     * @param string $message Сообщение.
+     */
+    public function __construct($message) {
+        $this->reason = $message;
+        parent::__construct($message);
+    }
+    /**
+     * Возвращает данные об исключении.
+     * @return string
+     */
+    public function __toString() {
+        return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
+    }
+    /**
+     * Возвращает причину произошедшей ошибки.
+     * @return string
+     */
+    public function getReason() {
+        return $this->reason;
+    }
 }
 /**
  * Ошибки отсутствия данных.
  * @package exceptions
  */
 class NodataException extends Exception {
-	static $messages;
-	private $reason;
-	/**
-	 * Создаёт новое исключение с заданным сообщением.
-	 * @param message string <p>Сообщение.</p>
-	 */
-	public function __construct($message)
-	{
-		$this->reason = $message;
-		parent::__construct($message);
-	}
-	/**
-	 * Возвращает данные об исключении.
-	 */
-	public function __toString()
-	{
-		return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
-	}
-	/**
-	 * Возвращает причину произошедшей ошибки.
-	 */
-	public function getReason()
-	{
-		return $this->reason;
-	}
+    static $messages;
+    private $reason;
+    /**
+     * Создаёт новое исключение с заданным сообщением.
+     * @param string $message Сообщение.
+     */
+    public function __construct($message) {
+        $this->reason = $message;
+        parent::__construct($message);
+    }
+    /**
+     * Возвращает данные об исключении.
+     * @return string
+     */
+    public function __toString() {
+        return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
+    }
+    /**
+     * Возвращает причину произошедшей ошибки.
+     * @return string
+     */
+    public function getReason() {
+        return $this->reason;
+    }
 }
 /**
  * Ошибки формата данных.
  * @package exceptions
  */
 class FormatException extends Exception {
-	static $messages;
-	private $reason;
-	/**
-	 * Создаёт новое исключение с сообщением $message.
-	 * @param message string <p>Сообщение.</p>
-	 */
-	public function __construct($message)
-	{
-		$this->reason = $message;
-		parent::__construct($message);
-	}
-	/**
-	 * Возвращает данные об исключении.
-	 */
-	public function __toString()
-	{
-		return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
-	}
-	/**
-	 * Возвращает причину произошедшей ошибки.
-	 */
-	public function getReason()
-	{
-		return $this->reason;
-	}
+    static $messages;
+    private $reason;
+    /**
+     * Создаёт новое исключение с заданным сообщением.
+     * @param string $message Сообщение.
+     */
+    public function __construct($message) {
+        $this->reason = $message;
+        parent::__construct($message);
+    }
+    /**
+     * Возвращает данные об исключении.
+     * @return string
+     */
+    public function __toString() {
+        return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
+    }
+    /**
+     * Возвращает причину произошедшей ошибки.
+     * @return string
+     */
+    public function getReason() {
+        return $this->reason;
+    }
 }
 /**
  * Ошибки при регистрации, авторизации, идентификации и прав доступа.
  * @package exceptions
  */
 class PermissionException extends Exception {
-	static $messages;
-	private $reason;
-	/**
-	 * Создаёт новое исключение с сообщением $message.
-	 * @param message string <p>Сообщение.</p>
-	 */
-	public function __construct($message)
-	{
-		$this->reason = $message;
-		parent::__construct($message);
-	}
-	/**
-	 * Возвращает данные об исключении.
-	 */
-	public function __toString()
-	{
-		return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
-	}
-	/**
-	 * Возвращает причину произошедшей ошибки.
-	 */
-	public function getReason()
-	{
-		return $this->reason;
-	}
+    static $messages;
+    private $reason;
+    /**
+     * Создаёт новое исключение с заданным сообщением.
+     * @param string $message Сообщение.
+     */
+    public function __construct($message) {
+        $this->reason = $message;
+        parent::__construct($message);
+    }
+    /**
+     * Возвращает данные об исключении.
+     * @return string
+     */
+    public function __toString() {
+        return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
+    }
+    /**
+     * Возвращает причину произошедшей ошибки.
+     * @return string
+     */
+    public function getReason() {
+        return $this->reason;
+    }
 }
 /**
  * Ошибки обмена данными с хранилищем.
  * @package exceptions
  */
 class DataExchangeException extends Exception {
-	static $messages;
-	private $reason;
-	/**
-	 * Создаёт новое исключение с сообщением $message.
-	 * @param message string <p>Сообщение.</p>
-	 */
-	public function __construct($message)
-	{
-		$this->reason = $message;
-		parent::__construct($message);
-	}
-	/**
-	 * Возвращает данные об исключении.
-	 */
-	public function __toString()
-	{
-		return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
-	}
-	/**
-	 * Возвращает причину произошедшей ошибки.
-	 */
-	public function getReason()
-	{
-		return $this->reason;
-	}
+    static $messages;
+    private $reason;
+    /**
+     * Создаёт новое исключение с заданным сообщением.
+     * @param string $message Сообщение.
+     */
+    public function __construct($message) {
+        $this->reason = $message;
+        parent::__construct($message);
+    }
+    /**
+     * Возвращает данные об исключении.
+     * @return string
+     */
+    public function __toString() {
+        return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
+    }
+    /**
+     * Возвращает причину произошедшей ошибки.
+     * @return string
+     */
+    public function getReason() {
+        return $this->reason;
+    }
 }
 /**
  * Ошибки загрузки файла.
  * @package exceptions
  */
 class UploadException extends Exception {
-	static $messages;
-	private $reason;
-	/**
-	 * Создаёт новое исключение с сообщением $message.
-	 * @param message string <p>Сообщение.</p>
-	 */
-	public function __construct($message)
-	{
-		$this->reason = $message;
-		parent::__construct($message);
-	}
-	/**
-	 * Возвращает данные об исключении.
-	 */
-	public function __toString()
-	{
-		return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
-	}
-	/**
-	 * Возвращает причину произошедшей ошибки.
-	 */
-	public function getReason()
-	{
-		return $this->reason;
-	}
+    static $messages;
+    private $reason;
+    /**
+     * Создаёт новое исключение с заданным сообщением.
+     * @param string $message Сообщение.
+     */
+    public function __construct($message) {
+        $this->reason = $message;
+        parent::__construct($message);
+    }
+    /**
+     * Возвращает данные об исключении.
+     * @return string
+     */
+    public function __toString() {
+        return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
+    }
+    /**
+     * Возвращает причину произошедшей ошибки.
+     * @return string
+     */
+    public function getReason() {
+        return $this->reason;
+    }
 }
 /**
  * Нарушение ограничений.
  * @package exceptions
  */
 class LimitException extends Exception {
-	static $messages;
-	private $reason;
-	/**
-	 * Создаёт новое исключение с сообщением $message.
-	 * @param message string <p>Сообщение.</p>
-	 */
-	public function __construct($message)
-	{
-		$this->reason = $message;
-		parent::__construct($message);
-	}
-	/**
-	 * Возвращает данные об исключении.
-	 */
-	public function __toString()
-	{
-		return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
-	}
-	/**
-	 * Возвращает причину произошедшей ошибки.
-	 */
-	public function getReason()
-	{
-		return $this->reason;
-	}
+    static $messages;
+    private $reason;
+    /**
+     * Создаёт новое исключение с заданным сообщением.
+     * @param string $message Сообщение.
+     */
+    public function __construct($message) {
+        $this->reason = $message;
+        parent::__construct($message);
+    }
+    /**
+     * Возвращает данные об исключении.
+     * @return string
+     */
+    public function __toString() {
+        return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
+    }
+    /**
+     * Возвращает причину произошедшей ошибки.
+     * @return string
+     */
+    public function getReason() {
+        return $this->reason;
+    }
 }
 ?>

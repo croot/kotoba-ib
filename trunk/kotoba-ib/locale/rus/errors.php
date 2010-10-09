@@ -71,9 +71,9 @@ NodataException::$messages['EMPTY_MESSAGE'] = 'Файл не был загруж
  **************************/
 
 FormatException::$messages['BOARD_ID'] = 'Идентификатор доски имеет не верный формат.';
-FormatException::$messages['BOARD_NAME'] = 'Имя доски имеет не верный формат.';
+FormatException::$messages['BOARD_NAME'] = 'Имя доски имеет не верный формат. Имя доски должно быть строкой, длиной от 1 до 16, состоящей только из латинских букв или цифр.';
 FormatException::$messages['BOARD_TITLE'] = 'Заголовок доски имеет не верный формат.';
-FormatException::$messages['BOARD_BUMP_LIMIT'] = 'Специфичный для доски бамплимит имеет не верный формат.';
+FormatException::$messages['BOARD_BUMP_LIMIT'] = 'Специфичный для доски бамплимит должен быть целым числом больше нуля.';
 FormatException::$messages['BOARD_SAME_UPLOAD'] = 'Политика загрузки одинаковых файлов имеет не верный формат.';
 
 FormatException::$messages['BANS_RANGE_BEG'] = 'Начало диапазона IP-адресов имеет не верный формат.';

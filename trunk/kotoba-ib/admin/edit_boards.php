@@ -79,7 +79,7 @@ try {
             $new_name = boards_check_name($_POST['new_name']);
             $new_title = boards_check_title($_POST['new_title']);
             $new_annotation = boards_check_annotation($_POST['new_annotation']);
-            $new_bump_limit = boards_check_bump_limit($_POST['new_bump_limit']);
+            $new_bump_limit = boards_check_bump_limit(intval($_POST['new_bump_limit']));
             $new_force_anonymous = isset($_POST['new_force_anonymous']) ? 1 : 0;
             $new_default_name = boards_check_default_name($_POST['new_default_name']);
             $new_with_attachments = isset($_POST['new_with_attachments']) ? 1 : 0;
