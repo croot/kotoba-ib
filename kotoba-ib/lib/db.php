@@ -665,13 +665,13 @@ function boards_check_annotation($annotation) { // Java CC.
 }
 /**
  * Проверяет корректность специфичного для доски бамплимита.
- * @param string $bump_limit Специфичный для доски бамплимит.
+ * @param int $bump_limit Специфичный для доски бамплимит.
  * @return int
  * Возвращает безопасный для использования специфичный для доски бамплимит.
  */
 function boards_check_bump_limit($bump_limit) { // Java CC
-    if (is_string($bump_limit) && ($intval = intval($bump_limit)) > 0) {
-        return $intval;
+    if (is_int($bump_limit) && $bump_limit > 0) {
+        return $bump_limit;
     }
 
     throw new FormatException(FormatException::$messages['BOARD_BUMP_LIMIT']);
@@ -719,17 +719,26 @@ function boards_check_id($id)
  * Возвращает безопасное для использования имя доски.
  */
 function boards_check_name($name) { // Java CC
-    $length = strlen($name);
-    if ($length <= 16 && $length >= 1) {
-        $name = RawUrlEncode($name);
-        $length = strlen($name);
-        if ($length > 16 || (strpos($name, '%') !== false) || $length < 1) {
-            throw new FormatException(FormatException::$messages['BOARD_NAME']);
+
+    // Board name must be string.
+    if (is_string($name)) {
+        $l = strlen($name);
+
+        // Length of string must be 1 - 16 symbols (inclusive).
+        if ($l <= 16 && $l >= 1) {
+
+            // Symbols must be digits 0-9 or latin letters a-z or A-Z.
+            for ($i = 0; $i < $l; $i++) {
+                $code = ord($name[$i]);
+                if ($code < 0x30 || $code > 0x39 && $code < 0x41 || $code > 0x5A && $code < 0x61 || $code > 0x7A) {
+                    throw new FormatException(FormatException::$messages['BOARD_NAME']);
+                }
+            }
+            return $name;
         }
-    } else {
-        throw new FormatException(FormatException::$messages['BOARD_NAME']);
     }
-    return $name;
+
+    throw new FormatException(FormatException::$messages['BOARD_NAME']);
 }
 /**
  * Проверяет корректность политики загрузки одинаковых файлов.
