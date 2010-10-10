@@ -7,11 +7,20 @@
 # $2 - Path to index.php from servers document root. E.g. /kotoba
 #
 
-echo "Download installation scripts install.7z from http://kotoba-ib.googlecode.com/files/install.7z unpack and run install.sh."
-exit 0
+#
+# Permission notes:
+#
+# You install kotoba to /var/www/html/kotoba
+# Your user name is sauce and your user group is sauce too.
+# Your Apache run via user apache and has user group apache.
+#
+# Add user apache user to your user group sauce. And then:
+# #chown -R sauce:sauce /var/www/html/kotoba
+# #chmod -R g+w /var/www/html/kotoba
+# 
 
 function show_help {
-    echo "Usage example: ./install.sh /var/www/html/kotoba"
+    echo "Usage example: ./install.sh /var/www/html/kotoba /kotoba"
 }
 
 # $1 - command name.
@@ -27,25 +36,31 @@ function check_retval {
 #
 # 1. Check and read parameters.
 #
-DEST_DIR=$1
-if [ -z $DEST_DIR ]
+if [ -z $1 ]
 then
     echo "Error. Destenation directory not specifed."
     show_help
     exit 1
 fi
-echo "Destenation directory is $DEST_DIR"
+echo "Destenation directory is $1"
+if [ -z $2 ]
+then
+    echo "Error. Path to index.php from servers document root."
+    show_help
+    exit 1
+fi
+echo "Path to index.php from servers document root is $2"
 
 #
 # 2. Check access to destenation directory.
 #
 echo "Check access to destenation directory."
-if ! [ -d $DEST_DIR ]
+if ! [ -d $1 ]
 then
-    echo "Error. $DEST_DIR is not exist or not direcotory."
+    echo "Error. $1 is not exist or not direcotory."
     exit 1
 fi
-if ! [ -r $DEST_DIR ] || ! [ -w $DEST_DIR ] || ! [ -x $DEST_DIR ]
+if ! [ -r $1 ] || ! [ -w $1 ] || ! [ -x $1 ]
 then
     echo "Error. Have no access to destenation directory."
     exit 1
@@ -55,16 +70,16 @@ fi
 # 3. Get working copy to destenation direcrory.
 #
 echo "Get working copy to destenation direcrory."
-svn checkout http://kotoba-ib.googlecode.com/svn/trunk/kotoba-ib/ $DEST_DIR/
+svn checkout https://kotoba-ib.googlecode.com/svn/trunk/kotoba-ib/ $1/
 check_retval "svn checkout" $?
 
 #
 # 4. Create database.
 #
 echo "Create database."
-mysql -u root < $DEST_DIR/res/create_struct.sql
+mysql -u root < $1/res/create_struct.sql
 check_retval "mysql" $?
-mysql -u root -D kotoba < $DEST_DIR/res/create_procedures.sql
+mysql -u root -D kotoba < $1/res/create_procedures.sql
 check_retval "mysql" $? "Before another try, manually drop database what was created on previous step."
 
 #
@@ -74,7 +89,7 @@ echo "Download smarty, unpack and patch."
 wget -P /tmp/ http://www.smarty.net/do_download.php?download_file=Smarty-2.6.26.tar.gz
 tar -zxvf /tmp/Smarty-2.6.26.tar.gz -C /tmp/ > /dev/null
 check_retval "tar" $?
-cp -r /tmp/Smarty-2.6.26/libs/* $DEST_DIR/smarty/
+cp -r /tmp/Smarty-2.6.26/libs/* $1/smarty/
 
 #
 # 6. Download phpdoc, unpack and patch.
@@ -83,14 +98,14 @@ echo "Download phpdoc, unpack and patch."
 wget -P /tmp/ http://kotoba-ib.googlecode.com/files/PhpDocumentor-1.4.3.tgz
 tar -zxvf /tmp/PhpDocumentor-1.4.3.tgz -C /tmp/ > /dev/null
 check_retval "tar" $?
-cp -r /tmp/PhpDocumentor-1.4.3/* $DEST_DIR/phpdoc/
-./patch_phpdoc.sh $DEST_DIR/phpdoc $DEST_DIR/res/phpdoc
+cp -r /tmp/PhpDocumentor-1.4.3/* $1/phpdoc/
+./patch_phpdoc.sh $1/phpdoc $1/res/phpdoc
 
 #
 # 7. Create documentation.
 #
 echo "Create documentation."
-./generate_doc.sh $DEST_DIR
+./generate_doc.sh $1
 
 #
 # 8. Add requied directives to httpd.conf.
@@ -129,13 +144,6 @@ RewriteRule ^([\w]{1,16})/p([\d]+)$ $2/boards.php?board=\$1&page=\$2 [NE,L]" > $
 # 10. Create Kotoba configuration file.
 #
 echo "Create Kotoba configuration file."
-cp $1/config.default $1/config.php 
-
-#
-# 11. Grant permissions to Apache.
-#
-echo "Grant permissions to Apache."
-chown -R apache:apache $1
-check_retval "chown" $?
+cp $1/config.default $1/config.php
 
 exit 0
