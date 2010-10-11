@@ -646,140 +646,131 @@ function boards_add($name, $title, $annotation, $bump_limit, $force_anonymous,
 		$popdown_handler, $category);
 }
 /**
- * Проверяет корректность аннотации.
- * @param string $annotation Аннотация.
+ * Проверяет длину аннотации.
+ * @param mixed $annotation Аннотация.
  * @return string|null
  * Возвращает аннотацию.
  */
-function boards_check_annotation($annotation) { // Java CC.
-    $tmp = htmlentities($annotation, ENT_QUOTES, Config::MB_ENCODING);
-    $len = strlen($tmp);
+function boards_check_annotation_size($annotation) { // Java CC.
+    $len = strlen($annotation);
 
     if ($len == 0) {
         return null;
     }
-	if ($len > Config::MAX_ANNOTATION_LENGTH) {
-		throw new LimitException(LimitException::$messages['MAX_ANNOTATION']);
+    if ($len > Config::MAX_ANNOTATION_LENGTH) {
+        throw new LimitException(LimitException::$messages['MAX_ANNOTATION']);
     }
-	return $tmp;
+
+    return $annotation;
 }
 /**
  * Проверяет корректность специфичного для доски бамплимита.
- * @param int $bump_limit Специфичный для доски бамплимит.
+ * @param mixed $bump_limit Специфичный для доски бамплимит.
  * @return int
  * Возвращает безопасный для использования специфичный для доски бамплимит.
  */
 function boards_check_bump_limit($bump_limit) { // Java CC
-    if (is_int($bump_limit) && $bump_limit > 0) {
-        return $bump_limit;
+    if ( ($intval = kotoba_intval($bump_limit)) > 0) {
+        return $intval;
     }
 
     throw new FormatException(FormatException::$messages['BOARD_BUMP_LIMIT']);
 }
 /**
  * Проверяет корректность имени отправителя по умолчанию.
- * @param string $name Имя отправителя по умолчанию.
+ * @param mixed $name Имя отправителя по умолчанию.
  * @return string|null
- * Возвращает безопасное для использования имя отправителя по умолчанию.
+ * Возвращает безопасное для использования имя отправителя по умолчанию или
+ * null, если имя отправителя по умолчанию — пустая строка.
  */
 function boards_check_default_name($name) { // Java CC
-    if (strlen($name) == 0) {
+    $name = htmlentities(kotoba_strval($name), ENT_QUOTES, Config::MB_ENCODING);
+    $l = strlen($name);
+
+    if ($l == 0) {
         return null;
     }
-	posts_check_name_size($name);
-	$name = htmlentities($name, ENT_QUOTES, Config::MB_ENCODING);
-	posts_check_name_size($name);
+    if ($l > Config::MAX_NAME_LENGTH) {
+        throw new LimitException(LimitException::$messages['MAX_NAME_LENGTH']);
+    }
+
 	return $name;
 }
 /**
  * Проверяет корректность идентификатора доски.
- * @param id mixed <p>Идентификатор доски.</p>
+ * @param mixed $id Идентификатор доски.
  * @return string
  * Возвращает безопасный для использования идентификатор доски.
  */
-function boards_check_id($id)
-{
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['BOARD_ID']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['BOARD_ID']);
-	return $id;
+function boards_check_id($id) {
+    return kotoba_intval($id);
 }
 /**
  * Проверяет корректность имени доски.
- * @param string $name Имя доски.
+ * @param mixed $name Имя доски.
  * @return string
  * Возвращает безопасное для использования имя доски.
  */
 function boards_check_name($name) { // Java CC
+    $name = kotoba_strval($name);
+    $l = strlen($name);
 
-    // Board name must be string.
-    if (is_string($name)) {
-        $l = strlen($name);
+    if ($l <= 16 && $l >= 1) {
 
-        // Length of string must be 1 - 16 symbols (inclusive).
-        if ($l <= 16 && $l >= 1) {
-
-            // Symbols must be digits 0-9 or latin letters a-z or A-Z.
-            for ($i = 0; $i < $l; $i++) {
-                $code = ord($name[$i]);
-                if ($code < 0x30 || $code > 0x39 && $code < 0x41 || $code > 0x5A && $code < 0x61 || $code > 0x7A) {
-                    throw new FormatException(FormatException::$messages['BOARD_NAME']);
-                }
+        // Symbols must be digits 0-9 or latin letters a-z or A-Z.
+        for ($i = 0; $i < $l; $i++) {
+            $code = ord($name[$i]);
+            if ($code < 0x30 || $code > 0x39 && $code < 0x41 || $code > 0x5A && $code < 0x61 || $code > 0x7A) {
+                throw new FormatException(FormatException::$messages['BOARD_NAME']);
             }
-            return $name;
         }
+        return $name;
     }
 
     throw new FormatException(FormatException::$messages['BOARD_NAME']);
 }
 /**
  * Проверяет корректность политики загрузки одинаковых файлов.
- * @param string $same_upload Политика загрузки одинаковых файлов.
+ * @param mixed $same_upload Политика загрузки одинаковых файлов.
  * @return string
  * Возвращает безопасную для использования политику загрузки одинаковых файлов.
  */
 function boards_check_same_upload($same_upload) { // Java CC
-	$length = strlen($same_upload);
-	if ($length <= 32 && $length >= 1) {
-		$same_upload = RawUrlEncode($same_upload);
-		$length = strlen($same_upload);
-		if ($length > 32 || (strpos($same_upload, '%') !== false)
-                || $length < 1) {
-			throw new FormatException(FormatException::$messages['BOARD_SAME_UPLOAD']);
+    $same_upload = kotoba_strval($same_upload);
+    $l = strlen($same_upload);
+
+    if ($l <= 32 && $l >= 1) {
+
+        // Symbols must be latin letters a-z or A-Z.
+        for ($i = 0; $i < $l; $i++) {
+            $code = ord($same_upload[$i]);
+            if ($code < 0x41 || $code > 0x5A && $code < 0x61 || $code > 0x7A) {
+                throw new FormatException(FormatException::$messages['BOARD_SAME_UPLOAD']);
+            }
         }
-	} else {
-		throw new FormatException(FormatException::$messages['BOARD_SAME_UPLOAD']);
+        return $same_upload;
     }
-	return $same_upload;
+
+    throw new FormatException(FormatException::$messages['BOARD_SAME_UPLOAD']);
 }
 /**
- * Проверяет корректность заголовка доски.
- * @param string $title Заголовок доски.
+ * Проверяет длину заголовка доски.
+ * @param mixed $title Заголовок доски.
  * @return string|null
- * Возвращает безопасный для использования заголовок доски.
+ * Возвращает безопасный для использования заголовок доски или null, если
+ * заголовок доски — пустая строка.
  */
-function boards_check_title($title) { // Java CC
-	$length = strlen($title);
-    if ($length == 0) {
+function boards_check_title_size($title) { // Java CC
+    $title = htmlentities(kotoba_strval($title), ENT_QUOTES, Config::MB_ENCODING);
+    $l = strlen($title);
+
+    if ($l == 0) {
         return null;
     }
-	if ($length <= 50 && $length >= 1) {
-		$title = htmlentities($title, ENT_QUOTES, Config::MB_ENCODING);
-		$length = strlen($title);
-		if ($length > 50 || $length < 1) {
-			throw new FormatException(FormatException::$messages['BOARD_TITLE']);
-        }
-	} else {
-		throw new FormatException(FormatException::$messages['BOARD_TITLE']);
+    if ($l > 50) {
+        throw new LimitException(LimitException::$messages['MAX_BOARD_TITLE']);
     }
+
 	return $title;
 }
 /**

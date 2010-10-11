@@ -63,37 +63,37 @@
     <td><input type="text" name="default_name_{$boards[i].id}" value="{$boards[i].default_name}"></td>
     <td><input type="checkbox" name="with_attachments_{$boards[i].id}" value="1"{if $boards[i].with_attachments} checked{/if}></td>
     <td><select name="enable_macro_{$boards[i].id}">
-        <option value=""{if $boards[i].enable_macro === null} selected{/if}>Унаследовано</option>
+        <option value="0"{if $boards[i].enable_macro == '0'} selected{/if}>Выключено</option>
         <option value="1"{if $boards[i].enable_macro == '1'} selected{/if}>Включено</option>
-        <option value="0"{if $boards[i].enable_macro == '0'} selected{/if}>Выключено</option></select>
+        <option value="2"{if $boards[i].enable_macro === null} selected{/if}>Унаследовано</option></select>
     </td>
     <td><select name="enable_youtube_{$boards[i].id}">
-        <option value=""{if $boards[i].enable_youtube === null} selected{/if}>Унаследовано</option>
+        <option value="0"{if $boards[i].enable_youtube == '0'} selected{/if}>Выключено</option>
         <option value="1"{if $boards[i].enable_youtube == '1'} selected{/if}>Включено</option>
-        <option value="0"{if $boards[i].enable_youtube == '0'} selected{/if}>Выключено</option></select>
+        <option value="2"{if $boards[i].enable_youtube === null} selected{/if}>Унаследовано</option></select>
     </td>
     <td><select name="enable_captcha_{$boards[i].id}">
-        <option value=""{if $boards[i].enable_captcha === null} selected{/if}>Унаследовано</option>
+        <option value="0"{if $boards[i].enable_captcha == '0'} selected{/if}>Выключено</option>
         <option value="1"{if $boards[i].enable_captcha == '1'} selected{/if}>Включено</option>
-        <option value="0"{if $boards[i].enable_captcha == '0'} selected{/if}>Выключено</option></select>
+        <option value="2"{if $boards[i].enable_captcha === null} selected{/if}>Унаследовано</option></select>
     </td>
     <td><select name="enable_translation_{$boards[i].id}">
-        <option value=""{if $boards[i].enable_translation === null} selected{/if}>Унаследовано</option>
+        <option value="0"{if $boards[i].enable_translation == '0'} selected{/if}>Выключено</option>
         <option value="1"{if $boards[i].enable_translation == '1'} selected{/if}>Включено</option>
-        <option value="0"{if $boards[i].enable_translation == '0'} selected{/if}>Выключено</option></select>
+        <option value="2"{if $boards[i].enable_translation === null} selected{/if}>Унаследовано</option></select>
     </td>
     <td><select name="enable_geoip_{$boards[i].id}">
-        <option value=""{if $boards[i].enable_geoip === null} selected{/if}>Унаследовано</option>
+        <option value="0"{if $boards[i].enable_geoip == '0'} selected{/if}>Выключено</option>
         <option value="1"{if $boards[i].enable_geoip == '1'} selected{/if}>Включено</option>
-        <option value="0"{if $boards[i].enable_geoip == '0'} selected{/if}>Выключено</option></select>
+        <option value="2"{if $boards[i].enable_geoip === null} selected{/if}>Унаследовано</option></select>
     </td>
     <td><select name="enable_shi_{$boards[i].id}">
-        <option value=""{if $boards[i].enable_shi === null} selected{/if}>Унаследовано</option>
+        <option value="0"{if $boards[i].enable_shi == '0'} selected{/if}>Выключено</option>
         <option value="1"{if $boards[i].enable_shi == '1'} selected{/if}>Включено</option>
-        <option value="0"{if $boards[i].enable_shi == '0'} selected{/if}>Выключено</option></select>
+        <option value="2"{if $boards[i].enable_shi === null} selected{/if}>Унаследовано</option></select>
     </td>
     <td><select name="enable_postid_{$boards[i].id}">
-        <option value=""{if $boards[i].enable_postid === null} selected{/if}>Унаследовано</option>
+        <option value="2"{if $boards[i].enable_postid === null} selected{/if}>Унаследовано</option>
         <option value="1"{if $boards[i].enable_postid == '1'} selected{/if}>Включено</option>
         <option value="0"{if $boards[i].enable_postid == '0'} selected{/if}>Выключено</option></select>
     </td>
@@ -124,39 +124,39 @@
 <td><input type="text" name="new_default_name" value=""></td>
 <td><input type="checkbox" name="new_with_attachments" value="1"></td>
 <td><select name="new_enable_macro">
-    <option value="" selected>Унаследовано</option>
+    <option value="0">Выключено</option>
     <option value="1">Включено</option>
-    <option value="0">Выключено</option></select>
+    <option value="2" selected>Унаследовано</option></select>
 </td>
 <td><select name="new_enable_youtube">
-    <option value="" selected>Унаследовано</option>
+    <option value="0">Выключено</option>
     <option value="1">Включено</option>
-    <option value="0">Выключено</option></select>
+    <option value="2" selected>Унаследовано</option></select>
 </td>
 <td><select name="new_enable_captcha">
-    <option value="" selected>Унаследовано</option>
+    <option value="0">Выключено</option>
     <option value="1">Включено</option>
-    <option value="0">Выключено</option></select>
+    <option value="2" selected>Унаследовано</option></select>
 </td>
 <td><select name="new_enable_translation">
-    <option value="" selected>Унаследовано</option>
+    <option value="0">Выключено</option>
     <option value="1">Включено</option>
-    <option value="0">Выключено</option></select>
+    <option value="2" selected>Унаследовано</option></select>
 </td>
 <td><select name="new_enable_geoip">
-    <option value="" selected>Унаследовано</option>
+    <option value="0">Выключено</option>
     <option value="1">Включено</option>
-    <option value="0">Выключено</option></select>
+    <option value="2" selected>Унаследовано</option></select>
 </td>
 <td><select name="new_enable_shi">
-    <option value="" selected>Унаследовано</option>
+    <option value="0">Выключено</option>
     <option value="1">Включено</option>
-    <option value="0">Выключено</option></select>
+    <option value="2" selected>Унаследовано</option></select>
 </td>
 <td><select name="new_enable_postid">
-    <option value="" selected>Унаследовано</option>
+    <option value="0">Выключено</option>
     <option value="1">Включено</option>
-    <option value="0">Выключено</option></select>
+    <option value="2" selected>Унаследовано</option></select>
 </td>
 <td><input type="text" name="new_same_upload" value=""></td>
 <td><select name="new_popdown_handler">

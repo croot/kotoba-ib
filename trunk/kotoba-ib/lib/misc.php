@@ -54,6 +54,26 @@ class SmartyKotobaSetup extends Smarty { // Java CC
     }
 }
 /**
+ * Обёртка для intval().
+ */
+function kotoba_intval($var) {
+    if (!is_object($var)) {
+        return intval($var);
+    }
+
+    throw new FormatException(FormatException::$messages['KOTOBA_INTVAL']);
+}
+/**
+ * Обёртка для strval().
+ */
+function kotoba_strval($var) {
+    if (is_object($var) && method_exists($var, '__toString') || !is_array($var)) {
+        return strval($var);
+    }
+
+    throw new FormatException(FormatException::$messages['KOTOBA_STRVAL']);
+}
+/**
  * Возобновляет сессию или начинает новую. Восстанавливает настройки
  * пользователя или устанавливает настройки по умолчанию. Изменяет язык
  * сообщений об ошибках, если язык пользователя отличается от языка по
