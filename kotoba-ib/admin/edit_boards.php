@@ -96,81 +96,53 @@ try {
                 if ($_POST["new_$param_name"] == '2') {
                     $new_board[$param_name] = null;
                 } else {
-                    $new_board[$param_name] = $_POST["new_$param_name"] ? 1 : 0;
+                    $new_board[$param_name] = $_POST["new_$param_name"] ? true : false;
                 }
             }
             $new_board['same_upload'] = boards_check_same_upload($_POST['new_same_upload']);
             $new_board['popdown_handler'] = popdown_handlers_check_id($_POST['new_popdown_handler']);
             $new_board['category'] =  categories_check_id($_POST['new_category']);
-            throw new CommonException('Under construction');
 
             // If board with that name already exists, change parameters of this board.
             $found = false;
             foreach ($boards as $board) {
                 if ($board['name'] == $new_board['name'] && $found = true) {
-                    boards_edit($board['id'],
-                                $new_board['title'],
-                                $new_board['annotation'],
-                                $new_board['bump_limit'],
-                                $new_board['force_anonymous'],
-                                $new_board['default_name'],
-                                $new_board['with_attachments'],
-                                $new_board['enable_macro'],
-                                $new_board['enable_youtube'],
-                                $new_board['enable_captcha'],
-                                $new_board['enable_translation'],
-                                $new_board['enable_geoip'],
-                                $new_board['enable_shi'],
-                                $new_board['enable_postid'],
-                                $new_board['same_upload'],
-                                $new_board['popdown_handler'],
-                                $new_board['category']);
+                    $new_board['id'] = $board['id'];
+                    boards_edit($new_board);
                     $reload_boards = true;
                     break;
                 }
             }
             // If not exits, create new one.
             if (!$found) {
-                boards_add($new_board['name'],
-                           $new_board['title'],
-                           $new_board['annotation'],
-                           $new_board['bump_limit'],
-                           $new_board['force_anonymous'],
-                           $new_board['default_name'],
-                           $new_board['with_attachments'],
-                           $new_board['enable_macro'],
-                           $new_board['enable_youtube'],
-                           $new_board['enable_captcha'],
-                           $new_board['enable_translation'],
-                           $new_board['enable_geoip'],
-                           $new_board['enable_shi'],
-                           $new_board['enable_postid'],
-                           $new_board['same_upload'],
-                           $new_board['popdown_handler'],
-                           $new_board['category']);
-                if (!create_directories($new_name)) {
+                boards_add($new_board);
+                if (!create_directories($new_board['name'])) {
                     throw new CommonException('Directories creation failed.');
                 }
                 $reload_boards = true;
             }
         }// New board creation.
 
-        throw new CommonException('Under construction');
         // Change parameters of existing boards.
 		foreach ($boards as $board) {
+            $changed = false;
 
             // Is title was changed?
 			$param_name = "title_{$board['id']}";
 			$new_board['title'] = $board['title'];
-			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['title']) {
+			if (isset($_POST[$param_name]) && $_POST[$param_name] != html_entity_decode($board['title'], ENT_QUOTES, Config::MB_ENCODING)) {
                 $new_board['title'] = boards_check_title_size($_POST[$param_name]);
+                $changed = true;
+                echo "title<br>\n";
 			}
 
             // Is annotation was changed?
 			$param_name = "annotation_{$board['id']}";
 			$new_board['annotation'] = $board['annotation'];
-			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['annotation']) {
+			if (isset($_POST[$param_name]) && $_POST[$param_name] != html_entity_decode($board['annotation'], ENT_QUOTES, Config::MB_ENCODING)) {
                 $new_board['annotation'] = boards_check_annotation_size($_POST[$param_name]);
+                $changed = true;
+                echo "annotation<br>\n";
 			}
 
             // Is board-specified bump limit was changed?
@@ -178,6 +150,8 @@ try {
 			$new_board['bump_limit'] = $board['bump_limit'];
 			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['bump_limit']) {
 				$new_board['bump_limit'] = boards_check_bump_limit($_POST[$param_name]);
+                $changed = true;
+                echo "bump_limit<br>\n";
 			}
 
 			// Is display poster name flag was changed?
@@ -185,18 +159,24 @@ try {
 			$new_board['force_anonymous'] = $board['force_anonymous'];
 			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['force_anonymous']) {
 				// Flag up 0 -> 1
-				$new_board['force_anonymous'] = 1;
+				$new_board['force_anonymous'] = true;
+                $changed = true;
+                echo "force_anonymous up<br>\n";
 			}
 			if (!isset($_POST[$param_name]) && $board['force_anonymous']) {
 				// Flag down 1 -> 0
-				$new_board['force_anonymous'] = 0;
+				$new_board['force_anonymous'] = false;
+                $changed = true;
+                echo "force_anonymous down<br>\n";
 			}
 
 			// Is default poster name was changed?
 			$param_name = "default_name_{$board['id']}";
 			$new_board['default_name'] = $board['default_name'];
-			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['default_name']) {
+			if (isset($_POST[$param_name]) && $_POST[$param_name] != html_entity_decode($board['default_name'], ENT_QUOTES, Config::MB_ENCODING)) {
                 $new_board['default_name'] = boards_check_default_name($_POST[$param_name]);
+                $changed = true;
+                echo "default_name<br>\n";
 			}
 
 			// Is attachments flag was changed?
@@ -204,117 +184,98 @@ try {
 			$new_board['with_attachments'] = $board['with_attachments'];
 			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['with_attachments']) {
 				// Flag up 0 -> 1
-				$new_board['with_attachments'] = 1;
+				$new_board['with_attachments'] = true;
+                $changed = true;
+                echo "with_attachments up<br>\n";
 			}
 			if (!isset($_POST[$param_name]) && $board['with_attachments']) {
 				// Flag down 1 -> 0
-				$new_board['with_attachments'] = 0;
+				$new_board['with_attachments'] = false;
+                $changed = true;
+                echo "with_attachments down<br>\n";
 			}
 
-			// Была ли включена интеграция с макрочаном?
-			$param_name = "macro_{$board['id']}";
-			$new_enable_macro = $board['enable_macro'];
-			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['enable_macro']) {
-				// Флаг был установлен 0 -> 1
-				$new_enable_macro = 1;
-			}
-			if (!isset($_POST[$param_name]) && $board['enable_macro']) {
-				// Флаг был снят 1 -> 0
-				$new_enable_macro = 0;
-			}
+            foreach (array('enable_macro',
+                           'enable_youtube',
+                           'enable_captcha',
+                           'enable_translation',
+                           'enable_geoip',
+                           'enable_shi',
+                           'enable_postid') as $attr) {
 
-			// Было ли разрешено видео с ютуба?
-			$param_name = "youtube_{$board['id']}";
-			$new_enable_youtube = $board['enable_youtube'];
-			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['enable_youtube']) {
-				// Флаг был установлен 0 -> 1
-				$new_enable_youtube = 1;
-			}
-			if (!isset($_POST[$param_name]) && $board['enable_youtube']) {
-				// Флаг был снят 1 -> 0
-				$new_enable_youtube = 0;
-			}
-			// Была ли включена капча?
-			$param_name = "captcha_{$board['id']}";
-			$new_enable_captcha = $board['enable_captcha'];
-			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['enable_captcha']) {
-				// Флаг был установлен 0 -> 1
-				$new_enable_captcha = 1;
-			}
-			if (!isset($_POST[$param_name]) && $board['enable_captcha']) {
-				// Флаг был снят 1 -> 0
-				$new_enable_captcha = 0;
-			}
-			// Была ли изменена политика загрузки одинаковых файлов?
+                if ($_POST["{$attr}_{$board['id']}"] == '2') {
+                    $new_board[$attr] = null;
+                    if ($board[$attr] !== null) {
+                        $changed = true;
+                        echo "$attr inherit<br>\n";
+                    }
+                } else {
+                    $new_board[$attr] = $_POST["{$attr}_{$board['id']}"] ? true : false;
+                    if ($board[$attr] === null || kotoba_intval($board[$attr]) != $new_board[$attr]) {
+                        $changed = true;
+                        echo "$attr set to {$new_board[$attr]}<br>\n";
+                    }
+                }
+            }
+
+			// Is same uploads policy was changed?
 			$param_name = "same_upload_{$board['id']}";
-			$new_same_upload = $board['same_upload'];
+			$new_board['same_upload'] = $board['same_upload'];
 			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['same_upload']) {
-				$new_same_upload = boards_check_same_upload($_POST[$param_name]);
+				$new_board['same_upload'] = boards_check_same_upload($_POST[$param_name]);
+                $changed = true;
+                echo "same_upload<br>\n";
 			}
 
-			// Был ли изменён обработчик удаления нитей?
+			// Is threads popdown handler was changed?
 			$param_name = "popdown_handler_{$board['id']}";
-			$new_popdown_handler = $board['popdown_handler'];
+			$new_board['popdown_handler'] = $board['popdown_handler'];
 			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['popdown_handler']) {
-				$new_popdown_handler = popdown_handlers_check_id($_POST[$param_name]);
+				$new_board['popdown_handler'] = popdown_handlers_check_id($_POST[$param_name]);
+                $changed = true;
+                echo "popdown_handler<br>\n";
 			}
 
-			// Была ли изменена категория доски?
+			// Is board category was changed?
 			$param_name = "category_{$board['id']}";
-			$new_category = $board['category'];
+			$new_board['category'] = $board['category'];
 			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['category']) {
-				$new_category = categories_check_id($_POST[$param_name]);
+				$new_board['category'] = categories_check_id($_POST[$param_name]);
+                $changed = true;
+                echo "category<br>\n";
 			}
 
-			// Были ли произведены какие-либо изменения?
-			if ($new_title != $board['title']
-                    || $new_annotation != $board['annotation']
-                    || $new_bump_limit != $board['bump_limit']
-                    || $new_force_anonymous != $board['force_anonymous']
-                    || $new_default_name != $board['default_name']
-                    || $new_with_attachments != $board['with_attachments']
-                    || $new_enable_macro != $board['enable_macro']
-                    || $new_enable_youtube != $board['enable_youtube']
-                    || $new_enable_captcha != $board['enable_captcha']
-                    || $new_same_upload != $board['same_upload']
-                    || $new_popdown_handler != $board['popdown_handler']
-                    || $new_category != $board['category']) {
-
-                boards_edit($board['id'],
-                            $new_title,
-                            $new_annotation,
-                            $new_bump_limit,
-                            $new_force_anonymous,
-                            $new_default_name,
-                            $new_with_attachments,
-                            $new_enable_macro, $new_enable_youtube,
-                            $new_enable_captcha,
-                            $new_same_upload,
-                            $new_popdown_handler,
-                            $new_category);
+			// Is something was changed?
+			if ($changed) {
+                $new_board['id'] = $board['id'];
+                boards_edit($new_board);
 				$reload_boards = true;
 			}
-		}// Изменение параметров существующих досок.
+		}// Change parameters of existing boards.
 
-        // Удаление выбранных досок.
+        // Delete selected boards.
         foreach ($boards as $board) {
             if (isset($_POST["delete_{$board['id']}"])) {
-                boards_delete($board['id']);
+                echo "{$board['name']} deleted<br>";/*boards_delete($board['id']);*/
                 $reload_boards = true;
             }
         }
 	}
 
-    // Вывод формы редактирования.
     if ($reload_boards) {
         $boards = boards_get_all();
     }
+
+    // Cleanup.
     DataExchange::releaseResources();
+
+    // Show edit form.
     $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('popdown_handlers', $popdown_handlers);
     $smarty->assign('categories', $categories);
     $smarty->assign('boards', $boards);
     $smarty->display('edit_boards.tpl');
+    exit(0);
 } catch(Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();

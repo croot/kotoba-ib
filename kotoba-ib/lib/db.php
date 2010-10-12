@@ -646,12 +646,13 @@ function boards_add($name, $title, $annotation, $bump_limit, $force_anonymous,
 		$popdown_handler, $category);
 }
 /**
- * Проверяет длину аннотации.
+ * Проверяет корректность аннотации.
  * @param mixed $annotation Аннотация.
  * @return string|null
- * Возвращает аннотацию.
+ * Возвращает безопасныую для использования аннотацию.
  */
 function boards_check_annotation_size($annotation) { // Java CC.
+    $annotation = htmlentities(kotoba_strval($annotation), ENT_QUOTES, Config::MB_ENCODING);
     $len = strlen($annotation);
 
     if ($len == 0) {
@@ -783,28 +784,27 @@ function boards_delete($id)
 }
 /**
  * Редактирует доску.
- * @param id mixed <p>Идентификатор.</p>
- * @param title string <p>Заголовок.</p>
- * @param annotation string <p>Аннотация.</p>
- * @param bump_limit mixed <p>Специфичный для доски бамплимит.</p>
- * @param force_anonymous string <p>Флаг отображения имени отправителя.</p>
- * @param default_name string <p>Имя отправителя по умолчанию.</p>
- * @param with_attachments string <p>Флаг вложений.</p>
- * @param enable_macro mixed <p>Включение интеграции с макрочаном.</p>
- * @param enable_youtube mixed <p>Включение вложения видео с ютуба.</p>
- * @param enable_captcha mixed <p>Включение капчи.</p>
- * @param same_upload string <p>Политика загрузки одинаковых файлов.</p>
- * @param popdown_handler mixed <p>Обработчик автоматического удаления нитей.</p>
- * @param category mixed <p>Категория.</p>
+ * @param array $new_board данные новой доски:<br>
+ * <b>id</b> int - идентификатор.<br>
+ * <b>title</b> string|null - заголовок.<br>
+ * <b>annotation</b> string|null - аннотация.<br>
+ * <b>bump_limit</b> int - специфичный для доски бамплимит.<br>
+ * <b>force_anonymous</b> boolean - флаг отображения имени отправителя.<br>
+ * <b>default_name</b> string|null - имя отправителя по умолчанию.<br>
+ * <b>with_attachments</b> boolean - флаг вложений.<br>
+ * <b>enable_macro</b> boolean|null - включение интеграции с макрочаном.<br>
+ * <b>enable_youtube</b> boolean|null - включение вложения видео с ютуба.<br>
+ * <b>enable_captcha</b> boolean|null - включение капчи.<br>
+ * <b>enable_translation</b> boolean|null - включение перевода текста сообщения.<br>
+ * <b>enable_geoip</b> boolean|null - включение отображения страны автора сообщения.<br>
+ * <b>enable_shi</b> boolean|null - включение рисования.<br>
+ * <b>enable_postid</b> boolean|null - включение идентификатора поста.<br>
+ * <b>same_upload</b> string - политика загрузки одинаковых файлов.<br>
+ * <b>popdown_handler</b> int - обработчик автоматического удаления нитей.<br>
+ * <b>category</b> int - категория.
  */
-function boards_edit($id, $title, $annotation, $bump_limit, $force_anonymous,
-	$default_name, $with_attachments, $enable_macro, $enable_youtube,
-	$enable_captcha, $same_upload, $popdown_handler, $category)
-{
-	db_boards_edit(DataExchange::getDBLink(), $id, $title, $annotation,
-		$bump_limit, $force_anonymous, $default_name, $with_attachments,
-		$enable_macro, $enable_youtube, $enable_captcha, $same_upload,
-		$popdown_handler, $category);
+function boards_edit($new_board) {
+	db_boards_edit(DataExchange::getDBLink(), $new_board);
 }
 /**
  * Получает все доски.
@@ -1027,23 +1027,11 @@ function categories_add($name)
 /**
  * Проверяет корректность идентификатора категории.
  * @param mixed $id Идентификатор.
- * @return string
+ * @return int
  * Возвращает безопасный для использования идентификатор категории.
  */
 function categories_check_id($id) { // Java CC
-    $length = strlen($id);
-    $max_int_length = strlen('' . PHP_INT_MAX);
-    if ($length <= $max_int_length && $length >= 1) {
-        $id = RawUrlEncode($id);
-        $length = strlen($id);
-        if ($length > $max_int_length || (ctype_digit($id) === false)
-                || $length < 1) {
-            throw new FormatException(FormatException::$messages['CATEGORY_ID']);
-        }
-    } else {
-        throw new FormatException(FormatException::$messages['CATEGORY_ID']);
-    }
-    return $id;
+    return kotoba_intval($id);
 }
 /**
  * Проверяет корректность имени категории.
@@ -1595,24 +1583,12 @@ function popdown_handlers_add($name)
  * Проверяет корректность идентификатора обработчика автоматического
  * удаления нитей.
  * @param mixed $id Идентификатор обработчика автоматического удаления  нитей.
- * @return string
+ * @return int
  * Возвращает безопасный для использования идентификатор обработчика
  * автоматического удаления нитей.
  */
 function popdown_handlers_check_id($id) { // Java CC
-    $length = strlen($id);
-    $max_int_length = strlen('' . PHP_INT_MAX);
-    if ($length <= $max_int_length && $length >= 1) {
-        $id = RawUrlEncode($id);
-        $length = strlen($id);
-        if ($length > $max_int_length || (ctype_digit($id) === false)
-                || $length < 1) {
-            throw new FormatException(FormatException::$messages['POPDOWN_HANDLER_ID']);
-        }
-    } else {
-        throw new FormatException(FormatException::$messages['POPDOWN_HANDLER_ID']);
-    }
-    return $id;
+    return kotoba_intval($id);
 }
 /**
  * Проверяет корректность имени функции обработчика автоматического удаления
