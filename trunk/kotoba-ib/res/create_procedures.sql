@@ -453,44 +453,43 @@ begin
 end|
 
 -- Редактирует доску.
---
--- Аргументы:
--- _id - Идентификатор.
--- _title - Заголовок.
--- _annotation - Аннотация.
--- _bump_limit - Специфичный для доски бамплимит.
--- _force_anonymous - Флаг отображения имени отправителя.
--- _default_name - Имя отправителя по умолчанию.
--- _with_attachments - Флаг вложений.
--- _enable_macro - Включение интеграции с макрочаном.
--- _enable_youtube - Включение вложения видео с ютуба.
--- _enable_captcha - Включение капчи.
--- _same_upload - Политика загрузки одинаковых файлов.
--- _popdown_handler - Идентификатор обработчика автоматического удаления нитей.
--- _category - Идентификатор категории.
 create procedure sp_boards_edit
 (
-    _id int,
-    _title varchar(50),
-    _annotation text,
-    _bump_limit int,
-    _force_anonymous bit,
-    _default_name varchar(128),
-    _with_attachments bit,
-    _enable_macro bit,
-    _enable_youtube bit,
-    _enable_captcha bit,
-    _same_upload varchar(32),
-    _popdown_handler int,
-    _category int
+    _id int,                    -- Идентификатор.
+    _title varchar(50),         -- Заголовок.
+    _annotation text,           -- Аннотация.
+    _bump_limit int,            -- Специфичный для доски бамплимит.
+    _force_anonymous bit,       -- Флаг отображения имени отправителя.
+    _default_name varchar(128), -- Имя отправителя по умолчанию.
+    _with_attachments bit,      -- Флаг вложений.
+    _enable_macro bit,          -- Включение интеграции с макрочаном.
+    _enable_youtube bit,        -- Включение вложения видео с ютуба.
+    _enable_captcha bit,        -- Включение капчи.
+    _enable_translation bit,    -- Включение перевода текста сообщения.
+    _enable_geoip bit,          -- Включение отображения страны автора сообщения.
+    _enable_shi bit,            -- Включение рисования.
+    _enable_postid bit,         -- Включение идентификатора сообщения.
+    _same_upload varchar(32),   -- Политика загрузки одинаковых файлов.
+    _popdown_handler int,       -- Идентификатор обработчика автоматического удаления нитей.
+    _category int               -- Идентификатор категории.
 )
 begin
-    update boards set title = _title, annotation = _annotation,
-            bump_limit = _bump_limit, force_anonymous = _force_anonymous,
-            default_name = _default_name, with_attachments = _with_attachments,
-            enable_macro = _enable_macro, enable_youtube = _enable_youtube,
-            enable_captcha = _enable_captcha, same_upload = _same_upload,
-            popdown_handler = _popdown_handler, category = _category
+    update boards set title = _title,
+                      annotation = _annotation,
+                      bump_limit = _bump_limit,
+                      force_anonymous = _force_anonymous,
+                      default_name = _default_name,
+                      with_attachments = _with_attachments,
+                      enable_macro = _enable_macro,
+                      enable_youtube = _enable_youtube,
+                      enable_captcha = _enable_captcha,
+                      enable_translation = _enable_translation,
+                      enable_geoip = _enable_geoip,
+                      enable_shi = _enable_shi,
+                      enable_postid = _enable_postid,
+                      same_upload = _same_upload,
+                      popdown_handler = _popdown_handler,
+                      category = _category
         where id = _id;
 end|
 
