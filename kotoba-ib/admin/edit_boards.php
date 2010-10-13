@@ -82,9 +82,9 @@ try {
             $new_board['title'] = boards_check_title_size($_POST['new_title']);
             $new_board['annotation'] = boards_check_annotation_size($_POST['new_annotation']);
             $new_board['bump_limit'] = boards_check_bump_limit($_POST['new_bump_limit']);
-            $new_board['force_anonymous'] = isset($_POST['new_force_anonymous']) ? 1 : 0;
+            $new_board['force_anonymous'] = isset($_POST['new_force_anonymous']) ? true : false;
             $new_board['default_name'] = boards_check_default_name($_POST['new_default_name']);
-            $new_board['with_attachments'] = isset($_POST['new_with_attachments']) ? 1 : 0;
+            $new_board['with_attachments'] = isset($_POST['new_with_attachments']) ? true : false;
             foreach (array('enable_macro',
                            'enable_youtube',
                            'enable_captcha',
