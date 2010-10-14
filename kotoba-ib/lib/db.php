@@ -63,11 +63,11 @@ class DataExchange {
  */
 function create_directories($name) { // Java CC
     $base = Config::ABS_PATH . "/$name";
-    if(mkdir ($base)) { // Hide warning when directory exists.
+    if(mkdir ($base)) {
         chmod ($base, 0777);
-        foreach (array("arch", "img", "thumb") as $dir) {
+        foreach (array('arch', 'img', 'thumb', 'other') as $dir) {
             $subdir = "$base/$dir";
-            if (mkdir($subdir)) { // Hide warning when directory exists.
+            if (mkdir($subdir)) {
                 chmod($subdir, 0777);
             } else {
                 return false;
@@ -622,28 +622,27 @@ function words_get_all_by_board($board_id) { // Java CC
 
 /**
  * Добавляет доску.
- * @param name string <p>Имя.</p>
- * @param title string <p>Заголовок.</p>
- * @param annotation string <p>Аннотация.</p>
- * @param bump_limit mixed <p>Специфичный для доски бамплимит.</p>
- * @param force_anonymous string <p>Флаг отображения имени отправителя.</p>
- * @param default_name string <p>Имя отправителя по умолчанию.</p>
- * @param with_attachments string <p>Флаг вложений.</p>
- * @param enable_macro mixed <p>Включение интеграции с макрочаном.</p>
- * @param enable_youtube mixed <p>Включение вложения видео с ютуба.</p>
- * @param enable_captcha mixed <p>Включение капчи.</p>
- * @param same_upload string <p>Политика загрузки одинаковых файлов.</p>
- * @param popdown_handler mixed <p>Обработчик автоматического удаления нитей.</p>
- * @param category mixed <p>Категория.</p>
+ * @param array $new_board данные новой доски:<br>
+ * <b>name</b> string - имя.<br>
+ * <b>title</b> string|null - заголовок.<br>
+ * <b>annotation</b> string|null - аннотация.<br>
+ * <b>bump_limit</b> int - специфичный для доски бамплимит.<br>
+ * <b>force_anonymous</b> boolean - флаг отображения имени отправителя.<br>
+ * <b>default_name</b> string|null - имя отправителя по умолчанию.<br>
+ * <b>with_attachments</b> boolean - флаг вложений.<br>
+ * <b>enable_macro</b> boolean|null - включение интеграции с макрочаном.<br>
+ * <b>enable_youtube</b> boolean|null - включение вложения видео с ютуба.<br>
+ * <b>enable_captcha</b> boolean|null - включение капчи.<br>
+ * <b>enable_translation</b> boolean|null - включение перевода текста сообщения.<br>
+ * <b>enable_geoip</b> boolean|null - включение отображения страны автора сообщения.<br>
+ * <b>enable_shi</b> boolean|null - включение рисования.<br>
+ * <b>enable_postid</b> boolean|null - включение идентификатора поста.<br>
+ * <b>same_upload</b> string - политика загрузки одинаковых файлов.<br>
+ * <b>popdown_handler</b> int - обработчик автоматического удаления нитей.<br>
+ * <b>category</b> int - категория.
  */
-function boards_add($name, $title, $annotation, $bump_limit, $force_anonymous,
-	$default_name, $with_attachments, $enable_macro, $enable_youtube,
-	$enable_captcha, $same_upload, $popdown_handler, $category)
-{
-	db_boards_add(DataExchange::getDBLink(), $name, $title, $annotation,
-		$bump_limit, $force_anonymous, $default_name, $with_attachments,
-		$enable_macro, $enable_youtube, $enable_captcha, $same_upload,
-		$popdown_handler, $category);
+function boards_add($new_board) {
+    db_boards_add(DataExchange::getDBLink(), $new_board);
 }
 /**
  * Проверяет корректность аннотации.
@@ -651,7 +650,7 @@ function boards_add($name, $title, $annotation, $bump_limit, $force_anonymous,
  * @return string|null
  * Возвращает безопасныую для использования аннотацию.
  */
-function boards_check_annotation_size($annotation) { // Java CC.
+function boards_check_annotation($annotation) { // Java CC.
     $annotation = htmlentities(kotoba_strval($annotation), ENT_QUOTES, Config::MB_ENCODING);
     $len = strlen($annotation);
 
@@ -755,13 +754,13 @@ function boards_check_same_upload($same_upload) { // Java CC
     throw new FormatException(FormatException::$messages['BOARD_SAME_UPLOAD']);
 }
 /**
- * Проверяет длину заголовка доски.
+ * Проверяет корректность заголовка доски.
  * @param mixed $title Заголовок доски.
  * @return string|null
  * Возвращает безопасный для использования заголовок доски или null, если
  * заголовок доски — пустая строка.
  */
-function boards_check_title_size($title) { // Java CC
+function boards_check_title($title) { // Java CC
     $title = htmlentities(kotoba_strval($title), ENT_QUOTES, Config::MB_ENCODING);
     $l = strlen($title);
 
@@ -775,16 +774,15 @@ function boards_check_title_size($title) { // Java CC
 	return $title;
 }
 /**
- * Удаляет заданную доску.
- * @param id mixed <p>Идентификатор доски.</p>
+ * Deletes board.
+ * @param int $id Board id.
  */
-function boards_delete($id)
-{
-	db_boards_delete(DataExchange::getDBLink(), $id);
+function boards_delete($id) {
+    db_boards_delete(DataExchange::getDBLink(), $id);
 }
 /**
  * Редактирует доску.
- * @param array $new_board данные новой доски:<br>
+ * @param array $board новые данные доски:<br>
  * <b>id</b> int - идентификатор.<br>
  * <b>title</b> string|null - заголовок.<br>
  * <b>annotation</b> string|null - аннотация.<br>
@@ -803,8 +801,8 @@ function boards_delete($id)
  * <b>popdown_handler</b> int - обработчик автоматического удаления нитей.<br>
  * <b>category</b> int - категория.
  */
-function boards_edit($new_board) {
-	db_boards_edit(DataExchange::getDBLink(), $new_board);
+function boards_edit($board) {
+	db_boards_edit(DataExchange::getDBLink(), $board);
 }
 /**
  * Получает все доски.
