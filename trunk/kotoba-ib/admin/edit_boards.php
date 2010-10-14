@@ -77,10 +77,10 @@ try {
                 && $_POST['new_popdown_handler'] != ''
                 && $_POST['new_category'] != '') {
 
-            // Check all parameters.
+            // Check parameters.
             $new_board['name'] = boards_check_name($_POST['new_name']);
-            $new_board['title'] = boards_check_title_size($_POST['new_title']);
-            $new_board['annotation'] = boards_check_annotation_size($_POST['new_annotation']);
+            $new_board['title'] = boards_check_title($_POST['new_title']);
+            $new_board['annotation'] = boards_check_annotation($_POST['new_annotation']);
             $new_board['bump_limit'] = boards_check_bump_limit($_POST['new_bump_limit']);
             $new_board['force_anonymous'] = isset($_POST['new_force_anonymous']) ? true : false;
             $new_board['default_name'] = boards_check_default_name($_POST['new_default_name']);
@@ -108,6 +108,7 @@ try {
             foreach ($boards as $board) {
                 if ($board['name'] == $new_board['name'] && $found = true) {
                     $new_board['id'] = $board['id'];
+                    //echo "edit {$board['name']}<br>\n";
                     boards_edit($new_board);
                     $reload_boards = true;
                     break;
@@ -115,6 +116,7 @@ try {
             }
             // If not exits, create new one.
             if (!$found) {
+                //echo "add {$new_board['name']}<br>\n";
                 boards_add($new_board);
                 if (!create_directories($new_board['name'])) {
                     throw new CommonException('Directories creation failed.');
@@ -128,31 +130,35 @@ try {
             $changed = false;
 
             // Is title was changed?
-			$param_name = "title_{$board['id']}";
-			$new_board['title'] = $board['title'];
-			if (isset($_POST[$param_name]) && $_POST[$param_name] != html_entity_decode($board['title'], ENT_QUOTES, Config::MB_ENCODING)) {
-                $new_board['title'] = boards_check_title_size($_POST[$param_name]);
-                $changed = true;
-                echo "title<br>\n";
-			}
+            if (isset($_POST["title_{$board['id']}"])) {
+                $new_board['title'] = boards_check_title($_POST["title_{$board['id']}"]);
+                if (($new_board['title'] === null xor $board['title'] === null)
+                        || $new_board['title'] != $board['title']) {
+
+                    $changed = true;
+                    //echo "title changed<br>\n";
+                }
+            }
 
             // Is annotation was changed?
-			$param_name = "annotation_{$board['id']}";
-			$new_board['annotation'] = $board['annotation'];
-			if (isset($_POST[$param_name]) && $_POST[$param_name] != html_entity_decode($board['annotation'], ENT_QUOTES, Config::MB_ENCODING)) {
-                $new_board['annotation'] = boards_check_annotation_size($_POST[$param_name]);
-                $changed = true;
-                echo "annotation<br>\n";
-			}
+            if (isset($_POST["annotation_{$board['id']}"])) {
+                $new_board['annotation'] = boards_check_annotation($_POST["annotation_{$board['id']}"]);
+                if (($new_board['annotation'] === null xor $board['annotation'] === null)
+                        || $new_board['annotation'] != $board['annotation']) {
+
+                    $changed = true;
+                    //echo "annotation changed<br>\n";
+                }
+            }
 
             // Is board-specified bump limit was changed?
-			$param_name = "bump_limit_{$board['id']}";
-			$new_board['bump_limit'] = $board['bump_limit'];
-			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['bump_limit']) {
-				$new_board['bump_limit'] = boards_check_bump_limit($_POST[$param_name]);
-                $changed = true;
-                echo "bump_limit<br>\n";
-			}
+            if (isset($_POST["bump_limit_{$board['id']}"])) {
+				$new_board['bump_limit'] = boards_check_bump_limit($_POST["bump_limit_{$board['id']}"]);
+                if ($new_board['bump_limit'] != $board['bump_limit']) {
+                    $changed = true;
+                    //echo "bump_limit changed<br>\n";
+                }
+            }
 
 			// Is display poster name flag was changed?
 			$param_name = "force_anonymous_{$board['id']}";
@@ -161,23 +167,25 @@ try {
 				// Flag up 0 -> 1
 				$new_board['force_anonymous'] = true;
                 $changed = true;
-                echo "force_anonymous up<br>\n";
+                //echo "force_anonymous up<br>\n";
 			}
 			if (!isset($_POST[$param_name]) && $board['force_anonymous']) {
 				// Flag down 1 -> 0
 				$new_board['force_anonymous'] = false;
                 $changed = true;
-                echo "force_anonymous down<br>\n";
+                //echo "force_anonymous down<br>\n";
 			}
 
 			// Is default poster name was changed?
-			$param_name = "default_name_{$board['id']}";
-			$new_board['default_name'] = $board['default_name'];
-			if (isset($_POST[$param_name]) && $_POST[$param_name] != html_entity_decode($board['default_name'], ENT_QUOTES, Config::MB_ENCODING)) {
-                $new_board['default_name'] = boards_check_default_name($_POST[$param_name]);
-                $changed = true;
-                echo "default_name<br>\n";
-			}
+            if (isset($_POST["default_name_{$board['id']}"])) {
+                $new_board['default_name'] = boards_check_default_name($_POST["default_name_{$board['id']}"]);
+                if (($new_board['default_name'] === null xor $board['default_name'] === null)
+                        || $new_board['default_name'] != $board['default_name']) {
+
+                    $changed = true;
+                    //echo "default_name changed<br>\n";
+                }
+            }
 
 			// Is attachments flag was changed?
 			$param_name = "with_attachments_{$board['id']}";
@@ -186,13 +194,13 @@ try {
 				// Flag up 0 -> 1
 				$new_board['with_attachments'] = true;
                 $changed = true;
-                echo "with_attachments up<br>\n";
+                //echo "with_attachments up<br>\n";
 			}
 			if (!isset($_POST[$param_name]) && $board['with_attachments']) {
 				// Flag down 1 -> 0
 				$new_board['with_attachments'] = false;
                 $changed = true;
-                echo "with_attachments down<br>\n";
+                //echo "with_attachments down<br>\n";
 			}
 
             foreach (array('enable_macro',
@@ -207,47 +215,48 @@ try {
                     $new_board[$attr] = null;
                     if ($board[$attr] !== null) {
                         $changed = true;
-                        echo "$attr inherit<br>\n";
+                        //echo "$attr inherit<br>\n";
                     }
                 } else {
                     $new_board[$attr] = $_POST["{$attr}_{$board['id']}"] ? true : false;
                     if ($board[$attr] === null || kotoba_intval($board[$attr]) != $new_board[$attr]) {
                         $changed = true;
-                        echo "$attr set to {$new_board[$attr]}<br>\n";
+                        //echo "$attr set to " . ($new_board[$attr] ? 'true' : 'false') . "<br>\n";
                     }
                 }
             }
 
 			// Is same uploads policy was changed?
-			$param_name = "same_upload_{$board['id']}";
-			$new_board['same_upload'] = $board['same_upload'];
-			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['same_upload']) {
-				$new_board['same_upload'] = boards_check_same_upload($_POST[$param_name]);
-                $changed = true;
-                echo "same_upload<br>\n";
-			}
+            if (isset($_POST["same_upload_{$board['id']}"])) {
+                $new_board['same_upload'] = boards_check_same_upload($_POST["same_upload_{$board['id']}"]);
+                if ($new_board['same_upload'] != $board['same_upload']) {
+                    $changed = true;
+                    //echo "same_upload changed<br>\n";
+                }
+            }
 
 			// Is threads popdown handler was changed?
-			$param_name = "popdown_handler_{$board['id']}";
-			$new_board['popdown_handler'] = $board['popdown_handler'];
-			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['popdown_handler']) {
-				$new_board['popdown_handler'] = popdown_handlers_check_id($_POST[$param_name]);
-                $changed = true;
-                echo "popdown_handler<br>\n";
-			}
+            if (isset($_POST["popdown_handler_{$board['id']}"])) {
+                $new_board['popdown_handler'] = popdown_handlers_check_id($_POST["popdown_handler_{$board['id']}"]);
+                if ($new_board['popdown_handler'] != $board['popdown_handler']) {
+                    $changed = true;
+                    //echo "popdown_handler changed<br>\n";
+                }
+            }
 
 			// Is board category was changed?
-			$param_name = "category_{$board['id']}";
-			$new_board['category'] = $board['category'];
-			if (isset($_POST[$param_name]) && $_POST[$param_name] != $board['category']) {
-				$new_board['category'] = categories_check_id($_POST[$param_name]);
-                $changed = true;
-                echo "category<br>\n";
-			}
+            if (isset($_POST["category_{$board['id']}"])) {
+                $new_board['category'] = categories_check_id($_POST["category_{$board['id']}"]);
+                if ($new_board['category'] != $board['category']) {
+                    $changed = true;
+                    //echo "category changed<br>\n";
+                }
+            }
 
 			// Is something was changed?
 			if ($changed) {
                 $new_board['id'] = $board['id'];
+                //echo "edit {$board['name']}<br>\n";
                 boards_edit($new_board);
 				$reload_boards = true;
 			}
@@ -256,7 +265,8 @@ try {
         // Delete selected boards.
         foreach ($boards as $board) {
             if (isset($_POST["delete_{$board['id']}"])) {
-                echo "{$board['name']} deleted<br>";/*boards_delete($board['id']);*/
+                //echo "delete {$board['name']}<br>\n";
+                boards_delete($board['id']);
                 $reload_boards = true;
             }
         }

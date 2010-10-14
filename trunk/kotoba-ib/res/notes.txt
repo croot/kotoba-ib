@@ -54,71 +54,7 @@ p = правило для сообщения
 2) Change	- не определено
 3) Moderate	- не определено
 
-###################################################################
-# Настройки, необходимые для работы Котобы.
-#
-<Directory "C:/Apache22/htdocs/kotoba/">
-	<IfModule dir_module>
-		DirectoryIndex index.php
-	</IfModule>
-
-	RewriteEngine On
-	RewriteRule ^([\w]{1,16})/$ boards.php?board=$1 [NE,L]
-	RewriteRule ^([\w]{1,16})$ boards.php?board=$1 [NE,L]
-	RewriteRule ^([\w]{1,16})/([\d]+)/$ threads.php?board=$1&thread=$2 [NE,L]
-	RewriteRule ^([\w]{1,16})/([\d]+)$ threads.php?board=$1&thread=$2 [NE,L]
-	RewriteRule ^([\w]{1,16})/p([\d]+)/$ boards.php?board=$1&page=$2 [NE,L]
-	RewriteRule ^([\w]{1,16})/p([\d]+)$ boards.php?board=$1&page=$2 [NE,L]
-	RewriteRule ^([\w]{1,16})/r([\d]+)/$ remove_post.php?board=$1&post=$2 [NE,L]
-	RewriteRule ^([\w]{1,16})/r([\d]+)$ remove_post.php?board=$1&post=$2 [NE,L]
-	RewriteRule ^([\w]{1,16})/h([\d]+)/$ hide_thread.php?board=$1&thread=$2 [NE,L]
-	RewriteRule ^([\w]{1,16})/h([\d]+)$ hide_thread.php?board=$1&thread=$2 [NE,L]
-	RewriteRule ^([\w]{1,16})/u([\d]+)/$ unhide_thread.php?board=$1&thread=$2 [NE,L]
-	RewriteRule ^([\w]{1,16})/u([\d]+)$ unhide_thread.php?board=$1&thread=$2 [NE,L]
-</Directory>
-<Directory "C:/Apache22/htdocs/kotoba/log">
-	Options FollowSymLinks
-	AllowOverride None
-	Order deny,allow
-	Deny from all
-</Directory>
-<Directory "C:/Apache22/htdocs/kotoba/res">
-	Options FollowSymLinks
-	AllowOverride None
-	Order deny,allow
-	Deny from all
-</Directory>
-<Directory "C:/Apache22/htdocs/kotoba/sessions">
-	Options FollowSymLinks
-	AllowOverride None
-	Order deny,allow
-	Deny from all
-</Directory>
-<Directory "C:/Apache22/htdocs/kotoba/smarty">
-	Options FollowSymLinks
-	AllowOverride None
-	Order deny,allow
-	Deny from all
-</Directory>
-<Directory "C:/Apache22/htdocs/kotoba/stat">
-	Options FollowSymLinks
-	AllowOverride None
-	Order deny,allow
-	Deny from all
-</Directory>
-<DirectoryMatch "\.svn">
-	Options FollowSymLinks
-	AllowOverride None
-	Order deny,allow
-	Deny from all
-</DirectoryMatch>
-#
-####################################################################
-
-Каталог тредов
-Новости на главной
-Яваскрипт >>12313
-Избранные треды
-Переводчик постов
-ГеоIP
-Диапазоны разрешенных символов юникода
+починить поиск
+поиск по всем доскам
+вывод последних файлов в главном скрипте модератора
+стандартные временные промежутки

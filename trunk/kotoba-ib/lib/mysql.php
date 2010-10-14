@@ -446,56 +446,96 @@ function db_words_get_all_by_board($link, $board_id) { // Java CC
 
 /**
  * Добавляет доску.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param name string <p>Имя.</p>
- * @param title string <p>Заголовок.</p>
- * @param annotation string <p>Аннотация.</p>
- * @param bump_limit mixed <p>Специфичный для доски бамплимит.</p>
- * @param force_anonymous string <p>Флаг отображения имени отправителя.</p>
- * @param default_name string <p>Имя отправителя по умолчанию.</p>
- * @param with_attachments string <p>Флаг вложений.</p>
- * @param enable_macro mixed <p>Включение интеграции с макрочаном.</p>
- * @param enable_youtube mixed <p>Включение вложения видео с ютуба.</p>
- * @param enable_captcha mixed <p>Включение капчи.</p>
- * @param same_upload string <p>Политика загрузки одинаковых файлов.</p>
- * @param popdown_handler mixed <p>Обработчик автоматического удаления нитей.</p>
- * @param category mixed <p>Категория.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param array $new_board данные новой доски:<br>
+ * <b>name</b> string - имя.<br>
+ * <b>title</b> string|null - заголовок.<br>
+ * <b>annotation</b> string|null - аннотация.<br>
+ * <b>bump_limit</b> int - специфичный для доски бамплимит.<br>
+ * <b>force_anonymous</b> boolean - флаг отображения имени отправителя.<br>
+ * <b>default_name</b> string|null - имя отправителя по умолчанию.<br>
+ * <b>with_attachments</b> boolean - флаг вложений.<br>
+ * <b>enable_macro</b> boolean|null - включение интеграции с макрочаном.<br>
+ * <b>enable_youtube</b> boolean|null - включение вложения видео с ютуба.<br>
+ * <b>enable_captcha</b> boolean|null - включение капчи.<br>
+ * <b>enable_translation</b> boolean|null - включение перевода текста сообщения.<br>
+ * <b>enable_geoip</b> boolean|null - включение отображения страны автора сообщения.<br>
+ * <b>enable_shi</b> boolean|null - включение рисования.<br>
+ * <b>enable_postid</b> boolean|null - включение идентификатора поста.<br>
+ * <b>same_upload</b> string - политика загрузки одинаковых файлов.<br>
+ * <b>popdown_handler</b> int - обработчик автоматического удаления нитей.<br>
+ * <b>category</b> int - категория.
  */
-function db_boards_add($link, $name, $title, $annotation, $bump_limit,
-	$force_anonymous, $default_name, $with_attachments, $enable_macro,
-	$enable_youtube, $enable_captcha, $same_upload, $popdown_handler, $category)
-{
-	if($title === null)
-		$title = 'null';
-	if($annotation === null)
-		$annotation = 'null';
-	if($default_name === null)
-		$default_name = 'null';
-	if($enable_macro === null)
-		$enable_macro = 'null';
-	if($enable_youtube === null)
-		$enable_youtube = 'null';
-	if($enable_captcha === null)
-		$enable_captcha = 'null';
-	if(!mysqli_query($link, 'call sp_boards_add(\'' . $name . '\', \''
-		. $title . '\', \'' . $annotation . '\', ' . $bump_limit . ', '
-		. $force_anonymous . ', \'' . $default_name . '\', '
-		. $with_attachments . ', ' . $enable_macro . ', ' . $enable_youtube . ', '
-		. $enable_captcha . ', \'' . $same_upload . '\', ' . $popdown_handler . ', '
-		. $category . ')'))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+function db_boards_add($link, $new_board) { // Java CC
+
+    // Prepare data fro query.
+    foreach (array('force_anonymous',
+                   'with_attachments',
+                   'enable_macro',
+                   'enable_youtube',
+                   'enable_captcha',
+                   'enable_translation',
+                   'enable_geoip',
+                   'enable_shi',
+                   'enable_postid') as $attr) {
+
+        if ($new_board[$attr] === null) {
+            $new_board[$attr] = 'null';
+        }
+        if ($new_board[$attr] === false) {
+            $new_board[$attr] = '0';
+        }
+    }
+    foreach (array('name',
+                   'title',
+                   'annotation',
+                   'default_name',
+                   'same_upload') as $attr) {
+
+        if ($new_board[$attr] === null) {
+            $new_board[$attr] = 'null';
+        } else {
+            $new_board[$attr] = "'{$new_board[$attr]}'";
+        }
+    }
+
+    // Query.
+    $query = "call sp_boards_add({$new_board['name']},
+                                 {$new_board['title']},
+                                 {$new_board['annotation']},
+                                 {$new_board['bump_limit']},
+                                 {$new_board['force_anonymous']},
+                                 {$new_board['default_name']},
+                                 {$new_board['with_attachments']},
+                                 {$new_board['enable_macro']},
+                                 {$new_board['enable_youtube']},
+                                 {$new_board['enable_captcha']},
+                                 {$new_board['enable_translation']},
+                                 {$new_board['enable_geoip']},
+                                 {$new_board['enable_shi']},
+                                 {$new_board['enable_postid']},
+                                 {$new_board['same_upload']},
+                                 {$new_board['popdown_handler']},
+                                 {$new_board['category']})";
+    if (!mysqli_query($link, $query)) {
+        throw new CommonException(mysqli_error($link));
+    }
+    db_cleanup_link($link);
 }
 /**
- * Удаляет заданную доску.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param id mixed <p>Идентификатор доски.</p>
+ * Deletes board.
+ * @param MySQLi $link Link to database.
+ * @param int $id Board id.
  */
-function db_boards_delete($link, $id)
-{
-	if(!mysqli_query($link, "call sp_boards_delete($id)"))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+function db_boards_delete($link, $id) {
+
+    // Query.
+    if (!mysqli_query($link, "call sp_boards_delete($id)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    // Cleanup.
+    db_cleanup_link($link);
 }
 /**
  * Редактирует доску.
@@ -520,9 +560,10 @@ function db_boards_delete($link, $id)
  * <b>category</b> int - категория.
  */
 function db_boards_edit($link, $new_board) { // Java CC.
-    foreach (array('title',
-                   'annotation',
-                   'default_name',
+
+    // Prepare data fro query.
+    foreach (array('force_anonymous',
+                   'with_attachments',
                    'enable_macro',
                    'enable_youtube',
                    'enable_captcha',
@@ -534,27 +575,45 @@ function db_boards_edit($link, $new_board) { // Java CC.
         if ($new_board[$attr] === null) {
             $new_board[$attr] = 'null';
         }
+        if ($new_board[$attr] === false) {
+            $new_board[$attr] = '0';
+        }
+    }
+    foreach (array('title',
+                   'annotation',
+                   'default_name',
+                   'same_upload') as $attr) {
+
+        if ($new_board[$attr] === null) {
+            $new_board[$attr] = 'null';
+        } else {
+            $new_board[$attr] = "'{$new_board[$attr]}'";
+        }
     }
 
-    if (!mysqli_query($link, "call sp_boards_edit({$new_board['id']},
-                                                  '{$new_board['title']}',
-                                                  '{$new_board['annotation']}',
-                                                  {$new_board['bump_limit']},
-                                                  {$new_board['force_anonymous']},
-                                                  '{$new_board['default_name']}',
-                                                  {$new_board['with_attachments']},
-                                                  {$new_board['enable_macro']},
-                                                  {$new_board['enable_youtube']},
-                                                  {$new_board['enable_captcha']},
-                                                  {$new_board['enable_translation']},
-                                                  {$new_board['enable_geoip']},
-                                                  {$new_board['enable_shi']},
-                                                  {$new_board['enable_postid']},
-                                                  '{$new_board['same_upload']},'
-                                                  {$new_board['popdown_handler']},
-                                                  {$new_board['category']})")) {
+    // Query.
+    $query = "call sp_boards_edit({$new_board['id']},
+                                  {$new_board['title']},
+                                  {$new_board['annotation']},
+                                  {$new_board['bump_limit']},
+                                  {$new_board['force_anonymous']},
+                                  {$new_board['default_name']},
+                                  {$new_board['with_attachments']},
+                                  {$new_board['enable_macro']},
+                                  {$new_board['enable_youtube']},
+                                  {$new_board['enable_captcha']},
+                                  {$new_board['enable_translation']},
+                                  {$new_board['enable_geoip']},
+                                  {$new_board['enable_shi']},
+                                  {$new_board['enable_postid']},
+                                  {$new_board['same_upload']},
+                                  {$new_board['popdown_handler']},
+                                  {$new_board['category']})";
+    if (!mysqli_query($link, $query)) {
         throw new CommonException(mysqli_error($link));
     }
+
+    // Cleanup.
     db_cleanup_link($link);
 }
 /**

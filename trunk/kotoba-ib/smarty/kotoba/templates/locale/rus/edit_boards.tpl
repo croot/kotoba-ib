@@ -57,7 +57,7 @@
 <tr>
     <td>{$boards[i].name}</td>
     <td><input type="text" name="title_{$boards[i].id}" value="{$boards[i].title}"></td>
-    <td><textarea name="annotation_{$boards[i].id}" rows="4" cols="50">{$boards[i].annotation}</textarea></td>
+    <td><textarea name="annotation_{$boards[i].id}" rows="4" cols="50">{if $boards[i].annotation !== null}{$boards[i].annotation}{/if}</textarea></td>
     <td><input type="text" name="bump_limit_{$boards[i].id}" value="{$boards[i].bump_limit}"></td>
     <td><input type="checkbox" name="force_anonymous_{$boards[i].id}" value="1"{if $boards[i].force_anonymous} checked{/if}></td>
     <td><input type="text" name="default_name_{$boards[i].id}" value="{$boards[i].default_name}"></td>
