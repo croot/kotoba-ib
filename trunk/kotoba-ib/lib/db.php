@@ -699,7 +699,7 @@ function boards_check_default_name($name) { // Java CC
 /**
  * Проверяет корректность идентификатора доски.
  * @param mixed $id Идентификатор доски.
- * @return string
+ * @return int
  * Возвращает безопасный для использования идентификатор доски.
  */
 function boards_check_id($id) {
@@ -2048,6 +2048,17 @@ function posts_prepare_text(&$text, $board) { // Java CC
     $text = preg_replace('/\n{3,}/', '\n', $text);
     $text = preg_replace('/\n/', '<br>', $text);
 }
+/**
+ * 
+ * @param array $boards
+ * @param string $keyword
+ * @param int $user
+ * @return array
+ * Возвращает сообщения, с развёрнутыми данными о нити и доске.
+ */
+function posts_search_visible_by_boards($boards, $keyword, $user) {
+    return db_posts_search_visible_by_boards(DataExchange::getDBLink(), $boards, $keyword, $user);
+}
 
 /***************************************************
  * Работа со связями сообщений и вложенных файлов. *
@@ -2876,24 +2887,12 @@ function users_check_goto($goto) { // Java CC
 }
 /**
  * Проверяет корректность идентификатора пользователя.
- * @param string|id $id Идентификатор пользователя.
- * @return string
+ * @param mixed $id Идентификатор пользователя.
+ * @return int
  * Возвращает безопасный для использования идентификатор пользователя.
  */
 function users_check_id($id) { // Java CC
-    $length = strlen($id);
-    $max_int_length = strlen('' . PHP_INT_MAX);
-    if ($length <= $max_int_length && $length >= 1) {
-        $id = RawUrlEncode($id);
-        $length = strlen($id);
-        if($length > $max_int_length || (ctype_digit($id) === false)
-                || $length < 1) {
-            throw new FormatException(FormatException::$messages['USER_ID']);
-        }
-    } else {
-        throw new FormatException(FormatException::$messages['USER_ID']);
-    }
-    return $id;
+    return kotoba_intval($id);
 }
 /**
  * Проверяет корректность хеша ключевого слова.
