@@ -21,10 +21,12 @@ require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
 require_once Config::ABS_PATH . '/lib/events.php';
 
 try {
+    // Initialization.
     kotoba_session_start();
     locale_setup();
     $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
+    // Check if remote host was banned.
     if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
@@ -39,165 +41,52 @@ try {
     // Fix for Firefox.
     header("Cache-Control: private");
 
-    if (!isset($_POST['search']) || $_POST['search'] == '') {
-        throw new SearchException(SearchException::$messages['NO_WORDS']);
-    }
-    if (!isset($_POST['board']) || $_POST['board'] == '') {
-        throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']);
-    }
-
-    $board_name = boards_check_name($_POST['board']);
-
-    $page = 1;
-    if (isset($_GET['page'])) {
-        $page = check_page($_GET['page']);
-    }
-
-    $password = null;
-    if (isset($_SESSION['password'])) {
-        $password = $_SESSION['password'];
-    }
-
     $boards = boards_get_visible($_SESSION['user']);
-    $board = null;
-    foreach ($boards as $b) {
-        if ($b['name'] == $board_name) {
-            $board = $b;
-            break;
-        }
-    }
-    if (!$board) {
-        throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']);
-    }
 
-    $threads_count = threads_get_visible_count($_SESSION['user'], $board['id']);
-    $page_max = ($threads_count % $_SESSION['threads_per_page'] == 0
-        ? (int)($threads_count / $_SESSION['threads_per_page'])
-        : (int)($threads_count / $_SESSION['threads_per_page']) + 1);
-    if ($page_max == 0) {
-        $page_max = 1; // Important for empty boards.
-    }
-    if ($page > $page_max) {
-        throw new LimitException(LimitException::$messages['MAX_PAGE']);
-    }
+    if (isset($_POST['search'])) {
 
-    $threads = threads_search_visible_by_board($board['id'], $page, $_SESSION['user'], $_SESSION['threads_per_page'], $_POST['search']);
-
-    $p_filter = function($posts_per_thread, $thread, $post) {
-        static $recived = 0;
-        static $prev_thread = null;
-
-        if ($prev_thread !== $thread) {
-            $recived = 0;
-            $prev_thread = $thread;
+        // Check input parameters.
+        if (!isset($_POST['search']['keyword']) || mb_strlen($_POST['search']['keyword'], Config::MB_ENCODING) < 4) {
+            throw new NodataException(NodataException::$messages['SEARCH_KEYWORD']);
         }
 
-        if ($thread['original_post'] == $post['number']) {
-            return true;
-        }
-        $recived++;
-        if ($recived >= $thread['posts_count'] - $posts_per_thread) {
-            return true;
-        }
-        return false;
-    };
+        posts_check_text_size($_POST['search']['keyword']);
+        $keyword = htmlentities($_POST['search']['keyword'], ENT_QUOTES, Config::MB_ENCODING);
+        $keyword = str_replace('\\', '\\\\', $keyword);
+        posts_check_text_size($keyword);
+        posts_check_text($keyword);
+        $keyword = addcslashes($keyword, '%_');
 
-    $posts = posts_get_visible_filtred_by_threads($threads, $_SESSION['user'], $p_filter, $_SESSION['posts_per_thread']);
-
-    $posts_attachments = posts_attachments_get_by_posts($posts);
-    $attachments = attachments_get_by_posts($posts);
-
-    $ht_filter = function ($user, $hidden_thread) {
-        if ($hidden_thread['user'] == $user) {
-            return true;
-        }
-        return false;
-    };
-    $hidden_threads = hidden_threads_get_filtred_by_boards(array($board), $ht_filter, $_SESSION['user']);
-
-    $upload_types = upload_types_get_by_board($board['id']);
-    $macrochan_tags = macrochan_tags_get_all();
-
-    $board['annotation'] = $board['annotation'] ? html_entity_decode($board['annotation'], ENT_QUOTES, Config::MB_ENCODING) : $board['annotation'];
-    $smarty->assign('board', $board);
-    $smarty->assign('boards', $boards);
-    $smarty->assign('is_admin', is_admin());
-    $smarty->assign('password', $password);
-    $smarty->assign('upload_types', $upload_types);
-    $pages = array();
-    for ($i = 1; $i <= $page_max; $i++) {
-        array_push($pages, $i);
-    }
-    $smarty->assign('pages', $pages);
-    $smarty->assign('page', $page);
-    $smarty->assign('goto', $_SESSION['goto']);
-    $smarty->assign('macrochan_tags', $macrochan_tags);
-    $smarty->assign('ib_name', Config::IB_NAME);
-    $smarty->assign('enable_macro', $board['enable_macro'] === null ? Config::ENABLE_MACRO : $board['enable_macro']);
-    $smarty->assign('enable_youtube', $board['enable_youtube'] === null ? Config::ENABLE_YOUTUBE : $board['enable_youtube']);
-    $smarty->assign('enable_search', Config::ENABLE_SEARCH);
-    $smarty->assign('ATTACHMENT_TYPE_FILE', Config::ATTACHMENT_TYPE_FILE);
-    $smarty->assign('ATTACHMENT_TYPE_LINK', Config::ATTACHMENT_TYPE_LINK);
-    $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
-    $smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
-    $smarty->assign('name', $_SESSION['name']);
-
-    //event_daynight($smarty);
-
-    $boards_html = $smarty->fetch('search_header.tpl');
-    $boards_thread_html = ''; // Код предпросмотра нити.
-    $boards_posts_html = ''; // Код сообщений из препдпросмотра нитей.
-    foreach ($threads as $t) {
-        $smarty->assign('thread', $t);
-        foreach ($posts as $p) {
-
-            // Сообщение принадлежит текущей нити.
-            if ($t['id'] == $p['thread']) {
-
-                // Имя отправителя по умолчанию.
-                if (!$board['force_anonymous'] && $board['default_name'] && !$p['name']) {
-                    $p['name'] = $board['default_name'];
-                }
-
-                if ($t['original_post'] == $p['number']) {
-
-                    // Оригинальное сообщение.
-                    $boards_thread_html .= post_original_generate_html($smarty,
-                            $board,
-                            $t,
-                            $p,
-                            $posts_attachments,
-                            $attachments,
-                            true,
-                            $_SESSION['lines_per_post'],
-                            true,
-                            $_SESSION['posts_per_thread'],
-                            true);
-                } else {
-
-                    // Ответ в нить.
-                    $boards_posts_html .= post_simple_generate_html($smarty,
-                            $board,
-                            $t,
-                            $p,
-                            $posts_attachments,
-                            $attachments,
-                            true,
-                            $_SESSION['lines_per_post']);
+        $search_boards = array();
+        if (!isset($_POST['search']['boards'])) {
+            $search_boards = $boards;
+        } else {
+            foreach ($_POST['search']['boards'] as $id) {
+                $id = boards_check_id($id);
+                foreach ($boards as $board) {
+                    if ($board['id'] == $id) {
+                        array_push($search_boards, $board);
+                        break;
+                    }
                 }
             }
         }
-        $boards_thread_html .= $boards_posts_html;
-        $boards_thread_html .= $smarty->fetch('search_thread_footer.tpl');
-        $boards_html .= $boards_thread_html;
-        $boards_thread_html = '';
-        $boards_posts_html = '';
+
+        $posts = posts_search_visible_by_boards($search_boards, $keyword, users_check_id($_SESSION['user']));
     }
-    $smarty->assign('hidden_threads', $hidden_threads);
-    $boards_html .= $smarty->fetch('search_footer.tpl');
+
     DataExchange::releaseResources();
-    echo $boards_html;
-    exit;
+
+    $smarty->assign('show_control', is_admin() || is_mod());
+    $smarty->assign('boards', $boards);
+    @$smarty->assign('pages', $pages);
+    @$smarty->assign('page', $page);
+
+    $search_html = $smarty->fetch('search_header.tpl');
+    $search_html .= $smarty->fetch('search_footer.tpl');
+    echo $search_html;
+
+    exit(0);
 } catch(Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();

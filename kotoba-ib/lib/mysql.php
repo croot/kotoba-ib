@@ -3016,6 +3016,48 @@ function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id, $fil
     }
     return $posts;
 }
+/**
+ *
+ * @param MySQLi $link Связь с базой данных.
+ * @param array $boards
+ * @param string $keyword
+ * @param int $user
+ * @return array
+ * Возвращает сообщения, с развёрнутыми данными о нити и доске.
+ */
+function db_posts_search_visible_by_boards($link, $boards, $keyword, $user) {
+    $posts = array();
+    foreach ($boards as $b) {
+        $query = "call db_posts_search_visible_by_boards({$b['id']}, '$keyword' $user)";
+        $result = mysqli_query($link, $query);
+        if (!$result) {
+            throw new CommonException(mysqli_error($link));
+        }
+
+        if (mysqli_affected_rows($link) > 0) {
+            while (($row = mysqli_fetch_assoc($result)) != null) {
+                array_push($posts,
+                    array('id' => $row['id'],
+                          'thread' => $row['thread'],
+                          'number' => $row['number'],
+                          'user' => $row['user'],
+                          'password' => $row['password'],
+                          'name' => $row['name'],
+                          'tripcode' => $row['tripcode'],
+                          'ip' => $row['ip'],
+                          'subject' => $row['subject'],
+                          'date_time' => $row['date_time'],
+                          'text' => $row['text'],
+                          'sage' => $row['sage']));
+            }
+        }
+
+        mysqli_free_result($result);
+        db_cleanup_link($link);
+    }
+
+    return $posts;
+}
 
 /* *************************************************
  * Работа со связями сообщений и вложенных файлов. *
