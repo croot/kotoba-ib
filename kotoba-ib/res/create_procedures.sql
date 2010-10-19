@@ -102,6 +102,7 @@ drop procedure if exists sp_posts_get_reported_by_board|
 drop procedure if exists sp_posts_get_visible_by_id|
 drop procedure if exists sp_posts_get_visible_by_number|
 drop procedure if exists sp_posts_get_visible_by_thread|
+drop procedure if exists sp_posts_search_visible_by_board|
 
 drop procedure if exists sp_posts_files_add|
 drop procedure if exists sp_posts_files_delete_by_post|
@@ -1753,23 +1754,26 @@ begin
 end|
 
 -- Выбирает сообщения с заданной доски.
---
--- Аргументы:
--- board_id - Идентификатор доски.
 create procedure sp_posts_get_by_board
 (
-	board_id int
+    board_id int    -- Идентификатор доски.
 )
 begin
-	select p.id, p.thread, t.original_post as thread_number, p.board,
-		b.name as board_name, p.number, p.password, p.name, p.tripcode,
-		p.ip, p.subject, p.date_time, p.text, p.sage
-	from posts p
-	join threads t on t.id = p.thread
-	join boards b on b.id = p.board
-	where p.deleted = 0 and t.deleted = 0 and t.archived = 0
-		and p.board = board_id
-	order by p.date_time desc;
+    select p.id, p.thread, t.original_post as thread_number, p.board,
+            b.name as board_name, p.number, p.password, p.name, p.tripcode,
+            p.ip, p.subject, p.date_time, p.text, p.sage,
+            count(pf.file) + count(pi.image) + count(pl.link) + count(pv.video) as attachments_count
+        from posts p
+        join threads t on t.id = p.thread
+        join boards b on b.id = p.board
+        left join posts_files pf on pf.post = p.id
+        left join posts_images pi on pi.post = p.id
+        left join posts_links pl on pl.post = p.id
+        left join posts_videos pv on pv.post = p.id
+        where p.deleted = 0 and t.deleted = 0 and t.archived = 0
+            and p.board = board_id
+        group by p.id
+        order by p.date_time desc;
 end|
 
 -- Выбирает сообщения заданной нити.
@@ -1948,6 +1952,95 @@ begin
                 and (a6.`view` = 1 or a6.`view` is null)
                 -- просмотр разрешен конкретной группе.
                 and a7.`view` = 1)
+        group by p.id
+        order by p.number asc;
+end|
+
+-- Ищет в сообщениях доски заданную фразу.
+create procedure sp_posts_search_visible_by_board
+(
+    board_id int,   -- Идентификатор нити.
+    keyword text,   -- Искомая фраза.
+    user_id int     -- Идентификатор пользователя.
+)
+begin
+    set keyword = CONCAT('%', keyword, '%');
+    select p.id as post_id,
+           p.board as post_board,
+           p.thread as post_thread,
+           p.number as post_number,
+           p.user as post_user,
+           p.password as post_password,
+           p.name as post_name,
+           p.tripcode as post_tripcode,
+           p.ip as post_ip,
+           p.subject as post_subject,
+           p.date_time as post_date_time,
+           p.`text` as post_text,
+           p.sage as post_sage,
+
+           b.id as board_id,
+           b.name as board_name,
+           b.title as board_title,
+           b.annotation as board_annotation,
+           b.bump_limit as board_bump_limit,
+           b.force_anonymous as board_force_anonymous,
+           b.default_name as board_default_name,
+           b.with_attachments as board_with_attachments,
+           b.enable_macro as board_enable_macro,
+           b.enable_youtube as board_enable_youtube,
+           b.enable_captcha as board_enable_captcha,
+           b.enable_translation as board_enable_translation,
+           b.enable_geoip as board_enable_geoip,
+           b.enable_shi as board_enable_shi,
+           b.enable_postid as board_enable_postid,
+           b.same_upload as board_same_upload,
+           b.popdown_handler as board_popdown_handler,
+           b.category as board_category,
+
+           t.id as thread_id,
+           t.board as thread_board,
+           t.original_post as thread_original_post,
+           t.bump_limit as thread_bump_limit,
+           t.sage as thread_sage,
+           t.sticky as thread_sticky,
+           t.with_attachments as thread_with_attachments
+        from posts p
+        join threads t on t.id = p.thread
+        join boards b on b.id = p.board and b.id = board_id
+        join user_groups ug on ug.user = user_id
+        -- Правило для конкретной группы и сообщения.
+        left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+        -- Правило для всех групп и конкретного сообщения.
+        left join acl a2 on a2.`group` is null and a2.post = p.id
+        -- Правила для конкретной группы и нити.
+        left join acl a3 on a3.`group` = ug.`group` and a3.thread = t.id
+        -- Правило для всех групп и конкретной нити.
+        left join acl a4 on a4.`group` is null and a4.thread = t.id
+        -- Правила для конкретной группы и доски.
+        left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+        -- Правило для всех групп и конкретной доски.
+        left join acl a6 on a6.`group` is null and a6.board = p.board
+        -- Правило для конкретной групы.
+        left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+            and a7.thread is null and a7.post is null
+        where p.deleted = 0 and t.deleted = 0 and t.archived = 0
+            -- Сообщение должно быть доступно для просмотра.
+                -- Просмотр сообщения не запрещен конкретной группе и
+            and ((a1.`view` = 1 or a1.`view` is null)
+                -- просмотр сообщения не запрещен всем группам и
+                and (a2.`view` = 1 or a2.`view` is null)
+                -- просмотр нити не запрещен конкретной группе и
+                and (a3.`view` = 1 or a3.`view` is null)
+                -- просмотр нити не запрещен всем группам и
+                and (a4.`view` = 1 or a4.`view` is null)
+                -- просмотр доски не запрещен конкретной группе и
+                and (a5.`view` = 1 or a5.`view` is null)
+                -- просмотр доски не запрещен всем группам и
+                and (a6.`view` = 1 or a6.`view` is null)
+                -- просмотр разрешен конкретной группе.
+                and a7.`view` = 1)
+            and p.`text` like keyword
         group by p.id
         order by p.number asc;
 end|

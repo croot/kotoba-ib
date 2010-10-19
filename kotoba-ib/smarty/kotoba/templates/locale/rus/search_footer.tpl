@@ -15,10 +15,11 @@
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
     $pages - номера страниц.
     $page - номер просматриваемой страницы.
+    $keyword - искомая фраза.
+    $boards - доски.
 *}
-
-{include file='search_pages_list.tpl' pages=$pages page=$page}
-
 <hr/>
+{include file='search_pages_list.tpl' pages=$pages page=$page keyword=$keyword boards=$boards}
+
 <div class="footer" style="clear: both;">- Kotoba 1.1 -</div>
 {include file='footer.tpl'}

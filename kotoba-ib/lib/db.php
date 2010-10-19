@@ -2049,10 +2049,10 @@ function posts_prepare_text(&$text, $board) { // Java CC
     $text = preg_replace('/\n/', '<br>', $text);
 }
 /**
- * 
- * @param array $boards
- * @param string $keyword
- * @param int $user
+ * Ищет в сообщениях досок заданную фразу.
+ * @param array $boards Доски.
+ * @param string $keyword Искомая фраза.
+ * @param int $user Идентификатор пользователя.
  * @return array
  * Возвращает сообщения, с развёрнутыми данными о нити и доске.
  */

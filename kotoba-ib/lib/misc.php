@@ -146,24 +146,12 @@ function load_user_settings($keyword) { // Java CC
 /**
  * Проверяет корректность номера страницы в постраничной разбивке просмотра
  * доски.
- * @param string $page Номер страницы.
- * @return string
+ * @param mixed $page Номер страницы.
+ * @return int
  * Возвращает безопасный для использования номер страницы.
  */
 function check_page($page) { // Java CC
-    $length = strlen($page);
-    $max_int_length = strlen('' . PHP_INT_MAX);
-    if ($length <= $max_int_length && $length >= 1) {
-        $page = RawUrlEncode($page);
-        $length = strlen($page);
-        if ($length > $max_int_length || (ctype_digit($page) === false)
-                || $length < 1) {
-            throw new FormatException(FormatException::$messages['PAGE']);
-        }
-    } else {
-        throw new FormatException(FormatException::$messages['PAGE']);
-    }
-    return $page;
+    return kotoba_intval($page);
 }
 /**
  * Проверяет, загружено ли расширение php.
@@ -180,14 +168,14 @@ function check_module($name)
  * Thanks to javalc6@gmail.com <a href="http://ru2.php.net/manual/en/function.mb-check-encoding.php#95289">http://ru2.php.net/manual/en/function.mb-check-encoding.php#95289</a>
  * @param string $text Текст UTF-8
  * @return bool
- * <p>Возвращает true, если текст корректный и false в противном случае.</p>
+ * Возвращает true, если текст корректный и false в противном случае.
  */
 function check_utf8($text) { // Java CC
     $len = strlen($text);
     for ($i = 0; $i < $len; $i++) {
         $c = ord($text[$i]);
         if ($c > 128) {
-            if (($c > 247)) {
+            if ($c > 247) {
                 return false;
             } elseif ($c > 239) {
                 $bytes = 4;

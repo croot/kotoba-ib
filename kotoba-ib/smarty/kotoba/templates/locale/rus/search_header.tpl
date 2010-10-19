@@ -18,6 +18,7 @@
     $boards - доски.
     $pages - номера страниц.
     $page - номер просматриваемой страницы.
+    $keyword - искомая фраза.
 *}
 {include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title='Поиск сообщений'}
 
@@ -26,7 +27,7 @@
 {include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
 
 <div class="logo">Поиск сообщений</div>
-{include file='search_pages_list.tpl' pages=$pages page=$page}
+{include file='search_pages_list.tpl' pages=$pages page=$page keyword=$keyword boards=$boards}
 
 <hr/>
 <div class="postarea">
@@ -34,13 +35,13 @@
 <form method="POST" action="{$DIR_PATH}/search.php">
 <tr>
     <td class="postblock">Поиск</td>
-    <td><input type="text" size="55" maxlength="75" name="search[keyword]" value=""><input type="submit" value="Искать"></td>
+    <td><input type="text" size="55" maxlength="75" name="search[keyword]" value="{if $keyword}{$keyword}{/if}"><input type="submit" value="Искать"></td>
 </tr>
 <tr>
     <td class="postblock">Доски</td>
     <td>{section name=i loop=$boards}
 
-        <input type="checkbox" name="search[boards][]" value="{$boards[i].id}">/{$boards[i].name}/</input>{/section}
+        <input type="checkbox" name="search[boards][]" value="{$boards[i].id}" {if isset($boards[i].selected)} checked{/if}>/{$boards[i].name}/</input>{/section}
 
     </td>
 </tr>

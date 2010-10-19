@@ -57,7 +57,7 @@ NodataException::$messages['LANGUAGES_NOT_EXIST'] = 'Не задан ни оди
 // Параметры: идентификатор языка.
 NodataException::$messages['LANGUAGE_NOT_EXIST'] = 'Языка с идентификатором %s не существует.';
 NodataException::$messages['POST_NOT_FOUND'] = 'Сообщение не найдено.';
-NodataException::$messages['SEARCH_KEYWORD'] = 'Не задан текст для поиска.';
+NodataException::$messages['SEARCH_KEYWORD'] = 'Не задано достаточно текста для поиска.';
 NodataException::$messages['STYLESHEETS_NOT_EXIST'] = 'Не задан ни один стиль.';
 // Параметры: идентификатор стиля оформления.
 NodataException::$messages['STYLESHEET_NOT_EXIST'] = 'Стиля оформления с идентификатором %s не существует.';

@@ -2,10 +2,6 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/1">
         <file>
-            <url>lib/db.php</url>
-            <line>2893</line>
-        </file>
-        <file>
             <url>securimage/securimage.php</url>
             <line>418</line>
             <line>802</line>
@@ -13,6 +9,10 @@
         <file>
             <url>lib/mysql.php</url>
             <line>1537</line>
+        </file>
+        <file>
+            <url>lib/db.php</url>
+            <line>2893</line>
         </file>
     </editor-bookmarks>
 </project-private>

@@ -3017,18 +3017,18 @@ function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id, $fil
     return $posts;
 }
 /**
- *
+ * Ищет в сообщениях досок заданную фразу.
  * @param MySQLi $link Связь с базой данных.
- * @param array $boards
- * @param string $keyword
- * @param int $user
+ * @param array $boards Доски.
+ * @param string $keyword Искомая фраза.
+ * @param int $user Идентификатор пользователя.
  * @return array
  * Возвращает сообщения, с развёрнутыми данными о нити и доске.
  */
 function db_posts_search_visible_by_boards($link, $boards, $keyword, $user) {
     $posts = array();
     foreach ($boards as $b) {
-        $query = "call db_posts_search_visible_by_boards({$b['id']}, '$keyword' $user)";
+        $query = "call sp_posts_search_visible_by_board({$b['id']}, '$keyword', $user)";
         $result = mysqli_query($link, $query);
         if (!$result) {
             throw new CommonException(mysqli_error($link));
@@ -3036,19 +3036,50 @@ function db_posts_search_visible_by_boards($link, $boards, $keyword, $user) {
 
         if (mysqli_affected_rows($link) > 0) {
             while (($row = mysqli_fetch_assoc($result)) != null) {
-                array_push($posts,
-                    array('id' => $row['id'],
-                          'thread' => $row['thread'],
-                          'number' => $row['number'],
-                          'user' => $row['user'],
-                          'password' => $row['password'],
-                          'name' => $row['name'],
-                          'tripcode' => $row['tripcode'],
-                          'ip' => $row['ip'],
-                          'subject' => $row['subject'],
-                          'date_time' => $row['date_time'],
-                          'text' => $row['text'],
-                          'sage' => $row['sage']));
+                if (!isset ($tmp_boards["{$row['post_board']}"])) {
+                    $tmp_boards["{$row['post_board']}"] =
+                        array('id' => $row['board_id'],
+                              'name' => $row['board_name'],
+                              'title' => $row['board_title'],
+                              'annotation' => $row['board_annotation'],
+                              'bump_limit' => $row['board_bump_limit'],
+                              'force_anonymous' => $row['board_force_anonymous'],
+                              'default_name' => $row['board_default_name'],
+                              'with_attachments' => $row['board_with_attachments'],
+                              'enable_macro' => $row['board_enable_macro'],
+                              'enable_youtube' => $row['board_enable_youtube'],
+                              'enable_captcha' => $row['board_enable_captcha'],
+                              'enable_translation' => $row['board_enable_translation'],
+                              'enable_geoip' => $row['board_enable_geoip'],
+                              'enable_shi' => $row['board_enable_shi'],
+                              'enable_postid' => $row['board_enable_postid'],
+                              'same_upload' => $row['board_same_upload'],
+                              'popdown_handler' => $row['board_popdown_handler'],
+                              'category' => $row['board_category']);
+                }
+                if (!isset ($tmp_threads["{$row['post_thread']}"])) {
+                    $tmp_threads["{$row['post_thread']}"] =
+                        array('id' => $row['thread_id'],
+                              'board' => $row['thread_board'],
+                              'original_post' => $row['thread_original_post'],
+                              'bump_limit' => $row['thread_bump_limit'],
+                              'sage' => $row['thread_sage'],
+                              'sticky' => $row['thread_sticky'],
+                              'with_attachments' => $row['thread_with_attachments']);
+                }
+                array_push($posts, array('id' => $row['post_id'],
+                                         'board' => &$tmp_boards["{$row['post_board']}"],
+                                         'thread' => &$tmp_threads["{$row['post_thread']}"],
+                                         'number' => $row['post_number'],
+                                         'user' => $row['post_user'],
+                                         'password' => $row['post_password'],
+                                         'name' => $row['post_name'],
+                                         'tripcode' => $row['post_tripcode'],
+                                         'ip' => $row['post_ip'],
+                                         'subject' => $row['post_subject'],
+                                         'date_time' => $row['post_date_time'],
+                                         'text' => $row['post_text'],
+                                         'sage' => $row['post_sage']));
             }
         }
 
