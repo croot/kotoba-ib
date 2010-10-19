@@ -54,19 +54,5 @@ p = правило для сообщения
 2) Change	- не определено
 3) Moderate	- не определено
 
-починить поиск
-поиск по всем доскам
 вывод последних файлов в главном скрипте модератора
 стандартные временные промежутки
-
-$result = array(array('board_id' => 1, 'board_name' => 'b', 'thread_id' => 1, 'thread_board' => 1, 'thread_original_post' => '1'),
-                array('board_id' => 1, 'board_name' => 'b', 'thread_id' => 2, 'thread_board' => 1, 'thread_original_post' => '2'),
-                array('board_id' => 2, 'board_name' => 'azu', 'thread_id' => 3, 'thread_board' => 2, 'thread_original_post' => '1'));
-for ($i = 0; $i < count($result); $i++) {
-    $boards[$result[$i]['board_id']]['id'] = $result[$i]['board_id'];
-    $boards[$result[$i]['board_id']]['name'] = $result[$i]['board_name'];
-    $boards[$result[$i]['board_id']]['threads'][] = array('id' => $result[$i]['thread_id'],
-                                     'board' => &$boards[$result[$i]['board_id']],
-                                     'original_post' => $result[$i]['thread_original_post']);
-}
-var_dump($boards);

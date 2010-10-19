@@ -38,6 +38,9 @@
 	<td>номер сообщения <input type="text" name="filter_number"></td>
 	<td><input type="submit" name="filter" value="Выбрать"> <input type="reset" value="Сброс"></td>
 </tr>
+<tr>
+    <td colspan="4">Показывать только сообщения с вложениями <input type="checkbox" name="attachments_only" value="1"></td>
+</tr>
 </table>
 </form>
 <hr>
