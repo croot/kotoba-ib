@@ -23,7 +23,7 @@
 
 {include file='adminbar.tpl' DIR_PATH=$DIR_PATH show_control=$show_control}
 
-{include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=null}
+{include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
 
 <br />
 <form action="{$DIR_PATH}/admin/edit_boards.php" method="post">
@@ -176,6 +176,6 @@
 </form>
 <br />
 <br />
-{include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=null}
+{include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
 
 {include file='footer.tpl'}

@@ -22,146 +22,135 @@
  * @param text string <p>Ссылка на текст для разметки.</p>
  * @param board array <p>Доска.</p>
  */
-function kotoba_mark(&$text, $board)
-{
-	/*
-	 * Перед началом разметки текста все специальные символы должны быть
-	 * заменены на их html аналоги (например > на &gt;). А так же все косые \
-	 * должны быть заменены на две косые \\.
-	 */
+function kotoba_mark(&$text, $board) {
+
+    /*
+     * Перед началом разметки текста все специальные символы должны быть
+     * заменены на их html аналоги (например > на &gt;). А так же все косые \
+     * должны быть заменены на две косые \\.
+     */
 	$output = '';
+
 // Шаг 1. Выделение кода.
-	// Если в тексте есть ` перед которой не стоит \
-	if(preg_match('/(?<!\\\\)\`/', $text) == 1)
-	{
-		// Удалим текст, схожий с меткой кода.
-		$text = preg_replace('/code:\d+/', '', $text);
-		$code_blocks = array();
-		$is_code_block = false;
-		$is_slash = false;		// Экранирование ` внутри блока кода.
-		$code_block_num = 0;
-		$output = '';
-		for($i = 0; $i < strlen($text); $i++)
-		{
-			if($text[$i] == '`')
-			{
-				if($is_code_block)
-				{
-					if($is_slash)
-					{
-						$code_blocks[$code_block_num] .= $text[$i];
-						$is_slash = false;
-						continue;
-					}
-					if(isset($code_blocks[$code_block_num]))
-					{
-						$output .= "code:$code_block_num";
-						$code_block_num++;
-					}
-					else
-						$output .= '``';	// Пустой блок кода. Просто `` в тексте.
-					$is_code_block = false;
-				}
-				else
-					$is_code_block = true;
-			}
-			else
-			{
-				if($is_code_block)
-				{
-					if($text[$i] == '\\' && !$is_slash)
-					{
-						$is_slash = true;
-						continue;
-					}
-					else
-						$is_slash = false;
-					if(isset($code_blocks[$code_block_num]))
-						$code_blocks[$code_block_num] .= $text[$i];
-					else
-						$code_blocks[$code_block_num] = $text[$i];
-				}
-				else
-					$output .= $text[$i];
-			}
-		}
-	}
-	else
-		$output = $text;
+
+    // Если в тексте есть ` перед которой не стоит \
+	if (preg_match('/(?<!\\\\)\`/', $text) == 1) {
+
+        // Удалим текст, схожий с меткой кода.
+        $text = preg_replace('/code:\d+/', '', $text);
+        $code_blocks = array();
+        $is_code_block = false;
+        $is_slash = false;  // Экранирование ` внутри блока кода.
+        $code_block_num = 0;
+        $output = '';
+        for ($i = 0; $i < strlen($text); $i++) {
+            if ($text[$i] == '`') {
+                if ($is_code_block) {
+                    if ($is_slash) {
+                        $code_blocks[$code_block_num] .= $text[$i];
+                        $is_slash = false;
+                        continue;
+                    }
+                    if (isset($code_blocks[$code_block_num])) {
+                        $output .= "code:$code_block_num";
+                        $code_block_num++;
+                    } else {
+                        $output .= '``';    // Пустой блок кода. Просто `` в тексте.
+                    }
+                    $is_code_block = false;
+                } else {
+                    $is_code_block = true;
+                }
+            } else {
+                if ($is_code_block) {
+                    if ($text[$i] == '\\') {
+                        if (!$is_slash) {
+                            $is_slash = true;
+                            continue;
+                        }
+                    } else {
+                        $is_slash = false;
+                    }
+                    if (isset($code_blocks[$code_block_num])) {
+                        $code_blocks[$code_block_num] .= $text[$i];
+                    } else {
+                        $code_blocks[$code_block_num] = $text[$i];
+                    }
+                } else {
+                    $output .= $text[$i];
+                }
+            }
+        }
+
+        /*
+         * Message text is over, but we stil read code block. That means single
+         * ` character in text, e.g. text `code.
+         */
+        if ($is_code_block) {
+            $is_code_block = false;
+            $output .= "`{$code_blocks[$code_block_num]}";
+            unset($code_blocks[$code_block_num]);
+        }
+    } else {
+        $output = $text;
+    }
+
 // Шаг 2. Выделение спойлеров.
-	if(preg_match('/\%\%/', $output) == 1)
-	{
-		if(isset($code_blocks) && count($code_blocks) > 0)
-			$text_blocks = preg_split('/(code:\d+)/', $output, -1,
-				PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
-		else
-			$text_blocks[] = $output;
-		$spoilers = array();
-		$spoiler_num = 0;
-		$output = '';
-		for($i = 0; $i < count($text_blocks); $i++)
-		{
-			$text_blocks[$i] = preg_replace('/spoiler:\d+/', '',
-				$text_blocks[$i]);
-			if(preg_match('/code:\d+/', $text_blocks[$i]) == 1)
-			{
-				$output .= $text_blocks[$i];
-				continue;
-			}
-			$tokens = preg_split('/(\n|\%\%)/', $text_blocks[$i], -1,
-				PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
-			$is_spoiler = false;
-			$spoiler_pos = -1;
-			for($j = 0; $j < count($tokens); $j++)
-			{
-				if($tokens[$j] == '%%')
-				{
-					if($is_spoiler)
-					{
-						$is_spoiler = false;
-//						$output = mb_substr($output, 0, $spoiler_pos)
-//							. "spoiler:$spoiler_num"
-//							. mb_substr($output, $spoiler_pos,
-//								mb_strlen($output));
-						$output .= "spoiler:$spoiler_num";
-						$spoiler_num++;
-					}
-					else
-					{
-//						$spoiler_pos = mb_strlen($output);
-						$is_spoiler = true;
-					}
-					continue;
-				}
-				if($tokens[$j] == "\n")
-				{
-					if($is_spoiler)	// Спойлер не может быть многострочным.
-					{
-						$is_spoiler = false;
-//						$output = mb_substr($output, 0, $spoiler_pos)
-//							. "%%$spoilers[$spoiler_num]";
-						$output .= "%%$spoilers[$spoiler_num]";
-						unset($spoilers[$spoiler_num]);
-					}
-					else
-						$output .= $tokens[$j];
-					continue;
-				}
-				if($is_spoiler)
-					$spoilers[$spoiler_num] .= $tokens[$j];
-				else
-					$output .= $tokens[$j];
-			}
-			if($is_spoiler)
-			{
-//				$output = mb_substr($output, 0, $spoiler_pos)
-//					. "%%$spoilers[$spoiler_num]";
-				$output .= "%%$spoilers[$spoiler_num]";
-				unset($spoilers[$spoiler_num]);
-			}
-		}// text_blocks
-	}
+
+    if (preg_match('/\%\%/', $output) == 1) {
+        if (isset($code_blocks) && count($code_blocks) > 0) {
+            $text_blocks = preg_split('/(code:\d+)/', $output, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+        } else {
+            $text_blocks[] = $output;
+        }
+        $spoilers = array();
+        $spoiler_num = 0;
+        $output = '';
+        for ($i = 0; $i < count($text_blocks); $i++) {
+            $text_blocks[$i] = preg_replace('/spoiler:\d+/', '', $text_blocks[$i]);
+            if (preg_match('/code:\d+/', $text_blocks[$i]) == 1) {
+                $output .= $text_blocks[$i];
+                continue;
+            }
+            $tokens = preg_split('/(\n|\%\%)/', $text_blocks[$i], -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+            $is_spoiler = false;
+            $spoiler_pos = -1;
+            for ($j = 0; $j < count($tokens); $j++) {
+                if ($tokens[$j] == '%%') {
+                    if ($is_spoiler) {
+                        $is_spoiler = false;
+                        $output .= "spoiler:$spoiler_num";
+                        $spoiler_num++;
+                    } else {
+                        $is_spoiler = true;
+                    }
+                    continue;
+                }
+                if ($tokens[$j] == "\n") {
+                    if ($is_spoiler) {  // Спойлер не может быть многострочным.
+                        $is_spoiler = false;
+                        $output .= "%%$spoilers[$spoiler_num]\n";
+                        unset($spoilers[$spoiler_num]);
+                    } else {
+                        $output .= $tokens[$j];
+                    }
+                    continue;
+                }
+                if ($is_spoiler) {
+                    $spoilers[$spoiler_num] .= $tokens[$j];
+                } else {
+                    $output .= $tokens[$j];
+                }
+            }
+            if ($is_spoiler) {
+                $output .= "%%$spoilers[$spoiler_num]";
+                unset($spoilers[$spoiler_num]);
+            }
+        }
+    }
+
 // Шаг 3. Выделение ссылок.
+
 	// TODO Придумать проверку на сслыки.
 	if(1 == 1)
 	{

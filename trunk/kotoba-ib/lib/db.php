@@ -825,7 +825,8 @@ function boards_edit($board) {
  * enable_postid - включение идентификатора поста.<br>
  * same_upload - политика загрузки одинаковых файлов.<br>
  * popdown_handler - обработчик автоматического удаления нитей.<br>
- * category - категория.
+ * category - категория.<br>
+ * category_name - имя категории.
  */
 function boards_get_all() {
     return db_boards_get_all(DataExchange::getDBLink());
@@ -1682,24 +1683,12 @@ function posts_add_text_by_id($id, $text) {
 }
 /**
  * Проверяет корректность идентификатора сообщения.
- * @param string|int $id Идентификатор сообщения.
- * @return string
+ * @param mixed $id Идентификатор сообщения.
+ * @return int
  * Возвращает безопасный для использования идентификатор сообщения.
  */
 function posts_check_id($id) {
-    $length = strlen($id);
-    $max_int_length = strlen('' . PHP_INT_MAX);
-    if ($length <= $max_int_length && $length >= 1) {
-        $id = RawUrlEncode($id);
-        $length = strlen($id);
-        if ($length > $max_int_length || (ctype_digit($id) === false)
-                || $length < 1) {
-            throw new FormatException(FormatException::$messages['POST_ID']);
-        }
-    } else {
-        throw new FormatException(FormatException::$messages['POST_ID']);
-    }
-    return $id;
+    return kotoba_intval($id);
 }
 /**
  * Проверяет, удовлетворяет ли имя отправителя ограничениям по размеру.
@@ -1733,22 +1722,28 @@ function posts_check_number($number)
 }
 /**
  * Проверяет корректность пароля для удаления сообщения.
- * @param string $password Пароль.
+ * @param mixed $password Пароль.
  * @return string
  * Возвращает безопасный для использования пароль для удаления сообщения.
  */
 function posts_check_password($password) { // Java CC
-    $length = strlen($password);
-    if ($length <= 12 && $length >= 1) {
-        $password = RawUrlEncode($password);
-        $length = strlen($password);
-        if ($length > 12 || (strpos($password, '%') !== false) || $length < 1) {
-            throw new FormatException(FormatException::$messages['POST_PASSWORD']);
+    $password = kotoba_strval($password);
+    $l = strlen($password);
+
+    // Пароль должен быть длиной от 1 до 12 символов включительно.
+    if ($l <= 12 && $l >= 1) {
+
+        // Все символы пароля должны быть цифрами 0-9, латинскими буквами a-z или A-Z.
+        for ($i = 0; $i < $l; $i++) {
+            $code = ord($password[$i]);
+            if ($code < 0x30 || $code > 0x39 && $code < 0x41 || $code > 0x5A && $code < 0x61 || $code > 0x7A) {
+                throw new FormatException(FormatException::$messages['POST_PASSWORD']);
+            }
         }
-    } else {
-        throw new FormatException(FormatException::$messages['POST_PASSWORD']);
+        return $password;
     }
-    return $password;
+
+    throw new FormatException(FormatException::$messages['POST_PASSWORD']);
 }
 /**
  * Проверяет, удовлетворяет ли тема сообщения ограничениям по размеру.
@@ -1980,8 +1975,7 @@ function posts_get_reported_by_boards($boards) {
  * 'board_name' - Имя доски.
  */
 function posts_get_visible_by_id($post_id, $user_id) { // Java CC
-    return db_posts_get_visible_by_id(DataExchange::getDBLink(), $post_id,
-            $user_id);
+    return db_posts_get_visible_by_id(DataExchange::getDBLink(), $post_id, $user_id);
 }
 /**
  * Получает заданное сообщение, доступное для просмотра заданному пользователю.

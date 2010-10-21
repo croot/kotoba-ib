@@ -42,10 +42,6 @@
 *}
 {include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title="`$ib_name` — /`$board.name`/ `$board.title`. Просмотр, страница $page"}
 
-{* Начало кода эвента времени суток (не входит в котобу). *}
-{if isset($event_daynight_active) && $event_daynight_active}{$event_daynight_code}{/if}
-{* Конец кода эвента времени суток. *}
-
 {if $enable_translation}<script type="text/javascript" src="http://www.google.com/jsapi"></script>{/if}
 
 <script src="{$DIR_PATH}/kotoba.js"></script>

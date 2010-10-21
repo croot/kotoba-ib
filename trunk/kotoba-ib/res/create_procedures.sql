@@ -514,11 +514,15 @@ end|
 -- Выбирает все доски.
 create procedure sp_boards_get_all ()
 begin
-    select id, name, title, annotation, bump_limit, force_anonymous,
-            default_name, with_attachments, enable_macro, enable_youtube,
-            enable_captcha, enable_translation, enable_geoip, enable_shi,
-            enable_postid, same_upload, popdown_handler, category
-        from boards;
+    select  b.id,             b.name,             b.title,
+            b.annotation,     b.bump_limit,       b.force_anonymous,
+            b.default_name,   b.with_attachments, b.enable_macro,
+            b.enable_youtube, b.enable_captcha,   b.enable_translation,
+            b.enable_geoip,   b.enable_shi,       b.enable_postid,
+            b.same_upload,    b.popdown_handler,  b.category,
+            c.name as category_name
+        from boards b
+        join categories c on c.id = b.category;
 end|
 
 -- Выбирает доску с заданным идентификатором.

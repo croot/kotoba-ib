@@ -638,7 +638,8 @@ function db_boards_edit($link, $new_board) { // Java CC.
  * enable_postid - включение идентификатора поста.<br>
  * same_upload - политика загрузки одинаковых файлов.<br>
  * popdown_handler - обработчик автоматического удаления нитей.<br>
- * category - категория.
+ * category - категория.<br>
+ * category_name - имя категории.
  */
 function db_boards_get_all($link) {
 
@@ -670,7 +671,8 @@ function db_boards_get_all($link) {
                       'enable_postid' => $row['enable_postid'],
                       'same_upload' => $row['same_upload'],
                       'popdown_handler' => $row['popdown_handler'],
-                      'category' => $row['category']));
+                      'category' => $row['category'],
+                      'category_name' => $row['category_name']));
         }
     }
 
