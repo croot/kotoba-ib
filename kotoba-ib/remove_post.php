@@ -9,7 +9,12 @@
  * See license.txt for more info.*
  *********************************/
 
-// Скрипт удаления сообщений.
+/*
+ * Скрипт удаления сообщения. Скрипт принимает два параметра, которые передаются
+ * с помощью POST или GET запроса:
+ * post - Идентификатор удаляемого сообщения.
+ * password (необязательно) - Пароль на удаление сообщения.
+ */
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
@@ -21,10 +26,12 @@ require_once Config::ABS_PATH . '/lib/upload_handlers.php';
 require_once Config::ABS_PATH . '/lib/mark.php';
 
 try {
+    // Инициализация.
     kotoba_session_start();
     locale_setup();
     $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
+    // Проверка, не заблокирован ли клиент.
     if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
@@ -36,23 +43,20 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    if (isset($_GET['post'])) {
-        $post_id = posts_check_id($_GET['post']);
-        if (isset($_GET['password'])) {
-            $password = $_GET['password'];
-        }
-    } elseif (isset($_POST['post'])) {
-        $post_id = posts_check_id($_POST['post']);
-        if (isset($_POST['password'])) {
-            $password = $_POST['password'];
+    $REQUEST = "_{$_SERVER['REQUEST_METHOD']}";
+    $REQUEST = $$REQUEST;
+
+    if (isset($REQUEST['post'])) {
+        if (isset($REQUEST['password'])) {
+            $password = $REQUEST['password'];
         }
     } else {
         header('Location: http://z0r.de/?id=114');
         DataExchange::releaseResources();
-        exit;
+        exit(1);
     }
 
-    $post = posts_get_visible_by_id($post_id, $_SESSION['user']);
+    $post = posts_get_visible_by_id(posts_check_id($REQUEST['post']), $_SESSION['user']);
     $password = isset($password) ? posts_check_password($password) : $_SESSION['password'];
 
     if (is_admin()) {
@@ -66,6 +70,7 @@ try {
         posts_delete($post['id']);
         header('Location: ' . Config::DIR_PATH . "/{$post['board_name']}/");
     } else {
+
         // Вывод формы ввода пароля.
         $smarty->assign('id', $post['id']);
         $smarty->assign('is_admin', is_admin());
@@ -73,8 +78,10 @@ try {
         $smarty->display('remove_post.tpl');
     }
 
+    // Освобождение ресурсов и очистка.
     DataExchange::releaseResources();
-    exit;
+
+    exit(0);
 } catch(Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();

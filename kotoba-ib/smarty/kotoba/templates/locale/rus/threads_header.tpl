@@ -14,6 +14,9 @@
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
     $STYLESHEET - стиль оформления (см. config.default).
+    $thread - просматриваемая нить.
+    $enable_translation - Включение перевода текста сообщения (см. config.default).
+    $show_control - показывать ссылку на страницу административных фукнций и фукнций модераторов в панели администратора.
     $ib_name - название имейджборды (см. config.default).
     $enable_macro - Включение интеграции с макрочаном (см. config.default).
     $enable_youtube - Включение постинга видео с ютуба (см. config.default).
@@ -21,7 +24,6 @@
     $board - доска, на которой расположена просматриваемая нить.
     $boards - доски.
     $threads - просматриваемая нить.
-    $thread - просматриваемая нить.
     $is_moderatable - текущая нить доступна для модерирования.
     $is_admin - флаг администратора.
     $password - пароль для удаления сообщений.
@@ -35,13 +37,16 @@
     $event_daynight_active - запущен ли эвент времени суток.
     $event_daynight_code - код, добавляемый к html коду страницы, эвентом.
 *}
-{include file='header.tpl' page_title="Просмотр нити `$thread.original_post`" DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
-{* Начало кода эвента времени суток (не входит в котобу). *}
-{if isset($event_daynight_active) && $event_daynight_active}{$event_daynight_code}{/if}
-{* Конец кода эвента времени суток. *}
-<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+{include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title="Просмотр нити `$thread.original_post`"}
+
+{if $enable_translation}<script type="text/javascript" src="http://www.google.com/jsapi"></script>{/if}
+
 <script src="{$DIR_PATH}/kotoba.js"></script>
-<div class="navbar">{include file='board_list.tpl' boards=$boards DIR_PATH=$DIR_PATH} [<a href="{$DIR_PATH}/">Главная</a>]</div>
+<script src="{$DIR_PATH}/protoaculous-compressed.js"></script>
+
+{include file='adminbar.tpl' DIR_PATH=$DIR_PATH show_control=$show_control}
+
+{include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
 
 {if isset($banner)}
 <div class="logo"><img src="{$DIR_PATH}/misc/img/{$banner.name}" alt="{$banner.name}" width="{$banner.widht}" height="{$banner.height}"></div>
