@@ -21,9 +21,6 @@ require_once Config::ABS_PATH . '/lib/errors.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
-require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
-require_once Config::ABS_PATH . '/lib/upload_handlers.php';
-require_once Config::ABS_PATH . '/lib/mark.php';
 
 try {
     // Инициализация.
@@ -46,18 +43,15 @@ try {
     $REQUEST = "_{$_SERVER['REQUEST_METHOD']}";
     $REQUEST = $$REQUEST;
     if (isset($REQUEST['post'])) {
-        if (isset($REQUEST['password'])) {
-            $password = $REQUEST['password'];
-        }
+        $post = posts_get_visible_by_id(posts_check_id($REQUEST['post']), $_SESSION['user']);
     } else {
         header('Location: http://z0r.de/?id=114');
         DataExchange::releaseResources();
         exit(1);
     }
+    $password = isset($REQUEST['password']) ? posts_check_password($REQUEST['password']) : $_SESSION['password'];
 
-    $post = posts_get_visible_by_id(posts_check_id($REQUEST['post']), $_SESSION['user']);
-    $password = isset($password) ? posts_check_password($password) : $_SESSION['password'];
-
+    // Удаление сообщения.
     if (is_admin() || ($post['password'] !== null && $post['password'] === $password)) {
         posts_delete($post['id']);
         header('Location: ' . Config::DIR_PATH . "/{$post['board']['name']}/");
@@ -66,8 +60,9 @@ try {
         // Вывод формы ввода пароля.
         $smarty->assign('show_control', is_admin() || is_mod());
         $smarty->assign('boards', boards_get_visible($_SESSION['user']));
-        $smarty->assign('id', $post['id']);
+        $smarty->assign('post', $post);
         $smarty->assign('password', $password);
+        $smarty->assign('_SERVER', $_SERVER);
         $smarty->display('remove_post.tpl');
     }
 
