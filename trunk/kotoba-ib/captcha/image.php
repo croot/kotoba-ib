@@ -94,6 +94,8 @@ if (isset($_SESSION['stylesheet']) && $_SESSION['stylesheet'] == 'kusaba.css') {
     $bg = imagecolorallocate($im, 238, 255, 238);
 } elseif (isset($_SESSION['stylesheet']) && $_SESSION['stylesheet'] == 'futaba.css') {
     $bg = imagecolorallocate($im, 255, 255, 238);
+} elseif (isset($_SESSION['stylesheet']) && $_SESSION['stylesheet'] == 'kotoba.css') {
+    $bg = imagecolorallocate($im, 236, 255, 208);
 } else {
     $bg = imagecolorallocate($im, 255, 100, 255);
 }
