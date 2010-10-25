@@ -2266,7 +2266,12 @@ create procedure sp_reports_add
     _post int   -- Идентификатор сообщения.
 )
 begin
-    insert into reports (post) values (_post);
+    declare found int default 0;
+
+    select count(post) into found from reports where post = _post;
+    if (found = 0) then
+        insert into reports (post) values (_post);
+    end if;
 end|
 
 -- Удаляет жалобу.
