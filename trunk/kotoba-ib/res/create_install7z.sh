@@ -8,7 +8,15 @@
 #
 
 function show_help {
-    echo "Usage example: ./create_install7z.sh /var/www/html/kotoba [1]"
+    echo ""
+    echo "Usage: ./create_install7z.sh path [1]"
+    echo ""
+    echo "Parameters:"
+    echo "    path - Kotoba directory. E.g. /var/www/html/kotoba"
+    echo "    1 - (optional) remove old archives"
+    echo ""
+    echo "example: ./create_install7z.sh /var/www/html/kotoba 1"
+    echo ""
 }
 
 # $1 - command name.

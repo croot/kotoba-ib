@@ -87,31 +87,38 @@ try {
             $filter_date_time = date_format(date_create($_POST['filter_date_time']), 'U');
 
             // Filters posts whose datetime equal or greater than defined value.
-            $fileter = function($filter_date_time, $post) {
+            $fileter = function($filter_date_time, $attachments_only, $post) {
                 date_default_timezone_set(Config::DEFAULT_TIMEZONE);
                 if (date_format(date_create($post['date_time']), 'U') >= $filter_date_time) {
-                    return true;
+                    if (!$attachments_only || $attachments_only && $post['attachments_count'] > 0) {
+                        return true;
+                    }
                 }
                 return false;
             };
-            $posts = posts_get_filtred_by_boards($filter_boards, $fileter, $filter_date_time);
+            $posts = posts_get_filtred_by_boards($filter_boards, $fileter, $filter_date_time, isset($_POST['attachments_only']));
         } elseif($_POST['filter_number'] != '') {
             $filter_number = posts_check_number($_POST['filter_number']);
 
             // Filters posts whose number equal or greater than defined value.
-            $fileter = function($filter_number, $post) {
+            $fileter = function($filter_number, $attachments_only, $post) {
                 if ($post['number'] >= $filter_number) {
-                    return true;
+                    if (!$attachments_only || $attachments_only && $post['attachments_count'] > 0) {
+                        return true;
+                    }
                 }
                 return false;
             };
-            $posts = posts_get_filtred_by_boards($filter_boards, $fileter, $filter_number);
+            $posts = posts_get_filtred_by_boards($filter_boards, $fileter, $filter_number, isset($_POST['attachments_only']));
         }
 
         // Generate list of filtered posts.
         $posts_attachments = posts_attachments_get_by_posts($posts);
         $attachments = attachments_get_by_posts($posts);
         foreach ($posts as $post) {
+
+            // Debug
+            //var_dump($post['attachments_count']);
 
             // By default post have no attachments. This is fake field.
             $post['with_attachments'] = false;

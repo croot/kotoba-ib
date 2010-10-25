@@ -1814,53 +1814,88 @@ begin
 end|
 
 -- Выбирает заданное сообщение, доступное для просмотра заданному пользователю.
---
--- Аргументы:
--- post_id - Идентификатор сообщения.
--- user_id - Идентификатор пользователя.
 create procedure sp_posts_get_visible_by_id
 (
-	post_id int,
-	user_id int
+    post_id int,    -- Идентификатор сообщения.
+    user_id int     -- Идентификатор пользователя.
 )
 begin
-	select p.id, p.thread, p.board, p.number, p.password, p.name,
-		p.tripcode, p.ip, p.subject, p.date_time, p.text, p.sage
-	from posts p
-	left join threads t on t.id = p.thread
-	join user_groups ug on ug.user = user_id
-	-- Правило для конкретной группы и сообщения.
-	left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
-	-- Правило для всех групп и конкретного сообщения.
-	left join acl a2 on a2.`group` is null and a2.post = p.id
-	-- Правила для конкретной группы и нити.
-	left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
-	-- Правило для всех групп и конкретной нити.
-	left join acl a4 on a4.`group` is null and a4.thread = p.thread
-	-- Правила для конкретной группы и доски.
-	left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
-	-- Правило для всех групп и конкретной доски.
-	left join acl a6 on a6.`group` is null and a6.board = p.board
-	-- Правило для конкретной групы.
-	left join acl a7 on a7.`group` = ug.`group` and a7.board is null and
-		a7.thread is null and a7.post is null
-	where p.id = post_id and p.deleted = 0 and t.deleted = 0 and t.archived = 0
-		-- Сообщение должно быть доступно для просмотра.
-			-- Просмотр сообщения не запрещен конкретной группе и
-		and ((a1.`view` = 1 or a1.`view` is null)
-			-- просмотр сообщения не запрещен всем группам и
-			and (a2.`view` = 1 or a2.`view` is null)
-			-- просмотр нити не запрещен конкретной группе и
-			and (a3.`view` = 1 or a3.`view` is null)
-			-- просмотр нити не запрещен всем группам и
-			and (a4.`view` = 1 or a4.`view` is null)
-			-- просмотр доски не запрещен конкретной группе и
-			and (a5.`view` = 1 or a5.`view` is null)
-			-- просмотр доски не запрещен всем группам и
-			and (a6.`view` = 1 or a6.`view` is null)
-			-- просмотр разрешен конкретной группе.
-			and a7.`view` = 1)
-	group by p.id;
+    select p.id as post_id,
+           p.board as post_board,
+           p.thread as post_thread,
+           p.number as post_number,
+           p.user as post_user,
+           p.password as post_password,
+           p.name as post_name,
+           p.tripcode as post_tripcode,
+           p.ip as post_ip,
+           p.subject as post_subject,
+           p.date_time as post_date_time,
+           p.`text` as post_text,
+           p.sage as post_sage,
+
+           b.id as board_id,
+           b.name as board_name,
+           b.title as board_title,
+           b.annotation as board_annotation,
+           b.bump_limit as board_bump_limit,
+           b.force_anonymous as board_force_anonymous,
+           b.default_name as board_default_name,
+           b.with_attachments as board_with_attachments,
+           b.enable_macro as board_enable_macro,
+           b.enable_youtube as board_enable_youtube,
+           b.enable_captcha as board_enable_captcha,
+           b.enable_translation as board_enable_translation,
+           b.enable_geoip as board_enable_geoip,
+           b.enable_shi as board_enable_shi,
+           b.enable_postid as board_enable_postid,
+           b.same_upload as board_same_upload,
+           b.popdown_handler as board_popdown_handler,
+           b.category as board_category,
+
+           t.id as thread_id,
+           t.board as thread_board,
+           t.original_post as thread_original_post,
+           t.bump_limit as thread_bump_limit,
+           t.sage as thread_sage,
+           t.sticky as thread_sticky,
+           t.with_attachments as thread_with_attachments
+        from posts p
+        left join threads t on t.id = p.thread
+        left join boards b on b.id = p.board
+        join user_groups ug on ug.user = user_id
+        -- Правило для конкретной группы и сообщения.
+        left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+        -- Правило для всех групп и конкретного сообщения.
+        left join acl a2 on a2.`group` is null and a2.post = p.id
+        -- Правила для конкретной группы и нити.
+        left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+        -- Правило для всех групп и конкретной нити.
+        left join acl a4 on a4.`group` is null and a4.thread = p.thread
+        -- Правила для конкретной группы и доски.
+        left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+        -- Правило для всех групп и конкретной доски.
+        left join acl a6 on a6.`group` is null and a6.board = p.board
+        -- Правило для конкретной групы.
+        left join acl a7 on a7.`group` = ug.`group` and a7.board is null and
+            a7.thread is null and a7.post is null
+        where p.id = post_id and p.deleted = 0 and t.deleted = 0 and t.archived = 0
+            -- Сообщение должно быть доступно для просмотра.
+                -- Просмотр сообщения не запрещен конкретной группе и
+            and ((a1.`view` = 1 or a1.`view` is null)
+                -- просмотр сообщения не запрещен всем группам и
+                and (a2.`view` = 1 or a2.`view` is null)
+                -- просмотр нити не запрещен конкретной группе и
+                and (a3.`view` = 1 or a3.`view` is null)
+                -- просмотр нити не запрещен всем группам и
+                and (a4.`view` = 1 or a4.`view` is null)
+                -- просмотр доски не запрещен конкретной группе и
+                and (a5.`view` = 1 or a5.`view` is null)
+                -- просмотр доски не запрещен всем группам и
+                and (a6.`view` = 1 or a6.`view` is null)
+                -- просмотр разрешен конкретной группе.
+                and a7.`view` = 1)
+        group by p.id;
 end|
 
 -- Выбирает заданное сообщение, доступное для просмотра заданному пользователю.

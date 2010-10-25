@@ -67,8 +67,7 @@ try {
         throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']);
     }
 
-    $thread = threads_get_visible_by_original_post($board['id'], $original_post,
-            $_SESSION['user']);
+    $thread = threads_get_visible_by_original_post($board['id'], $original_post, $_SESSION['user']);
 
     // Нить была заархивирована.
     if ($thread['archived']) {

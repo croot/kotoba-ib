@@ -117,7 +117,7 @@ echo "
 #
 # Options requied or recommended for Kotoba.
 
-<Directory \"$2\">
+<Directory \"$1\">
     AllowOverride FileInfo Limit Indexes
 </Directory>
 <DirectoryMatch \"\\.svn\">

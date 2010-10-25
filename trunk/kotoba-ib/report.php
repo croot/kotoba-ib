@@ -21,10 +21,12 @@ require_once Config::ABS_PATH . '/lib/upload_handlers.php';
 require_once Config::ABS_PATH . '/lib/mark.php';
 
 try {
+    // Инициализация.
     kotoba_session_start();
     locale_setup();
     $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
+    // Проверка, не заблокирован ли клиент.
     if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
@@ -36,21 +38,20 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    if (isset($_GET['submit']) && $_GET['submit'] == '1' && isset($_GET['post'])) {
-        $post_id = posts_check_id($_GET['post']);
-    } elseif (isset($_POST['submit']) && $_POST['submit'] == '1' && isset($_POST['post'])) {
-        $post_id = posts_check_id($_POST['post']);
-    } else {
+    // Проверка входных параметров.
+    $REQUEST = "_{$_SERVER['REQUEST_METHOD']}";
+    $REQUEST = $$REQUEST;
+    if (!isset($REQUEST['post'])) {
         header('Location: http://z0r.de/?id=114');
         DataExchange::releaseResources();
         exit;
     }
 
-    $post = posts_get_visible_by_id($post_id, $_SESSION['user']);
+    $post = posts_get_visible_by_id(posts_check_id($REQUEST['post']), $_SESSION['user']);
 
     $found = false;
     foreach (reports_get_all() as $report) {
-        if ($report['post'] == $post_id) {
+        if ($report['post'] == $post['id']) {
             $found = true;
             break;
         }
@@ -58,26 +59,31 @@ try {
 
     // На это сообщение уже жаловались.
     if ($found) {
-        header('Location: ' . Config::DIR_PATH . "/{$post['board_name']}/");
+        header('Location: ' . Config::DIR_PATH . "/{$post['board']['name']}/");
     }
 
     if (is_admin()) {
         reports_add($post['id']);
-        header('Location: ' . Config::DIR_PATH . "/{$post['board_name']}/");
+        header('Location: ' . Config::DIR_PATH . "/{$post['board']['name']}/");
     } else {
-        $securimage = new Securimage();
-        if (!isset($_POST['captcha_code']) || $securimage->check($_POST['captcha_code']) == false) {
+        if (isset($REQUEST['captcha_code'])
+                && isset($_SESSION['captcha_code'])
+                && mb_strtolower($REQUEST['captcha_code'], Config::MB_ENCODING) === $_SESSION['captcha_code']) {
+
+            reports_add($post['id']);
+            header('Location: ' . Config::DIR_PATH . "/{$post['board']['name']}/");
+        } else {
+
             // Вывод формы ввода капчи.
             $smarty->assign('id', $post['id']);
             $smarty->display('report.tpl');
-        } else {
-            reports_add($post['id']);
-            header('Location: ' . Config::DIR_PATH . "/{$post['board_name']}/");
         }
     }
 
+    // Освобождение ресурсов и очистка.
     DataExchange::releaseResources();
-    exit;
+
+    exit(0);
 } catch(Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();

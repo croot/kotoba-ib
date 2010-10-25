@@ -1895,41 +1895,42 @@ function posts_get_by_thread($thread_id)
 }
 /**
  * Получает отфильтрованные сообщения с заданных досок.
- * @param boards array <p>Доски.</p>
- * @param filter object <p>Фильтр (лямбда).</p>
+ * @param array $boards Доски.
+ * @param Object $filter Фильтр (лямбда).
  * @return array
- * Возвращает сообщения:<p>
- * 'id' - Идентификатор.<br>
- * 'board' - Идентификатор доски.<br>
- * 'board_name' - Имя доски.<br>
- * 'thread' - Идентификатор нити.<br>
- * 'thread_number' - Номер нити.<br>
- * 'number' - Номер.<br>
- * 'password' - Пароль.<br>
- * 'name' - Имя отправителя.<br>
- * 'tripcode' - Трипкод.<br>
- * 'ip' - IP-адрес отправителя.<br>
- * 'subject' - Тема.<br>
- * 'date_time' - Время сохранения.<br>
- * 'text' - Текст.<br>
- * 'sage' - Флаг поднятия нити.</p>
+ * Возвращает сообщения:<br>
+ * <i>id</i> - идентификатор.<br>
+ * <i>board</i> - идентификатор доски.<br>
+ * <i>board_name</i> - имя доски.<br>
+ * <i>thread</i> - идентификатор нити.<br>
+ * <i>thread_number</i> - номер нити.<br>
+ * <i>number</i> - номер.<br>
+ * <i>password</i> - пароль.<br>
+ * <i>name</i> - имя отправителя.<br>
+ * <i>tripcode</i> - трипкод.<br>
+ * <i>ip</i> - IP-адрес отправителя.<br>
+ * <i>subject</i> - тема.<br>
+ * <i>date_time</i> - время сохранения.<br>
+ * <i>text</i> - текст.<br>
+ * <i>sage</i> - флаг поднятия нити.<br>
+ * <i>attachments_count</i> - количество вложений.
  */
-function posts_get_filtred_by_boards($boards, $filter)
-{
-	$posts = db_posts_get_by_boards(DataExchange::getDBLink(), $boards);
-	$filtred_posts = array();
-	$filter_args = array();
-	$filter_argn = 0;
-	$n = func_num_args();
-	for($i = 2; $i < $n; $i++)	// Пропустим первые два аргумента фукнции.
-		$filter_args[$filter_argn++] = func_get_arg($i);
-	foreach($posts as $post)
-	{
-		$filter_args[$filter_argn] = $post;
-		if(call_user_func_array($filter, $filter_args))
-			array_push($filtred_posts, $post);
-	}
-	return $filtred_posts;
+function posts_get_filtred_by_boards($boards, $filter) { // Java CC
+    $posts = db_posts_get_by_boards(DataExchange::getDBLink(), $boards);
+    $filtred_posts = array();
+    $filter_args = array();
+    $filter_argn = 0;
+    $n = func_num_args();
+    for ($i = 2; $i < $n; $i++) {   // Пропустим первые два аргумента фукнции.
+        $filter_args[$filter_argn++] = func_get_arg($i);
+    }
+    foreach ($posts as $post) {
+        $filter_args[$filter_argn] = $post;
+        if (call_user_func_array($filter, $filter_args)) {
+            array_push($filtred_posts, $post);
+        }
+    }
+    return $filtred_posts;
 }
 /**
  * Получает сообщения, на которые поступила жалоба, с заданных досок.
@@ -1956,23 +1957,10 @@ function posts_get_reported_by_boards($boards) {
 }
 /**
  * Получает заданное сообщение, доступное для просмотра заданному пользователю.
- * @param string|int $post_id Идентификатор сообщения.
- * @param string|int $user_id Идентификатор пользователя.
+ * @param int $post_id Идентификатор сообщения.
+ * @param int $user_id Идентификатор пользователя.
  * @return array
- * Возвращает сообщение:<br>
- * 'id' - Идентификатор.<br>
- * 'board' - Идентификатор доски.<br>
- * 'thread' - Идентификатор нити.<br>
- * 'number' - Номер.<br>
- * 'password' - Пароль.<br>
- * 'name' - Имя отправителя.<br>
- * 'tripcode' - Трипкод.<br>
- * 'ip' - IP-адрес отправителя.<br>
- * 'subject' - Тема.<br>
- * 'date_time' - Время сохранения.<br>
- * 'text' - Текст.<br>
- * 'sage' - Флаг поднятия нити.<br>
- * 'board_name' - Имя доски.
+ * Возвращает сообщение с разверунтыми данными о доске и нити.
  */
 function posts_get_visible_by_id($post_id, $user_id) { // Java CC
     return db_posts_get_visible_by_id(DataExchange::getDBLink(), $post_id, $user_id);

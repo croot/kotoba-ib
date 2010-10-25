@@ -43,8 +43,8 @@ try {
             $_SESSION['user']);
 
     if (!is_admin() && (($board['enable_captcha'] === null && Config::ENABLE_CAPTCHA) || $board['enable_captcha'])) {
-        if (!isset($_POST['captcha_code']) || !isset($_SESSION['captcha_code']) || $_POST['captcha_code'] != $_SESSION['captcha_code']) {
-            var_dump($_POST['captcha_code']);
+        if (!isset($_POST['captcha_code']) || !isset($_SESSION['captcha_code']) || mb_strtolower($_POST['captcha_code'], Config::MB_ENCODING) != $_SESSION['captcha_code']) {
+            var_dump(mb_strtolower($_POST['captcha_code'], Config::MB_ENCODING));
             var_dump($_SESSION['captcha_code']);
             throw new CommonException(CommonException::$messages['CAPTCHA']);
         }

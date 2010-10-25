@@ -82,7 +82,7 @@ function post_simple_generate_html($smarty, $board, $thread, $post, $posts_attac
         }
     }
     $post['ip'] = long2ip($post['ip']);
-    if ($post['ip'] != '127.0.0.1') {
+    if ($post['ip'] != '127.0.0.1' && strpos($post['ip'], '192.168') === false) {
         $geoip = geoip_record_by_name($post['ip']);
         $smarty->assign('country', array('name' => $geoip['country_name'], 'code' => strtolower($geoip['country_code'])));
     }
@@ -105,7 +105,7 @@ function post_simple_generate_html($smarty, $board, $thread, $post, $posts_attac
  * @param int $lines_per_post Количество строк, которые нужно
  * @param boolean $show_skipped Флаг показа количества не показанных сообщений.
  * @param int $posts_per_thread Количество показываемых сообщений в нити.
- * @param int $show_reply Показывать ссылку на просмотр нити и ответ.
+ * @param int $show_reply Показывать ссылку на просмотр нити и ответ. && strpos($post['ip'], '192.168'
  * @param boolean $author_admin Сообщение было оставлено администратором.
  */
 function post_original_generate_html($smarty, $board, $thread, $post, $posts_attachments, $attachments, $crop, $lines_per_post, $show_skipped, $posts_per_thread, $show_reply, $author_admin) {
@@ -161,7 +161,7 @@ function post_original_generate_html($smarty, $board, $thread, $post, $posts_att
         }
     }
     $post['ip'] = long2ip($post['ip']);
-    if ($post['ip'] != '127.0.0.1') {
+    if ($post['ip'] != '127.0.0.1' && strpos($post['ip'], '192.168') === false) {
         $geoip = geoip_record_by_name($post['ip']);
         $smarty->assign('country', array('name' => $geoip['country_name'], 'code' => strtolower($geoip['country_code'])));
     }
