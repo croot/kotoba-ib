@@ -49,19 +49,6 @@ try {
 
     $post = posts_get_visible_by_id(posts_check_id($REQUEST['post']), $_SESSION['user']);
 
-    $found = false;
-    foreach (reports_get_all() as $report) {
-        if ($report['post'] == $post['id']) {
-            $found = true;
-            break;
-        }
-    }
-
-    // На это сообщение уже жаловались.
-    if ($found) {
-        header('Location: ' . Config::DIR_PATH . "/{$post['board']['name']}/");
-    }
-
     if (is_admin()) {
         reports_add($post['id']);
         header('Location: ' . Config::DIR_PATH . "/{$post['board']['name']}/");
@@ -75,6 +62,8 @@ try {
         } else {
 
             // Вывод формы ввода капчи.
+            $smarty->assign('show_control', is_admin() || is_mod());
+            $smarty->assign('boards', boards_get_visible($_SESSION['user']));
             $smarty->assign('id', $post['id']);
             $smarty->display('report.tpl');
         }

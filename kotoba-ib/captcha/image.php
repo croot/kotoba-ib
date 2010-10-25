@@ -49,7 +49,7 @@ $font = array('а' => array(4, array(0, 2, 1, 1, 2, 1, 3, 2, 3, 5, 4, 6), array(
               'ы' => array(5, array(0, 0, 0, 6, 2, 6, 3, 5, 3, 4, 2, 3, 0, 3), array(5, 0, 5, 6)),
               'ъ' => array(4, array(0, 0, 1, 0, 1, 6, 3, 6, 4, 5, 4, 4, 3, 3, 1, 3)),
               'э' => array(3, array(0, 0, 2, 0, 3, 1, 3, 5, 2, 6, 0, 6), array(0, 3, 3, 3)),
-              'ю' => array(5, array(2, 4, 3, 3, 4, 3, 5, 4, 5, 5, 4, 6, 3, 6, 2, 5, 2, 4), array(0, 0, 0, 6, 0, 3, 2, 3)),
+              'ю' => array(5, array(1, 2, 2, 1, 3, 1, 4, 2, 4, 4, 3, 5, 2, 5, 1, 4, 1, 2), array(0, 1, 0, 5, 0, 3, 1, 3)),
               'я' => array(3, array(0, 6, 3, 3, 1, 3, 0, 2, 0, 1, 1, 0, 3, 0, 3, 6)),
               ' ' => array(3));
 // </editor-fold>
@@ -68,10 +68,10 @@ function drawtext($image, $xshift, $yshift, $text, $color) {
             foreach ($curves as $curve) {
                 for ($k = 0; $k < count($curve) - 2; $k += 2) {
                     imageline($image,
-                              $curve[$k] + $xshift,
-                              $curve[$k + 1] + $yshift,
-                              $curve[$k + 2] + $xshift,
-                              $curve[$k + 3] + $yshift,
+                              $curve[$k] * 2 + $xshift,
+                              $curve[$k + 1] * 2 + $yshift,
+                              $curve[$k + 2] * 2 + $xshift,
+                              $curve[$k + 3] * 2 + $yshift,
                               $color);
                 }
             }
