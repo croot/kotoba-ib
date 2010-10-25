@@ -55,15 +55,9 @@
 <div class="logo"><img src="{$DIR_PATH}/misc/img/{$banner.name}" alt="{$banner.name}" width="{$banner.widht}" height="{$banner.height}"></div>
 {/if}
 <div class="logo">{$ib_name} — /{$board.name}/ {$board.title}</div>
-{if $enable_search}
-    <div class="search">
-    <form name="searchform" id="searchform" action="{$DIR_PATH}/search.php" method="post">
-    <input type="text" name="search">&nbsp;<input type="submit" value="Искать">
-    <input type="hidden" name="board" value="{$board.name}">
-    </form>
-    </div>
-{/if}
+
 {include file='pages_list.tpl' board_name=$board.name pages=$pages page=$page}
+
 <hr>
 <div class="postarea">
 <form name="postform" id="postform" action="{$DIR_PATH}/create_thread.php" method="post" enctype="multipart/form-data">

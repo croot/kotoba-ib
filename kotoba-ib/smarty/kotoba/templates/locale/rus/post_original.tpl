@@ -60,7 +60,7 @@
     {/if}
 {/if}
 <a name="{$original_post.number}"></a>
-<a href="{$DIR_PATH}/remove_post.php?post={$original_post.id}&submit=1"><img src="{$DIR_PATH}/css/delete.png" alt="[Удалить]" title="Удалить нить" border="0"/></a>
+<a href="{$DIR_PATH}/remove_post.php?post={$original_post.id}"><img src="{$DIR_PATH}/css/delete.png" alt="[Удалить]" title="Удалить нить" border="0"/></a>
 <span class="extrabtns">
     <a href="{$DIR_PATH}/report.php?post={$original_post.id}&submit=1"><img src="{$DIR_PATH}/css/report.png" alt="[Пожаловаться]" title="Пожаловаться на сообщение" border="0"/></a>
     <a href="{$DIR_PATH}/hide_thread.php?thread={$thread.id}&submit=1&board_name={$board.name}"><img src="{$DIR_PATH}/css/hide.png" alt="[Скрыть]" title="Скрыть нить" border="0"/></a>

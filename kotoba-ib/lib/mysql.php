@@ -44,19 +44,15 @@ function db_cleanup_link($link) {
 	 * не будет выведена ошибка, если таковая произошла в следующем запросе
 	 * в mysqli_multi_query.
 	 */
-	do {
-		if (($result = mysqli_store_result($link)) != false) {
-			mysqli_free_result($result);
-        }
+    if (($result = mysqli_store_result($link)) != false) {
+        mysqli_free_result($result);
+    }
+    while (mysqli_more_results($link)) {
         mysqli_next_result($link);
-	}
-	while (mysqli_more_results($link));
-    /*do {
 		if (($result = mysqli_store_result($link)) != false) {
 			mysqli_free_result($result);
         }
 	}
-	while (mysqli_next_result($link));*/
 	if (mysqli_errno($link)) {
 		throw new CommonException(mysqli_error($link));
     }
@@ -709,8 +705,7 @@ function db_boards_get_by_id($link, $board_id) { // Java CC
     }
 
     $board = null;
-    if (mysqli_affected_rows($link) > 0
-            && ($row = mysqli_fetch_assoc($result)) !== null) {
+    if (mysqli_affected_rows($link) > 0 && ($row = mysqli_fetch_assoc($result)) !== null) {
         $board = array('id' => $row['id'],
                        'name' => $row['name'],
                        'title' => $row['title'],
@@ -2706,55 +2701,59 @@ function db_posts_get_all_numbers($link) { // Java CC
 }
 /**
  * Получает сообщения с заданных досок.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param boards array <p>Доски.</p>
+ * @param MySQLi $link Связь с базой данных.
+ * @param array $boards Доски.
  * @return array
- * Возвращает сообщения:<p>
- * 'id' - Идентификатор.<br>
- * 'board' - Идентификатор доски.<br>
- * 'board_name' - Имя доски.<br>
- * 'thread' - Идентификатор нити.<br>
- * 'thread_number' - Номер нити.<br>
- * 'number' - Номер.<br>
- * 'password' - Пароль.<br>
- * 'name' - Имя отправителя.<br>
- * 'tripcode' - Трипкод.<br>
- * 'ip' - IP-адрес отправителя.<br>
- * 'subject' - Тема.<br>
- * 'date_time' - Время сохранения.<br>
- * 'text' - Текст.<br>
- * 'sage' - Флаг поднятия нити.</p>
+ * Возвращает сообщения:<br>
+ * <i>id</i> - идентификатор.<br>
+ * <i>board</i> - идентификатор доски.<br>
+ * <i>board_name</i> - имя доски.<br>
+ * <i>thread</i> - идентификатор нити.<br>
+ * <i>thread_number</i> - номер нити.<br>
+ * <i>number</i> - номер.<br>
+ * <i>password</i> - пароль.<br>
+ * <i>name</i> - имя отправителя.<br>
+ * <i>tripcode</i> - трипкод.<br>
+ * <i>ip</i> - IP-адрес отправителя.<br>
+ * <i>subject</i> - тема.<br>
+ * <i>date_time</i> - время сохранения.<br>
+ * <i>text</i> - текст.<br>
+ * <i>sage</i> - флаг поднятия нити.<br>
+ * <i>attachments_count</i> - количество вложений.
  */
-function db_posts_get_by_boards($link, $boards)
-{
-	$posts = array();
-	foreach($boards as $b)
-	{
-		$result = mysqli_query($link, 'call sp_posts_get_by_board('
-			. $b['id'] . ')');
-		if(!$result)
-			throw new CommonException(mysqli_error($link));
-		if(mysqli_affected_rows($link) > 0)
-			while(($row = mysqli_fetch_assoc($result)) !== null)
-				array_push($posts,
-					array('id' => $row['id'],
-							'board' => $row['board'],
-							'board_name' => $row['board_name'],
-							'thread' => $row['thread'],
-							'thread_number' => $row['thread_number'],
-							'number' => $row['number'],
-							'password' => $row['password'],
-							'name' => $row['name'],
-							'tripcode' => $row['tripcode'],
-							'ip' => $row['ip'],
-							'subject' => $row['subject'],
-							'date_time' => $row['date_time'],
-							'text' => $row['text'],
-							'sage' => $row['sage']));
-		mysqli_free_result($result);
-		db_cleanup_link($link);
-	}
-	return $posts;
+function db_posts_get_by_boards($link, $boards) { // Java CC
+    $posts = array();
+    foreach ($boards as $b) {
+        $result = mysqli_query($link, "call sp_posts_get_by_board({$b['id']})");
+        if (!$result) {
+            throw new CommonException(mysqli_error($link));
+        }
+        if (mysqli_affected_rows($link) > 0) {
+            while(($row = mysqli_fetch_assoc($result)) != null) {
+                array_push($posts,
+                    array('id' => $row['id'],
+                          'board' => $row['board'],
+                          'board_name' => $row['board_name'],
+                          'thread' => $row['thread'],
+                          'thread_number' => $row['thread_number'],
+                          'number' => $row['number'],
+                          'password' => $row['password'],
+                          'name' => $row['name'],
+                          'tripcode' => $row['tripcode'],
+                          'ip' => $row['ip'],
+                          'subject' => $row['subject'],
+                          'date_time' => $row['date_time'],
+                          'text' => $row['text'],
+                          'sage' => $row['sage'],
+                          'attachments_count' => $row['attachments_count']));
+            }
+        }
+
+        // Cleanup.
+        mysqli_free_result($result);
+        db_cleanup_link($link);
+    }
+    return $posts;
 }
 /**
  * Получает сообщения заданной нити.
@@ -2857,23 +2856,10 @@ function db_posts_get_reported_by_boards($link, $boards) {
 /**
  * Получает заданное сообщение, доступное для просмотра заданному пользователю.
  * @param MySQLi $link Связь с базой данных.
- * @param string|int $post_id Идентификатор сообщения.
- * @param string|int $user_id Идентификатор пользователя.
+ * @param int $post_id Идентификатор сообщения.
+ * @param int $user_id Идентификатор пользователя.
  * @return array
- * Возвращает сообщение:<br>
- * 'id' - Идентификатор.<br>
- * 'board' - Идентификатор доски.<br>
- * 'thread' - Идентификатор нити.<br>
- * 'number' - Номер.<br>
- * 'password' - Пароль.<br>
- * 'name' - Имя отправителя.<br>
- * 'tripcode' - Трипкод.<br>
- * 'ip' - IP-адрес отправителя.<br>
- * 'subject' - Тема.<br>
- * 'date_time' - Время сохранения.<br>
- * 'text' - Текст.<br>
- * 'sage' - Флаг поднятия нити.<br>
- * 'board_name' - Имя доски.
+ * Возвращает сообщение с разверунтыми данными о доске и нити.
  */
 function db_posts_get_visible_by_id($link, $post_id, $user_id) { // Java CC
     $result = mysqli_query($link, "call sp_posts_get_visible_by_id($post_id, $user_id)");
@@ -2882,30 +2868,53 @@ function db_posts_get_visible_by_id($link, $post_id, $user_id) { // Java CC
     }
 
     $post = null;
-    if (mysqli_affected_rows($link) > 0
-            && ($row = mysqli_fetch_assoc($result)) != null) {
-        $post = array('id' => $row['id'],
-                      'board' => $row['board'],
-                      'thread' => $row['thread'],
-                      'number' => $row['number'],
-                      'password' => $row['password'],
-                      'name' => $row['name'],
-                      'tripcode' => $row['tripcode'],
-                       'ip' => $row['ip'],
-                      'subject' => $row['subject'],
-                      'date_time' => $row['date_time'],
-                      'text' => $row['text'],
-                      'sage' => $row['sage']);
+    if (mysqli_affected_rows($link) > 0 && ($row = mysqli_fetch_assoc($result)) != null) {
+        $post['id'] = $row['post_id'];
+        $post['number'] = $row['post_number'];
+        $post['user'] = $row['post_user'];
+        $post['password'] = $row['post_password'];
+        $post['name'] = $row['post_name'];
+        $post['tripcode'] = $row['post_tripcode'];
+        $post['ip'] = $row['post_ip'];
+        $post['subject'] = $row['post_subject'];
+        $post['date_time'] = $row['post_date_time'];
+        $post['text'] = $row['post_text'];
+        $post['sage'] = $row['post_sage'];
+
+        $post['board']['id'] = $row['board_id'];
+        $post['board']['name'] = $row['board_name'];
+        $post['board']['title'] = $row['board_title'];
+        $post['board']['annotation'] = $row['board_annotation'];
+        $post['board']['bump_limit'] = $row['board_bump_limit'];
+        $post['board']['force_anonymous'] = $row['board_force_anonymous'];
+        $post['board']['default_name'] = $row['board_default_name'];
+        $post['board']['with_attachments'] = $row['board_with_attachments'];
+        $post['board']['enable_macro'] = $row['board_enable_macro'];
+        $post['board']['enable_youtube'] = $row['board_enable_youtube'];
+        $post['board']['enable_captcha'] = $row['board_enable_captcha'];
+        $post['board']['enable_translation'] = $row['board_enable_translation'];
+        $post['board']['enable_geoip'] = $row['board_enable_geoip'];
+        $post['board']['enable_shi'] = $row['board_enable_shi'];
+        $post['board']['enable_postid'] = $row['board_enable_postid'];
+        $post['board']['same_upload'] = $row['board_same_upload'];
+        $post['board']['popdown_handler'] = $row['board_popdown_handler'];
+        $post['board']['category'] = $row['board_category'];
+
+        $post['thread']['id'] = $row['thread_id'];
+        $post['thread']['board'] = $row['thread_board'];
+        $post['thread']['original_post'] = $row['thread_original_post'];
+        $post['thread']['bump_limit'] = $row['thread_bump_limit'];
+        $post['thread']['sage'] = $row['thread_sage'];
+        $post['thread']['sticky'] = $row['thread_sticky'];
+        $post['thread']['with_attachments'] = $row['thread_with_attachments'];
     }
 
     if($post === null) {
-        throw new NodataException(NodataException::$messages['POST_NOT_FOUND']);
+        throw new NodataException(NodataException::$messages['POST_NOT_FOUND'], $post_id, $user_id);
     }
 
     mysqli_free_result($result);
     db_cleanup_link($link);
-    $board = db_boards_get_by_id($link, $post['board']);
-    $post['board_name'] = $board['name'];
     return $post;
 }
 /**

@@ -86,6 +86,9 @@ class NodataException extends Exception {
      * @param string $message Сообщение.
      */
     public function __construct($message) {
+        if (func_num_args() > 1) {
+            $message = vsprintf($message, array_slice(func_get_args(), 1, func_num_args() - 1));
+        }
         $this->reason = $message;
         parent::__construct($message);
     }

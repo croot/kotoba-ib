@@ -45,7 +45,6 @@ try {
 
     $REQUEST = "_{$_SERVER['REQUEST_METHOD']}";
     $REQUEST = $$REQUEST;
-
     if (isset($REQUEST['post'])) {
         if (isset($REQUEST['password'])) {
             $password = $REQUEST['password'];
@@ -59,21 +58,15 @@ try {
     $post = posts_get_visible_by_id(posts_check_id($REQUEST['post']), $_SESSION['user']);
     $password = isset($password) ? posts_check_password($password) : $_SESSION['password'];
 
-    if (is_admin()) {
+    if (is_admin() || ($post['password'] !== null && $post['password'] === $password)) {
         posts_delete($post['id']);
-        header('Location: ' . Config::DIR_PATH . "/{$post['board_name']}/");
-    } elseif(($post['password'] !== null && $post['password'] === $password)) {
-        $securimage = new Securimage();
-        if ($securimage->check($_POST['captcha_code']) == false) {
-            throw new CommonException(CommonException::$messages['CAPTCHA']);
-        }
-        posts_delete($post['id']);
-        header('Location: ' . Config::DIR_PATH . "/{$post['board_name']}/");
+        header('Location: ' . Config::DIR_PATH . "/{$post['board']['name']}/");
     } else {
 
         // Вывод формы ввода пароля.
+        $smarty->assign('show_control', is_admin() || is_mod());
+        $smarty->assign('boards', boards_get_visible($_SESSION['user']));
         $smarty->assign('id', $post['id']);
-        $smarty->assign('is_admin', is_admin());
         $smarty->assign('password', $password);
         $smarty->display('remove_post.tpl');
     }
