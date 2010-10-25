@@ -9,16 +9,17 @@
  * See license.txt for more info.*
  *********************************/
 
-// Скрипт жалоб на сообщения.
+/*
+ * Скрипт жалоб на сообщения. Скрипт принимает один параметр, который передаётся
+ * с помощью POST или GET запроса:
+ * post - Идентификатор сообщения, на которое поступает жалоба.
+ */
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
-require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
-require_once Config::ABS_PATH . '/lib/upload_handlers.php';
-require_once Config::ABS_PATH . '/lib/mark.php';
 
 try {
     // Инициализация.
@@ -38,17 +39,17 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    // Проверка входных параметров.
     $REQUEST = "_{$_SERVER['REQUEST_METHOD']}";
     $REQUEST = $$REQUEST;
     if (!isset($REQUEST['post'])) {
         header('Location: http://z0r.de/?id=114');
         DataExchange::releaseResources();
-        exit;
+        exit(1);
     }
 
     $post = posts_get_visible_by_id(posts_check_id($REQUEST['post']), $_SESSION['user']);
 
+    // Подача жалобы.
     if (is_admin()) {
         reports_add($post['id']);
         header('Location: ' . Config::DIR_PATH . "/{$post['board']['name']}/");

@@ -33,6 +33,7 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
+    var_dump($_SESSION);
     $smarty->assign('id', $_SESSION['user']);
     $smarty->assign('groups', $_SESSION['groups']);
     $smarty->display('my_id.tpl');

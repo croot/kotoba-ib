@@ -9,7 +9,11 @@
  * See license.txt for more info.*
  *********************************/
 
-// Removes attachments of specified post.
+/*
+ * Скрипт удаления вложений. Скрипт принимает один параметр, который передаётся
+ * с помощью POST или GET запроса:
+ * post - Идентификатор удаляемого сообщения.
+ */
 
 require 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
@@ -21,12 +25,12 @@ require_once Config::ABS_PATH . '/lib/misc.php';
 require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
 
 try {
-    // Initialization.
+    // Инициализация.
     kotoba_session_start();
     locale_setup();
     $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
-    // Check if remote host was banned.
+    // Проверка, не заблокирован ли клиент.
     if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
@@ -38,31 +42,36 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    // Retrieve post id and password.
-    if (isset($_GET['post'])) {
-        $post_id = posts_check_id($_GET['post']);
-        $password = isset($_GET['password']) ? posts_check_password($_GET['password']) : $_SESSION['password'];
-    } elseif (isset($_POST['post'])) {
-        $post_id = posts_check_id($_POST['post']);
-        $password = isset($_POST['password']) ? posts_check_password($_POST['password']) : $_SESSION['password'];
+    $REQUEST = "_{$_SERVER['REQUEST_METHOD']}";
+    $REQUEST = $$REQUEST;
+    if (isset($REQUEST['post'])) {
+        $post = posts_get_visible_by_id(posts_check_id($REQUEST['post']), $_SESSION['user']);
     } else {
         header('Location: http://z0r.de/?id=114');
         DataExchange::releaseResources();
-        exit;
+        exit(1);
     }
-    $post = posts_get_visible_by_id($post_id, $_SESSION['user']);
+    $password = isset($REQUEST['password']) ? posts_check_password($REQUEST['password']) : $_SESSION['password'];
 
-    // Remove attachments.
+    // Удаление вложения.
     if (is_admin() || ($post['password'] !== null && $post['password'] === $password)) {
         posts_attachments_delete_by_post($post['id']);
+        header('Location: ' . Config::DIR_PATH . "/{$post['board']['name']}/");
     } else {
-        throw new Exception('You cannot into remove attachment.');
+
+        // Вывод формы ввода пароля.
+        $smarty->assign('show_control', is_admin() || is_mod());
+        $smarty->assign('boards', boards_get_visible($_SESSION['user']));
+        $smarty->assign('post', $post);
+        $smarty->assign('password', $password);
+        $smarty->assign('_SERVER', $_SERVER);
+        $smarty->display('remove_upload.tpl');
     }
 
-    // Redirection.
-    header('Location: ' . Config::DIR_PATH . "/{$post['board_name']}/");
+    // Освобождение ресурсов и очистка.
     DataExchange::releaseResources();
-    exit;
+
+    exit(0);
 } catch(Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();
