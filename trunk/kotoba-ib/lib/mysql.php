@@ -3704,6 +3704,52 @@ function db_threads_get_archived($link)
 	return $threads;
 }
 /**
+ * Получает нить по идентификатору.
+ * @param MySQLi $link Связь с базой данных.
+ * @param int $id Идентификатор нити.
+ * @return array
+ * Возвращает нить с развернутыми данными о доске.
+ */
+function db_threads_get_by_id($link, $id) { // Java CC
+    
+    // Запрос.
+    $result = mysqli_query($link, "call sp_threads_get_by_id($id)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    // Выбор данных из результата выполнения запроса.
+    $thread = null;
+    if(mysqli_affected_rows($link) > 0 && ($row = mysqli_fetch_assoc($result)) != null) {
+        $thread['id'] = $row['thread_id'];
+        $thread['original_post'] = $row['thread_original_post'];
+        $thread['bump_limit'] = $row['thread_bump_limit'];
+        $thread['sage'] = $row['thread_sage'];
+        $thread['sticky'] = $row['thread_sticky'];
+        $thread['with_attachments'] = $row['thread_with_attachments'];
+        $thread['board']['id'] = $row['board_id'];
+        $thread['board']['name'] = $row['board_name'];
+        $thread['board']['title'] = $row['board_title'];
+        $thread['board']['annotation'] = $row['board_annotation'];
+        $thread['board']['bump_limit'] = $row['board_bump_limit'];
+        $thread['board']['force_anonymous'] = $row['board_force_anonymous'];
+        $thread['board']['default_name'] = $row['board_default_name'];
+        $thread['board']['with_attachments'] = $row['board_with_attachments'];
+        $thread['board']['enable_macro'] = $row['board_enable_macro'];
+        $thread['board']['enable_youtube'] = $row['board_enable_youtube'];
+        $thread['board']['enable_captcha'] = $row['board_enable_captcha'];
+        $thread['board']['same_upload'] = $row['board_same_upload'];
+        $thread['board']['popdown_handler'] = $row['board_popdown_handler'];
+        $thread['board']['category'] = $row['board_category'];
+    }
+
+    // Очистка и освобождение ресурсов.
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+
+    return $thread;
+}
+/**
  * Получает нить по номеру нити и идентификатору доски.
  * @param MySQLi $link Связь с базой данных.
  * @param string|int $board Идентификатор доски.

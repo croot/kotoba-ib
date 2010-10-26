@@ -23,7 +23,7 @@
 {if count($hidden_threads) > 0}
 Скрытые вами нити:
 {section name=i loop=$hidden_threads}
-<a href="{$DIR_PATH}/unhide_thread.php?thread={$hidden_threads[i].thread}&board_name={$board.name}" title="Нажмите, чтобы отменить скрытие нити.">{$hidden_threads[i].thread_number}</a>
+<a href="{$DIR_PATH}/unhide_thread.php?thread={$hidden_threads[i].thread}" title="Нажмите, чтобы отменить скрытие нити.">{$hidden_threads[i].thread_number}</a>
 {/section}
 {/if}<br>
 <div class="navbar">{include file='board_list.tpl' boards=$boards DIR_PATH=$DIR_PATH} [<a href="{$DIR_PATH}/">Главная</a>]</div>

@@ -41,7 +41,7 @@
 		<br><br>{$original_attachments[0].video_link}
 	{/if}
 {/if}
-<a href="{$DIR_PATH}/hide_thread.php?thread={$thread.id}&submit=1&board_name={$board.name}"><img src="{$DIR_PATH}/css/hide.png" alt="[Скрыть]" title="Скрыть нить" border="0"/></a>
+<a href="{$DIR_PATH}/hide_thread.php?thread={$thread.id}"><img src="{$DIR_PATH}/css/hide.png" alt="[Скрыть]" title="Скрыть нить" border="0"/></a>
 <a href="{$DIR_PATH}/remove_post.php?post={$original_post.id}&submit=1"><img src="{$DIR_PATH}/css/delete.png" alt="[Удалить]" title="Удалить нить" border="0"/></a>
 {if $original_post.with_attachments}
 	<a href="{$DIR_PATH}/remove_upload.php?post={$original_post.id}&submit=1"><img src="{$DIR_PATH}/css/delfile.png" alt="[Удалить файл]" title="Удалить файл" border="0"/></a>

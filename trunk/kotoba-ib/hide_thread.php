@@ -9,7 +9,11 @@
  * See license.txt for more info.*
  *********************************/
 
-// Скрипт скрытия нитей.
+/*
+ * Скрипт скрытия нитей. Скрипт принимает один параметр, который передаётся
+ * с помощью POST или GET запроса:
+ * thread - Идентификатор нити, которую нужно скрыть.
+ */
 
 require 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
@@ -18,13 +22,14 @@ require_once Config::ABS_PATH . '/lib/logging.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
-require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
 
 try {
+    // Инициализация.
     kotoba_session_start();
     locale_setup();
     $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
+    // Проверка, не заблокирован ли клиент.
     if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
@@ -36,28 +41,30 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
+    // Гости не могут скрывать нити.
     if (is_guest()) {
         throw new PermissionException(PermissionException::$messages['GUEST']);
     }
 
-    // Проверка входных параметров и скрытие нити.
-    if (isset($_POST['thread']) && isset($_POST['board_name'])) {
-        $thread_id = threads_check_id($_POST['thread']);
-        $board_name = boards_check_name($_POST['board_name']);
-    } elseif (isset($_GET['thread']) && isset($_GET['board_name'])) {
-        $thread_id = threads_check_id($_GET['thread']);
-        $board_name = boards_check_name($_GET['board_name']);
+    // Проверка входных параметров и получение данных о нити.
+    $REQUEST = "_{$_SERVER['REQUEST_METHOD']}";
+    $REQUEST = $$REQUEST;
+    if (isset($REQUEST['thread'])) {
+        $thread = threads_get_by_id(threads_check_id($REQUEST['thread']));
     } else {
         header('Location: http://z0r.de/?id=114');
         DataExchange::releaseResources();
-        exit;
+        exit(1);
     }
-    hidden_threads_add($thread_id, $_SESSION['user']);
 
-    // Перенаправление.
+    // Скрытие нити.
+    hidden_threads_add($thread['id'], $_SESSION['user']);
+    header('Location: ' . Config::DIR_PATH . "/{$thread['board']['name']}/");
+
+    // Освобождение ресурсов и очистка.
     DataExchange::releaseResources();
-    header('Location: ' . Config::DIR_PATH . "/$board_name/");
-    exit;
+
+    exit(0);
 } catch(Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();
