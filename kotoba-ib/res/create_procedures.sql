@@ -144,6 +144,7 @@ drop procedure if exists sp_threads_edit_deleted|
 drop procedure if exists sp_threads_edit_original_post|
 drop procedure if exists sp_threads_get_all|
 drop procedure if exists sp_threads_get_archived|
+drop procedure if exists sp_threads_get_by_id|
 drop procedure if exists sp_threads_get_by_original_post|
 drop procedure if exists sp_threads_get_changeable_by_id|
 drop procedure if exists sp_threads_get_moderatable|
@@ -2495,6 +2496,40 @@ begin
 	select id, board, original_post, bump_limit, sage, sticky, with_attachments
 	from threads
 	where deleted = 0 and archived = 1;
+end|
+
+-- Выбирает нить по идентификатору.
+create procedure sp_threads_get_by_id
+(
+    _id int -- Идентификатор нити.
+)
+begin
+    select  t.id as thread_id,
+            t.original_post as thread_original_post,
+            t.bump_limit as thread_bump_limit,
+            t.sage as thread_sage,
+            t.sticky as thread_sticky,
+            t.with_attachments as thread_with_attachments,
+
+            b.id as board_id,
+            b.name as board_name,
+            b.title as board_title,
+            b.annotation as board_annotation,
+            b.bump_limit as board_bump_limit,
+            b.force_anonymous as board_force_anonymous,
+            b.default_name as board_default_name,
+            b.with_attachments as board_with_attachments,
+            b.enable_macro as board_enable_macro,
+            b.enable_youtube as board_enable_youtube,
+            b.enable_captcha as board_enable_captcha,
+            b.same_upload as board_same_upload,
+            b.popdown_handler as board_popdown_handler,
+            b.category as board_category
+        from threads t
+        join boards b on b.id = t.board
+        where t.id = _id
+            and t.deleted = 0
+            and t.archived = 0;
 end|
 
 -- Выбирает нить по номеру нити и идентификатору доски.

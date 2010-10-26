@@ -9,24 +9,21 @@
  * See license.txt for more info.*
  *********************************/
 
-// Скрипт поиска нитей и сообщений (вывод результатов как нити).
+// Скрипт поиска сообщений.
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
-require_once Config::ABS_PATH . '/lib/wrappers.php';
-require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
-require_once Config::ABS_PATH . '/lib/events.php';
 
 try {
-    // Initialization.
+    // Инициализация.
     kotoba_session_start();
     locale_setup();
     $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
-    // Check if remote host was banned.
+    // Проверка, не заблокирован ли клиент.
     if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
@@ -41,8 +38,8 @@ try {
     // Fix for Firefox.
     header("Cache-Control: private");
 
+    // Проверка входных параметров и получение данных о досках.
     $boards = boards_get_visible($_SESSION['user']);
-
     $REQUEST = "_{$_SERVER['REQUEST_METHOD']}";
     $REQUEST = $$REQUEST;
     $page = 1;
@@ -50,35 +47,41 @@ try {
         $page = check_page($REQUEST['search']['page']);
     }
 
-    $posts_per_page = 10;
+    $posts_per_page = 10;   // Число сообщений на странице.
     $pages = array();
     $keyword = '';
     $search_result = '';
+
+    // Осуществляется поиск.
     if (isset($REQUEST['search'])) {
 
-        // Check input parameters.
-        if (!isset($REQUEST['search']['keyword']) || mb_strlen($REQUEST['search']['keyword'], Config::MB_ENCODING) < 4) {
+        // Проверка входых параметров поиска.
+        if (!isset($REQUEST['search']['keyword'])
+                || mb_strlen($REQUEST['search']['keyword'], Config::MB_ENCODING) < 4) {
+
             throw new NodataException(NodataException::$messages['SEARCH_KEYWORD']);
         }
-
         posts_check_text_size($REQUEST['search']['keyword']);
 
-        // Convert quotes, braces and percent sign to html entities.
+        // Преобразуем кавычки, угловые скобки и знак процента в соответствующие html сущности.
         $keyword = htmlentities($REQUEST['search']['keyword'], ENT_QUOTES, Config::MB_ENCODING);
         
-        // Escape escape character.
+        // Заэкранируем экранирующие символы.
         $keyword = str_replace('\\', '\\\\', $keyword);
 
         /*
-         * Key phrase cannot be greater than post size. Also, check for bad
-         * unicode and unwanted ASCII characters.
+         * Ключевая фраза для поиска в тексте сообщения не может быть больше
+         * максимально возможного текста сообщения. Так же, ключевая фраза
+         * не может содержать не верных юникод символов и управляющих символов
+         * ASCII.
          */
         posts_check_text_size($keyword);
         posts_check_text($keyword);
 
-        // Escape special characters % and _
+        // Экранирование символов % и _
         $keyword = addcslashes($keyword, '%_');
 
+        // Выбор досок для поиска.
         $search_boards = array();
         if (!isset($REQUEST['search']['boards'])) {
             $search_boards = $boards;
@@ -88,7 +91,10 @@ try {
                 foreach ($boards as &$board) {
                     if ($board['id'] == $id) {
 
-                        // Add fake field to board what means what this board was selected to search on.
+                        /*
+                         * Добавление фиктивного поля, которое указывает, что
+                         * на доске производится поиск.
+                         */
                         $board = array_merge($board, array('selected' => true));
 
                         array_push($search_boards, $board);
@@ -98,13 +104,14 @@ try {
             }
         }
 
+        // Поиск.
         $posts = posts_search_visible_by_boards($search_boards, $keyword, users_check_id($_SESSION['user']));
-        $admins = users_get_admins();
 
+        // Формирование кода заголовка результатов поиска.
         $smarty->assign('count', count($posts));
         $search_result .= $smarty->fetch('search_result.tpl');
 
-        // Calculate pages count.
+        // Вычисление числа страниц, на которых будут размещены найденные сообщения.
         $page_max = (count($posts) % $posts_per_page == 0
             ? (int)(count($posts) / $posts_per_page)
             : (int)(count($posts) / $posts_per_page) + 1);
@@ -118,8 +125,12 @@ try {
             array_push($pages, $i);
         }
 
+        // Из всех найденных сообщений выбираются только сообщения с нужной страницы.
         $posts = array_slice($posts, ($page - 1) * $posts_per_page, $posts_per_page);
 
+        $admins = users_get_admins();
+
+        // Формирование кода найденных сообщений.
         foreach ($posts as $p) {
 
             // Geoip.
@@ -135,7 +146,7 @@ try {
             $tripcode = calculate_tripcode("#{$p['ip']}");
             $smarty->assign('postid', $tripcode[1]);
 
-            // Author is admin?
+            // Является ли автор сообщения администратором?
             $author_admin = false;
             foreach ($admins as $admin) {
                 if ($p['user'] == $admin['id']) {
@@ -152,14 +163,15 @@ try {
         }
     }
 
+    // Освобождение ресурсов и очистка.
     DataExchange::releaseResources();
 
+    // Формирование кода страницы поиска и вывод.
     $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('boards', $boards);
     $smarty->assign('pages', $pages);
     $smarty->assign('page', $page);
     $smarty->assign('keyword', $keyword);
-
     echo $smarty->fetch('search_header.tpl') . $search_result . $smarty->fetch('search_footer.tpl');
 
     exit(0);

@@ -59,7 +59,12 @@ function kotoba_mark(&$text, $board) {
                     }
                     $is_code_block = false;
                 } else {
-                    $is_code_block = true;
+                    if ($is_slash) {
+                        $output .= $text[$i];
+                        $is_slash = false;
+                    } else {
+                        $is_code_block = true;
+                    }
                 }
             } else {
                 if ($is_code_block) {
@@ -77,7 +82,14 @@ function kotoba_mark(&$text, $board) {
                         $code_blocks[$code_block_num] = $text[$i];
                     }
                 } else {
-                    $output .= $text[$i];
+                    if ($text[$i] == '\\') {
+                        if (!$is_slash) {
+                            $is_slash = true;
+                        }
+                    } else {
+                        $output .= $text[$i];
+                        $is_slash = false;
+                    }
                 }
             }
         }

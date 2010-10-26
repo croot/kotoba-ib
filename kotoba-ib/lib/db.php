@@ -1960,7 +1960,7 @@ function posts_get_reported_by_boards($boards) {
  * @param int $post_id Идентификатор сообщения.
  * @param int $user_id Идентификатор пользователя.
  * @return array
- * Возвращает сообщение с разверунтыми данными о доске и нити.
+ * Возвращает сообщение с развернутыми данными о доске и нити.
  */
 function posts_get_visible_by_id($post_id, $user_id) { // Java CC
     return db_posts_get_visible_by_id(DataExchange::getDBLink(), $post_id, $user_id);
@@ -2284,27 +2284,12 @@ function threads_check_bump_limit($bump_limit)
 }
 /**
  * Проверяет корректность идентификатора нити.
- * @param id string <p>Идентификатор нити.</p>
- * @return string
+ * @param mixed $id Идентификатор нити.
+ * @return int
  * Возвращает безопасный для использования идентификатор нити.
  */
-function threads_check_id($id)
-{
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false)
-			|| $length < 1)
-		{
-			throw new FormatException(FormatException::$messages['THREAD_ID']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['THREAD_ID']);
-	return $id;
+function threads_check_id($id) { // Java CC
+	return kotoba_intval($id);
 }
 /**
  * Проверяет корректность номера оригинального сообщения.
@@ -2387,6 +2372,15 @@ function threads_get_all()
 function threads_get_archived()
 {
 	return db_threads_get_archived(DataExchange::getDBLink());
+}
+/**
+ * Получает нить по идентификатору.
+ * @param int $id Идентификатор нити.
+ * @return array
+ * Возвращает нить с развернутыми данными о доске.
+ */
+function threads_get_by_id($id) { // Java CC
+    return db_threads_get_by_id(DataExchange::getDBLink(), $id);
 }
 /**
  * Получает нить по номеру нити и идентификатору доски.

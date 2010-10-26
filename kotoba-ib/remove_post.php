@@ -40,6 +40,7 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
+    // Проверка входных параметров и получение данных о сообщении.
     $REQUEST = "_{$_SERVER['REQUEST_METHOD']}";
     $REQUEST = $$REQUEST;
     if (isset($REQUEST['post'])) {

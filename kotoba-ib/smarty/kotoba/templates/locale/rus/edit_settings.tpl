@@ -14,9 +14,8 @@
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
     $STYLESHEET - стиль (см. config.default).
-    $show_control - показывать ссылку на страницу административных фукнций и фукнций модераторов в панели администратора.
+    $show_control - показывать ссылку на страницу административных функций и функций модераторов в панели администратора.
     $boards - доски.
-    $banner - баннер.
     $threads_per_page - число нитей на странице просмотра доски (см. config.default).
     $posts_per_thread - число сообщений в нити на странице просмотра доски (см. config.default).
     $lines_per_post - сообщения, в которых число строк превышает это число, будут урезаны при просмотре доски (см. config.default).
@@ -33,15 +32,15 @@
 
 {include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
 
-{if isset($banner)}{include file='banner.tpl' DIR_PATH=$DIR_PATH banner=$banner}{/if}
-
-<br/><form action="{$DIR_PATH}/edit_settings.php" method="post">
+<div class="logo">Мои настройки</div>
+<br/>
+<form action="{$DIR_PATH}/edit_settings.php" method="post">
 <i>Введите ключевое слово, чтобы загрузить ваши настройки.</i><br/>
     <input type="text" name="keyword_load" size="32">
     <input type="submit" value="Загрузить">
 </form>
 <form action="{$DIR_PATH}/edit_settings.php" method="post">
-<h4>Опции предпросмотра доски:</h4>
+<h4>Опции просмотра доски:</h4>
     <table border="0">
         <tr valign="top"><td>Число нитей на странице просмотра доски: </td><td><input type="text" name="threads_per_page" size="10" value="{$threads_per_page}"></td></tr>
         <tr valign="top"><td>Число сообщений в нити на странице просмотра доски: </td><td><input type="text" name="posts_per_thread" size="10" value="{$posts_per_thread}"></td></tr>
@@ -75,7 +74,7 @@
 <h4>Скрытые нити:</h4>
 {if count($hidden_threads) > 0}
 {section name=i loop=$hidden_threads}
-<a href="{$DIR_PATH}/unhide_thread.php?thread={$hidden_threads[i].thread}&board_name={$hidden_threads[i].board_name}" title="Нажмите, чтобы отменить скрытие нити">/{$hidden_threads[i].board_name}/{$hidden_threads[i].thread_number}</a>
+<a href="{$DIR_PATH}/unhide_thread.php?thread={$hidden_threads[i].thread}" title="Нажмите, чтобы отменить скрытие нити">/{$hidden_threads[i].board_name}/{$hidden_threads[i].thread_number}</a>
 {/section}<br/>
 {else}
 У вас нет скрытых нитей.<br/>
