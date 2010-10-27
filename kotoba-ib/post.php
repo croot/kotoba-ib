@@ -55,9 +55,9 @@ try {
     $boards = boards_get_visible_filtred($_SESSION['user'], $bfilter, boards_check_name($_GET['board']));
     $board = $boards[0];
 
-    // Фильтр выбирает нить с заданным идентификатором.
-    $tfilter = function ($thread, $id) {
-        if ($thread['id'] == $id) {
+    // Фильтр выбирает нить с заданным номером.
+    $tfilter = function ($thread, $original_post) {
+        if ($thread['original_post'] == $original_post) {
             return true;
         } else {
             return false;

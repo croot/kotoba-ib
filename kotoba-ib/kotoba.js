@@ -151,7 +151,7 @@ function addreflinkpreview(e) {
     var parentelement = this.parentNode;
     var newelement = parentelement.insertBefore(previewdiv, this);
 
-    new Ajax.Request('/~sorc/post.php?board=' + ainfo[1] + '&thread=' + ainfo[2] + '&post=' + ainfo[3],
+    new Ajax.Request('/kotoba/post.php?board=' + ainfo[1] + '&thread=' + ainfo[2] + '&post=' + ainfo[3],
     {
         method:'get',
         onSuccess: function(transport){

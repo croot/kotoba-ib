@@ -35,10 +35,10 @@
 </head>
 <body>
 <applet code="c.ShiPainter.class" name="paintbbs" archive="{$DIR_PATH}/shi/spainter_all.jar,{$DIR_PATH}/shi/res/normal.zip" width="100%" height="100%">
-    <param name="res.zip" value="{$DIR_PATH}/shi/res_{$tools}.zip" />
-    <param name="tools" value="{$tools}" />
-    <param name="tt.zip" value="{$DIR_PATH}/shi/tt.zip" />
     <param name="dir_resource" value="{$DIR_PATH}/shi/res/" />
+    <param name="res.zip" value="{$DIR_PATH}/shi/res/res_{$tools}.zip" />
+    <param name="tools" value="{$tools}" />
+    <param name="tt.zip" value="{$DIR_PATH}/shi/res/tt.zip" />
     <param name="image_width" value="{$image_width}" />
     <param name="image_height" value="{$image_height}" />
     <param name="thumbnail_type" value="animation">
