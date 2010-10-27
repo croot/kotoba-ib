@@ -9,7 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-// Favorites works script.
+// Скрипт работы с избранными нитями.
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
@@ -18,12 +18,12 @@ require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
 
 try {
-    // Initialization.
+    // Инициализация.
     kotoba_session_start();
     locale_setup();
     $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
-    // Check if remote host was banned.
+    // Проверка, не заблокирован ли клиент.
     if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
@@ -35,32 +35,28 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    // Read parameters.
-    $action = null;
-    $thread = null;
-    if (isset($_GET['action'])) {
-        $action = $_GET['action'];
-    } elseif (isset($_POST['action'])) {
-        $action = $_POST['action'];
-    }
-    if (isset($_GET['thread'])) {
-        $thread = $_GET['thread'];
-    } elseif (isset($_POST['thread'])) {
-        $thread = $_POST['thread'];
+    // Гости не могут иметь избранных нитей.
+    if (is_guest()) {
+        throw new PermissionException(PermissionException::$messages['GUEST']);
     }
 
-    //
-    if ($action === "mark_all_readed") {
+    // Проверка входных параметров.
+    $REQUEST = "_{$_SERVER['REQUEST_METHOD']}";
+    $REQUEST = $$REQUEST;
+    $action = isset($REQUEST['action']) ? $REQUEST['action'] : null;
+    $thread = isset($REQUEST['thread']) ? $REQUEST['thread'] : null;
+
+    if ($action === 'mark_all_readed') {
         favorites_mark_readed($_SESSION['user']);
     } else {
         switch ($action) {
-            case "add":
+            case 'add':
                 favorites_add($_SESSION['user'], threads_check_id($thread));
                 break;
-            case "delete":
+            case 'delete':
                 favorites_delete($_SESSION['user'], threads_check_id($thread));
                 break;
-            case "mark_readed":
+            case 'mark_readed':
                 favorites_mark_readed($_SESSION['user'], threads_check_id($thread));
                 break;
             default:
@@ -68,11 +64,10 @@ try {
         }
     }
 
-    // Clean up.
+    // Освобождение ресурсов и очистка.
     DataExchange::releaseResources();
 
-    // Set redirection.
-    header('Location: ' . Config::DIR_PATH . "/edit_settings.php");
+    header('Location: ' . Config::DIR_PATH . '/edit_settings.php');
 
     exit(0);
 } catch (Exception $e) {

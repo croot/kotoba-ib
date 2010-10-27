@@ -18,7 +18,7 @@ if (isset($_COOKIE[session_name()])) {
 }
 
 if (isset($_SESSION['user'])) {
-	unset($_SESSION['user']);
+    unset($_SESSION['user']);
 }
 
 session_destroy();

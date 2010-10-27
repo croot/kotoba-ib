@@ -17,9 +17,11 @@ require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 
 try {
+    // Получение данных о досках и категориях.
     $boards = boards_get_all();
     $categories = categories_get_all();
 
+    // Формирование кода страницы и вывод.
     $out = '[';
     foreach ($categories as $category) {
         foreach ($boards as $board) {
@@ -34,7 +36,9 @@ try {
     $out .= ']';
     echo $out;
 
+    // Освобождение ресурсов и очистка.
     DataExchange::releaseResources();
+
     exit(0);
 } catch(Exception $e) {
     $smarty->assign('msg', $e->__toString());

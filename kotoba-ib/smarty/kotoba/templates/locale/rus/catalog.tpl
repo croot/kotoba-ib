@@ -14,6 +14,7 @@
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
     $STYLESHEET - стиль оформления (см. config.default).
+    $show_control - показывать ссылку на страницу административных фукнций и фукнций модераторов в панели администратора.
     $boards - доски.
     $board - доска, на которой расположены проматриваемые нити.
     $ATTACHMENT_TYPE_FILE - тип вложения файл.
@@ -26,13 +27,14 @@
     $posts_attachments - связи сообщений и их вложений.
     $attachments - вложения.
 *}
-{include file='header.tpl' page_title="Просмотр нитей доски /`$board.name`/ `$board.title`" DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
-<script src="{$DIR_PATH}/kotoba.js"></script>
-<div class="navbar">{include file='board_list.tpl' boards=$boards DIR_PATH=$DIR_PATH} [<a href="{$DIR_PATH}/">Главная</a>]</div>
+{include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title="Просмотр нитей доски /`$board.name`/ `$board.title`"}
 
-{if isset($banner)}
-<div class="logo"><img src="{$DIR_PATH}/misc/img/{$banner.name}" alt="{$banner.name}" width="{$banner.widht}" height="{$banner.height}"></div>
-{/if}
+<script src="{$DIR_PATH}/kotoba.js"></script>
+<script src="{$DIR_PATH}/protoaculous-compressed.js"></script>
+
+{include file='adminbar.tpl' DIR_PATH=$DIR_PATH show_control=$show_control}
+
+{include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
 
 <br />
 <br />

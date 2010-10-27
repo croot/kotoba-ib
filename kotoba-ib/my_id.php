@@ -18,10 +18,12 @@ require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
 
 try {
+    // Инициализация.
     kotoba_session_start();
     locale_setup();
     $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
+    // Проверка, не заблокирован ли клиент.
     if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
@@ -33,7 +35,9 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    var_dump($_SESSION);
+    // Формирование кода страницы и вывод.
+    $smarty->assign('show_control', is_admin() || is_mod());
+    $smarty->assign('boards', boards_get_visible($_SESSION['user']));
     $smarty->assign('id', $_SESSION['user']);
     $smarty->assign('groups', $_SESSION['groups']);
     $smarty->display('my_id.tpl');
@@ -41,8 +45,10 @@ try {
         echo take_it_easy();
     }
 
+    // Освобождение ресурсов и очистка.
     DataExchange::releaseResources();
-    exit;
+
+    exit(0);
 } catch(Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();
