@@ -53,3 +53,24 @@ p = правило для сообщения
 1) View		- показывать пост в просмотре доски, показывать пост в просмотре нити
 2) Change	- не определено
 3) Moderate	- не определено
+
+boards.php
+    catalog.php
+    config.default
+create_thread.php
+    edit_settings.php
+    favorites.php
+    hide_thread.php
+    index.php
+    logout.php
+    manage.php
+    my_id.php
+    over.php
+    post.php
+    remove_post.php
+    remove_upload.php
+reply.php
+    report.php
+    search.php
+threads.php
+    unhide_thread.php

@@ -21,10 +21,12 @@ require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
 require_once Config::ABS_PATH . '/lib/events.php';
 
 try {
+    // Инициализация.
     kotoba_session_start();
     locale_setup();
     $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
+    // Проверка, не заблокирован ли клиент.
     if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
@@ -42,20 +44,16 @@ try {
     $board_name = boards_check_name($_GET['board']);
     $boards = boards_get_visible($_SESSION['user']);
     $board = null;
-    $banners_board_id = null;
     foreach ($boards as $b) {
         if ($b['name'] == $board_name) {
             $board = $b;
-        }
-
-        if ($b['name'] == 'misc') {
-            $banners_board_id = $b['id'];
         }
     }
     if (!$board) {
         throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']);
     }
 
+    // Фильтр выбирает все нити.
     $tfilter = function($thread) {
         return true;
     };
@@ -71,7 +69,7 @@ try {
     }
     $threads = array_merge($sticky_threads, $other_threads);
 
-    // Pass only original posts.
+    // Фильтр выбирает только оригинальные сообщения.
     $pfilter = function($thread, $post) {
         static $prev_thread = null;
 
@@ -91,6 +89,8 @@ try {
         $smarty->assign('attachments', attachments_get_by_posts($posts));
     }
 
+    // Формирование кода страницы и вывод.
+    $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('boards', $boards);
     $smarty->assign('board', $board);
     $smarty->assign('ATTACHMENT_TYPE_FILE', Config::ATTACHMENT_TYPE_FILE);
@@ -98,9 +98,12 @@ try {
     $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
     $smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
     $smarty->assign('posts', $posts);
-    DataExchange::releaseResources();
     $smarty->display('catalog.tpl');
-    exit;
+
+    // Освобождение ресурсов и очистка.
+    DataExchange::releaseResources();
+
+    exit(0);
 } catch(Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();

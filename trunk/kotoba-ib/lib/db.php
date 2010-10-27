@@ -1010,6 +1010,33 @@ function boards_get_moderatable($user_id)
 function boards_get_visible($user_id) { // Java CC
     return db_boards_get_visible(DataExchange::getDBLink(), $user_id);
 }
+/**
+ * Получает доски, доступные для просмотра пользователю, и фильтрует их.
+ * @param int $user_id Идентификатор пользователя.
+ * @param Object $filter Фильтр (лямбда).
+ * @return array
+ * Возвращает доски.
+ */
+function boards_get_visible_filtred($user_id, $filter) { // Java CC
+    $filtred_boards = array();
+    $boards = db_boards_get_visible(DataExchange::getDBLink(), $user_id);
+
+    /*
+     * Аргументы для лямбды.
+     * Пропустим первые два аргумента $user_id и $filter; индекс 0 в массиве
+     * аргументов для лямбды зарезервирован.
+     */
+    $fargs = array_slice(func_get_args(), 2 - 1, func_num_args());
+
+    foreach ($boards as $b) {
+        $fargs[0] = $b;
+		if (call_user_func_array($filter, $fargs)) {
+			array_push($filtred_boards, $b);
+        }
+    }
+
+    return $filtred_boards;
+}
 
 /*************************
  * Работа с категориями. *
@@ -1967,22 +1994,11 @@ function posts_get_visible_by_id($post_id, $user_id) { // Java CC
 }
 /**
  * Получает заданное сообщение, доступное для просмотра заданному пользователю.
- * @param string|int $board_id Идентификатор доски.
- * @param string|int $post_number Номер сообщения.
- * @param string|int $user_id Идентификатор пользователя.
+ * @param int $board_id Идентификатор доски.
+ * @param int $post_number Номер сообщения.
+ * @param int $user_id Идентификатор пользователя.
  * @return array
- * Возвращает сообщение:<br>
- * id - Идентификатор.<br>
- * thread - Идентификатор нити.<br>
- * number - Номер.<br>
- * password - Пароль.<br>
- * name - Имя отправителя.<br>
- * tripcode - Трипкод.<br>
- * ip - IP-адрес отправителя.<br>
- * subject - Тема.<br>
- * date_time - Время сохранения.<br>
- * text - Текст.<br>
- * sage - Флаг поднятия нити.
+ * Возвращает сообщение.
  */
 function posts_get_visible_by_number($board_id, $post_number, $user_id) {
     return db_posts_get_visible_by_number(DataExchange::getDBLink(), $board_id, $post_number, $user_id);
@@ -2451,40 +2467,25 @@ function threads_get_moderatable_by_id($thread_id, $user_id) { // Java CC
 }
 /**
  * Получает нити доски, доступные для просмотра пользователю, и фильтрует их.
- * @param string|int $board_id Идентификатор доски.
- * @param string|int $user_id Идентификатор пользователя.
- * @param object $filter Фильтр (лямбда).
+ * @param int $board_id Идентификатор доски.
+ * @param int $user_id Идентификатор пользователя.
+ * @param Object $filter Фильтр (лямбда).
  * @return array
- * Возвращает нити:<br>
- * 'id' - Идентификатор.<br>
- * 'original_post' - Номер оригинального сообщения.<br>
- * 'bump_limit' - Специфичный для нити бамплимит.<br>
- * 'sage' - Флаг поднятия нити.<br>
- * 'sticky' - Флаг закрепления.<br>
- * 'with_attachments' - Флаг вложений.<br>
- * 'posts_count' - Число доступных для просмотра сообщений.
+ * Возвращает нити.
  */
 function threads_get_visible_filtred_by_board($board_id, $user_id, $filter) { // Java CC
     $filtred_threads = array();
     $threads = db_threads_get_visible_by_board(DataExchange::getDBLink(), $board_id, $user_id);
 
-    // Conut of threads_get_visible_filtred_by_board() arguments.
-    $numargs = func_num_args();
-
-    // Arguments for filter function.
-    $fargs = array();
-
-    // Skip 3 first arguments: $board_id, $user_id and $filter.
-    $fargn = 0;
-    for ($i = 3; $i < $numargs; $i++) {
-        $fargs[$fargn++] = func_get_arg($i);
-    }
+    /*
+     * Аргументы для лямбды.
+     * Пропустим первые три аргумента $board_id, $user_id и $filter; индекс 0 в
+     * массиве аргументов для лямбды зарезервирован.
+     */
+    $fargs = array_slice(func_get_args(), 3 - 1, func_num_args());
 
     foreach ($threads as $thread) {
-
-        // We pass 1 more argument to filter function.
-        $fargs[$fargn] = $thread;
-
+        $fargs[0] = $thread;
 		if (call_user_func_array($filter, $fargs)) {
 			array_push($filtred_threads, $thread);
         }

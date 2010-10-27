@@ -9,7 +9,7 @@
  * See license.txt for more info.*
  *********************************/
 
-// Edit user settings script.
+// Скрипт редактирование настроек пользователя.
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
@@ -18,12 +18,12 @@ require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
 
 try {
-    // Initialization.
+    // Инициализация.
     kotoba_session_start();
     locale_setup();
     $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
-    // Check if remote host was banned.
+    // Проверка, не заблокирован ли клиент.
     if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
@@ -35,9 +35,11 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
+    // Получение данных о стилях и языках.
     $stylesheets = stylesheets_get_all();
     $languages = languages_get_all();
 
+    // Загрузка и сохранение настроек.
     if (isset($_POST['keyword_load'])) {
         session_destroy();
         kotoba_session_start();
@@ -80,11 +82,12 @@ try {
         load_user_settings($keyword_hash); // Потому что нужно получить id пользователя.
     }
 
+    // Язык и\или стиль оформления изменился после изменения настроек.
     if ($smarty->language != $_SESSION['language'] || $smarty->stylesheet != $_SESSION['stylesheet']) {
-        // Язык и\или стиль оформления изменился после изменения настроек.
         $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
     }
 
+    // Получение данных о досках и скрытых нитях.
     $boards = boards_get_visible($_SESSION['user']);
     $htfilter = function ($user, $hidden_thread) {
         if ($hidden_thread['user'] == $user) {
@@ -94,16 +97,7 @@ try {
     };
     $hidden_threads = hidden_threads_get_filtred_by_boards($boards, $htfilter, $_SESSION['user']);
 
-    // Get banner if it.
-    foreach ($boards as $b) {
-        if ($b['name'] == 'misc') {
-            $banners = images_get_by_board($b['id']);
-            $smarty->assign('banner', $banners[rand(0, count($banners) - 1)]);
-            break;
-        }
-    }
-
-    // Get favorites.
+    // Получение избранных нитей.
     $favorites = favorites_get_by_user($_SESSION['user']);
     $threads = array();
     foreach ($favorites as $f) {
@@ -135,10 +129,7 @@ try {
     };
     usort($favorites, $cmp);
 
-    // Clean up.
-    DataExchange::releaseResources();
-
-    // Assigning variables to smarty and display html code.
+    // Формирование кода страницы и вывод.
     $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('threads_per_page', $_SESSION['threads_per_page']);
     $smarty->assign('posts_per_thread', $_SESSION['posts_per_thread']);
@@ -151,6 +142,9 @@ try {
     $smarty->assign('hidden_threads', $hidden_threads);
     $smarty->assign('boards', $boards);
     $smarty->display('edit_settings.tpl');
+
+    // Освобождение ресурсов и очистка.
+    DataExchange::releaseResources();
 
     exit(0);
 } catch (FormatException $fe) {

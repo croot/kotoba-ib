@@ -78,7 +78,7 @@ try {
         throw new LimitException(LimitException::$messages['MAX_PAGE']);
     }
 
-    $tfilter = function($page, $threads_per_page, $thread) {
+    $tfilter = function($thread, $page, $threads_per_page) {
         // Количество нитей, которое нужно пропустить.
         $skip = $threads_per_page * ($page - 1);
 

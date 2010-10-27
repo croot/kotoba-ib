@@ -9,7 +9,7 @@
  * See license.txt for more info. *
  **********************************/
 
-// Скрипт главной страницы имейджборды.
+// Скрипт главной страницы имиджборды.
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/db.php';
@@ -17,10 +17,12 @@ require_once Config::ABS_PATH . '/lib/misc.php';
 require_once Config::ABS_PATH . '/lib/wrappers.php';
 
 try {
+    // Инициализация.
     kotoba_session_start();
     locale_setup();
     $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
+    // Проверка, не заблокирован ли клиент.
     if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
@@ -32,24 +34,26 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
+    // Получение данных о досках.
     $boards = boards_get_visible($_SESSION['user']);
     if (count($boards) > 0) {
         $smarty->assign('boards_exist', true);
         $smarty->assign('boards', $boards);
     }
 
+    // Формирование кода новостей.
     $news_html = "";
     foreach ($boards as $board) {
         if ($board['name'] == Config::NEWS_BOARD) {
             $smarty->assign('board', $board);
 
-            // Pass all threads.
+            // Выбирает все нити.
             $tfilter = function($thread) {
                 return true;
             };
             $threads = threads_get_visible_filtred_by_board($board['id'], $_SESSION['user'], $tfilter);
 
-            // Pass all posts.
+            // Выбирает все сообщения.
             $pfilter = function($thread, $post) {
                 return true;
             };
@@ -128,6 +132,7 @@ try {
         }
     }
 
+    // Формирование кода главной страницы и вывод.
     $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('news_html', $news_html);
     $smarty->assign('version', '$Revision$');
@@ -135,8 +140,10 @@ try {
     $smarty->assign('ib_name', Config::IB_NAME);
     $smarty->display('index.tpl');
 
+    // Освобождение ресурсов и очистка.
     DataExchange::releaseResources();
-    exit;
+
+    exit(0);
 } catch(Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();

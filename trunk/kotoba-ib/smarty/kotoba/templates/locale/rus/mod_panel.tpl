@@ -12,9 +12,10 @@
 Панель модератора.
 
 Описание переменных:
-    $DIR_PATH - путь от корня документов к директории, где хранится index.php
-		(см. config.default).
+    $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
 *}
-<a href="{$DIR_PATH}/admin/moderate.php">Основной скрипт модератора.</a><br>
-<a href="{$DIR_PATH}/admin/edit_bans.php">Редактирование банов</a><br>
-<a href="{$DIR_PATH}/admin/edit_threads.php">Редактирование настроек нитей</a>
+<ul>
+<li><a href="{$DIR_PATH}/admin/moderate.php">Основной скрипт модератора.</a></li>
+<li><a href="{$DIR_PATH}/admin/edit_bans.php">Баны.</a></li>
+<li><a href="{$DIR_PATH}/admin/edit_threads.php">Нити.</a></li>
+</ul>

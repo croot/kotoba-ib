@@ -51,6 +51,7 @@ class SmartyKotobaSetup extends Smarty { // Java CC
 
         $this->assign('DIR_PATH', Config::DIR_PATH);
         $this->assign('STYLESHEET', $stylesheet);
+        $this->assign('INVISIBLE_BOARDS', Config::$INVISIBLE_BOARDS);
     }
 }
 /**
@@ -127,7 +128,7 @@ function locale_setup() { // Java CC
  */
 function load_user_settings($keyword) { // Java CC
     $user_settings = users_get_by_keyword($keyword);
-    $_SESSION['user'] = $user_settings['id'];
+    $_SESSION['user'] = kotoba_intval($user_settings['id']);
     $_SESSION['groups'] = $user_settings['groups'];
     $_SESSION['threads_per_page'] = $user_settings['threads_per_page'];
     $_SESSION['posts_per_thread'] = $user_settings['posts_per_thread'];
