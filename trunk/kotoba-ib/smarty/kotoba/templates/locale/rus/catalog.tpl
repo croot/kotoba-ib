@@ -29,6 +29,7 @@
 *}
 {include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title="Просмотр нитей доски /`$board.name`/ `$board.title`"}
 
+<script type="text/javascript">var DIR_PATH = '{$DIR_PATH}';</script>
 <script src="{$DIR_PATH}/kotoba.js"></script>
 <script src="{$DIR_PATH}/protoaculous-compressed.js"></script>
 
