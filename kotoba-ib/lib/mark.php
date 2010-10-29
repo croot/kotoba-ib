@@ -149,7 +149,7 @@ function kotoba_mark(&$text, $board) {
                     continue;
                 }
                 if ($is_spoiler) {
-                    $spoilers[$spoiler_num] .= $tokens[$j];
+                    $spoilers[$spoiler_num] = isset($spoilers[$spoiler_num]) ? $spoilers[$spoiler_num] . $tokens[$j] : $tokens[$j];
                 } else {
                     $output .= $tokens[$j];
                 }
@@ -527,48 +527,48 @@ function kotoba_mark(&$text, $board) {
 }
 /**
  * Расставляет теги в строке по заданному разделителю.
- * @param line string <p>Строка для расстановки тегов.</p>
- * @param delimeter string <p>Разделитель.</p>
- * @param tag string <p>Тег.</p>
+ * @param string $line Строка для расстановки тегов.
+ * @param string $delimeter Разделитель.
+ * @param string $tag Тег.
  * @return string
  * Возвращает изменённую строку.
  */
-function basic_mark(&$line, $delimeter, $tag)
-{
-	$regDelimeter = '';
-	$tokens = array();
-	for($i = 0; $i < strlen($delimeter); $i++)
-		$regDelimeter .= "\\$delimeter[$i]";
-	$lines = preg_split('/(\n)/', $line, -1,
-		PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
-	for($i = 0; $i < count($lines); $i++)
-	{
-		if($lines[$i] == "\n")
-			$tokens[] = $lines[$i];
-		else
-		{
-			$openMarks = preg_split("/((?: |\t|^)$regDelimeter(?!$regDelimeter|\s))/",
-				$lines[$i], -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+function basic_mark(&$line, $delimeter, $tag) {
+    $flags = PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY;
+    $regDelimeter = '';
+    $tokens = array();
 
-			for($j = 0; $j < count($openMarks); $j++)
-			{
-				if(preg_match("/((?: |\t|^)$regDelimeter)(?!$regDelimeter|\s)/",
-						$openMarks[$j], $matches) == 1)
-					$tokens[] = $matches[1];
-				else
-				{
-					$closeMarks = preg_split("/((?<!$regDelimeter|\s)$regDelimeter(?: |\t|$))/",
-						$openMarks[$j], -1,
-						PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
-					for($k = 0; $k < count($closeMarks); $k++)
-						$tokens[] = $closeMarks[$k];
+    for ($i = 0; $i < strlen($delimeter); $i++) {
+        $regDelimeter .= "\\$delimeter[$i]";
+    }
+
+    $lines = preg_split('/(\n)/', $line, -1, $flags);
+    for ($i = 0; $i < count($lines); $i++) {
+        if ($lines[$i] == "\n") {
+            $tokens[] = $lines[$i];
+        } else {
+            $openMarks = preg_split("/((?: |\t|^)$regDelimeter(?!$regDelimeter|\s))/",
+                                    $lines[$i], -1, $flags);
+            for ($j = 0; $j < count($openMarks); $j++) {
+                $mcount = preg_match("/((?: |\t|^)$regDelimeter)(?!$regDelimeter|\s)/",
+                                     $openMarks[$j], $matches);
+                if ($mcount == 1) {
+                    $tokens[] = $matches[1];
+                } else {
+                    $closeMarks = preg_split("/((?<!$regDelimeter|\s)$regDelimeter(?: |\t|$))/",
+                                             $openMarks[$j], -1, $flags);
+                    for ($k = 0; $k < count($closeMarks); $k++) {
+                        $tokens[] = $closeMarks[$k];
+                    }
                 }
             }
         }
     }
-	$style = false;
-	$line = '';
-	$text = '';
+
+    $style = false;
+    $line = '';
+    $text = '';
+
 	for($i = 0; $i < count($tokens); $i++)
 	{
 		if($tokens[$i] == "\n")

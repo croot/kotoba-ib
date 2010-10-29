@@ -27,6 +27,7 @@
 {/if}<br>
 {include file='pages_list.tpl' board_name=$board.name pages=$pages page=$page}
 <br>
-<div class="navbar">{include file='board_list.tpl' boards=$boards DIR_PATH=$DIR_PATH} [<a href="{$DIR_PATH}/">Главная</a>]</div>
+{include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
+
 <div class="footer" style="clear: both;">- Kotoba 1.1 -</div>
 {include file='footer.tpl'}
