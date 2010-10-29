@@ -169,7 +169,9 @@ function jpg_gd_create($source, $dest, $x, $y, $resize_x, $resize_y)
  */
 function png_gd_create($source, $dest, $x, $y, $resize_x, $resize_y)
 {
-	$png = imagecreatefrompng($source);
+	if (($png = imagecreatefrompng($source)) === false) {
+        throw new Exception('You PNG failed.');
+    }
 	$dimensions = array();
 	$thumbnail = gd_resize($png, $x, $y, $resize_x, $resize_y, $source,
 		$dimensions, true ,true);
