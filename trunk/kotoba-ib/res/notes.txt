@@ -75,55 +75,254 @@ reply.php
 threads.php
     unhide_thread.php
 
-<?php
-function t1D($local_lines, $offset) {
-    global $lines, $n;
-    $new_lines = array();
-
-    /*echo count($local_lines) . "<br/>";
-    foreach ($local_lines as $line) {
-        echo "({$line[0][0]}, {$line[0][1]}) -> ({$line[1][0]}, {$line[1][1]})<br/>";
-    }*/
-
-    if (count($local_lines) == $n) {
-        $lines =  $local_lines;
-        return;
-    }
-
-    foreach ($local_lines as $line) {
-        $new_y = ($line[0][1] + $line[1][1]) / 2 + (-1 * rand(0, 1)) * $offset;
-        if ($new_y < 0) {
-            $new_y = 0;
-        }
-        $new_x = ($line[0][0] + $line[1][0]) / 2;
-        array_push($new_lines, array($line[0], array($new_x, $new_y)));
-        array_push($new_lines, array(array($new_x, $new_y), $line[1]));
-    }
-
-    //echo "<br/>";
-    t1D($new_lines, $offset * 0.5);
-}
-
-$l = 1024;
+/*$l = 1024;
 $h = 255;
-$lines = null;
-$n = 128;
+$n = 256;
+$hvec = array();
 
-t1D(array(array(array(0, $h / 2), array($l, $h / 2))), $h / 2);
+$mask = $n;
+$offset = $h / 2.0;
+$hvec[0] = $offset;
+$hvec[$n] = $offset;
 
-// Карта высот.
-for ($i = 1; $i < $n - 1; $i++) {
-    echo "<span style=\"color:#" . str_repeat(dechex((int)$lines[$i][1][1]), 3) . "\">█</span>";
-}
+while ($mask > 0) {
+    $hmask = ((int) $mask / 2.0);
+    for ($i = $hmask; $i < $n && $i >= 1.0;) {
+        $hvec[$i] = ($hvec[$i - $hmask] + $hvec[$i + $hmask]) / 2.0 + (-1 * rand(0, 1)) * $offset;
+        if ($hvec[$i] > $h) {
+            $hvec[$i] = $h;
+        }
+        if ($hvec[$i] < 0) {
+            $hvec[$i] = 0;
+        }
+        $i += $mask;
+    }
+    $offset *= 0.5;
+    $mask = $hmask;
+}*/
+
+/*for ($i = 1; $i < $n - 1; $i++) {
+    echo "<span style=\"color:#" . str_repeat(dechex((int)$hvec[$i]), 3) . "\">█</span>";
+}*/
 
 // Одномерный террейн.
 /*$im = imagecreate($l, $h);
 $bg = imagecolorallocate($im, 255, 255, 255);
 $textcolor = imagecolorallocate($im, 0, 0, 0);
 for ($i = 0; $i < $n; $i++) {
-    imageline($im, $lines[$i][0][0], $h - $lines[$i][0][1] - 1, $lines[$i][1][0], $h - $lines[$i][1][1] - 1, $textcolor);
+    imageline($im, $i * ($l / count($hvec)), $h - $hvec[$i] - 1, ($i + 1) * ($l / count($hvec)), $h - $hvec[$i + 1] - 1, $textcolor);
+    //echo  $i . ", " . ($h - $hvec[$i] - 1) . ", " . ($i + 1) . ", " . ($h - $hvec[$i + 1] - 1) . "<br/>\n";
 }
 header('Content-type: image/png');
 imagepng($im);
 imagedestroy($im);*/
-?>
+
+function f($val) {
+    static $i = 0;
+    static $a = array(0.9, 0.9, 0.8, 0.8, 0.7, 0.7, 0.6, 0.6, 0.5, 0.5);
+
+    return $val * ($i > count($a) ? 0.43 : $a[$i++]);
+}
+
+$h = 200;
+$n = 64;
+$hmatr = array();
+
+$mask = $n;
+$offset = $h;
+$hmatr[0][0] = $offset;
+$hmatr[0][$n] = $offset;
+$hmatr[$n][0] = $offset;
+$hmatr[$n][$n] = $offset;
+
+function hmap2D(&$hmatr, $n, $h, $mask, $offset) {
+    while ($mask > 0) {
+        $hmask = ((int) $mask / 2.0);
+        for ($i = $hmask; $i < $n && $i >= 1.0;) {
+            for ($j = $hmask; $j < $n && $j >= 1.0;) {
+                if (!isset($hmatr[$i][$j])) {
+                    $hmatr[$i][$j] = (  $hmatr[$i - $hmask][$j - $hmask]
+                                     + $hmatr[$i - $hmask][$j + $hmask]
+                                     + $hmatr[$i + $hmask][$j - $hmask]
+                                     + $hmatr[$i + $hmask][$j + $hmask]) / 4.0 + (-1 * rand(0, 1)) * $offset;
+                }
+                if ($hmatr[$i][$j] > $h) {
+                    $hmatr[$i][$j] = $h;
+                }
+                if ($hmatr[$i][$j] < 0) {
+                    $hmatr[$i][$j] = 0;
+                }
+                if (!isset($hmatr[$i - $hmask][$j])) {
+                    $hmatr[$i - $hmask][$j] = (  $hmatr[$i - $hmask][$j - $hmask]
+                                              + $hmatr[$i - $hmask][$j + $hmask]) / 2.0 + (-1 * rand(0, 1)) * $offset;
+                }
+                if ($hmatr[$i - $hmask][$j] > $h) {
+                    $hmatr[$i - $hmask][$j] = $h;
+                }
+                if ($hmatr[$i - $hmask][$j] <= 0) {
+                    $hmatr[$i - $hmask][$j] = 1;
+                }
+                if (!isset($hmatr[$i][$j - $hmask])) {
+                    $hmatr[$i][$j - $hmask] = (  $hmatr[$i - $hmask][$j - $hmask]
+                                              + $hmatr[$i + $hmask][$j - $hmask]) / 2.0 + (-1 * rand(0, 1)) * $offset;
+                }
+                if ($hmatr[$i][$j - $hmask] > $h) {
+                    $hmatr[$i][$j - $hmask] = $h;
+                }
+                if ($hmatr[$i][$j - $hmask] <= 0) {
+                    $hmatr[$i][$j - $hmask] = 1;
+                }
+                if (!isset($hmatr[$i + $hmask][$j])) {
+                    $hmatr[$i + $hmask][$j] = (  $hmatr[$i + $hmask][$j - $hmask]
+                                              + $hmatr[$i + $hmask][$j + $hmask]) / 2.0 + (-1 * rand(0, 1)) * $offset;
+                }
+                if ($hmatr[$i + $hmask][$j] > $h) {
+                    $hmatr[$i + $hmask][$j] = $h;
+                }
+                if ($hmatr[$i + $hmask][$j] <= 0) {
+                    $hmatr[$i + $hmask][$j] = 1;
+                }
+                if (!isset($hmatr[$i][$j + $hmask])) {
+                    $hmatr[$i][$j + $hmask] = (  $hmatr[$i - $hmask][$j + $hmask]
+                                              + $hmatr[$i + $hmask][$j + $hmask]) / 2.0 + (-1 * rand(0, 1)) * $offset;
+                }
+                if ($hmatr[$i][$j + $hmask] > $h) {
+                    $hmatr[$i][$j + $hmask] = $h;
+                }
+                if ($hmatr[$i][$j + $hmask] <= 0) {
+                    $hmatr[$i][$j + $hmask] = 1;
+                }
+                $j += $mask;
+            }
+            $i += $mask;
+        }
+        $offset *= 0.46;
+        $mask = $hmask;
+    }
+}
+function rgb2html($r, $g=-1, $b=-1) {
+    if (is_array($r) && sizeof($r) == 3)
+        list($r, $g, $b) = $r;
+
+    $r = intval($r); $g = intval($g);
+    $b = intval($b);
+
+    $r = dechex($r<0?0:($r>255?255:$r));
+    $g = dechex($g<0?0:($g>255?255:$g));
+    $b = dechex($b<0?0:($b>255?255:$b));
+
+    $color = (strlen($r) < 2?'0':'').$r;
+    $color .= (strlen($g) < 2?'0':'').$g;
+    $color .= (strlen($b) < 2?'0':'').$b;
+    return '#'.$color;
+}
+hmap2D($hmatr, $n, $h, $n, $offset);
+
+$hmatr2 = array();
+for ($i = 0; $i <= $n; $i++) {
+    $hmatr2[$i][0] = $hmatr[$i][$n];
+}
+$hmatr2[0][$n] = $offset;
+$hmatr2[$n][$n] = $offset;
+hmap2D($hmatr2, $n, $h, $n, $offset);
+
+/*echo "<tt>\n";
+printf("<br/>\n&nbsp;&nbsp;&nbsp; ");
+for ($i = 0; $i <= $n; $i++) {
+    printf("<span style=\"color:red\">%'03d </span>", $i);
+}
+echo "<br/>\n";
+for ($i = 0; $i <= $n; $i++) {
+    printf("<span style=\"color:red\">%'03d </span>", $i);
+    for ($j = 0; $j <= $n; $j++) {
+        if (!isset($hmatr[$i][$j])) {
+            echo "<span style=\"color:red\">███ </span>";
+        } else {
+            echo "<span style=\"color:" . rgb2html((int) $hmatr[$i][$j] + 30, (int) $hmatr[$i][$j] + 30, (int) $hmatr[$i][$j] + 30) . "\">███ </span>";
+        }
+    }
+    for ($j = 0; $j <= $n; $j++) {
+        if (!isset($hmatr2[$i][$j])) {
+            echo "<span style=\"color:red\">███ </span>";
+        } else {
+            echo "<span style=\"color:" . rgb2html((int) $hmatr2[$i][$j] + 30, (int) $hmatr2[$i][$j] + 30, (int) $hmatr2[$i][$j] + 30) . "\">███ </span>";
+        }
+    }
+    echo "<br/>\n";
+}
+printf("<br/>\n&nbsp;&nbsp;&nbsp; ");
+for ($i = 0; $i <= $n; $i++) {
+    printf("<span style=\"color:red\">%'03d </span>", $i);
+}
+echo "<br/>\n";
+for ($i = 0; $i <= $n; $i++) {
+    printf("<span style=\"color:red\">%'03d </span>", $i);
+    for ($j = 0; $j <= $n; $j++) {
+        if (!isset($hmatr[$i][$j])) {
+            echo "<span style=\"color:red\">█</span>";
+        } else {
+            printf("%'03d ", $hmatr[$i][$j]);
+        }
+    }
+    echo "<br/>\n";
+}
+echo "<tt/>\n";*/
+
+$im = imagecreatetruecolor(($n + 1) * 10 * 2, ($n + 1) * 10);
+$bg = imagecolorallocate($im, 255, 255, 255);
+for ($i = 0; $i <= $n; $i++) {
+    for ($j = 0; $j <= $n; $j++) {
+        $hmatr[$i][$j] = (int) $hmatr[$i][$j] + 20;
+        $hmatr2[$i][$j] = (int) $hmatr2[$i][$j] + 20;
+        /*if ($hmatr[$i][$j] == 0) {
+            $rectcolor = imagecolorallocate($im, 1, 1, 1);
+        } else {
+            $rectcolor = imagecolorallocate($im, $hmatr[$i][$j], $hmatr[$i][$j], $hmatr[$i][$j]);
+        }*/
+        if ($hmatr[$i][$j] >= 0 && $hmatr[$i][$j] <= 64) {
+            $rectcolor = imagecolorallocate($im, 1, 64, 1);
+        } else if ($hmatr[$i][$j] > 64 && $hmatr[$i][$j] <= 128) {
+            $rectcolor = imagecolorallocate($im, 1, 128, 1);
+        } else if ($hmatr[$i][$j] > 128 && $hmatr[$i][$j] <= 192) {
+            $rectcolor = imagecolorallocate($im, 1, 192, 1);
+        } else if ($hmatr[$i][$j] > 192 && $hmatr[$i][$j] <= 255) {
+            $rectcolor = imagecolorallocate($im, 1, 255, 1);
+        }
+        if (!$rectcolor) {
+            var_dump($hmatr[$i][$j]);
+            throw new Exception("Error.");
+        }
+        /*if ($hmatr2[$i][$j] == 0) {
+            $rectcolor2 = imagecolorallocate($im, 1, 1, 1);
+        } else {
+            $rectcolor2 = imagecolorallocate($im, $hmatr2[$i][$j], $hmatr2[$i][$j], $hmatr2[$i][$j]);
+        }*/
+        if ($hmatr2[$i][$j] >= 0 && $hmatr2[$i][$j] <= 64) {
+            $rectcolor2 = imagecolorallocate($im, 1, 64, 1);
+        } else if ($hmatr2[$i][$j] > 64 && $hmatr2[$i][$j] <= 128) {
+            $rectcolor2 = imagecolorallocate($im, 1, 128, 1);
+        } else if ($hmatr2[$i][$j] > 128 && $hmatr2[$i][$j] <= 192) {
+            $rectcolor2 = imagecolorallocate($im, 1, 192, 1);
+        } else if ($hmatr2[$i][$j] > 192 && $hmatr2[$i][$j] <= 255) {
+            $rectcolor2 = imagecolorallocate($im, 1, 255, 1);
+        }
+        if (!$rectcolor2) {
+            var_dump($hmatr2[$i][$j]);
+            throw new Exception("Error.");
+        }
+        if (!imagefilledrectangle($im, $j * 10, $i * 10, ($j + 1) * 10, ($i + 1) * 10, $rectcolor)) {
+            throw new Exception("Error.");
+        }
+        if (!imagefilledrectangle($im, ($j + 1) * 10 + ($n * 10), $i * 10, ($j + 2) * 10 + ($n * 10), ($i + 1) * 10, $rectcolor2)) {
+            throw new Exception("Error.");
+        }
+        //imagecolordeallocate($im, $rectcolor);
+        //imageline($im, $i * ($l / count($hvec)), $h - $hvec[$i] - 1, ($i + 1) * ($l / count($hvec)), $h - $hvec[$i + 1] - 1, $textcolor);
+        //printf("%'03d ", $hvec[$i][$j]);
+        //printf("%d %d %d %d <br/>\n", $j * 10, $i * 10, ($j + 1) * 10, ($i + 1) * 10);
+    }
+    //echo "<br/>\n";
+}
+header('Content-type: image/png');
+imagepng($im);
+imagedestroy($im);
