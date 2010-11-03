@@ -32,6 +32,7 @@
     $enable_postid - Включение идентификатора поста.
     $postid - Идентификатор поста.
     $author_admin - Сообщение было оставлено администратором.
+    $is_board_view - Оригинальное сообщение выводится при просмотре доски.
 *}
 <div>
 {if $original_post.with_attachments}
@@ -79,8 +80,12 @@
 {if $author_admin} <span class="admin">❀❀&nbsp;Админ&nbsp;❀❀</span>{/if}
 {$original_post.date_time}
 <span class="reflink">
-    <span onclick="insert('>>{$original_post.number}');">#</span>
-    <a href="{$DIR_PATH}/{$board.name}/{$thread.original_post}#{$original_post.number}">{$original_post.number}</a>
+    <a href="{$DIR_PATH}/{$board.name}/{$thread.original_post}#{$original_post.number}">#</a>
+    {if $is_board_view}
+        <a href="{$DIR_PATH}/threads.php?board={$board.name}&thread={$thread.original_post}&quote={$original_post.number}">{$original_post.number}</a>
+    {else}
+        <a href="#" onclick="insert('>>{$original_post.number}');">{$original_post.number}</a>
+    {/if}
 </span>
 {if $enable_postid} ID:{$postid}{/if}
 {if $show_reply} [<a href="{$DIR_PATH}/{$board.name}/{$thread.original_post}">Ответить</a>]{/if}
