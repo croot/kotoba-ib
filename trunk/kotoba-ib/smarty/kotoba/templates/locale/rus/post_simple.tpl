@@ -26,6 +26,7 @@
     $enable_postid - Включение идентификатора поста.
     $postid - Идентификатор поста.
     $author_admin - Сообщение было оставлено администратором.
+    $is_board_view - Сообщение выводится при просмотре доски.
 *}
 <table>
     <tbody>
@@ -51,8 +52,12 @@
                 {if $author_admin} <span class="admin">❀❀&nbsp;Админ&nbsp;❀❀</span>{/if}
                 {$simple_post.date_time}
                 <span class="reflink">
-                    <span onclick="insert('>>{$simple_post.number}');">#</span>
-                    <a href="{$DIR_PATH}/{$board.name}/{$thread.original_post}#{$simple_post.number}">{$simple_post.number}</a>
+                    <a href="{$DIR_PATH}/{$board.name}/{$thread.original_post}#{$simple_post.number}">#</a>
+                    {if $is_board_view}
+                        <a href="{$DIR_PATH}/threads.php?board={$board.name}&thread={$thread.original_post}&quote={$simple_post.number}">{$simple_post.number}</a>
+                    {else}
+                        <a href="#" onclick="insert('>>{$simple_post.number}');">{$simple_post.number}</a>
+                    {/if}
                 </span>
                 {if $enable_postid} ID:{$postid}{/if}
                 {if $is_admin} {include file='mod_mini_panel.tpl' post_id=$simple_post.id ip=$simple_post.ip board_name=$board.name post_num=$simple_post.number}{/if}

@@ -9,7 +9,14 @@
  * See license.txt for more info.*
  *********************************/
 
-// Скрипт просмотра нити.
+/*
+ * Скрипт просмотра нити.
+ * 
+ * Параметры:
+ * board - Имя доски.
+ * thread - Номер нити.
+ * (optional) quote - Номер сообщения, который будет добавлен в поле ввода.
+ */
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
@@ -147,9 +154,8 @@ try {
     $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
     $smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
     $smarty->assign('name', $_SESSION['name']);
-    if (isset($_SESSION['oekaki'])) {
-        $smarty->assign('oekaki', $_SESSION['oekaki']);
-    }
+    isset($_SESSION['oekaki']) && $smarty->assign('oekaki', $_SESSION['oekaki']);
+    isset($_GET['quote']) && $smarty->assign('quote', kotoba_intval($_GET['quote']));
 
     //event_daynight($smarty);
 
