@@ -144,6 +144,13 @@ form .trap {
     background:transparent url('./icons/blue/icons.gif') -48px -16px no-repeat;
 }
 
+.infolist {
+    margin-left: 10pt;
+    margin-top: 0pt;
+    margin-bottom: 0pt;
+    padding-left: 0pt;
+}
+
 .refreshwatchedthreads {
     background:transparent url('./icons/blue/icons.gif') -16px -16px no-repeat;
 }

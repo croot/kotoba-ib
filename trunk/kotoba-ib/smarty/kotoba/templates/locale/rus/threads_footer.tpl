@@ -26,6 +26,7 @@
 <a href="{$DIR_PATH}/unhide_thread.php?thread={$hidden_threads[i].thread}" title="Нажмите, чтобы отменить скрытие нити.">{$hidden_threads[i].thread_number}</a>
 {/section}
 {/if}<br>
-<div class="navbar">{include file='board_list.tpl' boards=$boards DIR_PATH=$DIR_PATH} [<a href="{$DIR_PATH}/">Главная</a>]</div>
+{include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
+
 <div class="footer" style="clear: both;">- Kotoba 1.1 -</div>
 {include file='footer.tpl'}

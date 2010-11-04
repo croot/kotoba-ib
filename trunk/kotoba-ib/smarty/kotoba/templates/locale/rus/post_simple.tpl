@@ -42,7 +42,6 @@
                         <a href="{$DIR_PATH}/remove_upload.php?post={$simple_post.id}"><img src="{$DIR_PATH}/css/delfile.png" alt="[Удалить файл]" title="Удалить файл" border="0"/></a>
                     {/if}
                     <a href="{$DIR_PATH}/report.php?post={$simple_post.id}"><img src="{$DIR_PATH}/css/report.png" alt="[Пожаловаться]" title="Пожаловаться на сообщение" border="0"/></a>
-                    <a href="#" onclick="insert('>>{$simple_post.number}');"><img src="{$DIR_PATH}/css/quote.png" alt="[Цитировать]" title="Цитировать" border="0"/></a>
                 </span>
                 {if $enable_geoip}<span title="{$country.name}" class="country"><img src="http://410chan.ru/css/flags/{$country.code}.gif" alt="{$country.name}"></span>&nbsp;{/if}
 

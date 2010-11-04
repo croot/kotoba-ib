@@ -35,6 +35,7 @@
     $name - имя
     $banner - баннер.
     $oekaki - данные о рисунке.
+    $MAX_FILE_SIZE - максимальный размер загружаемого файла (в байтах) (см. config.default).
 
 Специальные переменные (не входит в котобу):
     $event_daynight_active - запущен ли эвент времени суток.
@@ -62,7 +63,7 @@
 <hr>
 <div class="postarea">
 <form name="postform" id="postform" action="{$DIR_PATH}/create_thread.php" method="post" enctype="multipart/form-data">
-<input type="hidden" name="MAX_FILE_SIZE" value="1560576">
+<input type="hidden" name="MAX_FILE_SIZE" value="{$MAX_FILE_SIZE}">
 <table align="center" border="0">
 <tbody>
 {if !$board.force_anonymous}
@@ -94,7 +95,7 @@
 <tr valign="top"><td class="postblock">Перейти: </td><td>(нить: <input type="radio" name="goto" value="t"{if $goto == 't'} checked{/if}>) (доска: <input type="radio" name="goto" value="b"{if $goto == 'b'} checked{/if}>)</td></tr>
 
 <tr valign="top"><td colspan = "2" class="rules">
-<ul style="margin-left: 10pt; margin-top: 0pt; margin-bottom: 0pt; padding-left: 0pt;">
+<ul style="infolist">
 <li>Типы файлов, доступных для загрузки: {section name=i loop=$upload_types} {$upload_types[i].extension}{/section}</li>
 <li>Бамплимит доски: {$board.bump_limit}</li>
 <li><a href="{$DIR_PATH}/catalog.php?board={$board.name}">Каталог нитей</a></li>

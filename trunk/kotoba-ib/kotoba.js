@@ -1,32 +1,22 @@
-/*
- * Based on function from kusaba.
- */
-function insert(number)
-{
-	var my_form = document.forms.postform.text;
-	if(my_form)
-	{
-		if(my_form.createTextRange && my_form.caretPos)
-		{
-			var caret_pos = my_form.caretPos;
-			caret_pos.text = caret_pos.text.charAt(caret_pos.text.length - 1) == " " ? number + " " : number;
-		}
-		else
-		{
-			if(my_form.setSelectionRange)
-			{
-				var selection_pos = my_form.selectionStart;
-				var end = my_form.selectionEnd;
-				my_form.value = my_form.value.substr(0,selection_pos) + number + my_form.value.substr(end);
-				my_form.setSelectionRange(selection_pos + number.length, selection_pos + number.length);
-			}
-			else
-			{
-				my_form.value += number + " ";
-			}
-		}
-		my_form.focus();
-	}
+
+function insert(number) {
+    var my_form = document.forms.postform.text;
+    if (my_form) {
+        if (my_form.createTextRange && my_form.caretPos) {
+            var caret_pos = my_form.caretPos;
+            caret_pos.text = caret_pos.text.charAt(caret_pos.text.length - 1) == " " ? number + " " : number;
+        } else {
+            if (my_form.setSelectionRange) {
+                var selection_pos = my_form.selectionStart;
+                var end = my_form.selectionEnd;
+                my_form.value = my_form.value.substr(0, selection_pos) + number + my_form.value.substr(end);
+                my_form.setSelectionRange(selection_pos + number.length, selection_pos + number.length);
+            } else {
+                my_form.value += number + " ";
+            }
+        }
+        my_form.focus();
+    }
 }
 /*
  * Based on examples from http://javascript.ru/ui/draganddrop thanks a lot to
@@ -130,9 +120,7 @@ var resizeMaster = (function ()
     }
 }())
 
-/*
- * Next 3 functions copypasted from Kusaba ^_^
- */
+// Next functions copypasted from Kusaba, but who cares?
 function addreflinkpreview(e) {
     ainfo = this.getAttribute('class').split('|');
 
@@ -174,7 +162,6 @@ function delreflinkpreview(e) {
 function addpreviewevents() {
     var aelements = document.getElementsByTagName('a');
     var aelement;
-    var ainfo;
     for(var i=0;i<aelements.length;i++){
         aelement = aelements[i];
         if (aelement.getAttribute('class')) {
@@ -187,7 +174,7 @@ function addpreviewevents() {
 }
 
 window.onload=function() {
-	addpreviewevents();
+    addpreviewevents();
 }
 
 var path = "http://410chan.ru";
@@ -196,8 +183,8 @@ google.load("language", "1");
 
 function hide(id) {
     var container = document.getElementById("translation" + id);
-    container.innerHTML="";
-    container.style.visibility=false;
+    container.innerHTML = "";
+    container.style.visibility = false;
 }
 
 function translate(id) {
@@ -207,7 +194,6 @@ function translate(id) {
     var obj = document.getElementById("post" + id);
     var text = obj.innerHTML;
     var closelink = "";
-    //var closelink = "<a href=\"#\" onclick=\"javascript: hide('"+id+"'); return false;\">x</a>&nbsp;";
     google.language.translate(text, "", "en", function(result) {
         if (!result.error) {
             container.innerHTML = closelink + "<strong>Translated from " + result.detectedSourceLanguage + ":</strong><br>\n" + result.translation;

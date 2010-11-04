@@ -33,6 +33,7 @@
     $banner - баннер.
     $oekaki - данные о рисунке.
     (optional) $quote - Номер сообщения, который будет добавлен в поле ввода.
+    $MAX_FILE_SIZE - максимальный размер загружаемого файла (в байтах) (см. config.default).
 
 Специальные переменные (не входит в котобу):
     $event_daynight_active - запущен ли эвент времени суток.
@@ -58,7 +59,7 @@
 
 <div class="postarea">
 <form name="postform" id="postform" action="{$DIR_PATH}/reply.php" method="post" enctype="multipart/form-data">
-<input type="hidden" name="MAX_FILE_SIZE" value="1560576">
+<input type="hidden" name="MAX_FILE_SIZE" value="{$MAX_FILE_SIZE}">
 <table align="center" border="0">
 <tbody>
 {if !$board.force_anonymous}
