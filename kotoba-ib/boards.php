@@ -191,6 +191,7 @@ try {
     $smarty->assign('name', $_SESSION['name']);
     isset($_SESSION['oekaki']) && $smarty->assign('oekaki', $_SESSION['oekaki']);
     $smarty->assign('is_board_view', true);
+    $smarty->assign('MAX_FILE_SIZE', Config::MAX_FILE_SIZE);
 
     //event_daynight($smarty);
 

@@ -156,6 +156,7 @@ try {
     $smarty->assign('name', $_SESSION['name']);
     isset($_SESSION['oekaki']) && $smarty->assign('oekaki', $_SESSION['oekaki']);
     isset($_GET['quote']) && $smarty->assign('quote', kotoba_intval($_GET['quote']));
+    $smarty->assign('MAX_FILE_SIZE', Config::MAX_FILE_SIZE);
 
     //event_daynight($smarty);
 
