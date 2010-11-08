@@ -1026,37 +1026,28 @@ end|
 -- ----------------------
 
 -- Добавляет группу.
---
--- Аргументы:
--- _name - Имя группы.
 create procedure sp_groups_add
 (
-	_name varchar(50)
+    _name varchar(50)   -- Имя группы.
 )
 begin
-	insert into groups (name) values (_name);
-	select id from groups where name = _name;
-	-- TODO:
-	-- insert into acl (`group`, `view`, `change`, moderate) values (group_id, 1, 0, 0);
+    insert into groups (name) values (_name);
+    select id from groups where name = _name;
 end|
 
--- Удаляет заданную группу, а так же всех пользователей, которые входят в эту
--- группу и все правила в ACL, распространяющиеся на эту группу.
---
--- Аргументы:
--- _id - Идентификатор группы.
+-- Удаляет заданную группу.
 create procedure sp_groups_delete
 (
-	_id int
+    _id int -- Идентификатор группы.
 )
 begin
-	delete from groups where id = _id;
+    delete from groups where id = _id;
 end|
 
 -- Выбирает все группы.
 create procedure sp_groups_get_all ()
 begin
-	select id, name from groups order by id;
+    select id, name from groups order by id;
 end|
 
 -- -------------------------------------
