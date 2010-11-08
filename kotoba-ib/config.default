@@ -101,8 +101,11 @@ class Config
     // Имя доски новостей.
     const NEWS_BOARD = 'n';
 
+    // Имя доски новостей.
+    const BANNERS_BOARD = 'misc';
+
     // Имена досок, которые будут принудительно не видны в списке досок.
-    static $INVISIBLE_BOARDS = array('n', 'misc');
+    static $INVISIBLE_BOARDS = array(Config::NEWS_BOARD, Config::BANNERS_BOARD);
 
     /* *******************************************************
      * Настройки пользователя Гость (настройки по умолчанию) *

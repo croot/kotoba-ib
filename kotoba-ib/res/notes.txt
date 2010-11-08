@@ -75,6 +75,13 @@ reply.php
 threads.php
     unhide_thread.php
 
++ гости могут постить по умолчанию
++ доска новостей и баннеров создаются и настраиваются по умолчанию
+- функция массового бана
+- фильтр постов по ip
+- няшный лог
+
+<?php
 /*$l = 1024;
 $h = 255;
 $n = 256;
@@ -268,18 +275,18 @@ for ($i = 0; $i <= $n; $i++) {
 }
 echo "<tt/>\n";*/
 
-$im = imagecreatetruecolor(($n + 1) * 10 * 2, ($n + 1) * 10);
+$im = imagecreatetruecolor(($n + 1) * 10 * 2 - 10, ($n + 1) * 10);
 $bg = imagecolorallocate($im, 255, 255, 255);
 for ($i = 0; $i <= $n; $i++) {
     for ($j = 0; $j <= $n; $j++) {
         $hmatr[$i][$j] = (int) $hmatr[$i][$j] + 20;
         $hmatr2[$i][$j] = (int) $hmatr2[$i][$j] + 20;
-        /*if ($hmatr[$i][$j] == 0) {
+        if ($hmatr[$i][$j] == 0) {
             $rectcolor = imagecolorallocate($im, 1, 1, 1);
         } else {
             $rectcolor = imagecolorallocate($im, $hmatr[$i][$j], $hmatr[$i][$j], $hmatr[$i][$j]);
-        }*/
-        if ($hmatr[$i][$j] >= 0 && $hmatr[$i][$j] <= 64) {
+        }
+        /*if ($hmatr[$i][$j] >= 0 && $hmatr[$i][$j] <= 64) {
             $rectcolor = imagecolorallocate($im, 1, 64, 1);
         } else if ($hmatr[$i][$j] > 64 && $hmatr[$i][$j] <= 128) {
             $rectcolor = imagecolorallocate($im, 1, 128, 1);
@@ -287,17 +294,17 @@ for ($i = 0; $i <= $n; $i++) {
             $rectcolor = imagecolorallocate($im, 1, 192, 1);
         } else if ($hmatr[$i][$j] > 192 && $hmatr[$i][$j] <= 255) {
             $rectcolor = imagecolorallocate($im, 1, 255, 1);
-        }
+        }*/
         if (!$rectcolor) {
             var_dump($hmatr[$i][$j]);
             throw new Exception("Error.");
         }
-        /*if ($hmatr2[$i][$j] == 0) {
+        if ($hmatr2[$i][$j] == 0) {
             $rectcolor2 = imagecolorallocate($im, 1, 1, 1);
         } else {
             $rectcolor2 = imagecolorallocate($im, $hmatr2[$i][$j], $hmatr2[$i][$j], $hmatr2[$i][$j]);
-        }*/
-        if ($hmatr2[$i][$j] >= 0 && $hmatr2[$i][$j] <= 64) {
+        }
+        /*if ($hmatr2[$i][$j] >= 0 && $hmatr2[$i][$j] <= 64) {
             $rectcolor2 = imagecolorallocate($im, 1, 64, 1);
         } else if ($hmatr2[$i][$j] > 64 && $hmatr2[$i][$j] <= 128) {
             $rectcolor2 = imagecolorallocate($im, 1, 128, 1);
@@ -305,7 +312,7 @@ for ($i = 0; $i <= $n; $i++) {
             $rectcolor2 = imagecolorallocate($im, 1, 192, 1);
         } else if ($hmatr2[$i][$j] > 192 && $hmatr2[$i][$j] <= 255) {
             $rectcolor2 = imagecolorallocate($im, 1, 255, 1);
-        }
+        }*/
         if (!$rectcolor2) {
             var_dump($hmatr2[$i][$j]);
             throw new Exception("Error.");
@@ -313,7 +320,7 @@ for ($i = 0; $i <= $n; $i++) {
         if (!imagefilledrectangle($im, $j * 10, $i * 10, ($j + 1) * 10, ($i + 1) * 10, $rectcolor)) {
             throw new Exception("Error.");
         }
-        if (!imagefilledrectangle($im, ($j + 1) * 10 + ($n * 10), $i * 10, ($j + 2) * 10 + ($n * 10), ($i + 1) * 10, $rectcolor2)) {
+        if (!imagefilledrectangle($im, ($j + 1) * 10 + ($n * 10) - 10, $i * 10, ($j + 2) * 10 + ($n * 10) - 10, ($i + 1) * 10, $rectcolor2)) {
             throw new Exception("Error.");
         }
         //imagecolordeallocate($im, $rectcolor);
@@ -326,3 +333,168 @@ for ($i = 0; $i <= $n; $i++) {
 header('Content-type: image/png');
 imagepng($im);
 imagedestroy($im);
+?>
+
+<?php
+$states = array('read_asterisk'         => 1,
+                'read_double_asterisk'  => 2,
+                'read_italic_text'      => 3,
+                'read_bold_text'        => 4,
+                'read_italic_bold_text' => 5,
+                'read_simple_text'      => 6,
+                'read_slash'            => 7);
+$enc = 'UTF-8';
+
+$in = '*****наклонный* **жирный** *наклонный**наклонный **наклонный***жирный****нежирный';
+$out = '';
+$italic = '';
+$bold = '';
+$cur = '';
+$tag_open = false;
+$i = 0;
+$state = $states['read_simple_text'];
+
+while ($i < mb_strlen($in, $enc)) {
+    $cur = mb_substr($in, $i, 1, $enc);
+    /*$tmp = array_keys($states, $state);
+    echo "$i - $cur - {$tmp[0]} - $state<br/>";*/
+
+    switch ($state) {
+        case $states['read_asterisk']:
+            if ($cur == '*') {
+                $state = $states['read_double_asterisk'];
+            } else {
+                if ($tag_open) {
+
+                    // Продолжаем читать жирный текст.
+                    $bold .= "*$cur";
+                    $state = $states['read_bold_text'];
+                    $i++;
+                } else {
+
+                    // Продолжаем читать простой текст.
+                    $out .= "*$cur";
+                    $state = $states['read_simple_text'];
+                    $i++;
+                }
+            }
+            break;
+        case $states['read_double_asterisk']:
+            if ($tag_open) {
+
+                // Заканчиваем читать жирный текст.
+                if (mb_strlen($bold, $enc) > 0) {
+                    $out .= "<b>$bold</b>";
+                } else {
+                    $out .= '****';
+                }
+                $bold = '';
+                $tag_open = false;
+                $state = $states['read_simple_text'];
+                $i++;
+            } else {
+
+                // Начинаем читать жирный текст.
+                $tag_open = true;
+                $state = $states['read_bold_text'];
+                $i++;
+            }
+            break;
+        case $states['read_bold_text']:
+            if ($cur == '*') {
+                $state = $states['read_asterisk'];
+            } else {
+                $bold .= $cur;
+            }
+            $i++;
+            break;
+        case $states['read_simple_text']:
+            if ($cur == '*') {
+                $state = $states['read_asterisk'];
+            } else {
+                $out .= $cur;
+            }
+            $i++;
+            break;
+        default:
+            throw new Exception('Unknown state.');
+    }
+}
+
+if ($state == $states['read_bold_text']) {
+    echo "Warning: last double asterisk was not be closed?<br/>";
+    $out .= "**$bold";
+    $bold = '';
+}
+
+echo "$state<br/>";
+echo "$in<br/>";
+echo "$out<br/>";
+
+$in = $out;
+$out = '';
+$italic = '';
+$bold = '';
+$cur = '';
+$tag_open = false;
+$i = 0;
+$state = $states['read_simple_text'];
+
+while ($i < mb_strlen($in, $enc)) {
+    $cur = mb_substr($in, $i, 1, $enc);
+    /*$tmp = array_keys($states, $state);
+    echo "$i - $cur - {$tmp[0]} - $state<br/>";*/
+
+    switch ($state) {
+        case $states['read_asterisk']:
+            if ($tag_open) {
+
+                // Заканчиваем читать наклонный текст.
+                if (mb_strlen($italic, $enc) > 0) {
+                    $out .= "<i>$italic</i>";
+                } else {
+                    $out .= '**';
+                }
+                $italic = '';
+                $tag_open = false;
+                $state = $states['read_simple_text'];
+                $i++;
+            } else {
+
+                // Начинаем читать наклонный текст.
+                $tag_open = true;
+                $state = $states['read_italic_text'];
+                $i++;
+            }
+            break;
+        case $states['read_italic_text']:
+            if ($cur == '*') {
+                $state = $states['read_asterisk'];
+            } else {
+                $italic .= $cur;
+                $i++;
+            }
+            break;
+        case $states['read_simple_text']:
+            if ($cur == '*') {
+                $state = $states['read_asterisk'];
+            } else {
+                $out .= $cur;
+                $i++;
+            }
+            break;
+        default:
+            throw new Exception('Unknown state.');
+    }
+}
+
+if ($state == $states['read_italic_text']) {
+    echo "Warning: last asterisk was not be closed?<br/>";
+    $out .= "*$italic";
+    $italic = '';
+}
+
+echo "$state<br/>";
+echo "$in<br/>";
+echo "$out<br/>";
+?>

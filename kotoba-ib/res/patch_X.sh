@@ -32,7 +32,7 @@ begin
     select version into @version from db_version;
     if (@version < $VERSION and $VERSION - @version = 1) then
         -- ACTUAL CODE HERE
-        -- Do not forget update version nuber in data.sql script.
+        -- Do not forget update version nuber in create_struct.sql script (see line where value inserted in db_version table).
 
         update db_version set version = $VERSION limit 1;
         select 'Patch $VERSION was applied.';
