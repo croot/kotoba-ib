@@ -1195,6 +1195,17 @@ function groups_get_all()
 {
 	return db_groups_get_all(DataExchange::getDBLink());
 }
+/**
+ * Получает группы, в которые входит пользователь.
+ * @param int $user_id Идентификатор пользователя.
+ * @return array
+ * Возвращает группы:<br>
+ * id - идентификатор.<br>
+ * name - имя.
+ */
+function groups_get_by_user($user_id) {
+    return db_groups_get_by_user(DataExchange::getDBLink(), $user_id);
+}
 
 /***********************************
   Работа с блокировками в фаерволе. 

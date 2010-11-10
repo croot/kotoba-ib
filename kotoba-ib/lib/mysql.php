@@ -1530,6 +1530,38 @@ function db_groups_get_all($link)
 	db_cleanup_link($link);
 	return $groups;
 }
+/**
+ * Получает группы, в которые входит пользователь.
+ * @param MySQLi $link Связь с базой данных.
+ * @param int $user_id Идентификатор пользователя.
+ * @return array
+ * Возвращает группы:<br>
+ * id - идентификатор.<br>
+ * name - имя.
+ */
+function db_groups_get_by_user($link, $user_id) {
+
+    // Запрос.
+    $result = mysqli_query($link, "call sp_groups_get_by_user($user_id)");
+	if (!$result) {
+		throw new CommonException(mysqli_error($link));
+    }
+
+    // Выбор данных из результата выполнения запроса.
+	$groups = array();
+	if (mysqli_affected_rows($link) > 0) {
+		while (($row = mysqli_fetch_assoc($result)) != null) {
+			array_push($groups, array('id' => $row['id'], 'name' => $row['name']));
+        }
+    } else {
+		throw new NodataException(NodataException::$messages['GROUPS_NOT_EXIST']);
+    }
+
+    // Освобождение ресурсов и очистка.
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $groups;
+}
 
 /* *********************************
   Работа с блокировками в фаерволе.

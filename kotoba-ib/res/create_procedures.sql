@@ -47,6 +47,7 @@ drop procedure if exists sp_files_get_same|
 drop procedure if exists sp_groups_add|
 drop procedure if exists sp_groups_delete|
 drop procedure if exists sp_groups_get_all|
+drop procedure if exists sp_groups_get_by_user|
 
 drop procedure if exists sp_hard_ban_add|
 drop procedure if exists sp_hard_ban_execute|
@@ -1048,6 +1049,18 @@ end|
 create procedure sp_groups_get_all ()
 begin
     select id, name from groups order by id;
+end|
+
+-- Выбирает группы, в которые входит пользователь.
+create procedure sp_groups_get_by_user
+(
+    user_id int -- Идентификатор пользователя.
+)
+begin
+    select g.id, g.name
+        from users u
+        join user_groups ug on ug.user = u.id and u.id = user_id
+        join groups g on ug.`group` = g.id;
 end|
 
 -- -------------------------------------

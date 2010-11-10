@@ -9,9 +9,12 @@
  * See license.txt for more info.*
  *********************************/
 
-// Скрипт страницы административных фукнций и фукнций модераторов.
+/**
+ * Скрипт просмотра лога.
+ */
 
-require 'config.php';
+/***/
+require '../config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/logging.php';
@@ -23,7 +26,8 @@ try {
     // Инициализация.
     kotoba_session_start();
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup($_SESSION['language'],
+                                    $_SESSION['stylesheet']);
 
     // Проверка, не заблокирован ли клиент.
     if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
@@ -37,29 +41,35 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    // Проверка уровня доступа и запись сообщения в лог.
-    if (!is_admin() && !is_mod()) {
-        throw new PermissionException(PermissionException::$messages['NOT_ADMIN']
-              . ' ' . PermissionException::$messages['NOT_MOD']);
+    // Проверка доступа и запись в лог.
+    if (!is_admin()) {
+        throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
     }
-    call_user_func(Logging::$f['MANAGE']);
+    call_user_func(Logging::$f['LOG_VIEW']);
     Logging::close_log();
 
-    // Формирование и вывод кода страницы.
-    $smarty->assign('show_control', is_admin() || is_mod());
-    $smarty->assign('boards', boards_get_visible($_SESSION['user']));
-    if (is_mod()) {
-        $smarty->assign('mod_panel', true);
-    } elseif (is_admin()) {
-        $smarty->assign('adm_panel', true);
-    }
-    $smarty->display('manage.tpl');
 
-    // Освобождение ресурсов и очистка.
+    
+    if (isset($_FILES['file'])) {
+        check_upload_error($_FILES['file']['error']);
+        $list = split("\n", file_get_contents($_FILES['file']['tmp_name']));
+        foreach ($list as $range) {
+            if ($range) {
+                list($range_beg, $range_end) = split(' ', $range);
+                echo "Ban from $range_beg to $range_end</br>";
+            }
+        }
+    }
+
+    // Формирование кода страницы и вывод.
+    $smarty->assign('show_control', is_admin() || is_mod());
+    $smarty->display('log_view.tpl');
+
+    // Освобождение ресурсов и очиска.
     DataExchange::releaseResources();
 
     exit(0);
-} catch(Exception $e) {
+} catch (Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();
     die($smarty->fetch('error.tpl'));
