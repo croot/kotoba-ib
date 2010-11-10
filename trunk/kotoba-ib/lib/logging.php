@@ -14,54 +14,58 @@
  * @package api
  */
 
+/***/
+// Конечный скрипт должен загрузить конфигурацию!
+if (!class_exists('Config')) {
+    throw new Exception('User-end script MUST load a configuraion!');
+}
+require_once Config::ABS_PATH . '/lib/errors.php';
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+// TODO Может быть ещё что-то?
+
 /**
  * Обёртка для удобства.
  * @package logging
  */
 class Logging {
     static $messages;
+    static $f;
     private static $log_file = null;
-    private static $path = null;
 
     /**
      * Закрвает лог файл.
      */
     public static function close_log() {
-        fclose(self::$log_file);
-        self::$log_file = null;
-        self::$path = null;
+        if (self::$log_file) {
+            fclose(self::$log_file);
+            self::$log_file = null;
+        }
     }
     
     /**
      * Записывает сообщение в лог файл.
-     * @param string $path Лог файл.
      * @param string $msg Сообщение.
-     * @param string $message,... Параметры для вставки в сообщение.
      */
-    public static function write_msg($path, $msg) {
-        if (self::$log_file == null || self::$path != $path) {
-            if (self::$log_file != null) {
-                self::close_log(); // Закроем старый файл.
-            }
-            if ( (self::$log_file = @fopen($path, 'a')) === false) {
-                throw new CommonException(CommonException::$messages['LOG_FILE']);
-            }
-            self::$path = $path;
+    public static function write_msg($msg) {
+        if (func_num_args() > 1) {
+            throw new CommonException('Temporary disabled.');
         }
 
-        $n = func_num_args();
-        if ($n > 2) {
-            // Lets collect parametrs.
-            $args = array();
-            for ($i = 2; $i < $n; $i++) {	// Skip first two arguments.
-                array_push($args, func_get_arg($i));
+        if (self::$log_file == null) {
+            self::$log_file = fopen(Config::ABS_PATH . '/log/actions.log', 'a');
+            if (!self::$log_file) {
+                throw new CommonException(CommonException::$messages['LOG_FILE']);
             }
-            fwrite(self::$log_file,
-                    vsprintf($msg, $args) . " (" . @date("Y-m-d H:i:s")
-                    . ")\n");
-        } else {
-            fwrite(self::$log_file, "$msg (" . @date("Y-m-d H:i:s") . ")\n");
         }
+
+        fwrite(self::$log_file,
+               date(Config::DATETIME_FORMAT) . '|'
+               . "{$_SESSION['user']}" . '|'
+               . join(', ', array_map(function($g){ return $g['name']; },
+                                      groups_get_by_user($_SESSION['user']))) . '|'
+               . "{$_SERVER['REMOTE_ADDR']}" . '|'
+               . "$msg\n");
     }
 }
 ?>

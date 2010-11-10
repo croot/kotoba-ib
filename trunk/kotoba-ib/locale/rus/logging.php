@@ -70,6 +70,8 @@ Logging::$messages['ADM_FUNCTIONS_REPORTS'] = 'Задействован скри
 Logging::$messages['ADMIN_FUNCTIONS_EDIT_SPAMFILTER'] = 'Задействовано редактирование спамфильтра. Администратор %s IP %s';
 // Параметры: id пользователя, ip адрес.
 Logging::$messages['ADMIN_FUNCTIONS_MOVE_THREAD'] = 'Задействован перенос нити. Администратор %s IP %s';
+// Параметры: id пользователя, ip адрес
+Logging::$messages['ADMIN_FUNCTIONS_MASS_BAN'] = 'Задействован бан по списку. Администратор %s IP %s';
 
 /* *********
  * Разное. *
@@ -77,4 +79,16 @@ Logging::$messages['ADMIN_FUNCTIONS_MOVE_THREAD'] = 'Задействован п
 
 // Параметры: id пользователя, ip адрес.
 Logging::$messages['EDIT_THREADS'] = 'Задействовано редактирование настроек нитей. Пользователь %s IP %s';
+
+/* ****
+ * :D *
+ ******/
+
+Logging::$f['MASS_BAN'] = function () {
+    Logging::write_msg('Задействован бан по списку.');
+};
+
+Logging::$f['MANAGE'] = function () {
+    Logging::write_msg('Задействован скрипт административных фукнций и фукнций модераторов.');
+};
 ?>
