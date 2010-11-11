@@ -49,6 +49,9 @@
 			<option value="900">15 минут</option>
 			<option value="1800">30 минут</option>
 			<option value="3600">1 час</option>
+			<option value="86400">1 день</option>
+			<option value="604800">1 неделя</option>
+			<option value="18144000">1 месяц (30 дней)</option>
 		</select>
 	</td>
 </tr>

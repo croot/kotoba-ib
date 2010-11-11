@@ -43,7 +43,7 @@ try {
 
     // Проверка доступа и запись в лог.
     if (!is_admin()) {
-        throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
+        //throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
     }
     //call_user_func(Logging::$f['LOG_VIEW']);
     $func = Logging::$f['LOG_VIEW'];
