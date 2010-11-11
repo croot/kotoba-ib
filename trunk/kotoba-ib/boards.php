@@ -59,7 +59,7 @@ try {
             $board = $b;
         }
 
-        if ($b['name'] == 'misc') {
+        if ($b['name'] == Config::BANNERS_BOARD) {
             $banners_board_id = $b['id'];
         }
     }
@@ -153,7 +153,9 @@ try {
 
     if ($banners_board_id) {
         $banners = images_get_by_board($banners_board_id);
-        $smarty->assign('banner', $banners[rand(0, count($banners) - 1)]);
+        if (count($banners) > 0) {
+            $smarty->assign('banner', $banners[rand(0, count($banners) - 1)]);
+        }
     }
 
     $favorites = favorites_get_by_user($_SESSION['user']);

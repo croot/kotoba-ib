@@ -51,7 +51,7 @@ begin
         else
             insert into boards (name, bump_limit, force_anonymous, with_attachments, same_upload, popdown_handler, category)
                         values ('misc',  30, 0, 1, 'once', 1, 1);
-            select laset_insert_id() into misc_id;
+            select last_insert_id() into misc_id;
             insert into acl (board, `view`, `change`, moderate) values (misc_id, 1, 0, 0);
         end if;
 
