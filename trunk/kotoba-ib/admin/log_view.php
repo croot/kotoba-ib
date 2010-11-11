@@ -45,24 +45,22 @@ try {
     if (!is_admin()) {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
     }
-    call_user_func(Logging::$f['LOG_VIEW']);
+    //call_user_func(Logging::$f['LOG_VIEW']);
+    $func = Logging::$f['LOG_VIEW'];
+    $func();
     Logging::close_log();
 
-
-    
-    if (isset($_FILES['file'])) {
-        check_upload_error($_FILES['file']['error']);
-        $list = split("\n", file_get_contents($_FILES['file']['tmp_name']));
-        foreach ($list as $range) {
-            if ($range) {
-                list($range_beg, $range_end) = split(' ', $range);
-                echo "Ban from $range_beg to $range_end</br>";
-            }
-        }
+    $i = 10;    // 10 последних записей.
+    $log = array();
+    $logf = fopen(Config::ABS_PATH . '/log/actions.log', 'r');
+    while (($line = fgets($logf)) && $i--) {
+        array_push($log, preg_split('/\|/', $line, -1, PREG_SPLIT_NO_EMPTY));
     }
 
     // Формирование кода страницы и вывод.
     $smarty->assign('show_control', is_admin() || is_mod());
+    $smarty->assign('log', $log);
+    $smarty->assign('boards', boards_get_all());
     $smarty->display('log_view.tpl');
 
     // Освобождение ресурсов и очиска.

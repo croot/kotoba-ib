@@ -91,4 +91,12 @@ Logging::$f['MASS_BAN'] = function () {
 Logging::$f['MANAGE'] = function () {
     Logging::write_msg('Задействован скрипт административных фукнций и фукнций модераторов.');
 };
+
+Logging::$f['LOG_VIEW'] = function () {
+    Logging::write_msg('Задействован просмотр лога.');
+};
+
+Logging::$f['EDIT_BANS'] = function () {
+    Logging::write_msg('Задействовано редактирование банов.');
+};
 ?>
