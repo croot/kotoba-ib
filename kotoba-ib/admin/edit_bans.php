@@ -35,20 +35,12 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    if (is_admin()) {
-        Logging::write_msg(Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log',
-                        Logging::$messages['ADMIN_FUNCTIONS_EDIT_BANS'],
-                        $_SESSION['user'], $_SERVER['REMOTE_ADDR']);
-        Logging::close_log();
-    } elseif (is_mod()) {
-        Logging::write_msg(Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log',
-                        Logging::$messages['ADMIN_FUNCTIONS_EDIT_BANS'],
-                        $_SESSION['user'], $_SERVER['REMOTE_ADDR']);
-        Logging::close_log();
-    } else {
+    if (!is_admin() && !is_mod()) {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN']
                 . ' ' . PermissionException::$messages['NOT_MOD']);
     }
+    $func = Logging::$f['EDIT_BANS'];
+    Logging::close_log();
 
     $bans = bans_get_all();
     date_default_timezone_set(Config::DEFAULT_TIMEZONE);
@@ -97,7 +89,7 @@ try {
         // Удаление банов.
         foreach ($bans as $ban) {
             if (isset($_POST['delete_' . $ban['id']])) {
-                bans_delete_byid($ban['id']);
+                bans_delete_by_id($ban['id']);
                 $reload_bans = true;
             }
         }
