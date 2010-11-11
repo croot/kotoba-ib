@@ -12,12 +12,12 @@
 // Скрипт редактирования блокировок.
 
 require '../config.php';
-require Config::ABS_PATH . '/lib/errors.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
-require Config::ABS_PATH . '/lib/logging.php';
+require_once Config::ABS_PATH . '/lib/logging.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
-require Config::ABS_PATH . '/lib/db.php';
-require Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
 
 try {
     kotoba_session_start();
