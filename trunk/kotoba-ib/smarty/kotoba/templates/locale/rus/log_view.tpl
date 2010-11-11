@@ -31,8 +31,8 @@
 <div class="logo">Просмотр лога</div>
 
 <hr>
-<table border="1">
-<tr><td>Дата</td><td>id пользователя</td><td>Группы пользователя</td><td>IP-адрес</td><td>Сообщение</td></tr>
+<table cellspacing="2" cellpadding="1" border="1" width="100%">
+<tr><th>Дата</th><th>id пользователя</th><th>Группы пользователя</th><th>IP-адрес</th><th>Сообщение</th></tr>
 {section name=i loop=$log}
     <tr><td>{$log[i][0]}</td><td>{$log[i][1]}</td><td>{$log[i][2]}</td><td>{$log[i][3]}</td><td>{$log[i][4]}</td></tr>
 {/section}
