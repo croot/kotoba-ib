@@ -12,13 +12,20 @@
 Код заголовка основной страницы модератора.
 
 Описание переменных:
-    $DIR_PATH - путь от корня документов к директории, где хранится index.php
-		(см. config.default).
+    $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
     $STYLESHEET - стиль оформления (см. config.default).
-	$is_admin - фалг администратора.
-	$boards - доски.
+    $show_control - показывать ссылку на страницу административных фукнций и фукнций модераторов в панели администратора.
+    $is_admin - фалг администратора.
+    $boards - доски.
 *}
-{include file='header.tpl' page_title='Основная страница модератора' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
+{include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title='Основная страница модератора'}
+
+{include file='adminbar.tpl' DIR_PATH=$DIR_PATH show_control=$show_control}
+
+{include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
+
+<div class="logo">Основная страница модератора</div>
+<hr>
 <form action="{$DIR_PATH}/admin/moderate.php" method="post">
 <table border="1">
 <tr>
@@ -36,10 +43,11 @@
 	</td>
 	<td>дата <input type="text" name="filter_date_time"></td>
 	<td>номер сообщения <input type="text" name="filter_number"></td>
+	<td>IP-адрес <input type="text" name="filter_ip"></td>
 	<td><input type="submit" name="filter" value="Выбрать"> <input type="reset" value="Сброс"></td>
 </tr>
 <tr>
-    <td colspan="4">Показывать только сообщения с вложениями <input type="checkbox" name="attachments_only" value="1"></td>
+    <td colspan="5">Показывать только сообщения с вложениями <input type="checkbox" name="attachments_only" value="1"></td>
 </tr>
 </table>
 </form>

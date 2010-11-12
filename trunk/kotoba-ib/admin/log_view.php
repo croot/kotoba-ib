@@ -43,19 +43,27 @@ try {
 
     // Проверка доступа и запись в лог.
     if (!is_admin()) {
-        //throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
+        throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
     }
-    //call_user_func(Logging::$f['LOG_VIEW']);
-    $func = Logging::$f['LOG_VIEW'];
-    $func();
+    call_user_func(Logging::$f['LOG_VIEW']);
     Logging::close_log();
 
-    $i = 10;    // 10 последних записей.
-    $log = array();
-    $logf = fopen(Config::ABS_PATH . '/log/actions.log', 'r');
-    while (($line = fgets($logf)) && $i--) {
-        array_push($log, preg_split('/\|/', $line, -1, PREG_SPLIT_NO_EMPTY));
+    date_default_timezone_set(Config::DEFAULT_TIMEZONE);
+    $logf = fopen(Config::ABS_PATH . '/log/actions-' . date('Y-m-d') . '.log', 'r');
+    $i = 0;
+    while (($line = fgets($logf))) {
+        $log[$i] = preg_split('/\|/', $line, -1, PREG_SPLIT_NO_EMPTY);
+        $log[$i][4] = htmlentities($log[$i][4], ENT_QUOTES, Config::MB_ENCODING);
+        $i++;
     }
+
+    // TODO Нужно сделать настраиваемой.
+    $records_count = 10;
+
+    if ( ($n = count($log)) > $records_count) {
+        $log = array_slice($log, $n - $records_count, $records_count);
+    }
+    $log = array_reverse($log);
 
     // Формирование кода страницы и вывод.
     $smarty->assign('show_control', is_admin() || is_mod());

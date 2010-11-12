@@ -12,12 +12,12 @@
 // Скрипт удаления помеченных на удаление сообщений, нитей, связей сообщений с вложениями.
 
 require '../config.php';
-require Config::ABS_PATH . '/lib/errors.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
-require Config::ABS_PATH . '/lib/logging.php';
+require_once Config::ABS_PATH . '/lib/logging.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
-require Config::ABS_PATH . '/lib/db.php';
-require Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
 
 try {
     // Initialization.
@@ -41,18 +41,18 @@ try {
     if (!is_admin()) {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
     }
-    Logging::write_msg(Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log',
-            Logging::$messages['ADMIN_FUNCTIONS_DELETE_MARKED_POSTS'],
-            $_SESSION['user'], $_SERVER['REMOTE_ADDR']);
-    Logging::close_log();
+    call_user_func(Logging::$f['DELETE_MARKED_POSTS_USE']);
 
     posts_delete_marked();
     threads_delete_marked();
     posts_attachments_delete_marked();
+    
+    header('Location: ' . Config::DIR_PATH . '/manage.php');
 
     DataExchange::releaseResources();
-    header('Location: ' . Config::DIR_PATH . '/manage.php');
-    exit;
+    Logging::close_log();
+
+    exit(0);
 } catch(Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();

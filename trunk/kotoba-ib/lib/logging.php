@@ -52,8 +52,10 @@ class Logging {
             throw new CommonException('Temporary disabled.');
         }
 
+        date_default_timezone_set(Config::DEFAULT_TIMEZONE);
         if (self::$log_file == null) {
-            self::$log_file = fopen(Config::ABS_PATH . '/log/actions.log', 'a');
+            // TODO Надо добавить в конфиг этот формат даты.
+            self::$log_file = fopen(Config::ABS_PATH . '/log/actions-' . date('Y-m-d') . '.log', 'a');
             if (!self::$log_file) {
                 throw new CommonException(CommonException::$messages['LOG_FILE']);
             }

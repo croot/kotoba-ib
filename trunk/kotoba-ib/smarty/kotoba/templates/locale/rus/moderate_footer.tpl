@@ -13,5 +13,4 @@
 *}
 	</table>
 </form>
-<br><br><a href="{$DIR_PATH}/">На главную</a>
 {include file='footer.tpl'}

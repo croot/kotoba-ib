@@ -48,8 +48,7 @@ try {
     if (!is_admin()) {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
     }
-    call_user_func(Logging::$f['MASS_BAN']);
-    Logging::close_log();
+    call_user_func(Logging::$f['MASS_BAN_USE']);
 
     
     if (isset($_FILES['file'])) {
@@ -58,17 +57,28 @@ try {
         foreach ($list as $range) {
             if ($range) {
                 list($range_beg, $range_end) = split(' ', $range);
-                echo "Ban from $range_beg to $range_end</br>";
+
+                // Бан на месяц.
+                $reason = 'Mass ban utility';
+                $until = date(Config::DATETIME_FORMAT, time() + 60 * 60 * 24 * 30);
+                bans_add(ip2long($range_beg), ip2long($range_end), $reason, $until);
+                call_user_func(Logging::$f['MASS_BAN_ADD'],
+                               $range_beg,
+                               $range_end,
+                               $reason,
+                               $until);
             }
         }
     }
 
     // Формирование кода страницы и вывод.
     $smarty->assign('show_control', is_admin() || is_mod());
+    $smarty->assign('boards', boards_get_all());
     $smarty->display('mass_ban.tpl');
 
     // Освобождение ресурсов и очиска.
     DataExchange::releaseResources();
+    Logging::close_log();
 
     exit(0);
 } catch (Exception $e) {
