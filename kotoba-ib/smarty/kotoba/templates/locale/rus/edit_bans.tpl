@@ -14,9 +14,17 @@
 Описание переменных:
     $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
     $STYLESHEET - стиль оформления (см. config.default).
-	$bans_decoded - баны с проеобразованной датой и ip в обычный формат из целого.
+    $show_control - показывать ссылку на страницу административных фукнций и фукнций модераторов в панели администратора.
+    $bans_decoded - баны с проеобразованной датой и ip в обычный формат из целого.
 *}
-{include file='header.tpl' page_title='Редактирование банов' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
+{include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title='Редактирование банов'}
+
+{include file='adminbar.tpl' DIR_PATH=$DIR_PATH show_control=$show_control}
+
+{include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
+
+<div class="logo">Редактирование банов</div>
+<hr>
 <form action="{$DIR_PATH}/admin/edit_bans.php" method="post">
 <table border="1">
 <tr>
@@ -59,5 +67,4 @@
 Разбанить заданный ip: <input type="text" name="unban"><br><br>
 <input type="reset" value="Сброс"> <input type="submit" name="submit" value="Сохранить">
 </form>
-<br><br><a href="{$DIR_PATH}/">На главную</a>
 {include file='footer.tpl'}

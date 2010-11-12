@@ -12,12 +12,12 @@
 // Основной скрипт модератора.
 
 require '../config.php';
-require Config::ABS_PATH . '/lib/errors.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
-require Config::ABS_PATH . '/lib/logging.php';
+require_once Config::ABS_PATH . '/lib/logging.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
-require Config::ABS_PATH . '/lib/db.php';
-require Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
 
 try {
     kotoba_session_start();
@@ -41,13 +41,11 @@ try {
     } elseif (!is_mod()) {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN'] . ' ' . PermissionException::$messages['NOT_MOD']);
     }
-    Logging::write_msg(Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log',
-            Logging::$messages['MOD_FUNCTIONS_MODERATE'],
-            $_SESSION['user'], $_SERVER['REMOTE_ADDR']);
-    Logging::close_log();
+    call_user_func(Logging::$f['MODERATE_USE']);
 
     $boards = ($is_admin == true) ? boards_get_all() : boards_get_moderatable($_SESSION['user']);
     $output = '';
+    $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('is_admin', $is_admin);
     $smarty->assign('boards', $boards);
     $smarty->assign('ATTACHMENT_TYPE_FILE', Config::ATTACHMENT_TYPE_FILE);
@@ -62,8 +60,9 @@ try {
             && isset($_POST['filter_board'])
             && isset($_POST['filter_date_time'])
             && isset($_POST['filter_number'])
+            && isset($_POST['filter_ip'])
             && $_POST['filter_board'] != ''
-            && ($_POST['filter_date_time'] != '' || $_POST['filter_number'] != '')) {
+            && ($_POST['filter_date_time'] != '' || $_POST['filter_number'] != '' ||  $_POST['filter_ip'] != '')) {
 
         // Board filter.
         if ($_POST['filter_board'] == 'all') {
@@ -110,6 +109,16 @@ try {
                 return false;
             };
             $posts = posts_get_filtred_by_boards($filter_boards, $fileter, $filter_number, isset($_POST['attachments_only']));
+        } elseif($_POST['filter_ip'] != '') {
+
+            // Filters posts whose ip equal defined value.
+            $fileter = function($filter_ip, $post) {
+                if ($post['ip'] == $filter_ip) {
+                    return true;
+                }
+                return false;
+            };
+            $posts = posts_get_filtred_by_boards($filter_boards, $fileter, ip2long($_POST['filter_ip']));
         }
 
         // Generate list of filtered posts.
@@ -221,7 +230,9 @@ try {
     echo $output;
 
     DataExchange::releaseResources();
-    exit;
+    Logging::close_log();
+
+    exit(0);
 } catch(Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();

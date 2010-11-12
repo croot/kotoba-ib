@@ -39,8 +39,7 @@ try {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN']
                 . ' ' . PermissionException::$messages['NOT_MOD']);
     }
-    $func = Logging::$f['EDIT_BANS'];
-    Logging::close_log();
+    call_user_func(Logging::$f['EDIT_BANS_USE']);
 
     $bans = bans_get_all();
     date_default_timezone_set(Config::DEFAULT_TIMEZONE);
@@ -72,7 +71,7 @@ try {
             }
             $new_untill = bans_check_untill($_POST['new_untill']);
             bans_add($new_range_beg, $new_range_end, $new_reason,
-                    date('Y-m-d H:i:s', time() + $new_untill));
+                     date('Y-m-d H:i:s', time() + $new_untill));
             $reload_bans = true;
             if (isset($_POST['post'])) {
                 if (isset($_POST['add_text'])) {
@@ -117,9 +116,15 @@ try {
             'untill' => $ban['untill']));
     }
 
-    DataExchange::releaseResources();
+    $smarty->assign('show_control', is_admin() || is_mod());
+    $smarty->assign('boards', boards_get_all());
     $smarty->assign('bans_decoded', $bans_decoded);
     $smarty->display('edit_bans.tpl');
+
+    DataExchange::releaseResources();
+    Logging::close_log();
+
+    exit(0);
 } catch (Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();
