@@ -12,12 +12,12 @@
 // Скрипт редактирования связей загружаемых типов файлов с досками.
 
 require '../config.php';
-require Config::ABS_PATH . '/lib/errors.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
-require Config::ABS_PATH . '/lib/logging.php';
+require_once Config::ABS_PATH . '/lib/logging.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
-require Config::ABS_PATH . '/lib/db.php';
-require Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
 
 try {
     kotoba_session_start();
@@ -38,10 +38,7 @@ try {
     if (!is_admin()) {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
     }
-    Logging::write_msg(Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log',
-            Logging::$messages['ADMIN_FUNCTIONS_EDIT_BOARD_UPLOAD_TYPES'],
-            $_SESSION['user'], $_SERVER['REMOTE_ADDR']);
-    Logging::close_log();
+    call_user_func(Logging::$f['EDIT_BOARD_UPLOAD_TYPES_USE']);
 
     $upload_types = upload_types_get_all();
     $boards = boards_get_all();
@@ -81,6 +78,9 @@ try {
     $smarty->display('edit_board_upload_types.tpl');
 
     DataExchange::releaseResources();
+    Logging::close_log();
+
+    exit(0);
 } catch(Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();
