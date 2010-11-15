@@ -41,7 +41,7 @@ try {
     if (!is_admin()) {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
     }
-    call_user_func(Logging::$f['DELETE_DANGLING_FILES']);
+    call_user_func(Logging::$f['DELETE_DANGLING_ATTACHMENTS_USE']);
 
     $attachments = attachments_get_dangling();
     $boards = boards_get_all();

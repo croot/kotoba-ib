@@ -12,12 +12,12 @@
 // Edit boards script.
 
 require '../config.php';
-require Config::ABS_PATH . '/lib/errors.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
-require Config::ABS_PATH . '/lib/logging.php';
+require_once Config::ABS_PATH . '/lib/logging.php';
 require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
-require Config::ABS_PATH . '/lib/db.php';
-require Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
 
 try {
     // Initialization.
@@ -41,11 +41,7 @@ try {
     if (!is_admin()) {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
     }
-    Logging::write_msg(Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log',
-                       Logging::$messages['ADMIN_FUNCTIONS_EDIT_BOARDS'],
-                       $_SESSION['user'],
-                       $_SERVER['REMOTE_ADDR']);
-    Logging::close_log();
+    call_user_func(Logging::$f['EDIT_BOARDS_USE']);
 
     $popdown_handlers = popdown_handlers_get_all();
     $categories = categories_get_all();
@@ -276,15 +272,17 @@ try {
         $boards = boards_get_all();
     }
 
-    // Cleanup.
-    DataExchange::releaseResources();
-
     // Show edit form.
     $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('popdown_handlers', $popdown_handlers);
     $smarty->assign('categories', $categories);
     $smarty->assign('boards', $boards);
     $smarty->display('edit_boards.tpl');
+
+    // Cleanup.
+    DataExchange::releaseResources();
+    Logging::close_log();
+
     exit(0);
 } catch(Exception $e) {
     $smarty->assign('msg', $e->__toString());
