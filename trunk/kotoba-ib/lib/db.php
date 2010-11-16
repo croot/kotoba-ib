@@ -15,14 +15,15 @@
  */
 
 /***/
-// Конечный скрипт должен загрузить конфигурацию!
-if (!class_exists("Config")) {
-    throw new Exception("User-end script MUST load a configuraion!");
+if (!array_filter(get_included_files(), function($path) { return basename($path) == 'config.php'; })) {
+    throw new Exception('Configuration file <b>config.php</b> must be included and executed BEFORE '
+                        . '<b>' . basename(__FILE__) . '</b> but its not.');
 }
-require_once Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
+if (!array_filter(get_included_files(), function($path) { return basename($path) == 'errors.php'; })) {
+    throw new Exception('Error handing file <b>errors.php</b> must be included and executed BEFORE '
+                        . '<b>' . basename(__FILE__) . '</b> but its not.');
+}
 require_once Config::ABS_PATH . '/lib/mysql.php';
-// TODO Может быть ещё что-то?
 
 /**********
  * Разное *
