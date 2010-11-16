@@ -14,6 +14,12 @@
  * @package api
  */
 
+/***/
+if (!array_filter(get_included_files(), function($path) { return basename($path) == 'config.php'; })) {
+    throw new Exception('Configuration file <b>config.php</b> must be included and executed BEFORE '
+                        . '<b>' . basename(__FILE__) . '</b> but its not.');
+}
+
 /**
  * Разные ошибки.
  * @package exceptions
@@ -257,4 +263,7 @@ class LimitException extends Exception {
         return $this->reason;
     }
 }
+
+// Загрузка сообщений об ошибках на языке по умолчанию.
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 ?>
