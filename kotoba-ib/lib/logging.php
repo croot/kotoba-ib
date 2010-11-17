@@ -70,4 +70,7 @@ class Logging {
                . "$msg\n");
     }
 }
+
+// Загрузка сообщений на языке по умолчанию.
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
 ?>

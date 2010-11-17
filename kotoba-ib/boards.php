@@ -13,7 +13,6 @@
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
 require_once Config::ABS_PATH . '/lib/wrappers.php';
@@ -271,8 +270,12 @@ try {
     echo $boards_html;
     exit;
 } catch(Exception $e) {
-    $smarty->assign('msg', $e->__toString());
-    DataExchange::releaseResources();
-    die($smarty->fetch('error.tpl'));
+    if (isset($smarty)) {
+        $smarty->assign('msg', $e->__toString());
+        DataExchange::releaseResources();
+        die($smarty->fetch('error.tpl'));
+    } else {
+        die($e->__toString());
+    }
 }
 ?>

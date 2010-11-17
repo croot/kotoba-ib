@@ -9,23 +9,25 @@
  * See license.txt for more info.*
  *********************************/
 
-// Скрипт архивирования нитей.
+/*
+ * Скрипт архивирования нитей.
+ *
+ * 
+ */
 
-require '../config.php';
+require_once '../config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/logging.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
 
 try {
-    // Initialization.
+    // Инициализация.
     kotoba_session_start();
     locale_setup();
     $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
-    // Check if remote host was banned.
+    // Проверка, не заблокирован ли клиент.
     if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
@@ -37,7 +39,7 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    // Check permission and write message to log file.
+    // Проверка уровня доступа и запись сообщения в лог.
     if (!is_admin()) {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
     }
