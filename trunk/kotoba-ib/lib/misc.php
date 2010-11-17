@@ -28,7 +28,7 @@ if (!array_filter(get_included_files(), function($path) { return basename($path)
  * Начальная инициализация. *
  ****************************/
 
-require Config::ABS_PATH . '/smarty/Smarty.class.php';
+require Config::ABS_PATH . '/smarty/libs/Smarty.class.php';
 /**
  * Расширение класса для работы с шаблонизатором. Местоположение шаблонов
  * зависит от текущего языка, поэтому при его изменении по ходу работы скрипта
@@ -48,7 +48,7 @@ class SmartyKotobaSetup extends Smarty { // Java CC
         // Try to fix warning on strftime.
         date_default_timezone_set(Config::DEFAULT_TIMEZONE);
 
-        $this->Smarty();
+        parent::__construct();
         $this->language = $language;
         $this->stylesheet = $stylesheet;
 

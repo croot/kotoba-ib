@@ -27,15 +27,20 @@
     $postid - Идентификатор поста.
     $author_admin - Сообщение было оставлено администратором.
     $is_board_view - Сообщение выводится при просмотре доски.
+
+    $enable_doubledash
+    $enable_anchor
+    $enable_remove_post
+    $enable_extrabtns
 *}
 <table>
     <tbody>
         <tr>
-            <td class="doubledash">
-                &gt;&gt;
-            </td>
+            {if !isset($enable_doubledash) || $enable_doubledash == TRUE}<td class="doubledash"> &gt;&gt; </td>{/if}
+
             <td class="reply">
-                <a name="{$simple_post.number}"></a>
+                {if !isset($enable_anchor) || $enable_anchor == TRUE}<a name="{$simple_post.number}"></a>{/if}
+
                 <span><a href="{$DIR_PATH}/remove_post.php?post={$simple_post.id}"><img src="{$DIR_PATH}/css/delete.png" alt="[Удалить]" title="Удалить сообщение" border="0"/></a></span>
                 <span class="extrabtns">
                     {if $simple_post.with_attachments}
