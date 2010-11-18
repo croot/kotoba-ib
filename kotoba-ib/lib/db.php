@@ -1937,22 +1937,7 @@ function posts_get_by_thread($thread_id)
  * @param array $boards Доски.
  * @param Object $filter Фильтр (лямбда).
  * @return array
- * Возвращает сообщения:<br>
- * <i>id</i> - идентификатор.<br>
- * <i>board</i> - идентификатор доски.<br>
- * <i>board_name</i> - имя доски.<br>
- * <i>thread</i> - идентификатор нити.<br>
- * <i>thread_number</i> - номер нити.<br>
- * <i>number</i> - номер.<br>
- * <i>password</i> - пароль.<br>
- * <i>name</i> - имя отправителя.<br>
- * <i>tripcode</i> - трипкод.<br>
- * <i>ip</i> - IP-адрес отправителя.<br>
- * <i>subject</i> - тема.<br>
- * <i>date_time</i> - время сохранения.<br>
- * <i>text</i> - текст.<br>
- * <i>sage</i> - флаг поднятия нити.<br>
- * <i>attachments_count</i> - количество вложений.
+ * Возвращает сообщения с разверунтыми данными о доске и нити.
  */
 function posts_get_filtred_by_boards($boards, $filter) { // Java CC
     $posts = db_posts_get_by_boards(DataExchange::getDBLink(), $boards);

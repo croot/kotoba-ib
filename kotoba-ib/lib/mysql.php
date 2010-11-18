@@ -2736,22 +2736,7 @@ function db_posts_get_all_numbers($link) { // Java CC
  * @param MySQLi $link Связь с базой данных.
  * @param array $boards Доски.
  * @return array
- * Возвращает сообщения:<br>
- * <i>id</i> - идентификатор.<br>
- * <i>board</i> - идентификатор доски.<br>
- * <i>board_name</i> - имя доски.<br>
- * <i>thread</i> - идентификатор нити.<br>
- * <i>thread_number</i> - номер нити.<br>
- * <i>number</i> - номер.<br>
- * <i>password</i> - пароль.<br>
- * <i>name</i> - имя отправителя.<br>
- * <i>tripcode</i> - трипкод.<br>
- * <i>ip</i> - IP-адрес отправителя.<br>
- * <i>subject</i> - тема.<br>
- * <i>date_time</i> - время сохранения.<br>
- * <i>text</i> - текст.<br>
- * <i>sage</i> - флаг поднятия нити.<br>
- * <i>attachments_count</i> - количество вложений.
+ * Возвращает сообщения с разверунтыми данными о доске и нити.
  */
 function db_posts_get_by_boards($link, $boards) { // Java CC
     $posts = array();
@@ -2760,24 +2745,54 @@ function db_posts_get_by_boards($link, $boards) { // Java CC
         if (!$result) {
             throw new CommonException(mysqli_error($link));
         }
+
         if (mysqli_affected_rows($link) > 0) {
-            while(($row = mysqli_fetch_assoc($result)) != null) {
-                array_push($posts,
-                    array('id' => $row['id'],
-                          'board' => $row['board'],
-                          'board_name' => $row['board_name'],
-                          'thread' => $row['thread'],
-                          'thread_number' => $row['thread_number'],
-                          'number' => $row['number'],
-                          'password' => $row['password'],
-                          'name' => $row['name'],
-                          'tripcode' => $row['tripcode'],
-                          'ip' => $row['ip'],
-                          'subject' => $row['subject'],
-                          'date_time' => $row['date_time'],
-                          'text' => $row['text'],
-                          'sage' => $row['sage'],
-                          'attachments_count' => $row['attachments_count']));
+            while (($row = mysqli_fetch_assoc($result)) != null) {
+                if (!isset ($tmp_boards["{$row['post_board']}"])) {
+                    $tmp_boards["{$row['post_board']}"] =
+                        array('id' => $row['board_id'],
+                              'name' => $row['board_name'],
+                              'title' => $row['board_title'],
+                              'annotation' => $row['board_annotation'],
+                              'bump_limit' => $row['board_bump_limit'],
+                              'force_anonymous' => $row['board_force_anonymous'],
+                              'default_name' => $row['board_default_name'],
+                              'with_attachments' => $row['board_with_attachments'],
+                              'enable_macro' => $row['board_enable_macro'],
+                              'enable_youtube' => $row['board_enable_youtube'],
+                              'enable_captcha' => $row['board_enable_captcha'],
+                              'enable_translation' => $row['board_enable_translation'],
+                              'enable_geoip' => $row['board_enable_geoip'],
+                              'enable_shi' => $row['board_enable_shi'],
+                              'enable_postid' => $row['board_enable_postid'],
+                              'same_upload' => $row['board_same_upload'],
+                              'popdown_handler' => $row['board_popdown_handler'],
+                              'category' => $row['board_category']);
+                }
+                if (!isset ($tmp_threads["{$row['post_thread']}"])) {
+                    $tmp_threads["{$row['post_thread']}"] =
+                        array('id' => $row['thread_id'],
+                              'board' => $row['thread_board'],
+                              'original_post' => $row['thread_original_post'],
+                              'bump_limit' => $row['thread_bump_limit'],
+                              'sage' => $row['thread_sage'],
+                              'sticky' => $row['thread_sticky'],
+                              'with_attachments' => $row['thread_with_attachments']);
+                }
+                array_push($posts, array('id' => $row['post_id'],
+                                         'board' => &$tmp_boards["{$row['post_board']}"],
+                                         'thread' => &$tmp_threads["{$row['post_thread']}"],
+                                         'number' => $row['post_number'],
+                                         'user' => $row['post_user'],
+                                         'password' => $row['post_password'],
+                                         'name' => $row['post_name'],
+                                         'tripcode' => $row['post_tripcode'],
+                                         'ip' => $row['post_ip'],
+                                         'subject' => $row['post_subject'],
+                                         'date_time' => $row['post_date_time'],
+                                         'text' => $row['post_text'],
+                                         'sage' => $row['post_sage'],
+                                         'attachments_count' => $row['attachments_count']));
             }
         }
 
