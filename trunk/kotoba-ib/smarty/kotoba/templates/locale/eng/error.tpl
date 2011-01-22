@@ -1,21 +1,18 @@
 {* Smarty *}
-{*************************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************
- *********************************
+{*********************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************}
 {*
-Код, выводящийся при возникновении критических ошибок.
+Code of error page.
 
-Описание переменных:
-	$DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-	$STYLESHEET - стиль оформления (см. config.default).
-	$msg - текст сообщения об ошибке.
+Variables:
+    $DIR_PATH - path from server document root to index.php directory (see config.default).
+    $STYLESHEET - stylesheet (see config.default).
+    $msg - Error message.
 *}
-{include file='header.tpl' page_title='Ошибка' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
+{include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title='Error'}
+
+<br>
 <span class="error">{$msg}</span>
 {include file='footer.tpl'}

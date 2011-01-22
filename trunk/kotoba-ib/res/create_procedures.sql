@@ -308,11 +308,11 @@ begin
         values (_range_beg, _range_end, _reason, _untill);
 end|
 
--- Проверяет, заблокирован ли IP-адрес. Если да, то возвращает запись с самым
--- широким диапазоном IP-адресов, в который он входит.
+-- Checks if IP-address banned. If it is then return information about widest
+-- banned range of IP-addresses what contains ip.
 create procedure sp_bans_check
 (
-    ip int  -- IP-адрес.
+    ip int  -- IP-address.
 )
 begin
     call sp_bans_refresh();
@@ -405,23 +405,23 @@ end|
 -- Добавляет доску.
 create procedure sp_boards_add
 (
-    _name varchar(16),          -- Имя.
-    _title varchar(50),         -- Заголовок.
-    _annotation text,           -- Аннотация.
-    _bump_limit int,            -- Специфичный для доски бамплимит.
-    _force_anonymous bit,       -- Флаг отображения имени отправителя.
-    _default_name varchar(128), -- Имя отправителя по умолчанию.
-    _with_attachments bit,      -- Флаг вложений.
-    _enable_macro bit,          -- Включение интеграции с макрочаном.
-    _enable_youtube bit,        -- Включение вложения видео с ютуба.
-    _enable_captcha bit,        -- Включение капчи.
-    _enable_translation bit,    -- Включение перевода текста сообщения.
-    _enable_geoip bit,          -- Включение отображения страны автора сообщения.
-    _enable_shi bit,            -- Включение рисования.
-    _enable_postid bit,         -- Включение идентификатора сообщения.
-    _same_upload varchar(32),   -- Политика загрузки одинаковых файлов.
-    _popdown_handler int,       -- Идентификатор обработчика автоматического удаления нитей.
-    _category int               -- Идентификатор категории.
+    _name varchar(16),          -- Name.
+    _title varchar(50),         -- Title.
+    _annotation text,           -- Annotation.
+    _bump_limit int,            -- Board specific bump limit.
+    _force_anonymous bit,       -- Hide name flag.
+    _default_name varchar(128), -- Default name.
+    _with_attachments bit,      -- Attachments flag.
+    _enable_macro bit,          -- Macrochan integration flag.
+    _enable_youtube bit,        -- Youtube video posting flag.
+    _enable_captcha bit,        -- Captcha flag.
+    _enable_translation bit,    -- Translation flag.
+    _enable_geoip bit,          -- GeoIP flag.
+    _enable_shi bit,            -- Painting flag.
+    _enable_postid bit,         -- Post identification flag.
+    _same_upload varchar(32),   -- Upload policy from same files.
+    _popdown_handler int,       -- Popdown handler id.
+    _category int               -- Category id.
 )
 begin
     insert into boards (name,
@@ -460,38 +460,35 @@ begin
                         _category);
 end|
 
--- Удаляет доску с заданным идентификатором.
---
--- Аргументы:
--- _id - Идентификатор доски.
+-- Delete board.
 create procedure sp_boards_delete
 (
-	_id int
+    _id int -- Board id.
 )
 begin
-	delete from boards where id = _id;
+    delete from boards where id = _id;
 end|
 
--- Редактирует доску.
+-- Edit board.
 create procedure sp_boards_edit
 (
-    _id int,                    -- Идентификатор.
-    _title varchar(50),         -- Заголовок.
-    _annotation text,           -- Аннотация.
-    _bump_limit int,            -- Специфичный для доски бамплимит.
-    _force_anonymous bit,       -- Флаг отображения имени отправителя.
-    _default_name varchar(128), -- Имя отправителя по умолчанию.
-    _with_attachments bit,      -- Флаг вложений.
-    _enable_macro bit,          -- Включение интеграции с макрочаном.
-    _enable_youtube bit,        -- Включение вложения видео с ютуба.
-    _enable_captcha bit,        -- Включение капчи.
-    _enable_translation bit,    -- Включение перевода текста сообщения.
-    _enable_geoip bit,          -- Включение отображения страны автора сообщения.
-    _enable_shi bit,            -- Включение рисования.
-    _enable_postid bit,         -- Включение идентификатора сообщения.
-    _same_upload varchar(32),   -- Политика загрузки одинаковых файлов.
-    _popdown_handler int,       -- Идентификатор обработчика автоматического удаления нитей.
-    _category int               -- Идентификатор категории.
+    _id int,                    -- Id.
+    _title varchar(50),         -- Title.
+    _annotation text,           -- Annotation.
+    _bump_limit int,            -- Board specific bump limit.
+    _force_anonymous bit,       -- Hide name flag.
+    _default_name varchar(128), -- Default name.
+    _with_attachments bit,      -- Attachments flag.
+    _enable_macro bit,          -- Macrochan integration flag.
+    _enable_youtube bit,        -- Youtube video posting flag.
+    _enable_captcha bit,        -- Captcha flag.
+    _enable_translation bit,    -- Translation flag.
+    _enable_geoip bit,          -- GeoIP flag.
+    _enable_shi bit,            -- Painting flag.
+    _enable_postid bit,         -- Post identification flag.
+    _same_upload varchar(32),   -- Upload policy from same files.
+    _popdown_handler int,       -- Popdown handler id.
+    _category int               -- Category id.
 )
 begin
     update boards set title = _title,
@@ -513,16 +510,28 @@ begin
         where id = _id;
 end|
 
--- Выбирает все доски.
+-- Select boards.
 create procedure sp_boards_get_all ()
 begin
-    select  b.id,             b.name,             b.title,
-            b.annotation,     b.bump_limit,       b.force_anonymous,
-            b.default_name,   b.with_attachments, b.enable_macro,
-            b.enable_youtube, b.enable_captcha,   b.enable_translation,
-            b.enable_geoip,   b.enable_shi,       b.enable_postid,
-            b.same_upload,    b.popdown_handler,  b.category,
-            c.name as category_name
+    select b.id,
+           b.name,
+           b.title,
+           b.annotation,
+           b.bump_limit,
+           b.force_anonymous,
+           b.default_name,
+           b.with_attachments,
+           b.enable_macro,
+           b.enable_youtube,
+           b.enable_captcha,
+           b.enable_translation,
+           b.enable_geoip,
+           b.enable_shi,
+           b.enable_postid,
+           b.same_upload,
+           b.popdown_handler,
+           b.category,
+           c.name as category_name
         from boards b
         join categories c on c.id = b.category;
 end|
@@ -735,13 +744,10 @@ begin
 	order by b.name;
 end|
 
--- Выбирает доски, доступные для просмотра заданному пользователю.
---
--- Аргументы:
--- user_id - идентификатор пользователя.
+-- Select boards visible to user.
 create procedure sp_boards_get_visible
 (
-    user_id int
+    user_id int -- User id.
 )
 begin
     select b.id, b.name, b.title, b.annotation, b.bump_limit, b.force_anonymous,
@@ -795,10 +801,10 @@ begin
 	delete from categories where id = _id;
 end|
 
--- Возвращает все категории.
+-- Select categories.
 create procedure sp_categories_get_all ()
 begin
-	select id, name from categories;
+    select id, name from categories;
 end|
 
 -- ------------------------------
@@ -836,10 +842,10 @@ begin
     delete from favorites where user = _user and thread = _thread;
 end|
 
--- Выбирает избранные нити пользователя.
+-- Select favorite threads.
 create procedure sp_favorites_get_by_user
 (
-    _user int    -- Идентификатор пользователя.
+    _user int   -- User id.
 )
 begin
     select  u.id as user_id,
@@ -949,13 +955,19 @@ begin
     select last_insert_id() as id;
 end|
 
--- Выбирает файлы, вложенные в заданное сообщение.
+-- Select files.
 create procedure sp_files_get_by_post
 (
-    post_id int -- Идентификатор сообщения.
+    post_id int -- Post id.
 )
 begin
-    select f.id, f.hash, f.name, f.size, f.thumbnail, f.thumbnail_w, f.thumbnail_h
+    select f.id,
+           f.hash,
+           f.name,
+           f.size,
+           f.thumbnail,
+           f.thumbnail_w,
+           f.thumbnail_h
         from posts_files pf
         join files f on f.id = pf.file and pf.post = post_id;
 end|
@@ -1116,18 +1128,15 @@ begin
 	delete from hidden_threads where user = user_id and thread = thread_id;
 end|
 
--- Выбирает скрыте нити на заданной доске.
---
--- Аргументы:
--- board_id - идентификатор доски.
+-- Select hidden threads.
 create procedure sp_hidden_threads_get_by_board
 (
-	board_id int
+    board_id int    -- Board id.
 )
 begin
-	select ht.thread, t.original_post, ht.user
-	from hidden_threads ht
-	join threads t on t.id = ht.thread and t.board = board_id;
+    select ht.thread, t.original_post, ht.user
+        from hidden_threads ht
+        join threads t on t.id = ht.thread and t.board = board_id;
 end|
 
 -- Выбирает доступную для просмотра скрытую нить и количество сообщений в ней.
@@ -1243,13 +1252,22 @@ begin
         where p.board = _board;
 end|
 
--- Выбирает изображения, вложенные в заданное сообщение.
+-- Select images.
 create procedure sp_images_get_by_post
 (
-    post_id int -- Идентификатор сообщения.
+    post_id int -- Post id.
 )
 begin
-    select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail, i.thumbnail_w, i.thumbnail_h, i.spoiler
+    select i.id,
+           i.hash,
+           i.name,
+           i.widht,
+           i.height,
+           i.size,
+           i.thumbnail,
+           i.thumbnail_w,
+           i.thumbnail_h,
+           i.spoiler
         from posts_images pi
         join images i on i.id = pi.image and pi.post = post_id;
 end|
@@ -1346,7 +1364,7 @@ begin
 	delete from languages where id = _id;
 end|
 
--- Выбирает все языки.
+-- Select languages.
 create procedure sp_languages_get_all ()
 begin
 	select id, code from languages;
@@ -1373,14 +1391,20 @@ begin
     select last_insert_id() as id;
 end|
 
--- Выбирает ссылки на изображения, вложенные в заданное сообщение.
+-- Select links.
 create procedure sp_links_get_by_post
 (
-    post_id int -- Идентификатор сообщения.
+    post_id int -- Post id.
 )
 begin
-    select l.id, l.url, l.widht, l.height, l.size, l.thumbnail, l.thumbnail_w,
-            l.thumbnail_h
+    select l.id,
+           l.url,
+           l.widht,
+           l.height,
+           l.size,
+           l.thumbnail,
+           l.thumbnail_w,
+           l.thumbnail_h
         from posts_links pl
         join links l on l.id = pl.link and pl.post = post_id;
 end|
@@ -1577,7 +1601,7 @@ begin
 	delete from popdown_handlers where id = _id;
 end|
 
--- Выбирает все обработчики автоматического удаления нитей.
+-- Select popdown hanglers.
 create procedure sp_popdown_handlers_get_all ()
 begin
     select id, name from popdown_handlers;
@@ -1988,18 +2012,55 @@ begin
         group by p.id;
 end|
 
--- Для заданной нити выбирает сообщения, доступные для просмотра заданному
--- пользователю.
+-- Select posts visible to user and filter it.
 create procedure sp_posts_get_visible_by_thread
 (
-    thread_id int,  -- Идентификатор нити.
-    user_id int     -- Идентификатор пользователя.
+    thread_id int,  -- Thread id.
+    user_id int     -- User id.
 )
 begin
-    select p.id, p.thread, p.number, p.user, p.password, p.name, p.tripcode,
-            p.ip, p.subject, p.date_time, p.text, p.sage
+    select p.id as post_id,
+           p.number as post_number,
+           p.user as post_user,
+           p.password as post_password,
+           p.name as post_name,
+           p.tripcode as post_tripcode,
+           p.ip as post_ip,
+           p.subject as post_subject,
+           p.date_time as post_date_time,
+           p.text as post_text,
+           p.sage as post_sage,
+
+           t.id as thread_id,
+           t.board as thread_board,
+           t.original_post as thread_original_post,
+           t.bump_limit as thread_bump_limit,
+           t.sage as thread_sage,
+           t.sticky as thread_sticky,
+           t.with_attachments as thread_with_attachments,
+
+           b.id as board_id,
+           b.name as board_name,
+           b.title as board_title,
+           b.annotation as board_annotation,
+           b.bump_limit as board_bump_limit,
+           b.force_anonymous as board_force_anonymous,
+           b.default_name as board_default_name,
+           b.with_attachments as board_with_attachments,
+           b.enable_macro as board_enable_macro,
+           b.enable_youtube as board_enable_youtube,
+           b.enable_captcha as board_enable_captcha,
+           b.enable_translation as board_enable_translation,
+           b.enable_geoip as board_enable_geoip,
+           b.enable_shi as board_enable_shi,
+           b.enable_postid as board_enable_postid,
+           b.same_upload as board_same_upload,
+           b.popdown_handler as board_popdown_handler,
+           b.category as board_category
+
         from posts p
         join threads t on t.board = p.board and t.id = p.thread
+        join boards b on b.id = p.board
         join user_groups ug on ug.user = user_id
         -- Правило для конкретной группы и сообщения.
         left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
@@ -2157,16 +2218,13 @@ begin
     delete from posts_files where deleted = 1;
 end|
 
--- Выбирает связи заданного сообщения с вложенными файлами.
---
--- Аргументы:
--- post_id - Идентификатор сообщения.
+-- Select posts files relations.
 create procedure sp_posts_files_get_by_post
 (
-    post_id int
+    post_id int -- Post id.
 )
 begin
-    select post, file, deleted from posts_files where post = post_id and deleted = 0;
+    select post, file, deleted from posts_files where post = post_id;
 end|
 
 -- -------------------------------------------------------
@@ -2200,16 +2258,13 @@ begin
     delete from posts_images where deleted = 1;
 end|
 
--- Выбирает связи заданного сообщения с вложенными изображениями.
---
--- Аргументы:
--- post_id - Идентификатор сообщения.
+-- Select posts images relations.
 create procedure sp_posts_images_get_by_post
 (
-    post_id int
+    post_id int -- Post id.
 )
 begin
-    select post, image, deleted from posts_images where post = post_id and deleted = 0;
+    select post, image, deleted from posts_images where post = post_id;
 end|
 
 -- -----------------------------------------------------------------
@@ -2243,16 +2298,13 @@ begin
     delete from posts_links where deleted = 1;
 end|
 
--- Выбирает связи заданного сообщения с вложенными ссылками на изображения.
---
--- Аргументы:
--- post_id - Идентификатор сообщения.
+-- Select posts links relations.
 create procedure sp_posts_links_get_by_post
 (
-    post_id int
+    post_id int -- Post id.
 )
 begin
-    select post, link, deleted from posts_links where post = post_id and deleted = 0;
+    select post, link, deleted from posts_links where post = post_id;
 end|
 
 -- --------------------------------------------------
@@ -2286,16 +2338,13 @@ begin
     delete from posts_videos where deleted = 1;
 end|
 
--- Выбирает связи заданного сообщения с вложенным видео.
---
--- Аргументы:
--- post_id - Идентификатор сообщения.
+-- Select posts videos relations.
 create procedure sp_posts_videos_get_by_post
 (
-    post_id int
+    post_id int -- Post id.
 )
 begin
-    select post, video, deleted from posts_videos where post = post_id and deleted = 0;
+    select post, video, deleted from posts_videos where post = post_id;
 end|
 
 -- ----------------------
@@ -2387,7 +2436,7 @@ begin
 	delete from stylesheets where id = _id;
 end|
 
--- Выбирает все стили.
+-- Select stylesheets.
 create procedure sp_stylesheets_get_all ()
 begin
 	select id, name from stylesheets;
@@ -2752,78 +2801,155 @@ begin
         group by t.id;
 end|
 
--- Выбирает с заданной доски доступные для просмотра пользователю нити и
--- количество сообщений в них.
+-- Select threads visible to user on specified board.
 create procedure sp_threads_get_visible_by_board
 (
-    board_id int,   -- Идентификатор доски.
-    user_id int     -- Идентификатор пользователя.
+    board_id int,   -- Board id.
+    user_id int     -- User id.
 )
 begin
-	select q1.id, q1.original_post, q1.bump_limit, q1.sticky, q1.sage,
-		q1.with_attachments, q1.posts_count, q1.last_post_num
-	from (
-		-- Без учёта сообщений с сажей вычислим последнее сообщение в нити.
-		select q.id, q.original_post, q.bump_limit, q.sticky, q.sage,
-			q.with_attachments, q.posts_count, max(p.number) as last_post_num
-		from posts p
-		join (
-			-- Выберем видимые нити и подсчитаем количество видимых сообщений.
-			select t.id, t.original_post, t.bump_limit, t.sticky, t.sage,
-				t.with_attachments, count(distinct p.id) as posts_count
-			from posts p
-			join threads t on t.id = p.thread and t.board = board_id
-			join user_groups ug on ug.`user` = user_id
-			left join hidden_threads ht on ht.thread = t.id
-				and ht.user = ug.user
-			-- Правило для конкретной группы и сообщения.
-			left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
-			-- Правило для всех групп и конкретного сообщения.
-			left join acl a2 on a2.`group` is null and a2.post = p.id
-			-- Правила для конкретной группы и нити.
-			left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
-			-- Правило для всех групп и конкретной нити.
-			left join acl a4 on a4.`group` is null and a4.thread = p.thread
-			-- Правила для конкретной группы и доски.
-			left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
-			-- Правило для всех групп и конкретной доски.
-			left join acl a6 on a6.`group` is null and a6.board = p.board
-			-- Правило для конкретной групы.
-			left join acl a7 on a7.`group` = ug.`group` and a7.board is null
-				and a7.thread is null and a7.post is null
-			where t.deleted = 0 and t.archived = 0 and ht.thread is null
-				and p.deleted = 0
-				-- Нить должна быть доступна для просмотра.
-					-- Просмотр нити не запрещен конкретной группе и
-				and ((a3.`view` = 1 or a3.`view` is null)
-					-- просмотр нити не запрещен всем группам и
-					and (a4.`view` = 1 or a4.`view` is null)
-					-- просмотр доски не запрещен конкретной группе и
-					and (a5.`view` = 1 or a5.`view` is null)
-					-- просмотр доски не запрещен всем группам и
-					and (a6.`view` = 1 or a6.`view` is null)
-					-- просмотр разрешен конкретной группе.
-					and a7.`view` = 1)
-				-- Сообщение должно быть доступно для просмотра, чтобы правильно
-				-- подсчитать их количество в нити.
-					-- Просмотр сообщения не запрещен конкретной группе и
-				and ((a1.`view` = 1 or a1.`view` is null)
-					-- просмотр сообщения не запрещен всем группам и
-					and (a2.`view` = 1 or a2.`view` is null)
-					-- просмотр нити не запрещен конкретной группе и
-					and (a3.`view` = 1 or a3.`view` is null)
-					-- просмотр нити не запрещен всем группам и
-					and (a4.`view` = 1 or a4.`view` is null)
-					-- просмотр доски не запрещен конкретной группе и
-					and (a5.`view` = 1 or a5.`view` is null)
-					-- просмотр доски не запрещен всем группам и
-					and (a6.`view` = 1 or a6.`view` is null)
-					-- просмотр разрешен конкретной группе.
-					and a7.`view` = 1)
-			group by t.id) q on q.id = p.thread
-				and (p.sage = 0 or p.sage is null) and p.deleted = 0
-		group by q.id) q1
-	order by q1.last_post_num desc;
+    select q1.thread_id,
+           q1.thread_original_post,
+           q1.thread_bump_limit,
+           q1.thread_sticky,
+           q1.thread_sage,
+           q1.thread_with_attachments,
+           q1.thread_posts_count,
+           q1.thread_last_post_num,
+
+           q1.board_id,
+           q1.board_name,
+           q1.board_title,
+           q1.board_annotation,
+           q1.board_bump_limit,
+           q1.board_force_anonymous,
+           q1.board_default_name,
+           q1.board_with_attachments,
+           q1.board_enable_macro,
+           q1.board_enable_youtube,
+           q1.board_enable_captcha,
+           q1.board_enable_translation,
+           q1.board_enable_geoip,
+           q1.board_enable_shi,
+           q1.board_enable_postid,
+           q1.board_same_upload,
+           q1.board_popdown_handler,
+           q1.board_category
+
+        from (
+            -- Find number of last post in the thread except "sage" posts.
+            select q.thread_id,
+                   q.thread_original_post,
+                   q.thread_bump_limit,
+                   q.thread_sticky,
+                   q.thread_sage,
+                   q.thread_with_attachments,
+                   q.thread_posts_count,
+                   max(p.number) as thread_last_post_num,
+
+                   q.board_id,
+                   q.board_name,
+                   q.board_title,
+                   q.board_annotation,
+                   q.board_bump_limit,
+                   q.board_force_anonymous,
+                   q.board_default_name,
+                   q.board_with_attachments,
+                   q.board_enable_macro,
+                   q.board_enable_youtube,
+                   q.board_enable_captcha,
+                   q.board_enable_translation,
+                   q.board_enable_geoip,
+                   q.board_enable_shi,
+                   q.board_enable_postid,
+                   q.board_same_upload,
+                   q.board_popdown_handler,
+                   q.board_category
+
+                from posts p
+                join (
+                    -- Select visible thread and calculate count of visible posts within.
+                    select t.id as thread_id,
+                           t.original_post as thread_original_post,
+                           t.bump_limit as thread_bump_limit,
+                           t.sticky as thread_sticky,
+                           t.sage as thread_sage,
+                           t.with_attachments as thread_with_attachments,
+                           count(distinct p.id) as thread_posts_count,
+
+                           b.id as board_id,
+                           b.name as board_name,
+                           b.title as board_title,
+                           b.annotation as board_annotation,
+                           b.bump_limit as board_bump_limit,
+                           b.force_anonymous as board_force_anonymous,
+                           b.default_name as board_default_name,
+                           b.with_attachments as board_with_attachments,
+                           b.enable_macro as board_enable_macro,
+                           b.enable_youtube as board_enable_youtube,
+                           b.enable_captcha as board_enable_captcha,
+                           b.enable_translation as board_enable_translation,
+                           b.enable_geoip as board_enable_geoip,
+                           b.enable_shi as board_enable_shi,
+                           b.enable_postid as board_enable_postid,
+                           b.same_upload as board_same_upload,
+                           b.popdown_handler as board_popdown_handler,
+                           b.category as board_category
+
+                        from posts p
+                        join threads t on t.id = p.thread and t.board = board_id
+                        join boards b on b.id = t.board
+                        join user_groups ug on ug.`user` = user_id
+                        left join hidden_threads ht on ht.thread = t.id
+                            and ht.user = ug.user
+                        -- Правило для конкретной группы и сообщения.
+                        left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+                        -- Правило для всех групп и конкретного сообщения.
+                        left join acl a2 on a2.`group` is null and a2.post = p.id
+                        -- Правила для конкретной группы и нити.
+                        left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+                        -- Правило для всех групп и конкретной нити.
+                        left join acl a4 on a4.`group` is null and a4.thread = p.thread
+                        -- Правила для конкретной группы и доски.
+                        left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+                        -- Правило для всех групп и конкретной доски.
+                        left join acl a6 on a6.`group` is null and a6.board = p.board
+                        -- Правило для конкретной групы.
+                        left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+                            and a7.thread is null and a7.post is null
+                        where t.deleted = 0 and t.archived = 0 and ht.thread is null
+                            and p.deleted = 0
+                            -- Нить должна быть доступна для просмотра.
+                                -- Просмотр нити не запрещен конкретной группе и
+                            and ((a3.`view` = 1 or a3.`view` is null)
+                                -- просмотр нити не запрещен всем группам и
+                                and (a4.`view` = 1 or a4.`view` is null)
+                                -- просмотр доски не запрещен конкретной группе и
+                                and (a5.`view` = 1 or a5.`view` is null)
+                                -- просмотр доски не запрещен всем группам и
+                                and (a6.`view` = 1 or a6.`view` is null)
+                                -- просмотр разрешен конкретной группе.
+                                and a7.`view` = 1)
+                            -- Сообщение должно быть доступно для просмотра, чтобы правильно
+                            -- подсчитать их количество в нити.
+                                -- Просмотр сообщения не запрещен конкретной группе и
+                            and ((a1.`view` = 1 or a1.`view` is null)
+                                -- просмотр сообщения не запрещен всем группам и
+                                and (a2.`view` = 1 or a2.`view` is null)
+                                -- просмотр нити не запрещен конкретной группе и
+                                and (a3.`view` = 1 or a3.`view` is null)
+                                -- просмотр нити не запрещен всем группам и
+                                and (a4.`view` = 1 or a4.`view` is null)
+                                -- просмотр доски не запрещен конкретной группе и
+                                and (a5.`view` = 1 or a5.`view` is null)
+                                -- просмотр доски не запрещен всем группам и
+                                and (a6.`view` = 1 or a6.`view` is null)
+                                -- просмотр разрешен конкретной группе.
+                                and a7.`view` = 1)
+                group by t.id) q on q.thread_id = p.thread
+                    and (p.sage = 0 or p.sage is null) and p.deleted = 0
+            group by q.thread_id) q1
+        order by q1.thread_last_post_num desc;
 end|
 
 -- Выбирает заданную нить, доступную для просмотра заданному пользователю.
@@ -3440,46 +3566,56 @@ begin
 	select user, `group` from user_groups order by user, `group`;
 end|
 
--- ----------------------------
---  Работа с пользователями. --
--- ----------------------------
+-- ----------
+--  Users. --
+-- ----------
 
--- Редактирует пользователя с заданным ключевым словом или добавляет нового.
+-- Edit user settings by keyword or create new user if it not exist.
 create procedure sp_users_edit_by_keyword
 (
-    _keyword varchar(32),   -- Хеш ключевого слова.
-    _posts_per_thread int,  -- Число сообщений в нити на странице просмотра доски.
-    _threads_per_page int,  -- Число нитей на странице просмотра доски.
-    _lines_per_post int,    -- Количество строк в предпросмотре сообщения.
-    _language int,          -- Идентификатор языка.
-    _stylesheet int,        -- Идентификатор стиля.
-    _password varchar(12),  -- Пароль для удаления сообщений.
-    _goto varchar(32)       -- Перенаправление.
+    _keyword varchar(32),   -- Keyword hash.
+    _posts_per_thread int,  -- Count of posts per thread.
+    _threads_per_page int,  -- Count of threads per page.
+    _lines_per_post int,    -- Count of lines per post.
+    _language int,          -- Language id.
+    _stylesheet int,        -- Stylesheet id.
+    _password varchar(12),  -- Password.
+    _goto varchar(32)       -- Redirection.
 )
 begin
     declare user_id int default null;
-    -- TODO ???
-    set @user_id = null;
 
     select id into user_id from users where keyword = _keyword;
     if (user_id is null) then
-        -- Создаём ногового пользователя
-        insert into users (keyword, threads_per_page, posts_per_thread,
-                lines_per_post, stylesheet, language, password, `goto`)
-            values (_keyword, _threads_per_page, _posts_per_thread,
-                _lines_per_post, _stylesheet, _language, _password, _goto);
+        -- Create new user.
+        insert into users (keyword,
+                           threads_per_page,
+                           posts_per_thread,
+                           lines_per_post,
+                           stylesheet,
+                           language,
+                           password,
+                           `goto`)
+            values (_keyword,
+                    _threads_per_page,
+                    _posts_per_thread,
+                    _lines_per_post,
+                    _stylesheet,
+                    _language,
+                    _password,
+                    _goto);
         select last_insert_id() into user_id;
         insert into user_groups (user, `group`) select user_id, id from groups
             where name = 'Users';
     else
-        -- Редактируем настройки существующего
+        -- Edit user.
         update users set threads_per_page = _threads_per_page,
-                posts_per_thread = _posts_per_thread,
-                lines_per_post = _lines_per_post,
-                stylesheet = _stylesheet,
-                language = _language,
-                password = _password,
-                `goto` = _goto
+                         posts_per_thread = _posts_per_thread,
+                         lines_per_post = _lines_per_post,
+                         stylesheet = _stylesheet,
+                         language = _language,
+                         password = _password,
+                         `goto` = _goto
             where id = user_id;
     end if;
 end|
@@ -3490,7 +3626,7 @@ begin
 	select id from users;
 end|
 
--- Выбирает всех пользователей.
+-- Select admin users.
 create procedure sp_users_get_admins ()
 begin
     select u.id
@@ -3499,24 +3635,31 @@ begin
         join groups g on g.id = ug.`group` and g.name = 'Administrators';
 end|
 
--- Выбирает ползователя с заданным ключевым словом.
+-- Select user.
 create procedure sp_users_get_by_keyword
 (
-    _keyword varchar(32)    -- Хеш ключевого слова.
+    _keyword varchar(32)    -- Keyword hash.
 )
 begin
     declare user_id int;
 
     select id into user_id from users where keyword = _keyword;
 
-    select u.id, u.posts_per_thread, u.threads_per_page, u.lines_per_post,
-            l.code as language, s.name as stylesheet, u.password, u.`goto`
+    select u.id,
+           u.posts_per_thread,
+           u.threads_per_page,
+           u.lines_per_post,
+           l.code as language,
+           s.name as stylesheet,
+           u.password,
+           u.`goto`
         from users u
         join stylesheets s on u.stylesheet = s.id
         join languages l on u.language = l.id
         where u.keyword = _keyword;
 
-    select g.name from user_groups ug
+    select g.name
+        from user_groups ug
         join users u on ug.user = u.id and u.id = user_id
         join groups g on ug.`group` = g.id;
 end|
@@ -3557,13 +3700,16 @@ begin
     select last_insert_id() as id;
 end|
 
--- Выбирает видео, вложенные в заданное сообщение.
+-- Select videos.
 create procedure sp_videos_get_by_post
 (
-    post_id int -- Идентификатор сообщения.
+    post_id int -- Post id.
 )
 begin
-    select v.id, v.code, v.widht, v.height
+    select v.id,
+           v.code,
+           v.widht,
+           v.height
         from posts_videos pv
         join videos v on v.id = pv.video and pv.post = post_id;
 end|

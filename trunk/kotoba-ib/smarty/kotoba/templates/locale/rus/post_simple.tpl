@@ -1,103 +1,98 @@
 {* Smarty *}
-{*************************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************
- *********************************
+{*********************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************}
 {*
-Код обычного сообщения.
+Code of simple message.
 
-Описание переменных:
-    $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $ATTACHMENT_TYPE_FILE - тип вложения файл (см. config.default).
-    $ATTACHMENT_TYPE_LINK - тип вложения ссылка (см. config.default).
-    $ATTACHMENT_TYPE_VIDEO - тип вложения видео (см. config.default).
-    $ATTACHMENT_TYPE_IMAGE - тип вложения изображение (см. config.default).
-    $board - просматриваемая доска.
-    $thread - нить.
-    $simple_post - сообщение.
-    $simple_attachments - вложения.
-    $enable_translation - Включение перевода текста сообщения (см. config.default).
-    $enable_geoip - Включение отображения страны автора сообщения (см. config.default).
-    $enable_postid - Включение идентификатора поста.
-    $postid - Идентификатор поста.
-    $author_admin - Сообщение было оставлено администратором.
-    $is_board_view - Сообщение выводится при просмотре доски.
-
-    $enable_doubledash
-    $enable_anchor
-    $enable_remove_post
-    $enable_extrabtns
+Variables:
+    $DIR_PATH - path from server document root to index.php directory (see config.default).
+    $ATTACHMENT_TYPE_FILE - attachment type is file (see config.default).
+    $ATTACHMENT_TYPE_LINK - attachment type is link (see config.default).
+    $ATTACHMENT_TYPE_VIDEO - attachment type is video (see config.default).
+    $ATTACHMENT_TYPE_IMAGE - attachment type is image (see config.default).
+    $enable_doubledash - Show >> near post.
+    $post - Simple post.
+    $enable_remove_post - Show remove post link.
+    $enable_anchor - Enable anchor.
+    $enable_extrabtns - Show extra buttons.
+    $enable_geoip - GeoIP flag (see config.default).
+    $country - GeoIP data if GeoIP flag up.
+    $author_admin - Author of this post is admin.
+    $is_board_view -
+    $enable_postid - Post identification flag.
+    $postid - Post identifer if post identification flag up.
+    $attachments - Attachments.
+    $enable_translation - Translation flag. (see config.default).
 *}
 <table>
     <tbody>
         <tr>
-            {if !isset($enable_doubledash) || $enable_doubledash == TRUE}<td class="doubledash"> &gt;&gt; </td>{/if}
+            {if $enable_doubledash}<td class="doubledash"> &gt;&gt; </td>{/if}
 
             <td class="reply">
-                {if !isset($enable_anchor) || $enable_anchor == TRUE}<a name="{$simple_post.number}"></a>{/if}
+                {if $enable_anchor}<a name="{$post.number}"></a>{/if}
 
-                <span><a href="{$DIR_PATH}/remove_post.php?post={$simple_post.id}"><img src="{$DIR_PATH}/css/delete.png" alt="[Удалить]" title="Удалить сообщение" border="0"/></a></span>
-                <span class="extrabtns">
-                    {if $simple_post.with_attachments}
-                        <a href="{$DIR_PATH}/remove_upload.php?post={$simple_post.id}"><img src="{$DIR_PATH}/css/delfile.png" alt="[Удалить файл]" title="Удалить файл" border="0"/></a>
+                {if $enable_remove_post}<span><a href="{$DIR_PATH}/remove_post.php?post={$post.id}"><img src="{$DIR_PATH}/css/delete.png" alt="[Удалить]" title="Удалить сообщение" border="0"/></a></span>{/if}
+
+                {if $enable_extrabtns}<span class="extrabtns">
+                    {if $post.with_attachments}
+                        <a href="{$DIR_PATH}/remove_upload.php?post={$post.id}"><img src="{$DIR_PATH}/css/delfile.png" alt="[Удалить файл]" title="Удалить файл" border="0"/></a>
                     {/if}
-                    <a href="{$DIR_PATH}/report.php?post={$simple_post.id}"><img src="{$DIR_PATH}/css/report.png" alt="[Пожаловаться]" title="Пожаловаться на сообщение" border="0"/></a>
-                </span>
+                    <a href="{$DIR_PATH}/report.php?post={$post.id}"><img src="{$DIR_PATH}/css/report.png" alt="[Пожаловаться]" title="Пожаловаться на сообщение" border="0"/></a>
+                </span>{/if}
+
                 {if $enable_geoip}<span title="{$country.name}" class="country"><img src="http://410chan.ru/css/flags/{$country.code}.gif" alt="{$country.name}"></span>&nbsp;{/if}
 
-                <span class="filetitle">{$simple_post.subject}</span>
-                <span class="postername">{$simple_post.name}</span>
-                {if $simple_post.tripcode != null}<span class="postertrip">!{$simple_post.tripcode}</span>{/if}
+                <span class="filetitle">{$post.subject}</span>
+                <span class="postername">{$post.name}</span>
+                {if $post.tripcode != null}<span class="postertrip">!{$post.tripcode}</span>{/if}
                 {if $author_admin} <span class="admin">❀❀&nbsp;Админ&nbsp;❀❀</span>{/if}
-                {$simple_post.date_time}
+                {$post.date_time}
                 <span class="reflink">
-                    <a href="{$DIR_PATH}/{$board.name}/{$thread.original_post}#{$simple_post.number}">#</a>
+                    <a href="{$DIR_PATH}/{$post.board.name}/{$post.thread.original_post}#{$post.number}">#</a>
                     {if $is_board_view}
-                        <a href="{$DIR_PATH}/threads.php?board={$board.name}&thread={$thread.original_post}&quote={$simple_post.number}">{$simple_post.number}</a>
+                        <a href="{$DIR_PATH}/threads.php?board={$post.board.name}&thread={$post.thread.original_post}&quote={$post.number}">{$post.number}</a>
                     {else}
-                        <a href="#" onclick="insert('>>{$simple_post.number}');">{$simple_post.number}</a>
+                        <a href="#" onclick="insert('>>{$post.number}');">{$post.number}</a>
                     {/if}
                 </span>
                 {if $enable_postid} ID:{$postid}{/if}
-                {if $is_admin} {include file='mod_mini_panel.tpl' post_id=$simple_post.id ip=$simple_post.ip board_name=$board.name post_num=$simple_post.number}{/if}
+                {if $is_admin} {include file='mod_mini_panel.tpl' post_id=$post.id ip=$post.ip board_name=$post.board.name post_num=$post.number}{/if}
                 <br>
-                {if $simple_post.with_attachments}
-                    {if $simple_attachments[0].attachment_type == $ATTACHMENT_TYPE_FILE}
-                        <span class="filesize">Файл: <a target="_blank" href="{$simple_attachments[0].file_link}">{$simple_attachments[0].name}</a>-({$simple_attachments[0].size} Байт)</span>
+                {if $post.with_attachments}
+                    {if $attachments[0].attachment_type == $ATTACHMENT_TYPE_FILE}
+                        <span class="filesize">Файл: <a target="_blank" href="{$attachments[0].file_link}">{$attachments[0].name}</a>-({$attachments[0].size} Байт)</span>
                         <br>
-                        <a target="_blank" href="{$simple_attachments[0].file_link}">
-                            <img src="{$simple_attachments[0].thumbnail_link}" class="thumb" width="{$simple_attachments[0].thumbnail_w}" height="{$simple_attachments[0].thumbnail_h}">
+                        <a target="_blank" href="{$attachments[0].file_link}">
+                            <img src="{$attachments[0].thumbnail_link}" class="thumb" width="{$attachments[0].thumbnail_w}" height="{$attachments[0].thumbnail_h}">
                         </a>
-                    {elseif $simple_attachments[0].attachment_type == $ATTACHMENT_TYPE_IMAGE}
-                        <span class="filesize">Файл: <a target="_blank" href="{$simple_attachments[0].image_link}">{$simple_attachments[0].name}</a>-({$simple_attachments[0].size} Байт, {$simple_attachments[0].widht}x{$simple_attachments[0].height})</span>
+                    {elseif $attachments[0].attachment_type == $ATTACHMENT_TYPE_IMAGE}
+                        <span class="filesize">Файл: <a target="_blank" href="{$attachments[0].image_link}">{$attachments[0].name}</a>-({$attachments[0].size} Байт, {$attachments[0].widht}x{$attachments[0].height})</span>
                         <br>
-                        <a target="_blank" href="{$simple_attachments[0].image_link}">
-                            <img src="{if $simple_attachments[0].spoiler}{$DIR_PATH}/img/spoiler.png{else}{$simple_attachments[0].thumbnail_link}{/if}" class="thumb"{if !$simple_attachments[0].spoiler} width="{$simple_attachments[0].thumbnail_w}" height="{$simple_attachments[0].thumbnail_h}{/if}">
+                        <a target="_blank" href="{$attachments[0].image_link}">
+                            <img src="{if $attachments[0].spoiler}{$DIR_PATH}/img/spoiler.png{else}{$attachments[0].thumbnail_link}{/if}" class="thumb"{if !$attachments[0].spoiler} width="{$attachments[0].thumbnail_w}" height="{$attachments[0].thumbnail_h}{/if}">
                         </a>
-                    {elseif $simple_attachments[0].attachment_type == $ATTACHMENT_TYPE_LINK}
-                        <span class="filesize">Файл: <a target="_blank" href="{$simple_attachments[0].url}">{$simple_attachments[0].url}</a>-({$simple_attachments[0].size} Байт, {$simple_attachments[0].widht}x{$simple_attachments[0].height})</span>
+                    {elseif $attachments[0].attachment_type == $ATTACHMENT_TYPE_LINK}
+                        <span class="filesize">Файл: <a target="_blank" href="{$attachments[0].url}">{$attachments[0].url}</a>-({$attachments[0].size} Байт, {$attachments[0].widht}x{$attachments[0].height})</span>
                         <br>
-                        <a target="_blank" href="{$simple_attachments[0].url}">
-                            <img src="{$simple_attachments[0].thumbnail}" class="thumb" width="{$simple_attachments[0].thumbnail_w}" height="{$simple_attachments[0].thumbnail_h}">
+                        <a target="_blank" href="{$attachments[0].url}">
+                            <img src="{$attachments[0].thumbnail}" class="thumb" width="{$attachments[0].thumbnail_w}" height="{$attachments[0].thumbnail_h}">
                         </a>
-                    {elseif $simple_attachments[0].attachment_type == $ATTACHMENT_TYPE_VIDEO}
+                    {elseif $attachments[0].attachment_type == $ATTACHMENT_TYPE_VIDEO}
                         <br>
                         <br>
-                        {$simple_attachments[0].video_link}
+                        {$attachments[0].video_link}
                     {/if}
                 {/if}
-                <blockquote id="post{$simple_post.number}">
-                    {$simple_post.text}
-                    {if $simple_post.text_cutted == 1}
+                <blockquote id="post{$post.number}">
+                    {$post.text}
+                    {if $post.text_cutted == 1}
                         <div class="abbrev">Нажмите "Ответ" для просмотра сообщения целиком.</div>
                     {/if}
                 </blockquote>
-                {if $enable_translation && $simple_post.text}<blockquote id="translation{$simple_post.number}"></blockquote><a href="#" onclick="javascript:translate('{$simple_post.number}'); return false;">Lolšto?</a>{/if}
+                {if $enable_translation && $post.text}<blockquote id="translation{$post.number}"></blockquote><a href="#" onclick="javascript:translate('{$post.number}'); return false;">Lolšto?</a>{/if}
 
             </td>
         </tr>

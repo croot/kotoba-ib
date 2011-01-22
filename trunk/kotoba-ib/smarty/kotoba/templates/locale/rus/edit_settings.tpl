@@ -1,30 +1,22 @@
 {* Smarty *}
-{*************************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************
- *********************************
+{*********************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************}
 {*
-Код страницы редактирования настроек пользователя.
+Code of user settings page.
 
-Описание переменных:
-    $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $STYLESHEET - стиль (см. config.default).
-    $show_control - показывать ссылку на страницу административных функций и функций модераторов в панели администратора.
-    $boards - доски.
-    $threads_per_page - число нитей на странице просмотра доски (см. config.default).
-    $posts_per_thread - число сообщений в нити на странице просмотра доски (см. config.default).
-    $lines_per_post - сообщения, в которых число строк превышает это число, будут урезаны при просмотре доски (см. config.default).
-    $languages - языки.
-    $language - текущий язык.
-    $stylesheets - стили.
-    $goto - перенаправление.
-    $favorites - избранные нити.
-    $hidden_threads - скрытые пользователем нити.
+Variables:
+    $DIR_PATH - path from server document root to index.php directory (see config.default).
+    $STYLESHEET - stylesheet (see config.default).
+    $show_control - show link to manage page.
+    $boards - boards.
+    $sess - Session information.
+    $settings - Current settings.
+    $languages - Languages.
+    $stylesheets - Stylesheets.
+    $favorites - Favorite threads.
+    $hidden_threads - Hidden threads.
 *}
 {include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title='Мои настройки'}
 
@@ -33,6 +25,10 @@
 {include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
 
 <div class="logo">Мои настройки</div>
+<br>
+{$sess.name}={$sess.id}<br>
+Сессия истекает через: {$sess.expire - intval(($sess.curtime - $settings.kotoba_session_start_time) / 60)}/{$sess.expire} минут.<br>
+<!-- Кука сессии истекает через: {$session_data[1].lifetime / 60} минут.<br> -->
 <br/>
 <form action="{$DIR_PATH}/edit_settings.php" method="post">
 <i>Введите ключевое слово, чтобы загрузить ваши настройки.</i><br/>
@@ -42,19 +38,19 @@
 <form action="{$DIR_PATH}/edit_settings.php" method="post">
 <h4>Опции просмотра доски:</h4>
     <table border="0">
-        <tr valign="top"><td>Число нитей на странице просмотра доски: </td><td><input type="text" name="threads_per_page" size="10" value="{$threads_per_page}"></td></tr>
-        <tr valign="top"><td>Число сообщений в нити на странице просмотра доски: </td><td><input type="text" name="posts_per_thread" size="10" value="{$posts_per_thread}"></td></tr>
-        <tr valign="top"><td>Сообщения, в которых число строк превышает это число,<br/>будут урезаны при просмотре доски: </td><td><input type="text" name="lines_per_post" size="10" value="{$lines_per_post}"></td></tr>
+        <tr valign="top"><td>Число нитей на странице просмотра доски: </td><td><input type="text" name="threads_per_page" size="10" value="{$settings.threads_per_page}"></td></tr>
+        <tr valign="top"><td>Число сообщений в нити на странице просмотра доски: </td><td><input type="text" name="posts_per_thread" size="10" value="{$settings.posts_per_thread}"></td></tr>
+        <tr valign="top"><td>Сообщения, в которых число строк превышает это число,<br/>будут урезаны при просмотре доски: </td><td><input type="text" name="lines_per_post" size="10" value="{$settings.lines_per_post}"></td></tr>
         <tr valign="top"><td>Перенаправление: </td><td>
             <select name="goto">
-                <option value="t"{if $goto == 't'} selected{/if}>К нити</option>
-                <option value="b"{if $goto == 'b'} selected{/if}>К доске</option>
+                <option value="t"{if $settings.goto == 't'} selected{/if}>К нити</option>
+                <option value="b"{if $settings.goto == 'b'} selected{/if}>К доске</option>
             </select>
         </td></tr>
     </table>
 <h4>Другое:</h4>
     <table border="0">
-        <tr valign="top"><td>Язык: </td><td><select name="language_id">{section name=j loop=$languages}<option value="{$languages[j].id}"{if $language == $languages[j].code} selected{/if}>{$languages[j].code}</option>{/section}</select></td></tr>
+        <tr valign="top"><td>Язык: </td><td><select name="language_id">{section name=j loop=$languages}<option value="{$languages[j].id}"{if $settings.language == $languages[j].code} selected{/if}>{$languages[j].code}</option>{/section}</select></td></tr>
         <tr valign="top"><td>Стиль оформления: </td><td><select name="stylesheet_id">{section name=i loop=$stylesheets}<option value="{$stylesheets[i].id}"{if $STYLESHEET == $stylesheets[i].name} selected{/if}>{$stylesheets[i].name}</option>{/section}</select></td></tr>
     </table>
 <i>Введите ключевое слово, чтобы сохранить эти настройки.<br/>

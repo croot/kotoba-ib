@@ -6,23 +6,22 @@ USE kotoba;
 -- Создание таблиц --
 -- ------------------
 
--- Описание экземпляров сущности: Блокировки (мн.ч.), Блокировка (ед.ч.).
-create table bans                   -- Блокировки.
+create table bans                   -- Bans.
 (
-    id int not null auto_increment, -- Идентификатор.
-    range_beg bigint not null,      -- Начало диапазона IP-адресов.
-    range_end bigint not null,      -- Конец диапазона IP-адресов.
-    reason text default null,       -- Причина блокировки.
-    untill datetime not null,       -- Время истечения блокировки.
+    id int not null auto_increment, -- Id.
+    range_beg bigint not null,      -- Begin of banned IP-address range.
+    range_end bigint not null,      -- End of banned IP-address range.
+    reason text default null,       -- Ban reason.
+    untill datetime not null,       -- Expiration time.
     primary key (id),
     unique key (range_beg, range_end)
 )
 engine=InnoDB;
 
-create table categories             -- Категории.
+create table categories             -- Categories.
 (
-    id int not null auto_increment, -- Идентификатор.
-    name varchar(50) not null,      -- Имя.
+    id int not null auto_increment, -- Id.
+    name varchar(50) not null,      -- Name.
     primary key (id)
 )
 engine=InnoDB;
@@ -32,23 +31,23 @@ engine=InnoDB;
 -- не являющиеся изображениями. thumbnail - имя файла изображения, который
 -- ассоциирован с конкретным типом вложенного файла и служит для него
 -- уменьшенной копией.
-create table files                      -- Вложенные файлы.
+create table files                      -- Files.
 (
-    id int not null auto_increment,     -- Идентификатор.
-    hash varchar(32) default null,      -- Хеш.
-    name varchar(256) not null,         -- Имя.
-    size int not null,                  -- Размер в байтах.
-    thumbnail varchar(256) not null,    -- Уменьшенная копия.
-    thumbnail_w int not null,           -- Ширина уменьшенной копии.
-    thumbnail_h int not null,           -- Высота уменьшенной копии.
+    id int not null auto_increment,     -- Id.
+    hash varchar(32) default null,      -- Hash.
+    name varchar(256) not null,         -- Name.
+    size int not null,                  -- Size in bytes.
+    thumbnail varchar(256) not null,    -- Thumbnail.
+    thumbnail_w int not null,           -- Thumbnail width.
+    thumbnail_h int not null,           -- Thumbnail height.
     primary key (id)
 )
 engine=InnoDB;
 
-create table groups                 -- Группы.
+create table groups                 -- Groups.
 (
-    id int not null auto_increment, -- Идентификатор.
-    name varchar(50) not null,      -- Имя.
+    id int not null auto_increment, -- Id.
+    name varchar(50) not null,      -- Name.
     primary key (id),
     unique key (name)
 )
@@ -58,56 +57,56 @@ engine=InnoDB;
 -- Вложенные изображения - файлы изображений, загруженные пользователями и
 -- сохранённые на сервере. name и thumbnail - имя файла исходного изображения и
 -- файла уменьшенной копии, соответственно. hash - хеш исходного файла.
-create table images                     -- Вложенные изображения.
+create table images                     -- Images.
 (
-    id int not null auto_increment,     -- Идентификатор.
-    hash varchar(32) default null,      -- Хеш.
-    name varchar(256) not null,         -- Имя.
-    widht int not null,                 -- Ширина.
-    height int not null,                -- Высота.
-    size int not null,                  -- Размер в байтах.
-    thumbnail varchar(256) not null,    -- Уменьшенная копия.
-    thumbnail_w int not null,           -- Ширина уменьшенной копии.
-    thumbnail_h int not null,           -- Высота уменьшенной копии.
-    spoiler bit default 0,              -- Флаг спойлера.
+    id int not null auto_increment,     -- Id.
+    hash varchar(32) default null,      -- Hash.
+    name varchar(256) not null,         -- Name.
+    widht int not null,                 -- Width.
+    height int not null,                -- Height.
+    size int not null,                  -- Size in bytes.
+    thumbnail varchar(256) not null,    -- Thumbnail.
+    thumbnail_w int not null,           -- Thumbnail width.
+    thumbnail_h int not null,           -- Thumbnail height.
+    spoiler bit default 0,              -- Spoiler flag.
     primary key (id)
 )
 engine=InnoDB;
 
-create table languages              -- Языки.
+create table languages              -- Languages.
 (
-    id int not null auto_increment, -- Идентификатор.
-    code char(3) not null,          -- Код ISO_639-2.
+    id int not null auto_increment, -- Id.
+    code char(3) not null,          -- ISO_639-2 code.
     primary key (id)
 )
 engine=InnoDB;
 
-create table links                      -- Вложенные ссылки на изображения.
+create table links                      -- Links.
 (
-    id int not null auto_increment,     -- Идентификатор.
+    id int not null auto_increment,     -- Id.
     url varchar(2048) not null,         -- URL.
-    widht int not null,                 -- Ширина.
-    height int not null,                -- Высота.
-    size int not null,                  -- Размер в байтах.
-    thumbnail varchar(2048) not null,   -- URL уменьшенной копии.
-    thumbnail_w int not null,           -- Ширина уменьшенной копии.
-    thumbnail_h int not null,           -- Высота уменьшенной копии.
+    widht int not null,                 -- Width.
+    height int not null,                -- Height.
+    size int not null,                  -- Size in bytes.
+    thumbnail varchar(2048) not null,   -- Thumbnail URL.
+    thumbnail_w int not null,           -- Thumbnail width.
+    thumbnail_h int not null,           -- Thumbnail height.
     primary key (id)
 )
 engine=InnoDB;
 
-create table popdown_handlers       -- Обработчики автоматического удаления нитей.
+create table popdown_handlers       -- Popdown handlers.
 (
-    id int not null auto_increment, -- Идентификатор.
-    name varchar(50) not null,      -- Имя функции.
+    id int not null auto_increment, -- Id.
+    name varchar(50) not null,      -- Function name.
     primary key (id)
 )
 engine=InnoDB;
 
-create table stylesheets            -- Стили.
+create table stylesheets            -- Stylesheets.
 (
-    id int not null auto_increment,    -- Идентификатор.
-    name varchar(50) not null,        -- Имя файла.
+    id int not null auto_increment, -- Id.
+    name varchar(50) not null,      -- Stylesheet file name.
     primary key (id)
 )
 engine=InnoDB;
@@ -120,44 +119,44 @@ create table upload_handlers        -- Обработчики загружаем
 )
 engine=InnoDB;
 
-create table videos                 -- Вложенные видео.
+create table videos                 -- Videos.
 (
-    id int not null auto_increment, -- Идентификатор.
-    code varchar(256) not null,     -- HTML-код.
-    widht int not null,             -- Ширина.
-    height int not null,            -- Высота.
+    id int not null auto_increment, -- Id.
+    code varchar(256) not null,     -- Code.
+    widht int not null,             -- Width.
+    height int not null,            -- Height.
     primary key (id)
 )
 engine=InnoDB;
 
-create table boards                         -- Доски.
+create table boards                         -- Boards.
 (
-    id int not null auto_increment,         -- Идентификатор.
-    name varchar(16) not null,              -- Имя.
-    title varchar(50) default null,         -- Заголовок.
-    annotation text default null,           -- Аннотация.
-    bump_limit int not null,                -- Специфичный для доски бамплимит.
-    force_anonymous bit not null,           -- Флаг отображения имени отправителя.
-    default_name varchar(128) default null, -- Имя отправителя по умолчанию.
+    id int not null auto_increment,         -- Id.
+    name varchar(16) not null,              -- Name.
+    title varchar(50) default null,         -- Title.
+    annotation text default null,           -- Annotation.
+    bump_limit int not null,                -- Board specific bump limit.
+    force_anonymous bit not null,           -- Hide name flag.
+    default_name varchar(128) default null, -- Default name.
     -- Этот флаг не может быть null, так как для него нет родительского
     -- значения, которое можно было бы унаследовать.
-    with_attachments bit not null,          -- Флаг вложений.
+    with_attachments bit not null,          -- Attachments flag.
 
     -- Следующие флаги могут принимать 3 значения:
     -- null - унаследовано из config.php.
     -- 1 - включено.
     -- 0 - отключено.
-    enable_macro bit default null,          -- Включение интеграции с макрочаном.
-    enable_youtube bit default null,        -- Включение вложения видео с ютуба.
-    enable_captcha bit default null,        -- Включение капчи.
-    enable_translation bit default null,    -- Включение перевода текста сообщения.
-    enable_geoip bit default null,          -- Включение отображения страны автора сообщения.
-    enable_shi bit default null,            -- Включение рисования.
-    enable_postid bit default null,         -- Включение идентификатора сообщения.
+    enable_macro bit default null,          -- Macrochan integration flag.
+    enable_youtube bit default null,        -- Youtube video posting flag.
+    enable_captcha bit default null,        -- Captcha flag.
+    enable_translation bit default null,    -- Translation flag.
+    enable_geoip bit default null,          -- GeoIP flag.
+    enable_shi bit default null,            -- Painting flag.
+    enable_postid bit default null,         -- Post identification flag.
 
-    same_upload varchar(32) not null,       -- Политика загрузки одинаковых файлов.
-    popdown_handler int not null,           -- Идентификатор обработчика автоматического удаления нитей.
-    category int not null,                  -- Идентификатор категории.
+    same_upload varchar(32) not null,       -- Upload policy from same files.
+    popdown_handler int not null,           -- Popdown handler id.
+    category int not null,                  -- Category id.
     primary key (id),
     unique key (name),
     constraint foreign key (category) references categories (id) on delete restrict on update restrict,
@@ -165,17 +164,17 @@ create table boards                         -- Доски.
 )
 engine=InnoDB;
 
-create table users                      -- Пользователи.
+create table users                      -- Users.
 (
-    id int not null auto_increment,     -- Идентификатор.
-    keyword varchar(32) default null,   -- Хеш ключевого слова.
-    posts_per_thread int default null,  -- Число сообщений в нити на странице просмотра доски.
-    threads_per_page int default null,  -- Число нитей на странице просмотра доски.
-    lines_per_post int default null,    -- Количество строк в предпросмотре сообщения.
-    language int not null,              -- Идентификатор языка.
-    stylesheet int not null,            -- Идентификатор стиля.
-    password varchar(12) default null,  -- Пароль для удаления сообщений.
-    `goto` varchar(32) default null,    -- Перенаправление.
+    id int not null auto_increment,     -- Id.
+    keyword varchar(32) default null,   -- Keyword hash.
+    posts_per_thread int default null,  -- Count of posts per thread.
+    threads_per_page int default null,  -- Count of threads per page.
+    lines_per_post int default null,    -- Count of lines per post.
+    language int not null,              -- Language id.
+    stylesheet int not null,            -- Stylesheet id.
+    password varchar(12) default null,  -- Password.
+    `goto` varchar(32) default null,    -- Redirection.
     primary key (id),
     unique key (keyword),
     constraint foreign key (language) references languages (id) on delete restrict on update restrict,
@@ -222,55 +221,52 @@ create table board_upload_types -- Связь досок с типами заг�
 )
 engine=InnoDB;
 
-create table threads                    -- Нити.
+create table threads                    -- Threads.
 (
-    id int not null auto_increment,     -- Идентификатор.
-    board int not null,                 -- Идентификатор доски.
-    original_post int default null,     -- Номер оригинального сообщения.
-    bump_limit int default null,        -- Специфичный для нити бамплимит.
-    deleted bit not null,               -- Пометка на удаление.
-    archived bit not null,              -- Флаг архивирования.
+    id int not null auto_increment,     -- Id.
+    board int not null,                 -- Board id.
+    original_post int default null,     -- Original post number.
+    bump_limit int default null,        -- Thread specific bump limit.
+    deleted bit not null,               -- Mark to delete.
+    archived bit not null,              -- Archived flag.
     -- Этот флаг не может быть null, так как для него нет родительского
     -- значения, которое можно было бы унаследовать.
-    sage bit not null,                  -- Флаг поднятия нити.
-    sticky bit not null default 0,      -- Флаг закрепления.
+    sage bit not null,                  -- Sage flag.
+    sticky bit not null default 0,      -- Sticky flag.
     -- Если этот флаг null, то берётся родительский with_attachments доски.
-    with_attachments bit default null,  -- Флаг вложений.
+    with_attachments bit default null,  -- Attachments flag.
     primary key (id),
     constraint foreign key (board) references boards (id) on delete restrict on update restrict
 )
 engine=InnoDB;
 
-create table hidden_threads -- Скрытые нити.
+create table hidden_threads -- Hidden threads.
 (
-    user int,               -- Пользователь.
-    thread int,             -- Нить.
+    user int,               -- User id.
+    thread int,             -- Thread id.
     unique key (user, thread),
     constraint foreign key (user) references users (id) on delete restrict on update restrict,
     constraint foreign key (thread) references threads (id) on delete restrict on update restrict
 )
 engine=InnoDB;
 
--- Заметки:
--- Если установлен флаг удаления, то сообщение считается "помеченным на
--- удаление".
-create table posts                      -- Сообщения.
+create table posts                      -- Posts.
 (
-    id int not null auto_increment,     -- Идентификатор.
-    board int not null,                 -- Идентификатор доски.
-    thread int not null,                -- Идентификатор нити.
-    number int not null,                -- Номер.
-    user int not null,                  -- Идентификатор пользователя.
-    password varchar(12) default null,  -- Пароль.
-    name varchar(128) default null,     -- Имя отправителя.
-    tripcode varchar(128) default null, -- Трипкод.
-    ip bigint default null,             -- IP-адрес отправителя.
-    subject varchar(128) default null,  -- Тема.
-    date_time datetime default null,    -- Время сохранения.
-    `text` text default null,           -- Текст.
+    id int not null auto_increment,     -- Id.
+    board int not null,                 -- Board id.
+    thread int not null,                -- Thread id.
+    number int not null,                -- Number.
+    user int not null,                  -- User id.
+    password varchar(12) default null,  -- Password.
+    name varchar(128) default null,     -- Name.
+    tripcode varchar(128) default null, -- Tripcode.
+    ip bigint default null,             -- IP-address.
+    subject varchar(128) default null,  -- Subject.
+    date_time datetime default null,    -- Date.
+    `text` text default null,           -- Text.
     -- Если этот флаг null, то берётся родительский sage от нити.
-    sage bit default null,              -- Флаг поднятия нити.
-    deleted bit not null,               -- Флаг удаления.
+    sage bit default null,              -- Sage flag.
+    deleted bit not null,               -- Mark to delete.
     primary key (id),
     constraint foreign key (board) references boards (id) on delete restrict on update restrict,
     constraint foreign key (thread) references threads (id) on delete restrict on update restrict,
@@ -296,44 +292,44 @@ create table acl                -- Список контроля доступа.
 )
 engine=InnoDB;
 
-create table posts_files    -- Связь сообщений и вложенных файлов.
+create table posts_files    -- Posts files relations.
 (
-    post int not null,      -- Идентификатор сообщения.
-    file int not null,      -- Идентификатор вложенного файла.
-    deleted bit not null,   -- Флаг удаления.
+    post int not null,      -- Post id.
+    file int not null,      -- File id.
+    deleted bit not null,   -- Mark to delete.
     unique key (post, file),
     constraint foreign key (post) references posts (id) on delete restrict on update restrict,
     constraint foreign key (file) references files (id) on delete restrict on update restrict
 )
 engine=InnoDB;
 
-create table posts_images   -- Связь сообщений и вложенных изображений.
+create table posts_images   -- Posts images relations.
 (
-    post int not null,      -- Идентификатор сообщения.
-    image int not null,     -- Идентификатор вложенного изображения.
-    deleted bit not null,   -- Флаг удаления.
+    post int not null,      -- Post id.
+    image int not null,     -- Image id.
+    deleted bit not null,   -- Mark to delete.
     unique key (post, image),
     constraint foreign key (post) references posts (id) on delete restrict on update restrict,
     constraint foreign key (image) references images (id) on delete restrict on update restrict
 )
 engine=InnoDB;
 
-create table posts_links    -- Связь сообщений и вложенных ссылок на изображения.
+create table posts_links    -- Posts links relations.
 (
-    post int not null,      -- Идентификатор сообщения.
-    link int not null,      -- Идентификатор вложенной ссылки на изображение.
-    deleted bit not null,   -- Флаг удаления.
+    post int not null,      -- Post id.
+    link int not null,      -- Link id.
+    deleted bit not null,   -- Mark to delete.
     unique key (post, link),
     constraint foreign key (post) references posts (id) on delete restrict on update restrict,
     constraint foreign key (link) references links (id) on delete restrict on update restrict
 )
 engine=InnoDB;
 
-create table posts_videos   -- Связь сообщений и вложенного видео.
+create table posts_videos   -- Posts videos relations.
 (
-    post int not null,      -- Идентификатор сообщения.
-    video int not null,     -- Идентификатор вложенного видео.
-    deleted bit not null,   -- Флаг удаления.
+    post int not null,      -- Post id.
+    video int not null,     -- Video id.
+    deleted bit not null,   -- Mark to delete.
     unique key (post, video),
     constraint foreign key (post) references posts (id) on delete restrict on update restrict,
     constraint foreign key (video) references videos (id) on delete restrict on update restrict
@@ -413,11 +409,11 @@ create table spamfilter             -- Спамфильтр.
 )
 engine=InnoDB;
 
-CREATE TABLE favorites          -- Избранные нити.
+CREATE TABLE favorites          -- Favorites.
 (
-    user int not null,          -- Идентификатор пользователя.
-    thread int not null,        -- Идентификатор нити.
-    last_readed int not null,   -- Номер последнего прочитанного сообщения в нити.
+    user int not null,          -- User id.
+    thread int not null,        -- Thread id.
+    last_readed int not null,   -- Last readed post number.
     unique key (user, thread),
     constraint foreign key (user) references users (id) on delete restrict on update restrict,
     constraint foreign key (thread) references threads (id) on delete restrict on update restrict

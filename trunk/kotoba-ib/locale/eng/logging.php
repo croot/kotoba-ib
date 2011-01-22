@@ -5,8 +5,8 @@
  *********************************/
 
 /**
- * Logging functions in russian.
- * @package ruslocale
+ * Logging functions in english.
+ * @package englocale
  */
 
 Logging::$f['ARCHIVE_USE'] = function () {
@@ -34,7 +34,7 @@ Logging::$f['EDIT_BOARD_UPLOAD_TYPES_USE'] = function () {
 };
 
 Logging::$f['EDIT_BOARDS_USE'] = function () {
-    Logging::write_msg('Использовано редактирование досок.');
+    Logging::write_msg('Edit boards used.');
 };
 
 Logging::$f['EDIT_CATEGORIES_USE'] = function () {

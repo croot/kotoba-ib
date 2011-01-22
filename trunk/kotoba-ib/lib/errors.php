@@ -1,27 +1,27 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
 
 /**
- * Скрипт расширений стандартного исключения.
+ * Exception extensions.
  * @package api
  */
 
-/***/
+/**
+ * Ensure what requirements to use functions and classes from this script are met.
+ */
 if (!array_filter(get_included_files(), function($path) { return basename($path) == 'config.php'; })) {
     throw new Exception('Configuration file <b>config.php</b> must be included and executed BEFORE '
                         . '<b>' . basename(__FILE__) . '</b> but its not.');
 }
 
+// Load default error messages.
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
+
 /**
- * Разные ошибки.
+ * Common exception.
  * @package exceptions
  */
 class CommonException extends Exception {
@@ -40,7 +40,9 @@ class CommonException extends Exception {
      * @return string
      */
     public function __toString() {
-        return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
+        $html_encoded_message = htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING);
+        //var_dump($html_encoded_message);
+        return str_replace("\n", "<br>\n", $html_encoded_message);
     }
     /**
      * Возвращает причину произошедшей ошибки.
@@ -92,8 +94,8 @@ class NodataException extends Exception {
      * @param string $message Сообщение.
      */
     public function __construct($message) {
-        if (func_num_args() > 1) {
-            $message = vsprintf($message, array_slice(func_get_args(), 1, func_num_args() - 1));
+        if ( ($n = func_num_args()) > 1) {
+            $message = vsprintf($message, array_slice(func_get_args(), 1, $n));
         }
         $this->reason = $message;
         parent::__construct($message);
@@ -114,17 +116,22 @@ class NodataException extends Exception {
     }
 }
 /**
- * Ошибки формата данных.
+ * Data format exception.
  * @package exceptions
  */
 class FormatException extends Exception {
+
     static $messages;
     private $reason;
+
     /**
-     * Создаёт новое исключение с заданным сообщением.
-     * @param string $message Сообщение.
+     * Creates new data format exception.
+     * @param string $message Error message.
      */
     public function __construct($message) {
+        if ( ($n = func_num_args()) > 1) {
+            $message = vsprintf($message, array_slice(func_get_args(), 1, $n));
+        }
         $this->reason = $message;
         parent::__construct($message);
     }
@@ -144,17 +151,20 @@ class FormatException extends Exception {
     }
 }
 /**
- * Ошибки при регистрации, авторизации, идентификации и прав доступа.
+ * Registration, authorization, identification and access violation exception.
  * @package exceptions
  */
 class PermissionException extends Exception {
     static $messages;
     private $reason;
     /**
-     * Создаёт новое исключение с заданным сообщением.
-     * @param string $message Сообщение.
+     * Creates new exception.
+     * @param string $message Error message.
      */
     public function __construct($message) {
+        if ( ($n = func_num_args()) > 1) {
+            $message = vsprintf($message, array_slice(func_get_args(), 1, $n));
+        }
         $this->reason = $message;
         parent::__construct($message);
     }
@@ -234,17 +244,20 @@ class UploadException extends Exception {
     }
 }
 /**
- * Нарушение ограничений.
+ * Limit exceptions.
  * @package exceptions
  */
 class LimitException extends Exception {
     static $messages;
     private $reason;
     /**
-     * Создаёт новое исключение с заданным сообщением.
-     * @param string $message Сообщение.
+     * Creates new exception.
+     * @param string $message Error message.
      */
     public function __construct($message) {
+        if ( ($n = func_num_args()) > 1) {
+            $message = vsprintf($message, array_slice(func_get_args(), 1, $n));
+        }
         $this->reason = $message;
         parent::__construct($message);
     }
@@ -263,7 +276,4 @@ class LimitException extends Exception {
         return $this->reason;
     }
 }
-
-// Загрузка сообщений об ошибках на языке по умолчанию.
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 ?>

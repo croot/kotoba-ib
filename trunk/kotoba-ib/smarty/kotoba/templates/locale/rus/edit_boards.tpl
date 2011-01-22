@@ -1,23 +1,18 @@
 {* Smarty *}
-{*************************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************
- *********************************
+{*********************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************}
 {*
-Код страницы редактирования досок.
+Code of edit boards page.
 
-Описание переменных:
-    $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $STYLESHEET - стиль оформления (см. config.default).
-    $show_control - показывать ссылку на страницу административных фукнций и фукнций модераторов в панели администратора.
-    $popdown_handlers - обработчики удаления нитей.
-    $categories - категории.
-    $boards - доски.
+Variables:
+    $DIR_PATH - path from server document root to index.php directory (see config.default).
+    $STYLESHEET - stylesheet (see config.default).
+    $show_control - show link to manage page.
+    $boards - Boards.
+    $popdown_handlers - Popdown handlers.
+    $categories - Categories.
 *}
 {include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title='Редактирование досок'}
 
@@ -25,12 +20,12 @@
 
 {include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
 
-<br />
+<br>
 <form action="{$DIR_PATH}/admin/edit_boards.php" method="post">
 <table border="1">
 <tr>
-    <td colspan="18">Чтобы добавить доску, введите все необходимые параметры (помечены звёздочкой<span style="color:red;">*</span>).<br />
-    Чтобы отредактировать параметры существующих досок, отредактируйте соотвествующие поля таблицы.<br />
+    <td colspan="18">Чтобы добавить доску, введите все необходимые параметры (помечены звёздочкой<span style="color:red;">*</span>).<br>
+    Чтобы отредактировать параметры существующих досок, отредактируйте соотвествующие поля таблицы.<br>
     Чтобы удалить доску, отметьте её.</td>
 </tr>
 <tr>
@@ -174,8 +169,8 @@
 <input type="hidden" name="submited" value="1">
 <input type="reset" value="Сброс"> <input type="submit" value="Сохранить">
 </form>
-<br />
-<br />
+<br>
+<br>
 {include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
 
 {include file='footer.tpl'}
