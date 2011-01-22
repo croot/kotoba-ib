@@ -21,5 +21,5 @@ Variables:
 <a href="{$DIR_PATH}/{$boards[i].name}/">{$boards[i].name}</a>{/if}{/section}
 {if $smarty.section.i.index > 0}]
 {/if}
-[<a href="{$DIR_PATH}/">Главная</a>]
+[<a href="{$DIR_PATH}/">Home</a>]
 </div>

@@ -1,15 +1,10 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* ********************************
  * This file is part of Kotoba.   *
  * See license.txt for more info. *
  **********************************/
 
-// Скрипт главной страницы имиджборды.
+// Script of imageboard main page.
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
@@ -18,16 +13,19 @@ require_once Config::ABS_PATH . '/lib/misc.php';
 require_once Config::ABS_PATH . '/lib/wrappers.php';
 
 try {
-    // Инициализация.
+    // Initialization.
     kotoba_session_start();
+    if (Config::LANGUAGE != $_SESSION['language']) {
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+    }
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup();
 
-    // Проверка, не заблокирован ли клиент.
-    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+    // Check if client banned.
+    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
-    if (($ban = bans_check($ip)) !== false) {
+    if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
         session_destroy();
@@ -35,26 +33,21 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    // Получение данных о досках.
+    // Receieve visible boards.
     $boards = boards_get_visible($_SESSION['user']);
-    if (count($boards) > 0) {
-        $smarty->assign('boards_exist', true);
-        $smarty->assign('boards', $boards);
-    }
 
-    // Формирование кода новостей.
+    // Generate news html-code.
     $news_html = "";
     foreach ($boards as $board) {
         if ($board['name'] == Config::NEWS_BOARD) {
-            $smarty->assign('board', $board);
 
-            // Выбирает все нити.
+            // Pass all threads.
             $tfilter = function($thread) {
                 return true;
             };
             $threads = threads_get_visible_filtred_by_board($board['id'], $_SESSION['user'], $tfilter);
 
-            // Выбирает все сообщения.
+            // Pass all posts.
             $pfilter = function($thread, $post) {
                 return true;
             };
@@ -74,12 +67,10 @@ try {
             $news_posts_html = '';
 
             foreach ($threads as $t) {
-                $smarty->assign('thread', $t);
                 foreach ($posts as $p) {
-
-                    // Сообщение принадлежит текущей нити.
                     if ($t['id'] == $p['thread']) {
 
+                        // Find if author of this post is admin.
                         $author_admin = false;
                         foreach ($admins as $admin) {
                             if ($p['user'] == $admin['id']) {
@@ -88,14 +79,13 @@ try {
                             }
                         }
 
-                        // Имя отправителя по умолчанию.
+                        // Set default post author name if enabled.
                         if (!$board['force_anonymous'] && $board['default_name'] && !$p['name']) {
                             $p['name'] = $board['default_name'];
                         }
 
+                        // Original post or reply.
                         if ($t['original_post'] == $p['number']) {
-
-                            // Оригинальное сообщение.
                             $news_thread_html .= post_original_generate_html($smarty,
                                     $board,
                                     $t,
@@ -109,8 +99,6 @@ try {
                                     false,
                                     $author_admin);
                         } else {
-
-                            // Ответ в нить.
                             $news_posts_html .= post_simple_generate_html($smarty,
                                     $board,
                                     $t,
@@ -123,25 +111,29 @@ try {
                         }
                     }
                 }
+
                 $news_thread_html .= $news_posts_html;
-                $news_thread_html .= $smarty->fetch('board_thread_footer.tpl');
+                $news_thread_html .= $smarty->fetch('post_original_footer.tpl');
                 $news_html .= $news_thread_html;
+
                 $news_thread_html = '';
                 $news_posts_html = '';
             }
+
             break;
         }
     }
 
-    // Формирование кода главной страницы и вывод.
+    // Generate main page html-code and display it.
     $smarty->assign('show_control', is_admin() || is_mod());
+    $smarty->assign('boards', $boards);
     $smarty->assign('news_html', $news_html);
     $smarty->assign('version', '$Revision$');
-    $smarty->assign('date', '$Date$');
+    $smarty->assign('last_modification', '$Date$');
     $smarty->assign('ib_name', Config::IB_NAME);
     $smarty->display('index.tpl');
 
-    // Освобождение ресурсов и очистка.
+    // Cleanup.
     DataExchange::releaseResources();
 
     exit(0);

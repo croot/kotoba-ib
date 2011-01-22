@@ -1,48 +1,100 @@
 {* Smarty *}
-{*************************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************
- *********************************
+{*********************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************}
 {*
-Этот шаблон содержит код обычного сообщения, которые образуют нити. Это не
-то же самое, что оригинальное сообщение, с которого начинается нить.
+Code of simple message.
 
-Описание переменных:
-	$DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-	$board - просматриваемая доска.
-    $thread - нить.
-
-	$simple_post - сообщение.
-	$simple_uploads - файлы, прикрепленные к сообщению.
+Variables:
+    $DIR_PATH - path from server document root to index.php directory (see config.default).
+    $ATTACHMENT_TYPE_FILE - attachment type is file (see config.default).
+    $ATTACHMENT_TYPE_LINK - attachment type is link (see config.default).
+    $ATTACHMENT_TYPE_VIDEO - attachment type is video (see config.default).
+    $ATTACHMENT_TYPE_IMAGE - attachment type is image (see config.default).
+    $enable_doubledash - Show >> near post.
+    $post - Simple post.
+    $enable_remove_post - Show remove post link.
+    $enable_anchor - Enable anchor.
+    $enable_extrabtns - Show extra buttons.
+    $enable_geoip - GeoIP flag (see config.default).
+    $country - GeoIP data if GeoIP flag up.
+    $author_admin - Author of this post is admin.
+    $is_board_view -
+    $enable_postid - Post identification flag.
+    $postid - Post identifer if post identification flag up.
+    $attachments - Attachments.
+    $enable_translation - Translation flag. (see config.default).
 *}
-    <table>
-	<tbody>
-    <tr>
-		<td class="doubledash">
-			&gt;&gt;
-		</td>
-        <td class="reply">
-            <span class="filetitle">{$simple_post.subject}</span> <span class="postername">{$simple_post.name}</span>{if $simple_post.tripcode != null}<span class="postertrip">!{$simple_post.tripcode}</span>{/if} {$simple_post.date_time}
-			{if $simple_post.with_files == true}
-			<span class="filesize">Файл: <a target="_blank" href="{$simple_uploads[0].file_link}">{$simple_uploads[0].file_name}</a> -(<em>{$simple_uploads[0].size} Байт {$simple_uploads[0].file_w}x{$simple_uploads[0].file_h}</em>)</span>
-			{/if}
-            <span class="reflink"><span onclick="insert('>>{$simple_post.number}');">#</span> <a href="{$DIR_PATH}/{$board.name}/{$thread.original_post}#{$simple_post.number}">{$simple_post.number}</a></span>
-            <span class="delbtn">[<a href="{$DIR_PATH}/{$board.name}/r{$simple_post.number}" title="Удалить">×</a>]</span>
-			{if $is_admin}{include file='mod_mini_panel.tpl' post_id=$simple_post.id ip=$simple_post.ip board_name=$board.name post_num=$simple_post.number}{/if}
-            <a name="{$simple_post.number}"></a>
-			{if $simple_post.with_files == true}
-			<br><a target="_blank" href="{$simple_uploads[0].file_link}"><img src="{$simple_uploads[0].file_thumbnail_link}" class="thumb" width="{$simple_uploads[0].thumbnail_w}" height="{$simple_uploads[0].thumbnail_h}"></a>
-			{/if}
-            <blockquote>
-            {$simple_post.text}
-            </blockquote>
-			{if $simple_post.text_cutted == 1}<br><span class="omittedposts">Нажмите "Ответ" для просмотра сообщения целиком.</span>{/if}
-        </td>
-    </tr>
-	</tbody>
-    </table>
+<table>
+    <tbody>
+        <tr>
+            {if $enable_doubledash}<td class="doubledash"> &gt;&gt; </td>{/if}
+
+            <td class="reply">
+                {if $enable_anchor}<a name="{$post.number}"></a>{/if}
+
+                {if $enable_remove_post}<span><a href="{$DIR_PATH}/remove_post.php?post={$post.id}"><img src="{$DIR_PATH}/css/delete.png" alt="[Remove]" title="Remove post" border="0"/></a></span>{/if}
+
+                {if $enable_extrabtns}<span class="extrabtns">
+                    {if $post.with_attachments}
+                        <a href="{$DIR_PATH}/remove_upload.php?post={$post.id}"><img src="{$DIR_PATH}/css/delfile.png" alt="[Remove file]" title="Remove file" border="0"/></a>
+                    {/if}
+                    <a href="{$DIR_PATH}/report.php?post={$post.id}"><img src="{$DIR_PATH}/css/report.png" alt="[Report]" title="Report" border="0"/></a>
+                </span>{/if}
+
+                {if $enable_geoip}<span title="{$country.name}" class="country"><img src="http://410chan.ru/css/flags/{$country.code}.gif" alt="{$country.name}"></span>&nbsp;{/if}
+
+                <span class="filetitle">{$post.subject}</span>
+                <span class="postername">{$post.name}</span>
+                {if $post.tripcode != null}<span class="postertrip">!{$post.tripcode}</span>{/if}
+                {if $author_admin} <span class="admin">❀❀&nbsp;Admin&nbsp;❀❀</span>{/if}
+                {$post.date_time}
+                <span class="reflink">
+                    <a href="{$DIR_PATH}/{$post.board.name}/{$post.thread.original_post}#{$post.number}">#</a>
+                    {if $is_board_view}
+                        <a href="{$DIR_PATH}/threads.php?board={$post.board.name}&thread={$post.thread.original_post}&quote={$post.number}">{$post.number}</a>
+                    {else}
+                        <a href="#" onclick="insert('>>{$post.number}');">{$post.number}</a>
+                    {/if}
+                </span>
+                {if $enable_postid} ID:{$postid}{/if}
+                {if $is_admin} {include file='mod_mini_panel.tpl' post_id=$post.id ip=$post.ip board_name=$post.board.name post_num=$post.number}{/if}
+                <br>
+                {if $post.with_attachments}
+                    {if $attachments[0].attachment_type == $ATTACHMENT_TYPE_FILE}
+                        <span class="filesize">File: <a target="_blank" href="{$attachments[0].file_link}">{$attachments[0].name}</a>-({$attachments[0].size} Bytes)</span>
+                        <br>
+                        <a target="_blank" href="{$attachments[0].file_link}">
+                            <img src="{$attachments[0].thumbnail_link}" class="thumb" width="{$attachments[0].thumbnail_w}" height="{$attachments[0].thumbnail_h}">
+                        </a>
+                    {elseif $attachments[0].attachment_type == $ATTACHMENT_TYPE_IMAGE}
+                        <span class="filesize">File: <a target="_blank" href="{$attachments[0].image_link}">{$attachments[0].name}</a>-({$attachments[0].size} Bytes, {$attachments[0].widht}x{$attachments[0].height})</span>
+                        <br>
+                        <a target="_blank" href="{$attachments[0].image_link}">
+                            <img src="{if $attachments[0].spoiler}{$DIR_PATH}/img/spoiler.png{else}{$attachments[0].thumbnail_link}{/if}" class="thumb"{if !$attachments[0].spoiler} width="{$attachments[0].thumbnail_w}" height="{$attachments[0].thumbnail_h}{/if}">
+                        </a>
+                    {elseif $attachments[0].attachment_type == $ATTACHMENT_TYPE_LINK}
+                        <span class="filesize">File: <a target="_blank" href="{$attachments[0].url}">{$attachments[0].url}</a>-({$attachments[0].size} Bytes, {$attachments[0].widht}x{$attachments[0].height})</span>
+                        <br>
+                        <a target="_blank" href="{$attachments[0].url}">
+                            <img src="{$attachments[0].thumbnail}" class="thumb" width="{$attachments[0].thumbnail_w}" height="{$attachments[0].thumbnail_h}">
+                        </a>
+                    {elseif $attachments[0].attachment_type == $ATTACHMENT_TYPE_VIDEO}
+                        <br>
+                        <br>
+                        {$attachments[0].video_link}
+                    {/if}
+                {/if}
+                <blockquote id="post{$post.number}">
+                    {$post.text}
+                    {if $post.text_cutted == 1}
+                        <div class="abbrev">Refer "Reply" to view entire message.</div>
+                    {/if}
+                </blockquote>
+                {if $enable_translation && $post.text}<blockquote id="translation{$post.number}"></blockquote><a href="#" onclick="javascript:translate('{$post.number}'); return false;">Lolšto?</a>{/if}
+
+            </td>
+        </tr>
+    </tbody>
+</table>

@@ -1,20 +1,17 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
 
 /**
- * Логирование.
+ * Logging.
  * @package api
  */
 
-/***/
+/**
+ * Ensure what requirements to use functions and classes from this script are met.
+ */
 if (!array_filter(get_included_files(), function($path) { return basename($path) == 'config.php'; })) {
     throw new Exception('Configuration file <b>config.php</b> must be included and executed BEFORE '
                         . '<b>' . basename(__FILE__) . '</b> but its not.');
@@ -23,6 +20,9 @@ if (!array_filter(get_included_files(), function($path) { return basename($path)
     throw new Exception('Error handing file <b>errors.php</b> must be included and executed BEFORE '
                         . '<b>' . basename(__FILE__) . '</b> but its not.');
 }
+
+// Load default log messages.
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
 
 /**
  * Обёртка для удобства.
@@ -70,7 +70,4 @@ class Logging {
                . "$msg\n");
     }
 }
-
-// Загрузка сообщений на языке по умолчанию.
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
 ?>

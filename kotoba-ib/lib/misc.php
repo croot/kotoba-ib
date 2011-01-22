@@ -1,9 +1,4 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
@@ -14,7 +9,9 @@
  * @package api
  */
 
-/***/
+/**
+ * Ensure what requirements to use functions and classes from this script are met.
+ */
 if (!array_filter(get_included_files(), function($path) { return basename($path) == 'config.php'; })) {
     throw new Exception('Configuration file <b>config.php</b> must be included and executed BEFORE '
                         . '<b>' . basename(__FILE__) . '</b> but its not.');
@@ -29,28 +26,21 @@ if (!array_filter(get_included_files(), function($path) { return basename($path)
  ****************************/
 
 require Config::ABS_PATH . '/smarty/libs/Smarty.class.php';
+
 /**
- * Расширение класса для работы с шаблонизатором. Местоположение шаблонов
- * зависит от текущего языка, поэтому при его изменении по ходу работы скрипта
- * должен быть создан новый экзепляр класса шаблонизатора. При изменени таблицы
- * стилей по умолчанию, надо так же создать новый экземпляр шаблонизатора.
- *
- * В любом шаблоне всегда доступны по крайней мере две переменные. Это
- * $DIR_PATH и $STYLESHEET (смотри описание одноименных констант в config.php).
+ * Smarty class extension.
  * @package templates
  */
-class SmartyKotobaSetup extends Smarty { // Java CC
-    var $language;
-    var $stylesheet;
+class SmartyKotobaSetup extends Smarty {
 
-    function SmartyKotobaSetup($language = Config::LANGUAGE,
-                               $stylesheet = Config::STYLESHEET) {
-        // Try to fix warning on strftime.
+    function SmartyKotobaSetup() {
+
+        // Fix warning on strftime.
         date_default_timezone_set(Config::DEFAULT_TIMEZONE);
-
         parent::__construct();
-        $this->language = $language;
-        $this->stylesheet = $stylesheet;
+
+        $language = isset($_SESSION['language']) ? $_SESSION['language'] : Config::LANGUAGE;
+        $stylesheet = isset($_SESSION['stylesheet']) ? $_SESSION['stylesheet'] : Config::STYLESHEET;
 
         $this->template_dir = Config::ABS_PATH . "/smarty/kotoba/templates/locale/$language/";
         $this->compile_dir = Config::ABS_PATH . "/smarty/kotoba/templates_c/locale/$language/";
@@ -58,13 +48,14 @@ class SmartyKotobaSetup extends Smarty { // Java CC
         $this->cache_dir = Config::ABS_PATH . "/smarty/kotoba/cache/$language/";
         $this->caching = 0;
 
+        // Variables what available by default in any template.
         $this->assign('DIR_PATH', Config::DIR_PATH);
         $this->assign('STYLESHEET', $stylesheet);
         $this->assign('INVISIBLE_BOARDS', Config::$INVISIBLE_BOARDS);
     }
 }
 /**
- * Обёртка для intval().
+ * intval() wrapper.
  */
 function kotoba_intval($var) {
     if (!is_object($var)) {
@@ -74,7 +65,7 @@ function kotoba_intval($var) {
     throw new FormatException(FormatException::$messages['KOTOBA_INTVAL']);
 }
 /**
- * Обёртка для strval().
+ * strval() wrapper.
  */
 function kotoba_strval($var) {
     if (is_object($var) && method_exists($var, '__toString') || !is_array($var)) {
@@ -84,21 +75,24 @@ function kotoba_strval($var) {
     throw new FormatException(FormatException::$messages['KOTOBA_STRVAL']);
 }
 /**
- * Возобновляет сессию или начинает новую. Восстанавливает настройки
- * пользователя или устанавливает настройки по умолчанию. Изменяет язык
- * сообщений об ошибках, если язык пользователя отличается от языка по
- * умолчанию.
+ * Restores php session or create new one. In case of new session default
+ * settings will be apply.
  */
-function kotoba_session_start() { // Java CC
+function kotoba_session_start() {
     ini_set('session.save_path', Config::ABS_PATH . '/sessions');
-    ini_set('session.gc_maxlifetime', Config::SESSION_LIFETIME);
-    ini_set('session.cookie_lifetime', Config::SESSION_LIFETIME);
+    session_cache_expire(Config::SESSION_LIFETIME / 60);
+    session_set_cookie_params(Config::SESSION_LIFETIME);
 
     if (!session_start()) {
         throw new CommonException(CommonException::$messages['SESSION_START']);
     }
 
-    // По умолчанию пользователь является Гостем.
+    if (!isset($_SESSION['kotoba_session_start_time'])) {
+        date_default_timezone_set(Config::DEFAULT_TIMEZONE);
+        $_SESSION['kotoba_session_start_time'] = time();
+    }
+
+    // Apply default settings.
     if (!isset($_SESSION['user']) || $_SESSION['user'] == Config::GUEST_ID) {
         $_SESSION['user'] = Config::GUEST_ID;
         $_SESSION['groups'] = array(Config::GST_GROUP_NAME);
@@ -108,18 +102,14 @@ function kotoba_session_start() { // Java CC
         $_SESSION['stylesheet'] = Config::STYLESHEET;
         $_SESSION['language'] = Config::LANGUAGE;
         $_SESSION['password'] = null;
-        $_SESSION['goto'] = 'b'; // Переход к доске.
+        $_SESSION['goto'] = 'b';    // Redirection to board view.
         $_SESSION['name'] = null;
     }
-
-    // Язык мог измениться на язык пользователя.
-    require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
 }
 /**
- * Устанавливает язык и кодировку для фукнций работы с многобайтовыми
- * кодировками. Настраивает локаль.
+ * Sets locale for script exection and for mb_* functions also.
  */
-function locale_setup() { // Java CC
+function locale_setup() {
     mb_language(Config::MB_LANGUAGE);
     mb_internal_encoding(Config::MB_ENCODING);
     if (!setlocale(LC_ALL, Config::$LOCALE_NAMES)) {
@@ -132,25 +122,19 @@ function locale_setup() { // Java CC
  ***********/
 
 /**
- * Загружает настройки пользователя по заданному ключевому слову.
- * @param keyword string <p>Хеш ключевого слова.</p>
+ * Load user settings.
+ * @param string $keyword Keyword hash.
  */
-function load_user_settings($keyword) { // Java CC
+function load_user_settings($keyword) {
     $user_settings = users_get_by_keyword($keyword);
     $_SESSION['user'] = kotoba_intval($user_settings['id']);
     $_SESSION['groups'] = $user_settings['groups'];
-    $_SESSION['threads_per_page'] = $user_settings['threads_per_page'];
-    $_SESSION['posts_per_thread'] = $user_settings['posts_per_thread'];
-    $_SESSION['lines_per_post'] = $user_settings['lines_per_post'];
+    $_SESSION['threads_per_page'] = kotoba_intval($user_settings['threads_per_page']);
+    $_SESSION['posts_per_thread'] = kotoba_intval($user_settings['posts_per_thread']);
+    $_SESSION['lines_per_post'] = kotoba_intval($user_settings['lines_per_post']);
     $_SESSION['stylesheet'] = $user_settings['stylesheet'];
-
-    // Язык мог измениться на язык пользователя.
-    if($_SESSION['language'] != $user_settings['language']) {
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
-    }
     $_SESSION['language'] = $user_settings['language'];
-    $_SESSION['password'] = $user_settings['password'] == ''
-        ? null : $user_settings['password'];
+    $_SESSION['password'] = $user_settings['password'] == '' ? NULL : $user_settings['password'];
     $_SESSION['goto'] = $user_settings['goto'];
 }
 /**
@@ -233,16 +217,12 @@ function create_filenames($ext) {
                  $filename);
 }
 /**
- * Создаёт трипкод.
- * @param string $name Имя отправителя, которое может содержать ключевое слово
- * для создания трипкода.
+ * Creates tripcode.
+ * @param string $name Message author name what can contains tripcode.
  * @return array
- * Возвращает имя отправителя со сгенерированным трипкодом, если было задано
- * ключевое слово или просто имя отправителя, если ключевое слово задано не было.
- * 0 - Имя отправителя.
- * 1 - Трипкод.
+ * array of name and created tripcode.
  */
-function calculate_tripcode($name) { // Java CC
+function calculate_tripcode($name) {
     @list($first, $code) = @preg_split("/[#!]/", $name);
     if (!isset($code) || strlen($code) == 0) {
         return array($name, null);

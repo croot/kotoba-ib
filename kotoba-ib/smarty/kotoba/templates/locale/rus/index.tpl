@@ -1,22 +1,19 @@
 {* Smarty *}
-{*************************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************
- *********************************
+{*********************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************}
 {*
-Код главной страницы имэйджборды.
+Code of imageboard main page.
 
-Описание переменных:
-    $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $STYLESHEET - стиль (см. config.default).
-    $show_control - показывать ссылку на страницу административных фукнций и фукнций модераторов в панели администратора.
-    $boards - досоки.
-    $news_html - новости.
+Variables:
+    $DIR_PATH - path from server document root to index.php directory (see config.default).
+    $STYLESHEET - stylesheet (see config.default).
+    $show_control - show link to manage page.
+    $boards - boards.
+    $version - version of Kotoba.
+    $last_modification - date of last Kotoba modification.
+    $news_html - news html code.
 *}
 {include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title='Главная страница'}
 
@@ -24,6 +21,7 @@
 
 {include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
 
-<p>Версия {$version}. Время модификации {$date}</p>
+<div class="logo">{$ib_name}</div>
+<p>Версия {$version}. Время последнего изменения: {$last_modification}.</p>
 <p>{$news_html}</p>
 {include file='footer.tpl'}
