@@ -63,12 +63,12 @@ try {
             $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
             $smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
 
-            $news_thread_html = '';
-            $news_posts_html = '';
+            $threads_html = '';
+            $simple_posts_html = '';
 
             foreach ($threads as $t) {
                 foreach ($posts as $p) {
-                    if ($t['id'] == $p['thread']) {
+                    if ($t['id'] == $p['thread']['id']) {
 
                         // Find if author of this post is admin.
                         $author_admin = false;
@@ -86,7 +86,7 @@ try {
 
                         // Original post or reply.
                         if ($t['original_post'] == $p['number']) {
-                            $news_thread_html .= post_original_generate_html($smarty,
+                            $original_post_html .= post_original_generate_html($smarty,
                                     $board,
                                     $t,
                                     $p,
@@ -97,9 +97,11 @@ try {
                                     false,
                                     null,
                                     false,
-                                    $author_admin);
+                                    $author_admin,
+                                    false,
+                                    false);
                         } else {
-                            $news_posts_html .= post_simple_generate_html($smarty,
+                            $simple_posts_html .= post_simple_generate_html($smarty,
                                     $board,
                                     $t,
                                     $p,
@@ -107,17 +109,16 @@ try {
                                     $attachments,
                                     false,
                                     null,
-                                    $author_admin);
+                                    $author_admin,
+                                    false,
+                                    false);
                         }
                     }
                 }
-
-                $news_thread_html .= $news_posts_html;
-                $news_thread_html .= $smarty->fetch('post_original_footer.tpl');
-                $news_html .= $news_thread_html;
-
-                $news_thread_html = '';
-                $news_posts_html = '';
+                $smarty->assign('original_post_html', $original_post_html);
+                $smarty->assign('simple_posts_html', $simple_posts_html);
+                $threads_html .= $smarty->fetch('thread.tpl');
+                $simple_posts_html = '';
             }
 
             break;
@@ -127,7 +128,7 @@ try {
     // Generate main page html-code and display it.
     $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('boards', $boards);
-    $smarty->assign('news_html', $news_html);
+    $smarty->assign('news_html', $threads_html);
     $smarty->assign('version', '$Revision$');
     $smarty->assign('last_modification', '$Date$');
     $smarty->assign('ib_name', Config::IB_NAME);

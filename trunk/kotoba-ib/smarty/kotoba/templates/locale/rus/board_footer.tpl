@@ -1,23 +1,18 @@
 {* Smarty *}
-{*************************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************
- *********************************
+{*********************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************}
 {*
-Код конца страницы просмотра доски.
+Code of footer of boards page.
 
-Описание переменных:
-	$DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-	$board - просматриваемая доска.
-	$boards - доски.
-	$hidden_threads - скрытые пользователем нити на текущей доске.
-	$pages - номера страниц.
-	$page - номер просматриваемой страницы.
+Variables:
+    $DIR_PATH - path from server document root to index.php directory (see config.default).
+    $hidden_threads - hidden threads.
+    $pages - pages numbers.
+    $page - page number.
+    $boards - boards.
+    $board - board.
 *}
 {if count($hidden_threads) > 0}
 Скрытые вами нити:

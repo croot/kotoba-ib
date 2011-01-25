@@ -1,15 +1,10 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
 
-// Скрипт просмотра досок.
+// Board view script.
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
@@ -20,14 +15,19 @@ require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
 require_once Config::ABS_PATH . '/lib/events.php';
 
 try {
+    // Initialization.
     kotoba_session_start();
+    if (Config::LANGUAGE != $_SESSION['language']) {
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+    }
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup();
 
-    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+    // Check if client banned.
+    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
-    if (($ban = bans_check($ip)) !== false) {
+    if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
         session_destroy();
@@ -88,6 +88,8 @@ try {
         static $received = 0;
 
         if ($thread['sticky']) {
+
+            // Sticky threads shows only on 1st page.
             if ($page == 1) {
                 return true;
             } else {
@@ -103,7 +105,11 @@ try {
             }
         }
     };
-    $threads = threads_get_visible_filtred_by_board($board['id'], $_SESSION['user'], $tfilter, $page, $_SESSION['threads_per_page']);
+    $threads = threads_get_visible_filtred_by_board($board['id'],
+                                                    $_SESSION['user'],
+                                                    $tfilter,
+                                                    $page,
+                                                    $_SESSION['threads_per_page']);
     $sticky_threads = array();
     $other_threads = array();
     foreach ($threads as $thread) {
@@ -124,7 +130,7 @@ try {
             $prev_thread = $thread;
         }
 
-        if ($thread['original_post'] == $post['number']) {
+        if ($thread['original_post'] == $post['post_number']) {
             return true;
         }
         $recived++;
@@ -133,13 +139,16 @@ try {
         }
         return false;
     };
-    $posts = posts_get_visible_filtred_by_threads($threads, $_SESSION['user'], $pfilter, $_SESSION['posts_per_thread']);
+    $posts = posts_get_visible_filtred_by_threads($threads,
+                                                  $_SESSION['user'],
+                                                  $pfilter,
+                                                  $_SESSION['posts_per_thread']);
 
-    // TODO: What if attachments disables on this board?
+    // TODO: What if attachments disabled on this board?
     $posts_attachments = posts_attachments_get_by_posts($posts);
     $attachments = attachments_get_by_posts($posts);
 
-    $htfilter = function ($user, $hidden_thread) {
+    $htfilter = function ($hidden_thread, $user) {
         if ($hidden_thread['user'] == $user) {
             return true;
         }
@@ -148,7 +157,11 @@ try {
     $hidden_threads = hidden_threads_get_filtred_by_boards(array($board), $htfilter, $_SESSION['user']);
 
     $upload_types = upload_types_get_by_board($board['id']);
-    $macrochan_tags = macrochan_tags_get_all();
+    if ($board['enable_macro'] === null ? Config::ENABLE_MACRO : $board['enable_macro']) {
+        $macrochan_tags = macrochan_tags_get_all();
+    } else {
+        $macrochan_tags = array();
+    }
 
     if ($banners_board_id) {
         $banners = images_get_by_board($banners_board_id);
@@ -182,9 +195,11 @@ try {
     $smarty->assign('enable_search', Config::ENABLE_SEARCH);
     $smarty->assign('enable_captcha', !is_admin() && (($board['enable_captcha'] === null && Config::ENABLE_CAPTCHA) || $board['enable_captcha']));
     $smarty->assign('enable_translation', ($board['enable_translation'] === null) ? Config::ENABLE_TRANSLATION : $board['enable_translation']);
-    $smarty->assign('enable_geoip', ($board['enable_geoip'] === null) ? Config::ENABLE_GEOIP : $board['enable_geoip']);
+    $enable_geoip = $board['enable_geoip'] === null ? Config::ENABLE_GEOIP : $board['enable_geoip'];
+    $smarty->assign('enable_geoip', $enable_geoip);
     $smarty->assign('enable_shi', ($board['enable_shi'] === null) ? Config::ENABLE_SHI : $board['enable_shi']);
-    $smarty->assign('enable_postid', ($board['enable_postid'] === null) ? Config::ENABLE_POSTID : $board['enable_postid']);
+    $enable_postid = $board['enable_postid'] === null ? Config::ENABLE_POSTID : $board['enable_postid'];
+    $smarty->assign('enable_postid', $enable_postid);
     $smarty->assign('ATTACHMENT_TYPE_FILE', Config::ATTACHMENT_TYPE_FILE);
     $smarty->assign('ATTACHMENT_TYPE_LINK', Config::ATTACHMENT_TYPE_LINK);
     $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
@@ -196,9 +211,8 @@ try {
 
     //event_daynight($smarty);
 
-    $boards_html = $smarty->fetch('board_header.tpl');
-    $boards_thread_html = ''; // Код предпросмотра нити.
-    $boards_posts_html = ''; // Код сообщений из препдпросмотра нитей.
+    $threads_html = '';
+    $simple_posts_html = '';
     foreach ($threads as $t) {
         $smarty->assign('thread', $t);
 
@@ -211,10 +225,9 @@ try {
         }
 
         foreach ($posts as $p) {
+            if ($t['id'] == $p['thread']['id']) {
 
-            // Сообщение принадлежит текущей нити.
-            if ($t['id'] == $p['thread']) {
-
+                // Find if author of this post is admin.
                 $author_admin = false;
                 foreach ($admins as $admin) {
                     if ($p['user'] == $admin['id']) {
@@ -223,15 +236,14 @@ try {
                     }
                 }
 
-                // Имя отправителя по умолчанию.
+                // Set default post author name if enabled.
                 if (!$board['force_anonymous'] && $board['default_name'] && !$p['name']) {
                     $p['name'] = $board['default_name'];
                 }
 
+                // Original post or reply.
                 if ($t['original_post'] == $p['number']) {
-
-                    // Оригинальное сообщение.
-                    $boards_thread_html .= post_original_generate_html($smarty,
+                    $original_post_html = post_original_generate_html($smarty,
                             $board,
                             $t,
                             $p,
@@ -242,11 +254,11 @@ try {
                             true,
                             $_SESSION['posts_per_thread'],
                             true,
-                            $author_admin);
+                            $author_admin,
+                            $enable_geoip,
+                            $enable_postid);
                 } else {
-
-                    // Ответ в нить.
-                    $boards_posts_html .= post_simple_generate_html($smarty,
+                    $simple_posts_html .= post_simple_generate_html($smarty,
                             $board,
                             $t,
                             $p,
@@ -254,21 +266,28 @@ try {
                             $attachments,
                             true,
                             $_SESSION['lines_per_post'],
-                            $author_admin);
+                            $author_admin,
+                            $enable_geoip,
+                            $enable_postid);
                 }
             }
         }
-        $boards_thread_html .= $boards_posts_html;
-        $boards_thread_html .= $smarty->fetch('board_thread_footer.tpl');
-        $boards_html .= $boards_thread_html;
-        $boards_thread_html = '';
-        $boards_posts_html = '';
+        $smarty->assign('original_post_html', $original_post_html);
+        $smarty->assign('simple_posts_html', $simple_posts_html);
+        $threads_html .= $smarty->fetch('thread.tpl');
+        $simple_posts_html = '';
     }
+
+    $smarty->assign('threads_html', $threads_html);
     $smarty->assign('hidden_threads', $hidden_threads);
-    $boards_html .= $smarty->fetch('board_footer.tpl');
+    //$boards_html .= $smarty->fetch('board_footer.tpl');
+    //echo $boards_html;
+    $smarty->display('board.tpl');
+
+    // Cleanup.
     DataExchange::releaseResources();
-    echo $boards_html;
-    exit;
+
+    exit(0);
 } catch(Exception $e) {
     if (isset($smarty)) {
         $smarty->assign('msg', $e->__toString());

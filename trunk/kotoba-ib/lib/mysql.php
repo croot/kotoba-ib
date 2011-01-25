@@ -1586,24 +1586,13 @@ function db_images_add($link, $hash, $name, $widht, $height, $size, $thumbnail, 
 	return $row['id'];
 }
 /**
- * Получает все изоражения с заданной доски.
- * @param MySQLi $link Связь с базой данных.
- * @param int $board_id Идентификатор доски.
+ * Get images.
+ * @param MySQLi $link Link to database.
+ * @param int $board_id Board id.
  * @return array
- * Возвращает вложенные изображения:<br>
- * 'id' - Идентификатор.<br>
- * 'hash' - Хеш.<br>
- * 'name' - Имя.<br>
- * 'widht' - Ширина.<br>
- * 'height' - Высота.<br>
- * 'size' - Размер в байтах.<br>
- * 'thumbnail' - Уменьшенная копия.<br>
- * 'thumbnail_w' - Ширина уменьшенной копии.<br>
- * 'thumbnail_h' - Высота уменьшенной копии.<br>
- * 'spoiler' - Флаг спойлера.<br>
- * 'attachment_type' - Тип вложения (изображение).
+ * images.
  */
-function db_images_get_by_board($link, $board_id) { // Java CC
+function db_images_get_by_board($link, $board_id) {
     $result = mysqli_query($link, "call sp_images_get_by_board($board_id)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
@@ -1611,19 +1600,19 @@ function db_images_get_by_board($link, $board_id) { // Java CC
 
     $images = array();
     if (mysqli_affected_rows($link) > 0) {
-        while (($row = mysqli_fetch_assoc($result)) != null) {
+        while ( ($row = mysqli_fetch_assoc($result)) != null) {
             array_push($images,
-                array('id' => $row['id'],
-                      'hash' => $row['hash'],
-                      'name' => $row['name'],
-                      'widht' => $row['widht'],
-                      'height' => $row['height'],
-                      'size' => $row['size'],
-                      'thumbnail' => $row['thumbnail'],
-                      'thumbnail_w' => $row['thumbnail_w'],
-                      'thumbnail_h' => $row['thumbnail_h'],
-                      'spoiler' => $row['spoiler'],
-                      'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE));
+                       array('id' => $row['id'],
+                             'hash' => $row['hash'],
+                             'name' => $row['name'],
+                             'widht' => $row['widht'],
+                             'height' => $row['height'],
+                             'size' => $row['size'],
+                             'thumbnail' => $row['thumbnail'],
+                             'thumbnail_w' => $row['thumbnail_w'],
+                             'thumbnail_h' => $row['thumbnail_h'],
+                             'spoiler' => $row['spoiler'],
+                             'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE));
         }
     }
 
@@ -2058,25 +2047,25 @@ function db_macrochan_tags_delete_by_name($link, $name) { // Java CC
 	db_cleanup_link($link);
 }
 /**
- * Получает все теги макрочана.
- * @param MySQLi $link Связь с базой данных.
+ * Get macrochan tags.
+ * @param MySQLi $link Link to database.
  * @return array
- * Возвращает теги макрочана:<p>
- * 'id' - Идентификатор.<br>
- * 'name' - Имя.</p>
+ * macrochan tags.
  */
-function db_macrochan_tags_get_all($link) { // Java CC.
+function db_macrochan_tags_get_all($link) {
     $result = mysqli_query($link, 'call sp_macrochan_tags_get_all()');
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
+
     $tags = array();
     if (mysqli_affected_rows($link) > 0) {
-        while ( ($row = mysqli_fetch_assoc($result)) !== null) {
+        while ( ($row = mysqli_fetch_assoc($result)) != null) {
             array_push($tags, array('id' => $row['id'],
                                     'name' => $row['name']));
         }
     }
+
     mysqli_free_result($result);
     db_cleanup_link($link);
     return $tags;
@@ -2863,8 +2852,7 @@ function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id, $fil
     $arg = count($args);
 
     foreach ($threads as $thread) {
-        $result = mysqli_query($link,
-            "call sp_posts_get_visible_by_thread({$thread['id']}, $user_id)");
+        $result = mysqli_query($link, "call sp_posts_get_visible_by_thread({$thread['id']}, $user_id)");
         if (!$result) {
             throw new CommonException(mysqli_error($link));
         }
@@ -2906,19 +2894,19 @@ function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id, $fil
                                   'with_attachments' => $row['thread_with_attachments']);
                     }
                     array_push($posts,
-                               array('id' => $row['id'],
+                               array('id' => $row['post_id'],
                                      'board' => &$tmp_boards[$row['board_id']],
                                      'thread' => &$tmp_threads[$row['thread_id']],
-                                     'number' => $row['number'],
-                                     'user' => $row['user'],
-                                     'password' => $row['password'],
-                                     'name' => $row['name'],
-                                     'tripcode' => $row['tripcode'],
-                                     'ip' => $row['ip'],
-                                     'subject' => $row['subject'],
-                                     'date_time' => $row['date_time'],
-                                     'text' => $row['text'],
-                                     'sage' => $row['sage']));
+                                     'number' => $row['post_number'],
+                                     'user' => $row['post_user'],
+                                     'password' => $row['post_password'],
+                                     'name' => $row['post_name'],
+                                     'tripcode' => $row['post_tripcode'],
+                                     'ip' => $row['post_ip'],
+                                     'subject' => $row['post_subject'],
+                                     'date_time' => $row['post_date_time'],
+                                     'text' => $row['post_text'],
+                                     'sage' => $row['post_sage']));
                 }
             }
         }
@@ -3968,23 +3956,22 @@ function db_threads_get_visible_by_original_post($link, $board, $original_post, 
     return $thread;
 }
 /**
- * Вычисляет количество нитей, доступных для просмотра заданному пользователю
- * на заданной доске.
- * @param MySQLi $link Связь с базой данных.
- * @param string|int $user_id Идентификатор пользователя.
- * @param string|int $board_id Идентификатор доски.
- * @return string|int
- * Возвращает число нитей.
+ * Calculate count of visible threads.
+ * @param MySQLi $link Link to database.
+ * @param int $user_id User id.
+ * @param int $board_id Board id.
+ * @return string
+ * count of visible threads.
  */
-function db_threads_get_visible_count($link, $user_id, $board_id) { // Java CC
-    $result = mysqli_query($link,
-        "call sp_threads_get_visible_count($user_id, $board_id)");
+function db_threads_get_visible_count($link, $user_id, $board_id) {
+    $result = mysqli_query($link, "call sp_threads_get_visible_count($user_id, $board_id)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
 
     if (mysqli_affected_rows($link) > 0
             && ($row = mysqli_fetch_assoc($result)) != null) {
+
         mysqli_free_result($result);
         db_cleanup_link($link);
         return $row['threads_count'];
@@ -4146,37 +4133,29 @@ function db_upload_types_get_all($link)
     return $upload_types;
 }
 /**
- * Получает типы загружаемых файлов, доступных для загрузки на заданной доске.
- * @param MySQLi $link Связь с базой данных.
- * @param string|int $board_id Идентификатор доски.
+ * Get upload types on board.
+ * @param MySQLi $link Link to database.
+ * @param int $board_id Board id.
  * @return array
- * Возвращает типы загружаемых файлов:<p>
- * 'id' - Идентификатор.<br>
- * 'extension' - Расширение.<br>
- * 'store_extension' - Сохраняемое расширение.<br>
- * 'is_image' - Флаг изображения.<br>
- * 'upload_handler' - Идентификатор обработчика загружаемых файлов.<br>
- * 'upload_handler_name' - Имя обработчика загружаемых файлов.<br>
- * 'thumbnail_image' - Имя файла уменьшенной копии.</p>
+ * upload types.
  */
-function db_upload_types_get_by_board($link, $board_id) { // Java CC
-    $result = mysqli_query($link,
-            "call sp_upload_types_get_by_board($board_id)");
+function db_upload_types_get_by_board($link, $board_id) {
+    $result = mysqli_query($link, "call sp_upload_types_get_by_board($board_id)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
 
     $upload_types = array();
     if (mysqli_affected_rows($link) > 0) {
-        while (($row = mysqli_fetch_assoc($result)) != null) {
+        while ( ($row = mysqli_fetch_assoc($result)) != null) {
             array_push($upload_types,
-                array('id' => $row['id'],
-                      'extension' => $row['extension'],
-                      'store_extension' => $row['store_extension'],
-                      'is_image' => $row['is_image'],
-                      'upload_handler' => $row['upload_handler'],
-                      'upload_handler_name' => $row['upload_handler_name'],
-                      'thumbnail_image' => $row['thumbnail_image']));
+                       array('id' => $row['id'],
+                             'extension' => $row['extension'],
+                             'store_extension' => $row['store_extension'],
+                             'is_image' => $row['is_image'],
+                             'upload_handler' => $row['upload_handler'],
+                             'upload_handler_name' => $row['upload_handler_name'],
+                             'thumbnail_image' => $row['thumbnail_image']));
         }
     }
 

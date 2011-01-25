@@ -39,7 +39,7 @@ CommonException::$messages['WORD_FOR_REPLACE'] = 'Введите слово дл
  ***********************/
 
 NodataException::$messages['ACL_NOT_EXIST'] = 'В списке контроля доступа нет ни одного правила.';
-NodataException::$messages['BOARD_NOT_FOUND'] = 'Доска не найдена.';
+NodataException::$messages['BOARD_NOT_FOUND'] = 'Board not found.';
 NodataException::$messages['EMPTY_MESSAGE'] = 'Файл не был загружен и пустой текст сообщения.';
 NodataException::$messages['GROUPS_NOT_EXIST'] = 'Не создана ни одна группа пользователей.';
 // Параметры: идентификатор языка.
@@ -162,7 +162,7 @@ LimitException::$messages['MAX_TEXT_LENGTH'] = 'Текст сообщения с
 
 LimitException::$messages['MAX_ANNOTATION'] = 'Annotation too long.';
 LimitException::$messages['MAX_FILE_LINK'] = 'Слишком длинная сслыка на файл, имя загружаемого файла или код видео.';
-LimitException::$messages['MAX_PAGE'] = 'Номер страницы слишком большой. Такой страницы не существует.';
+LimitException::$messages['MAX_PAGE'] = 'Page not exists.';
 LimitException::$messages['MAX_SMALL_IMG_SIZE'] = 'Слишком большой размер в байтах для такого маленького изображения.';
 LimitException::$messages['MIN_IMG_DIMENTIONS'] = 'Размеры изображения слишком малы.';
 LimitException::$messages['MIN_IMG_SIZE'] = 'Размер изображения слишком мал.';

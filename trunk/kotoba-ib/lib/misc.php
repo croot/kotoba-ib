@@ -138,13 +138,12 @@ function load_user_settings($keyword) {
     $_SESSION['goto'] = $user_settings['goto'];
 }
 /**
- * Проверяет корректность номера страницы в постраничной разбивке просмотра
- * доски.
- * @param mixed $page Номер страницы.
+ * Check page number.
+ * @param int $page Page number.
  * @return int
- * Возвращает безопасный для использования номер страницы.
+ * safe page number.
  */
-function check_page($page) { // Java CC
+function check_page($page) {
     return kotoba_intval($page);
 }
 /**
