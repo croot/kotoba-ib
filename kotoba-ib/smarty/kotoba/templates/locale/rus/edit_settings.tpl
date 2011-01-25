@@ -28,7 +28,6 @@ Variables:
 <br>
 {$sess.name}={$sess.id}<br>
 Сессия истекает через: {$sess.expire - intval(($sess.curtime - $settings.kotoba_session_start_time) / 60)}/{$sess.expire} минут.<br>
-<!-- Кука сессии истекает через: {$session_data[1].lifetime / 60} минут.<br> -->
 <br/>
 <form action="{$DIR_PATH}/edit_settings.php" method="post">
 <i>Введите ключевое слово, чтобы загрузить ваши настройки.</i><br/>

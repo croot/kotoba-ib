@@ -1,45 +1,33 @@
 {* Smarty *}
-{*************************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************
- *********************************
+{*********************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************}
 {*
-Код начала страницы просмотра доски.
+Code of head of boards page.
 
-Описание переменных:
-    $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $STYLESHEET - стиль оформления (см. config.default).
-    $ib_name - название имейджборды  (см. config.default).
-    $board - просматриваемая доска.
-    $page - номер просматриваемой страницы.
-    $show_control - показывать ссылку на страницу административных фукнций и фукнций модераторов в панели администратора.
-    $boards - доски.
-    $enable_macro - Включение интеграции с макрочаном (см. config.default).
-    $enable_youtube - Включение постинга видео с ютуба (см. config.default).
-    $enable_search - Включение поиска по тексту сообщений (см. config.default).
-    $enable_captcha - Включение каптчи (см. config.default).
-    $enable_translation - Включение перевода текста сообщения (см. config.default).
-    $enable_geoip - Включение отображения страны автора сообщения (см. config.default).
-    $enable_shi - Включение рисования (см. config.default).
-    $is_admin - флаг администратора.
-    $password - пароль для удаления сообщений.
-    $upload_types - типы файлов, доступных для загрузки на просматриваемой доске.
-    $pages - номера страниц.
-    $goto - переход к нити или доске.
-    $macrochan_tags - теги макросов.
-    $name - имя
-    $banner - баннер.
-    $oekaki - данные о рисунке.
-    $MAX_FILE_SIZE - максимальный размер загружаемого файла (в байтах) (см. config.default).
-
-Специальные переменные (не входит в котобу):
-    $event_daynight_active - запущен ли эвент времени суток.
-    $event_daynight_code - код, добавляемый к html коду страницы, эвентом.
+Variables:
+    $DIR_PATH - path from server document root to index.php directory (see config.default).
+    $STYLESHEET - stylesheet (see config.default).
+    $ib_name - imageboard name  (see config.default).
+    $board - board.
+    $page - page number.
+    $enable_translation - translation flag (see config.default).
+    $show_control - show link to manage page.
+    $boards - boards.
+    $banner - banner.
+    $pages - pages numbers.
+    $MAX_FILE_SIZE - maximum size of uploaded file in bytes (see config.default).
+    $name - name.
+    $oekaki - oekaki data.
+    $enable_macro - lacrochan integration flag (see config.default).
+    $macrochan_tags - macrochan tags.
+    $enable_youtube - loutube video posting flag (see config.default).
+    $enable_captcha - laptcha flag (see config.default).
+    $password - password.
+    $goto - redirection.
+    $upload_types - upload types on this board.
+    $enable_shi - painting flag (see config.default).
 *}
 {include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title="`$ib_name` — /`$board.name`/ `$board.title`. Просмотр, страница $page"}
 
@@ -73,7 +61,7 @@
 <tr valign="top"><td class="postblock">Сообщение: </td><td><textarea name="text" rows="7" cols="50"></textarea><img id="resizer" src="{$DIR_PATH}/flower.png"></td></tr>
 {if $board.with_attachments}
 	<tr valign="top"><td class="postblock">Файл: </td><td><input type="file" name="file" size="54"> Спойлер: <input type="checkbox" name="spoiler" value="1" /></td></tr>
-	{if $oekaki}
+	{if isset($oekaki)}
         <tr valign="top"><td class="postblock">Мой рисунок: </td><td><a href="{$DIR_PATH}/shi/{$oekaki.file}"><img border="0" src="{$DIR_PATH}/shi/{$oekaki.thumbnail}" align="middle" /></a> Использовать вместо файла: <input type="checkbox" name="use_oekaki" value="1"></td></tr>
         {/if}
 	{if $enable_macro}

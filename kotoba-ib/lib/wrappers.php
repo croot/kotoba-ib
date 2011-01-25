@@ -24,12 +24,14 @@
 function post_simple_generate_html($smarty,
                                    $board,
                                    $thread,
-                                   $post,
+                                   &$post,
                                    $posts_attachments,
                                    $attachments,
                                    $crop,
                                    $lines_per_post,
-                                   $author_admin) {
+                                   $author_admin,
+                                   $enable_geoip,
+                                   $enable_postid) {
 
     if ($crop) {
         $post['text'] = posts_corp_text($post['text'],
@@ -38,20 +40,27 @@ function post_simple_generate_html($smarty,
     }
 
     $post_attachments = wrappers_attachments_get_by_post($smarty,
+                                                         $board,
                                                          $post,
                                                          $posts_attachments,
                                                          $attachments);
     $post['ip'] = long2ip($post['ip']);
-    if ($post['ip'] != '127.0.0.1' && strpos($post['ip'], '192.168') === false) {
+    if ($enable_geoip && $post['ip'] != '127.0.0.1' && strpos($post['ip'], '192.168') === false) {
         $geoip = geoip_record_by_name($post['ip']);
         $smarty->assign('country',
                         array('name' => $geoip['country_name'],
                               'code' => strtolower($geoip['country_code'])));
     }
-    $smarty->assign('simple_post', $post);
-    $smarty->assign('simple_attachments', $post_attachments);
-    $postid = calculate_tripcode("#{$post['ip']}");
-    $smarty->assign('postid', $postid[1]);
+    $smarty->assign('enable_doubledash', TRUE);
+    $smarty->assign('enable_anchor', TRUE);
+    $smarty->assign('enable_remove_post', TRUE);
+    $smarty->assign('enable_extrabtns', TRUE);
+    $smarty->assign('post', $post);
+    $smarty->assign('attachments', $post_attachments);
+    if ($enable_postid) {
+        $postid = calculate_tripcode("#{$post['ip']}");
+        $smarty->assign('postid', $postid[1]);
+    }
     $smarty->assign('author_admin', $author_admin);
     return $smarty->fetch('post_simple.tpl');
 }
@@ -82,7 +91,9 @@ function post_original_generate_html($smarty,
                                      $show_skipped,
                                      $posts_per_thread,
                                      $show_reply,
-                                     $author_admin) {
+                                     $author_admin,
+                                     $enable_geoip,
+                                     $enable_postid) {
 
     if ($crop) {
         $post['text'] = posts_corp_text($post['text'],
@@ -91,11 +102,12 @@ function post_original_generate_html($smarty,
     }
 
     $original_attachments = wrappers_attachments_get_by_post($smarty,
+                                                             $board,
                                                              $post,
                                                              $posts_attachments,
                                                              $attachments);
     $post['ip'] = long2ip($post['ip']);
-    if ($post['ip'] != '127.0.0.1' && strpos($post['ip'], '192.168') === false) {
+    if ($enable_geoip && $post['ip'] != '127.0.0.1' && strpos($post['ip'], '192.168') === false) {
         $geoip = geoip_record_by_name($post['ip']);
         $smarty->assign('country',
                         array('name' => $geoip['country_name'],
@@ -108,18 +120,24 @@ function post_original_generate_html($smarty,
         // - 1 is original post.
         $smarty->assign('skipped', ($thread['posts_count'] - $posts_per_thread - 1));
     }
-    $smarty->assign('original_post', $post);
-    $smarty->assign('original_attachments', $original_attachments);
+    $smarty->assign('enable_anchor', TRUE);
+    $smarty->assign('enable_remove_post', TRUE);
+    $smarty->assign('enable_extrabtns', TRUE);
+    $smarty->assign('post', $post);
+    $smarty->assign('attachments', $original_attachments);
     $smarty->assign('show_reply', $show_reply);
-    $postid = calculate_tripcode("#{$post['ip']}");
-    $smarty->assign('postid', $postid[1]);
+    if ($enable_postid) {
+        $postid = calculate_tripcode("#{$post['ip']}");
+        $smarty->assign('postid', $postid[1]);
+    }
     $smarty->assign('author_admin', $author_admin);
     return $smarty->fetch('post_original.tpl');
 }
 
-function wrappers_attachments_get_by_post($smarty, $post, $posts_attachments, $attachments) {
+function wrappers_attachments_get_by_post($smarty, $board, &$post, $posts_attachments, $attachments) {
     $desired_attachments = array();
 
+    $post['with_attachments'] = false;
     foreach ($posts_attachments as $pa) {
         if ($pa['post'] == $post['id']) {
             foreach ($attachments as $a) {

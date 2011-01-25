@@ -1239,13 +1239,22 @@ begin
     select last_insert_id() as id;
 end|
 
--- Выбирает все изоражения с заданной доски.
+-- Select images.
 create procedure sp_images_get_by_board
 (
-    _board int  -- Идентификатор доски.
+    _board int  -- Board id.
 )
 begin
-    select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail, i.thumbnail_w, i.thumbnail_h, i.spoiler
+    select i.id,
+           i.hash,
+           i.name,
+           i.widht,
+           i.height,
+           i.size,
+           i.thumbnail,
+           i.thumbnail_w,
+           i.thumbnail_h,
+           i.spoiler
         from images i
         join posts_images pi on pi.image = i.id
         join posts p on pi.post = p.id
@@ -1465,7 +1474,7 @@ begin
     end if;
 end|
 
--- Выбирает все теги макрочана.
+-- Select macrochan tags.
 create procedure sp_macrochan_tags_get_all ()
 begin
     select id, name from macrochan_tags;
@@ -3024,50 +3033,45 @@ begin
     end if;
 end|
 
--- Вычисляет количество нитей, доступных для просмотра заданному пользователю
--- на заданной доске.
---
--- Аргументы:
--- user_id - Идентификатор пользователя.
--- board_id - Идентификатор доски.
+-- Calculate count of visible threads.
 create procedure sp_threads_get_visible_count
 (
-	user_id int,
-	board_id int
+    user_id int,    -- User id.
+    board_id int    -- Board id.
 )
 begin
-	select count(q.id) as threads_count
-	from (select t.id
-	from threads t
-	join user_groups ug on ug.user = user_id
-	left join hidden_threads ht on ht.thread = t.id and ht.user = ug.user
-	-- Правила для конкретной группы и нити.
-	left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
-	-- Правило для всех групп и конкретной нити.
-	left join acl a2 on a2.`group` is null and a2.thread = t.id
-	-- Правила для конкретной группы и доски.
-	left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
-	-- Правило для всех групп и конкретной доски.
-	left join acl a4 on a4.`group` is null and a4.board = t.board
-	-- Правило для конкретной групы.
-	left join acl a5 on a5.`group` = ug.`group` and a5.board is null
-		and a5.thread is null and a5.post is null
-	where t.board = board_id
-		and t.deleted = 0
-		and t.archived = 0
-		and ht.thread is null
-		-- Нить должна быть доступна для просмотра.
-			-- Просмотр нити не запрещен конкретной группе и
-		and ((a1.`view` = 1 or a1.`view` is null)
-			-- просмотр нити не запрещен всем группам и
-			and (a2.`view` = 1 or a2.`view` is null)
-			-- просмотр доски не запрещен конкретной группе и
-			and (a3.`view` = 1 or a3.`view` is null)
-			-- просмотр доски не запрещен всем группам и
-			and (a4.`view` = 1 or a4.`view` is null)
-			-- просмотр разрешен конкретной группе.
-			and a5.`view` = 1)
-	group by t.id) q;
+    select count(q.id) as threads_count
+        from (select t.id
+            from threads t
+            join user_groups ug on ug.user = user_id
+            left join hidden_threads ht on ht.thread = t.id and ht.user = ug.user
+            -- Правила для конкретной группы и нити.
+            left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+            -- Правило для всех групп и конкретной нити.
+            left join acl a2 on a2.`group` is null and a2.thread = t.id
+            -- Правила для конкретной группы и доски.
+            left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
+            -- Правило для всех групп и конкретной доски.
+            left join acl a4 on a4.`group` is null and a4.board = t.board
+            -- Правило для конкретной групы.
+            left join acl a5 on a5.`group` = ug.`group` and a5.board is null
+                and a5.thread is null and a5.post is null
+            where t.board = board_id
+                and t.deleted = 0
+                and t.archived = 0
+                and ht.thread is null
+                -- Нить должна быть доступна для просмотра.
+                    -- Просмотр нити не запрещен конкретной группе и
+                and ((a1.`view` = 1 or a1.`view` is null)
+                    -- просмотр нити не запрещен всем группам и
+                    and (a2.`view` = 1 or a2.`view` is null)
+                    -- просмотр доски не запрещен конкретной группе и
+                    and (a3.`view` = 1 or a3.`view` is null)
+                    -- просмотр доски не запрещен всем группам и
+                    and (a4.`view` = 1 or a4.`view` is null)
+                    -- просмотр разрешен конкретной группе.
+                    and a5.`view` = 1)
+        group by t.id) q;
 end|
 
 -- Перемещает нить.
@@ -3495,20 +3499,22 @@ begin
 	from upload_types;
 end|
 
--- Выбирает типы загружаемых файлов, доступных для загрузки на заданной доске.
---
--- Аргументы:
--- board_id - Идентификатор доски.
+-- Select upload types on board.
 create procedure sp_upload_types_get_by_board
 (
-	board_id int
+    board_id int    -- Board id.
 )
 begin
-	select ut.id, ut.extension, ut.store_extension, ut.is_image, ut.upload_handler,
-		uh.name as upload_handler_name, ut.thumbnail_image
-	from upload_types ut
-	join board_upload_types but on ut.id = but.upload_type and but.board = board_id
-	join upload_handlers uh on uh.id = ut.upload_handler;
+    select ut.id,
+           ut.extension,
+           ut.store_extension,
+           ut.is_image,
+           ut.upload_handler,
+           uh.name as upload_handler_name,
+           ut.thumbnail_image
+        from upload_types ut
+        join board_upload_types but on ut.id = but.upload_type and but.board = board_id
+        join upload_handlers uh on uh.id = ut.upload_handler;
 end|
 
 -- -----------------------------------------------

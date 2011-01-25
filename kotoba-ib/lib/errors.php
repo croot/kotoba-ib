@@ -83,15 +83,15 @@ class SearchException extends Exception {
     }
 }
 /**
- * Ошибки отсутствия данных.
+ * No data exception.
  * @package exceptions
  */
 class NodataException extends Exception {
     static $messages;
     private $reason;
     /**
-     * Создаёт новое исключение с заданным сообщением.
-     * @param string $message Сообщение.
+     * Creates new no data exception.
+     * @param string $message Error message.
      */
     public function __construct($message) {
         if ( ($n = func_num_args()) > 1) {

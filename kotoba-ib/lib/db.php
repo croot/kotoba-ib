@@ -659,7 +659,7 @@ function boards_check_id($id) {
 }
 /**
  * Check board name.
- * @param mixed $name Board name.
+ * @param string $name Board name.
  * @return string
  * safe board name.
  */
@@ -1214,22 +1214,12 @@ function images_check_size($size) { // Java CC
     }
 }
 /**
- * Получает все изоражения с заданной доски.
- * @param int $board_id Идентификатор доски.
+ * Get images.
+ * @param int $board_id Board id.
  * @return array
- * Возвращает вложенные изображения:<br>
- * 'id' - Идентификатор.<br>
- * 'hash' - Хеш.<br>
- * 'name' - Имя.<br>
- * 'widht' - Ширина.<br>
- * 'height' - Высота.<br>
- * 'size' - Размер в байтах.<br>
- * 'thumbnail' - Уменьшенная копия.<br>
- * 'thumbnail_w' - Ширина уменьшенной копии.<br>
- * 'thumbnail_h' - Высота уменьшенной копии.<br>
- * 'attachment_type' - Тип вложения (изображение).
+ * images.
  */
-function images_get_by_board($board_id) { // Java CC
+function images_get_by_board($board_id) {
     return db_images_get_by_board(DataExchange::getDBLink(), $board_id);
 }
 /**
@@ -1367,13 +1357,11 @@ function macrochan_tags_delete_by_name($name) { // Java CC
     db_macrochan_tags_delete_by_name(DataExchange::getDBLink(), $name);
 }
 /**
- * Получает все теги макрочана.
+ * Get macrochan tags.
  * @return array
- * Возвращает теги макрочана:<br>
- * 'id' - Идентификатор.<br>
- * 'name' - Имя.
+ * macrochan tags.
  */
-function macrochan_tags_get_all() { // Java CC
+function macrochan_tags_get_all() {
     return db_macrochan_tags_get_all(DataExchange::getDBLink());
 }
 
@@ -2377,16 +2365,14 @@ function threads_get_visible_by_original_post($board, $original_post, $user_id) 
     return db_threads_get_visible_by_original_post(DataExchange::getDBLink(), $board, $original_post, $user_id);
 }
 /**
- * Вычисляет количество нитей, доступных для просмотра заданному пользователю
- * на заданной доске.
- * @param string|int $user_id Идентификатор пользователя.
- * @param string|int $board_id Идентификатор доски.
+ * Calculate count of visible threads.
+ * @param int $user_id User id.
+ * @param int $board_id Board id.
  * @return string
- * Возвращает количество нитей.
+ * count of visible threads.
  */
-function threads_get_visible_count($user_id, $board_id) { // Java CC
-    return db_threads_get_visible_count(DataExchange::getDBLink(), $user_id,
-        $board_id);
+function threads_get_visible_count($user_id, $board_id) {
+    return db_threads_get_visible_count(DataExchange::getDBLink(), $user_id, $board_id);
 }
 /**
  * Перемещает нить.
@@ -2623,19 +2609,12 @@ function upload_types_get_all()
     return db_upload_types_get_all(DataExchange::getDBLink());
 }
 /**
- * Получает типы загружаемых файлов, доступных для загрузки на заданной доске.
- * @param string|int $board_id Идентификатор доски.
+ * Get upload types on board.
+ * @param int $board_id Board id.
  * @return array
- * Возвращает типы загружаемых файлов:<p>
- * 'id' - Идентификатор.<br>
- * 'extension' - Расширение.<br>
- * 'store_extension' - Сохраняемое расширение.<br>
- * 'is_image' - Флаг изображения.<br>
- * 'upload_handler' - Идентификатор обработчика загружаемых файлов.<br>
- * 'upload_handler_name' - Имя обработчика загружаемых файлов.<br>
- * 'thumbnail_image' - Имя файла уменьшенной копии.</p>
+ * upload types.
  */
-function upload_types_get_by_board($board_id) { // Java CC
+function upload_types_get_by_board($board_id) {
     return db_upload_types_get_by_board(DataExchange::getDBLink(), $board_id);
 }
 

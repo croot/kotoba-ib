@@ -135,8 +135,9 @@ try {
 
             // Geoip.
             $p['ip'] = long2ip($p['ip']);
-            $smarty->assign('enable_geoip', ($p['board']['enable_geoip'] === null) ? Config::ENABLE_GEOIP : $p['board']['enable_geoip']);
-            if ($p['ip'] != '127.0.0.1') {
+            $enable_geoip = ($p['board']['enable_geoip'] === null) ? Config::ENABLE_GEOIP : $p['board']['enable_geoip'];
+            $smarty->assign('enable_geoip', $enable_geoip);
+            if ($enable_geoip && $p['ip'] != '127.0.0.1') {
                 $geoip = geoip_record_by_name($p['ip']);
                 $smarty->assign('country', array('name' => $geoip['country_name'], 'code' => strtolower($geoip['country_code'])));
             }
