@@ -1,19 +1,16 @@
 {* Smarty *}
-{*************************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************
- *********************************
+{*********************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************}
 {*
-Описание переменных:
-    $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $board_name - имя доски, предпросмотр которой разбивается на страницы.
-    $pages - массив номеров страниц.
-    $page - номер текущей страницы.
+Code of list of pages.
+
+Variables:
+    $DIR_PATH - path from server document root to index.php directory (see config.default).
+    $board_name - board name.
+    $pages - pages.
+    $page - current page.
 *}
 <div class="boardpages">Страницы:
 {section name=i loop=$pages}

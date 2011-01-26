@@ -37,6 +37,8 @@ function post_simple_generate_html($smarty,
         $post['text'] = posts_corp_text($post['text'],
                                         $lines_per_post,
                                         $post['text_cutted']);
+    } else {
+        $post['text_cutted'] = false;
     }
 
     $post_attachments = wrappers_attachments_get_by_post($smarty,
@@ -99,6 +101,8 @@ function post_original_generate_html($smarty,
         $post['text'] = posts_corp_text($post['text'],
                                         $lines_per_post,
                                         $post['text_cutted']);
+    } else {
+        $post['text_cutted'] = false;
     }
 
     $original_attachments = wrappers_attachments_get_by_post($smarty,

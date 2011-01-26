@@ -4,7 +4,12 @@
  * See license.txt for more info.*
  *********************************/
 
-// Board view script.
+/*
+ * Board view script.
+ *
+ * Parameters:
+ * page - page number.
+ */
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
@@ -280,9 +285,7 @@ try {
 
     $smarty->assign('threads_html', $threads_html);
     $smarty->assign('hidden_threads', $hidden_threads);
-    //$boards_html .= $smarty->fetch('board_footer.tpl');
-    //echo $boards_html;
-    $smarty->display('board.tpl');
+    $smarty->display('board_view.tpl');
 
     // Cleanup.
     DataExchange::releaseResources();
