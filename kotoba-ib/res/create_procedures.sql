@@ -2756,11 +2756,11 @@ begin
 	order by t.id desc;
 end|
 
--- Выбирает заданную нить, доступную для модерирования заданному пользователю.
+-- Select moderatable thread.
 create procedure sp_threads_get_moderatable_by_id
 (
-    thread_id int,  -- Идентификатор нити.
-    user_id int     -- Идентификатор пользователя.
+    thread_id int,  -- Thread id.
+    user_id int     -- User id.
 )
 begin
     select t.id
@@ -2961,12 +2961,12 @@ begin
         order by q1.thread_last_post_num desc;
 end|
 
--- Выбирает заданную нить, доступную для просмотра заданному пользователю.
+-- Select visible threads.
 create procedure sp_threads_get_visible_by_original_post
 (
-	_board int,         -- Идентификатор доски.
-	_original_post int, -- Номер оригинального сообщения.
-	user_id int         -- Идентификатор пользователя.
+    _board int,         -- Board id.
+    _original_post int, -- Original post number.
+    user_id int         -- User id.
 )
 begin
     declare thread_id int;
@@ -2976,10 +2976,37 @@ begin
     then
         select 'NOT_FOUND' as error;
     else
-        select t.id, t.original_post, t.bump_limit, t.sticky, t.archived,
-                t.sage, t.with_attachments, count(p.id) as visible_posts_count
+        select t.id as thread_id,
+               t.original_post as thread_original_post,
+               t.bump_limit as thread_bump_limit,
+               t.sticky as thread_sticky,
+               t.archived as thread_archived,
+               t.sage as thread_sage,
+               t.with_attachments as thread_with_attachments,
+
+               b.id as board_id,
+               b.name as board_name,
+               b.title as board_title,
+               b.annotation as board_annotation,
+               b.bump_limit as board_bump_limit,
+               b.force_anonymous as board_force_anonymous,
+               b.default_name as board_default_name,
+               b.with_attachments as board_with_attachments,
+               b.enable_macro as board_enable_macro,
+               b.enable_youtube as board_enable_youtube,
+               b.enable_captcha as board_enable_captcha,
+               b.enable_translation as board_enable_translation,
+               b.enable_geoip as board_enable_geoip,
+               b.enable_shi as board_enable_shi,
+               b.enable_postid as board_enable_postid,
+               b.same_upload as board_same_upload,
+               b.popdown_handler as board_popdown_handler,
+               b.category as board_category,
+
+               count(p.id) as visible_posts_count
             from posts p
             join threads t on t.id = p.thread
+            join boards b on b.id = t.board
             join user_groups ug on ug.`user` = user_id
             left join hidden_threads ht on t.id = ht.thread
                 and ug.user = ht.user

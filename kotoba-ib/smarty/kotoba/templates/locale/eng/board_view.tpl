@@ -31,7 +31,7 @@ Variables:
     $threads_html - html code of threads.
     $hidden_threads - hidden threads.
 *}
-{include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title="`$ib_name` — /`$board.name`/ `$board.title`. Просмотр, страница $page"}
+{include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title="`$ib_name` — /`$board.name`/ `$board.title`. Board view, page $page"}
 
 {if $enable_translation}<script type="text/javascript" src="http://www.google.com/jsapi"></script>{/if}
 
@@ -57,15 +57,15 @@ Variables:
 <table align="center" border="0">
 <tbody>
 {if !$board.force_anonymous}
-    <tr valign="top"><td class="postblock">Имя: </td><td><input type="text" name="name" size="30" value="{$name}"></td></tr>
+    <tr valign="top"><td class="postblock">Name: </td><td><input type="text" name="name" size="30" value="{$name}"></td></tr>
 {/if}
-    <tr valign="top"><td class="postblock">Тема: </td><td><input type="text" name="subject" size="48"> <input type="submit" value="Создать нить"></td></tr>
-    <tr valign="top"><td class="postblock">Сообщение: </td><td><textarea name="text" rows="7" cols="50"></textarea><img id="resizer" src="{$DIR_PATH}/flower.png"></td></tr>
+    <tr valign="top"><td class="postblock">Subject: </td><td><input type="text" name="subject" size="48"> <input type="submit" value="Create thread"></td></tr>
+    <tr valign="top"><td class="postblock">Message: </td><td><textarea name="text" rows="7" cols="50"></textarea><img id="resizer" src="{$DIR_PATH}/flower.png" title="Drag to resize text area."></td></tr>
 {if $board.with_attachments}
-    <tr valign="top"><td class="postblock">Файл: </td><td><input type="file" name="file" size="54"> Спойлер: <input type="checkbox" name="spoiler" value="1" /></td></tr>
-    {if isset($oekaki)}<tr valign="top"><td class="postblock">Мой рисунок: </td><td><a href="{$DIR_PATH}/shi/{$oekaki.file}"><img border="0" src="{$DIR_PATH}/shi/{$oekaki.thumbnail}" align="middle" /></a> Использовать вместо файла: <input type="checkbox" name="use_oekaki" value="1"></td></tr>{else}<!-- Oekaki disabled -->{/if}
+    <tr valign="top"><td class="postblock">File: </td><td><input type="file" name="file" size="54"> Spoiler: <input type="checkbox" name="spoiler" value="1" /></td></tr>
+    {if isset($oekaki)}<tr valign="top"><td class="postblock">My art: </td><td><a href="{$DIR_PATH}/shi/{$oekaki.file}"><img border="0" src="{$DIR_PATH}/shi/{$oekaki.thumbnail}" align="middle" /></a> Use instead: <input type="checkbox" name="use_oekaki" value="1"></td></tr>{else}<!-- Oekaki disabled -->{/if}
 
-    {if $enable_macro}<tr valign="top"><td class="postblock">Макрос: </td>
+    {if $enable_macro}<tr valign="top"><td class="postblock">Macro: </td>
     <td>
         <select name="macrochan_tag">
         <option value="" selected></option>
@@ -81,15 +81,15 @@ Variables:
     <!-- Attachments disabled -->
 {/if}
 
-    {if $enable_captcha}<tr valign="top"><td class="postblock">Капча: </td><td><a href="#" onclick="document.getElementById('captcha').src = '{$DIR_PATH}/captcha/image.php?' + Math.random(); return false"><img border="0" id="captcha" src="{$DIR_PATH}/captcha/image.php" alt="Kotoba capcha v0.4" align="middle" /></a> <input type="text" name="captcha_code" size="10" maxlength="6" /></tr>{else}<!-- Captcha disabled -->{/if}
+    {if $enable_captcha}<tr valign="top"><td class="postblock">Captcha: </td><td><a href="#" onclick="document.getElementById('captcha').src = '{$DIR_PATH}/captcha/image.php?' + Math.random(); return false"><img border="0" id="captcha" src="{$DIR_PATH}/captcha/image.php" alt="Kotoba capcha v0.4" align="middle" /></a> <input type="text" name="captcha_code" size="10" maxlength="6" /></tr>{else}<!-- Captcha disabled -->{/if}
 
-    <tr valign="top"><td class="postblock">Пароль: </td><td><input type="password" name="password" size="30" value="{$password}"></td></tr>
-    <tr valign="top"><td class="postblock">Перейти: </td><td>(нить: <input type="radio" name="goto" value="t"{if $goto == 't'} checked{/if}>) (доска: <input type="radio" name="goto" value="b"{if $goto == 'b'} checked{/if}>)</td></tr>
+    <tr valign="top"><td class="postblock">Password: </td><td><input type="password" name="password" size="30" value="{$password}"></td></tr>
+    <tr valign="top"><td class="postblock">Redirection: </td><td>(thread: <input type="radio" name="goto" value="t"{if $goto == 't'} checked{/if}>) (board: <input type="radio" name="goto" value="b"{if $goto == 'b'} checked{/if}>)</td></tr>
     <tr valign="top"><td colspan = "2" class="rules">
-        <ul style="infolist">
-            <li>Типы файлов, доступных для загрузки: {section name=i loop=$upload_types} {$upload_types[i].extension}{/section}</li>
-            <li>Бамплимит доски: {$board.bump_limit}</li>
-            <li><a href="{$DIR_PATH}/catalog.php?board={$board.name}">Каталог нитей</a></li>
+        <ul class="infolist">
+            <li>File types: {section name=i loop=$upload_types} {$upload_types[i].extension}{/section}</li>
+            <li>Board bumplimit: {$board.bump_limit}</li>
+            <li><a href="{$DIR_PATH}/catalog.php?board={$board.name}">Catalog</a></li>
         </ul>
         {$board.annotation}
     </td></tr>
@@ -99,13 +99,13 @@ Variables:
 </form>
 {if $board.with_attachments && $enable_shi}<form action="{$DIR_PATH}/lib/shi_applet.php" method="post">
     <input type="hidden" name="board" value="{$board.name}">
-    Наоекакать: <select name="painter">
+    Oekaki: <select name="painter">
         <option value="shi_normal" selected="selected">Shi Normal</option>
         <option value="shi_pro">Shi Pro</option>
     </select>
-    Ширина: <input type="text" name="x" size="3" value="640" />
-    Высота: <input type="text" name="y" size="3" value="480" />
-    <input type="submit" value="Рисовать" />
+    Width: <input type="text" name="x" size="3" value="640" />
+    Height: <input type="text" name="y" size="3" value="480" />
+    <input type="submit" value="Draw" />
 </form>{else}<!-- Oekaki disabled -->{/if}
 
 </div>
@@ -133,9 +133,9 @@ else {
 </script>{/literal}
 <hr>{$threads_html}
 {if count($hidden_threads) > 0}
-Скрытые вами нити:
+Hidden threads:
 {section name=i loop=$hidden_threads}
-<a href="{$DIR_PATH}/unhide_thread.php?thread={$hidden_threads[i].thread}" title="Нажмите, чтобы отменить скрытие нити.">{$hidden_threads[i].thread_number}</a>
+<a href="{$DIR_PATH}/unhide_thread.php?thread={$hidden_threads[i].thread}" title="Refer to unhide thread.">{$hidden_threads[i].thread_number}</a>
 {/section}
 {/if}<br>
 {include file='pages_list.tpl' board_name=$board.name pages=$pages page=$page}

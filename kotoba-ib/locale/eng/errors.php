@@ -50,7 +50,7 @@ NodataException::$messages['SEARCH_KEYWORD'] = 'Не задано достато
 // Параметры: идентификатор стиля оформления.
 NodataException::$messages['STYLESHEET_NOT_EXIST'] = 'Stylesheeit id=%s not exist.';
 NodataException::$messages['STYLESHEETS_NOT_EXIST'] = 'No stylesheets.';
-NodataException::$messages['THREAD_NOT_FOUND'] = 'Нить не найдена.';
+NodataException::$messages['THREAD_NOT_FOUND'] = 'Thread not found.';
 NodataException::$messages['THREADS_EDIT'] = 'Нет нитей для редактирования настроек';
 NodataException::$messages['USER_WITHOUT_GROUP'] = 'User has no group.';
 NodataException::$messages['USERS_NOT_EXIST'] = 'Не создан ни один пользователь.';
@@ -127,7 +127,7 @@ PermissionException::$messages['BOARD_NOT_ALLOWED'] = 'Нет прав для з
 PermissionException::$messages['GUEST'] = 'Гости не могут скрывать нити.';
 PermissionException::$messages['NOT_ADMIN'] = 'You are not admin.';
 PermissionException::$messages['NOT_MOD'] = 'Вы не являетесь модератором.';
-PermissionException::$messages['THREAD_NOT_ALLOWED'] = 'Нет прав для запрашиваемого действия с нитью.';
+PermissionException::$messages['THREAD_NOT_ALLOWED'] = 'You have no rights to do it.';
 PermissionException::$messages['USER_NOT_EXIST'] = 'User not exist.';
 
 /***************************************

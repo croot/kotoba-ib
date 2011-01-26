@@ -141,8 +141,8 @@ function favorites_get_by_user($user) {
 /**
  * Mark thread as readed in user favorites. If thread is null then marks all
  * threads as readed.
- * @param string|int $user User id.
- * @param string|int $thread Thread id.
+ * @param int $user User id.
+ * @param int|null $thread Thread id or NULL.
  */
 function favorites_mark_readed($user, $thread = null) {
     db_favorites_mark_readed(DataExchange::getDBLink(), $user, $thread);
@@ -2134,25 +2134,13 @@ function threads_check_id($id) { // Java CC
 	return kotoba_intval($id);
 }
 /**
- * Проверяет корректность номера оригинального сообщения.
- * @param string|int $original_post Номер оригинального сообщения.
- * @return string
- * Возвращает безопасный для использования номер оригинального сообщения.
+ * Check original post number.
+ * @param int $original_post original post number.
+ * @return int
+ * safe original post number.
  */
-function threads_check_original_post($original_post) { // Java CC
-    $length = strlen($original_post);
-    $max_int_length = strlen('' . PHP_INT_MAX);
-    if ($length <= $max_int_length && $length >= 1) {
-        $original_post = RawUrlEncode($original_post);
-        $length = strlen($original_post);
-        if($length > $max_int_length || (ctype_digit($original_post) === false)
-                || $length < 1) {
-            throw new FormatException(FormatException::$messages['THREAD_NUMBER']);
-        }
-    } else {
-        throw new FormatException(FormatException::$messages['THREAD_NUMBER']);
-    }
-    return $original_post;
+function threads_check_original_post($original_post) {
+    return kotoba_intval($original_post);
 }
 /**
  * Удаляет нити, помеченные на удаление.
@@ -2279,17 +2267,16 @@ function threads_get_moderatable($user_id)
 	return db_threads_get_moderatable(DataExchange::getDBLink(), $user_id);
 }
 /**
- * Получает заданную нить, доступную для модерирования заданному пользователю.
- * @param string|int $thread_id Идентификатор нити.
- * @param string|int $user_id Идентификатор пользователя.
+ * Get moderatable thread.
+ * @param int $thread_id Thread id.
+ * @param int $user_id User id.
  * @return mixed
- * Возвращает нить:<p>
- * 'id' - Идентификатор.</p>
- * Или null, если заданная нить не доступна для модерирования.
+ * thread or NULL if this thread is not moderatable for this user.
  */
-function threads_get_moderatable_by_id($thread_id, $user_id) { // Java CC
+function threads_get_moderatable_by_id($thread_id, $user_id) {
     return db_threads_get_moderatable_by_id(DataExchange::getDBLink(),
-            $thread_id, $user_id);
+                                            $thread_id,
+                                            $user_id);
 }
 /**
  * Get threads visible to user on specified board and filter it.
@@ -2345,24 +2332,18 @@ function threads_search_visible_by_board($board_id, $page, $user_id,
 		$page, $user_id, $threads_per_page, $string);
 }
 /**
- * Получает заданную нить, доступную для просмотра заданному пользователю.
- * @param string|int $board Идентификатор доски.
- * @param string|int $original_post Номер нити.
- * @param string|int $user_id Идентификатор пользователя.
+ * Get visible threads.
+ * @param int $board Board id.
+ * @param int $original_post Original post number.
+ * @param int $user_id User id.
  * @return array
- * Возвращает нить:<br>
- * 'id' - Идентификатор.<br>
- * 'board' - Идентификатор доски.<br>
- * 'original_post' - Номер оригинального сообщения.<br>
- * 'bump_limit' - Специфичный для нити бамплимит.<br>
- * 'archived' - Флаг архивирования.<br>
- * 'sage' - Флаг поднятия нити.<br>
- * 'sticky' - Флаг закрепления.<br>
- * 'with_attachments' - Флаг вложений.<br>
- * 'posts_count' - Число доступных для просмотра сообщений в нити.
+ * threads.
  */
 function threads_get_visible_by_original_post($board, $original_post, $user_id) {
-    return db_threads_get_visible_by_original_post(DataExchange::getDBLink(), $board, $original_post, $user_id);
+    return db_threads_get_visible_by_original_post(DataExchange::getDBLink(),
+                                                   $board,
+                                                   $original_post,
+                                                   $user_id);
 }
 /**
  * Calculate count of visible threads.

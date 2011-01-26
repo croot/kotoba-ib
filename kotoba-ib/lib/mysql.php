@@ -1120,8 +1120,8 @@ function db_favorites_get_by_user($link, $user) {
  * Mark thread as readed in user favorites. If thread is null then marks all
  * threads as readed.
  * @param MySQLi $link Link to database.
- * @param string|int $user User id.
- * @param string|int $thread Thread id.
+ * @param int $user User id.
+ * @param int|null $thread Thread id or NULL.
  */
 function db_favorites_mark_readed($link, $user, $thread) {
     if ($thread === null) {
@@ -3739,16 +3739,14 @@ function db_threads_get_moderatable($link, $user_id)
 	return $threads;
 }
 /**
- * Получает заданную нить, доступную для модерирования заданному пользователю.
- * @param MySQLi $link Связь с базой данных.
- * @param string|int $thread_id Идентификатор нити.
- * @param string|int $user_id Идентификатор пользователя.
+ * Get moderatable thread.
+ * @param MySQLi $link Link to database.
+ * @param int $thread_id Thread id.
+ * @param int $user_id User id.
  * @return mixed
- * Возвращает нить:<p>
- * 'id' - Идентификатор.</p>
- * Или null, если заданная нить не доступна для модерирования.
+ * thread or NULL if this thread is not moderatable for this user.
  */
-function db_threads_get_moderatable_by_id($link, $thread_id, $user_id) { // Java CC
+function db_threads_get_moderatable_by_id($link, $thread_id, $user_id) {
     $result = mysqli_query($link,
         "call sp_threads_get_moderatable_by_id($thread_id, $user_id)");
     if (!$result) {
@@ -3757,7 +3755,7 @@ function db_threads_get_moderatable_by_id($link, $thread_id, $user_id) { // Java
 
     $thread = null;
     if (mysqli_affected_rows($link) > 0) {
-        while (($row = mysqli_fetch_assoc($result)) != null) {
+        while (($row = mysqli_fetch_assoc($result)) != NULL) {
             $thread['id'] = $row['id'];
         }
     }
@@ -3905,25 +3903,17 @@ function db_threads_search_visible_by_board($link, $board_id, $page, $user_id,
 	return $threads;
 }
 /**
- * Получает заданную нить, доступную для просмотра заданному пользователю.
- * @param MySQLi $link Связь с базой данных.
- * @param string|int $board Идентификатор доски.
- * @param string|int $original_post Номер нити.
- * @param string|int $user_id Идентификатор пользователя.
+ * Get visible threads.
+ * @param MySQLi $link Link to database.
+ * @param int $board Board id.
+ * @param int $original_post Original post number.
+ * @param int $user_id User id.
  * @return array
- * Возвращает нить:<p>
- * 'id' - Идентификатор.<br>
- * 'board' - Идентификатор доски.<br>
- * 'original_post' - Номер оригинального сообщения.<br>
- * 'bump_limit' - Специфичный для нити бамплимит.<br>
- * 'archived' - Флаг архивирования.<br>
- * 'sage' - Флаг поднятия нити.<br>
- * 'sticky' - Флаг закрепления.<br>
- * 'with_attachments' - Флаг вложений.<br>
- * 'posts_count' - Число доступных для просмотра сообщений в нити.</p>
+ * threads.
  */
-function db_threads_get_visible_by_original_post($link, $board, $original_post, $user_id) { // Java CC
-    $result = mysqli_query($link, "call sp_threads_get_visible_by_original_post($board, $original_post, $user_id)");
+function db_threads_get_visible_by_original_post($link, $board, $original_post, $user_id) {
+    $result = mysqli_query($link,
+            "call sp_threads_get_visible_by_original_post($board, $original_post, $user_id)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
@@ -3941,14 +3931,33 @@ function db_threads_get_visible_by_original_post($link, $board, $original_post, 
         throw new NodataException(NodataException::$messages['THREAD_NOT_FOUND']);
     }
 
-    $thread = array('id' => $row['id'],
-                    'board' => $board,
-                    'original_post' => $row['original_post'],
-                    'bump_limit' => $row['bump_limit'],
-                    'sage' => $row['sage'],
-                    'sticky' => $row['sticky'],
-                    'with_attachments' => $row['with_attachments'],
-                    'archived' => $row['archived'],
+    $board_data = array('id' => $row['board_id'],
+                        'name' => $row['board_name'],
+                        'title' => $row['board_title'],
+                        'annotation' => $row['board_annotation'],
+                        'bump_limit' => $row['board_bump_limit'],
+                        'force_anonymous' => $row['board_force_anonymous'],
+                        'default_name' => $row['board_default_name'],
+                        'with_attachments' => $row['board_with_attachments'],
+                        'enable_macro' => $row['board_enable_macro'],
+                        'enable_youtube' => $row['board_enable_youtube'],
+                        'enable_captcha' => $row['board_enable_captcha'],
+                        'enable_translation' => $row['board_enable_translation'],
+                        'enable_geoip' => $row['board_enable_geoip'],
+                        'enable_shi' => $row['board_enable_shi'],
+                        'enable_postid' => $row['board_enable_postid'],
+                        'same_upload' => $row['board_same_upload'],
+                        'popdown_handler' => $row['board_popdown_handler'],
+                        'category' => $row['board_category']);
+
+    $thread = array('id' => $row['thread_id'],
+                    'board' => &$board_data,
+                    'original_post' => $row['thread_original_post'],
+                    'bump_limit' => $row['thread_bump_limit'],
+                    'sage' => $row['thread_sage'],
+                    'sticky' => $row['thread_sticky'],
+                    'with_attachments' => $row['thread_with_attachments'],
+                    'archived' => $row['thread_archived'],
                     'posts_count' => $row['visible_posts_count']);
 
     mysqli_free_result($result);
