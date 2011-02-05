@@ -1,21 +1,15 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* ********************************
  * This file is part of Kotoba.   *
  * See license.txt for more info. *
  **********************************/
 
 /**
- * Скрипт, создающий изображение для капчи.
+ * Create captcha image script.
  */
 
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require Config::ABS_PATH . '/lib/misc.php';
 
 // <editor-fold defaultstate="collapsed" desc="Font">
@@ -53,12 +47,19 @@ $font = array('а' => array(4, array(0, 2, 1, 1, 2, 1, 3, 2, 3, 5, 4, 6), array(
               'я' => array(3, array(0, 6, 3, 3, 1, 3, 0, 2, 0, 1, 1, 0, 3, 0, 3, 6)),
               ' ' => array(3));
 // </editor-fold>
-
+/**
+ * Draw text.
+ * @param resource $image Image for drawing in.
+ * @param int $xshift X-axis offset of drawing.
+ * @param int $yshift Y-axis offset of drawing.
+ * @param string $text Text.
+ * @param $color Text color.
+ */
 function drawtext($image, $xshift, $yshift, $text, $color) {
     global $font;
 
-    mb_internal_encoding('UTF-8');
-    mb_regex_encoding('UTF-8');
+    mb_internal_encoding(Config::MB_ENCODING);
+    mb_regex_encoding(Config::MB_ENCODING);
     $text = preg_split('/(?<!^)(?!$)/u', mb_strtolower($text));
     $char_space = 7;
 
@@ -79,7 +80,11 @@ function drawtext($image, $xshift, $yshift, $text, $color) {
         }
     }
 }
-
+/**
+ * Returns random letter from Font.
+ * @return
+ * random letter from Font.
+ */
 function getrandchar() {
     global $font;
     $chars = array_keys($font);
@@ -87,6 +92,9 @@ function getrandchar() {
 }
 
 kotoba_session_start();
+if (Config::LANGUAGE != $_SESSION['language']) {
+    require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+}
 
 $im = imagecreate(100, 30);
 

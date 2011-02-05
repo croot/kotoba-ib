@@ -195,22 +195,18 @@ function check_utf8($text) { // Java CC
     return true;
 }
 /**
- * Создаёт имена для загружаемого файла и уменьшенной копии (если это
- * изображение).
- * @param string $ext Расширение файла, с которым он будет сохранён.
+ * Create names for uploaded file and thumbnail.
+ * @param string $ext Extension.
  * @return array
- * Возвращает имена файлов:<br>
- * 0 - имя загружаемого файла.<br>
- * 1 - имя уменьшенной копии (для изображений)<br>
- * 2 - имя загружаемого файла без расширения.
+ * names.
  */
 function create_filenames($ext) {
 	list($usec, $sec) = explode(' ', microtime());
 
-	// Три знака после запятой.
+	// 3 digits after comma.
 	$filename = $sec . substr($usec, 2, 5);
 
-	// Имена всех миниатюр заканчиваются на t.
+	// All thumbnails names ends on t.
 	return array("$filename.$ext",
                  "{$filename}t.$ext",
                  $filename);
@@ -235,31 +231,30 @@ function calculate_tripcode($name) {
     return array($first, $trip);
 }
 /**
- * Перемещает загруженный файл на постоянное место хранения.
- * @param string $source Путь к загруженному файлу.
- * @param string $dest Путь, куда должен быть сохранён загруженный файл.
+ * Move file.
+ * @param string $source Source path.
+ * @param string $dest Destination path.
  */
-function move_uploded_file($source, $dest) { // Java CC
+function move_uploded_file($source, $dest) {
     if (!@rename($source, $dest)) {
         throw new UploadException(UploadException::$messages['UPLOAD_SAVE']);
     }
 }
 /**
- * Копирует загруженный файл на постоянное место хранения.
- * @param string $source Путь к загруженному файлу.
- * @param string $dest Путь, куда должен быть сохранён загруженный файл.
+ * Copy file.
+ * @param string $source Source path.
+ * @param string $dest Destination path.
  */
-function copy_uploded_file($source, $dest) { // Java CC
+function copy_uploded_file($source, $dest) {
     if (!@copy($source, $dest)) {
         throw new UploadException('Cannot copy file.');
     }
 }
 /**
- * Удаляет из текста не нужные котобе управляющие символы.
- * @param string $text Текст.
+ * Remove any ASCII control sequences except \t and \n.
+ * @param string $text Text.
  */
-function purify_ascii(&$text) { // Java CC
-    // Remove any ASCII control sequences except \t and \n.
+function purify_ascii(&$text) {
     $text = str_replace(array("\x00", "\x01", "\x02", "\x03", "\x04", "\x05",
             "\x06", "\x07", "\x08", "\x0B", "\x0C", "\x0D", "\x0E", "\x0F", "\x10",
             "\x11", "\x12", "\x13", "\x14", "\x15", "\x16", "\x17", "\x18",
@@ -267,69 +262,61 @@ function purify_ascii(&$text) { // Java CC
             '', $text);
 }
 /**
- * Вычисляет md5 хеш файла.
- * @param string $path Путь к файлу.
+ * Calculate md5 hash of file.
+ * @param string $path File path.
  * @return string
- * Возвращает строку, содержащую md5 хеш.
+ * md5 hash.
  */
-function calculate_file_hash($path) { // Java CC
+function calculate_file_hash($path) {
 	$hash = null;
 
-	if (($hash = hash_file('md5', $path)) === false) {
+	if ( ($hash = hash_file('md5', $path)) === false) {
 		throw new UploadException(UploadException::$messages['UPLOAD_HASH']);
     }
 
 	return $hash;
 }
 /**
- * Выводит информацию об одинаковых вложениях.
- * @param SmartyKotobaSetup $smarty Шаблонизатор.
- * @param string $board_name Имя доски.
- * @param array $same_attachments Одинаковые вложения.
- */
-function show_same_attachments($smarty, $board_name, $same_attachments) { // Java CC
-    $smarty->assign('same_uploads', $same_attachments);
-    $smarty->assign('board_name', $board_name);
-    $smarty->display('same_uploads.tpl');
-}
-/**
- *
+ * Check if post attachments is a oekaki picture.
+ * @return boolean
+ * TRUE if it ELSE otherwise.
  */
 function use_oekaki() {
     return isset($_POST['use_oekaki']) && $_POST['use_oekaki'] == '1' && isset($_SESSION['oekaki']) && is_array($_SESSION['oekaki']);
 }
 /**
- * Проверяет, не произошло ли ошибки при загрузке файла.
+ * Check if error occurs in file uploading.
+ * @param int $error File uploading error.
  */
-function check_upload_error($error) { // Java CC
+function check_upload_error($error) {
     switch ($error) {
-    case UPLOAD_ERR_INI_SIZE:
-        throw new UploadException::$messages['UPLOAD_ERR_INI_SIZE'];
-        break;
-    case UPLOAD_ERR_FORM_SIZE:
-        throw new UploadException::$messages['UPLOAD_ERR_FORM_SIZE'];
-        break;
-    case UPLOAD_ERR_PARTIAL:
-        throw new UploadException::$messages['UPLOAD_ERR_PARTIAL'];
-        break;
-    case UPLOAD_ERR_NO_TMP_DIR:
-        throw new UploadException::$messages['UPLOAD_ERR_NO_TMP_DIR'];
-        break;
-    case UPLOAD_ERR_CANT_WRITE:
-        throw new UploadException::$messages['UPLOAD_ERR_CANT_WRITE'];
-        break;
-    case UPLOAD_ERR_EXTENSION:
-        throw new UploadException::$messages['UPLOAD_ERR_EXTENSION'];
-        break;
+        case UPLOAD_ERR_INI_SIZE:
+            throw new UploadException::$messages['UPLOAD_ERR_INI_SIZE'];
+            break;
+        case UPLOAD_ERR_FORM_SIZE:
+            throw new UploadException::$messages['UPLOAD_ERR_FORM_SIZE'];
+            break;
+        case UPLOAD_ERR_PARTIAL:
+            throw new UploadException::$messages['UPLOAD_ERR_PARTIAL'];
+            break;
+        case UPLOAD_ERR_NO_TMP_DIR:
+            throw new UploadException::$messages['UPLOAD_ERR_NO_TMP_DIR'];
+            break;
+        case UPLOAD_ERR_CANT_WRITE:
+            throw new UploadException::$messages['UPLOAD_ERR_CANT_WRITE'];
+            break;
+        case UPLOAD_ERR_EXTENSION:
+            throw new UploadException::$messages['UPLOAD_ERR_EXTENSION'];
+            break;
     }
 }
 /**
- * Выделяет расширение файла из его имени.
- * @param string $name Имя файла.
+ * Get file extension.
+ * @param string $name File path.
  * @return string
- * Возвращает расширение файла.
+ * file extension.
  */
-function get_extension($name) { // Java CC
+function get_extension($name) {
     $parts = pathinfo($name);
     return $parts['extension'];
 }
@@ -351,12 +338,11 @@ function link_file($source, $dest)
 			throw new CommonException(CommonException::$messages['COPY_FAILED']);
 }
 /**
- * Проверяет, является ли пользователь администратором.
+ * Check if user is admin.
  * @return boolean
- * Возвращает true, если пользователь является администратором и false в
- * противном случае.
+ * TRUE if user is admin and FALSE otherwise.
  */
-function is_admin() { // Java CC
+function is_admin() {
     if (isset($_SESSION['groups']) && is_array($_SESSION['groups'])
             && in_array(Config::ADM_GROUP_NAME, $_SESSION['groups'])) {
         if (count(Config::$ADMIN_IPS) > 0) {
@@ -410,20 +396,18 @@ function is_mod()
 	return false;
 }
 
-/* *************************
- * Работа с изображениями. *
- ***************************/
+/* *********
+ * Images. *
+ ***********/
 
 /**
- * Вычисляет размеры загружаемого изображения.
- * @param array $upload_type Тип загружаемого файла.
- * @param string $file Загружаемый файл.
+ * Get image dimensions.
+ * @param array $upload_type File type.
+ * @param string $file File path.
  * @return array
- * Возвращает размеры:<p>
- * 'x' - ширина.<br>
- * 'y' - высота.</p>
+ * dimensions.
  */
-function image_get_dimensions($upload_type, $file) { // Java CC
+function image_get_dimensions($upload_type, $file) {
 	$result = array();
 
 	if ((check_module('gd') | check_module('gd2')) & Config::TRY_IMAGE_GD) {
@@ -448,26 +432,22 @@ function image_get_dimensions($upload_type, $file) { // Java CC
 	}
 }
 /**
- * Создаёт уменьшенную копию изображения.
- * @param string $source Исходное изображение.
- * @param string $dest Файл, куда должна быть помещена уменьшенная копия.
- * @param array $source_dimensions Размеры исходного изображения.
- * @param array $type Тип файла изображения.
- * @param int $resize_x Ширина уменьшенной копии изображения.
- * @param int $resize_y Высота уменьшенной копии изображения.
- * @param boolean $force Создавать уменьшенную копию, даже если изображение мало.
+ * Create thumbnail of image.
+ * @param string $source Source image.
+ * @param string $dest Thumbnail path.
+ * @param array $source_dimensions Source image dimensions.
+ * @param array $type Image file type.
+ * @param int $resize_x Thumbnail width.
+ * @param int $resize_y Thumbnail height.
+ * @param boolean $force Create thumbnail anyway.
  * @return array
- * Возвращает размеры созданной уменьшенной копии изображения:<p>
- * 'x' - ширина изображения.<br>
- * 'y' - высота изображения.</p>
+ * thumbnail dimensions.
  */
-function create_thumbnail($source, $dest, $source_dimensions, $type,
-        $resize_x, $resize_y, $force) {
+function create_thumbnail($source, $dest, $source_dimensions, $type, $resize_x, $resize_y, $force) {
     $result = array();
 
     // small image doesn't need to be thumbnailed
-    if (!$force && $source_dimensions['x'] < $resize_x
-            && $source_dimensions['y'] < $resize_y) {
+    if (!$force && $source_dimensions['x'] < $resize_x && $source_dimensions['y'] < $resize_y) {
         // big file but small image is some kind of trolling
         if (filesize($source) > Config::SMALLIMAGE_LIMIT_FILE_SIZE) {
             throw new LimitException(LimitException::$messages['MAX_SMALL_IMG_SIZE']);
@@ -478,7 +458,6 @@ function create_thumbnail($source, $dest, $source_dimensions, $type,
         return $result;
     }
 
-    return $type['upload_handler_name']($source, $dest, $source_dimensions,
-            $type, $resize_x, $resize_y);
+    return $type['upload_handler_name']($source, $dest, $source_dimensions, $type, $resize_x, $resize_y);
 }
 ?>

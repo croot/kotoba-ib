@@ -269,7 +269,7 @@ class Config
      */
     static $ADMIN_IPS = array();
 
-    // Максимальный размер загружаемого файла (в байтах).
+    // Maximum size of uploaded file in bytes.
     const MAX_FILE_SIZE = 1560576;
 
     /* ***********************

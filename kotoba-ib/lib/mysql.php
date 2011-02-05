@@ -388,15 +388,13 @@ function db_words_get_all($link) {
     return $words;
 }
 /**
- * Получает все слова по идентификатору доски.
- * @param string|int $board_id Идентификатор доски.
+ * Get all words from wordfilter.
+ * @param MySQLi $link Link to database.
+ * @param int $board_id Board id.
  * @return array
- * Возвращает слова:<p>
- * 'id' - идентификатор.<br>
- * 'word' - слово для замены.<br>
- * 'replace' - замена.</p>
+ * words.
  */
-function db_words_get_all_by_board($link, $board_id) { // Java CC
+function db_words_get_all_by_board($link, $board_id) {
     $result = mysqli_query($link, "call sp_words_get_all_by_board($board_id)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
@@ -404,11 +402,11 @@ function db_words_get_all_by_board($link, $board_id) { // Java CC
 
     $words = array();
     if(mysqli_affected_rows($link) > 0) {
-        while(($row = mysqli_fetch_assoc($result)) !== null) {
+        while( ($row = mysqli_fetch_assoc($result)) != NULL) {
             array_push($words,
-                    array('id' => $row['id'],
-                          'word' => $row['word'],
-                          'replace' => $row['replace']));
+                       array('id' => $row['id'],
+                             'word' => $row['word'],
+                             'replace' => $row['replace']));
         }
     }
 
@@ -598,34 +596,20 @@ function db_boards_get_all($link) {
     return $boards;
 }
 /**
- * Получает заданную доску.
- * @param MySQLi $link Связь с базой данных.
- * @param int $board_id Идентификатор доски.
+ * Get board.
+ * @param MySQLi $link Link to database.
+ * @param int $board_id Board id.
  * @return array
- * Возвращает доски:<p>
- * 'id' - идентификатор.<br>
- * 'name' - имя.<br>
- * 'title' - заголовок.<br>
- * 'annotation' - аннотация.<br>
- * 'bump_limit' - специфичный для доски бамплимит.<br>
- * 'force_anonymous' - флаг отображения имени отправителя.<br>
- * 'default_name' - имя отправителя по умолчанию.<br>
- * 'with_attachments' - флаг вложений.<br>
- * 'enable_macro' - включение интеграции с макрочаном.<br>
- * 'enable_youtube' - включение вложения видео с ютуба.<br>
- * 'enable_captcha' - включение капчи.<br>
- * 'same_upload' - политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
- * 'category' - категория.</p>
+ * board.
  */
-function db_boards_get_by_id($link, $board_id) { // Java CC
+function db_boards_get_by_id($link, $board_id) {
     $result = mysqli_query($link, "call sp_boards_get_by_id($board_id)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
 
     $board = null;
-    if (mysqli_affected_rows($link) > 0 && ($row = mysqli_fetch_assoc($result)) !== null) {
+    if (mysqli_affected_rows($link) > 0 && ($row = mysqli_fetch_assoc($result)) != NULL) {
         $board = array('id' => $row['id'],
                        'name' => $row['name'],
                        'title' => $row['title'],
@@ -748,32 +732,15 @@ function db_boards_get_changeable($link, $user_id)
 	return $boards;
 }
 /**
- * Получает заданную доску, доступную для редактирования заданному
- * пользователю.
- * @param MySQLi $link Связь с базой данных.
- * @param string|int $board_id Идентификатор доски.
- * @param string|int $user_id Идентификатор пользователя.
+ * Get changeable board.
+ * @param MySQLi $link Link to database.
+ * @param int $board_id Board id.
+ * @param int $user_id User id.
  * @return array
- * Возвращает доску:<p>
- * 'id' - Идентификатор.<br>
- * 'name' - Имя.<br>
- * 'title' - Заголовок.<br>
- * 'annotation' - Аннотация.<br>
- * 'bump_limit' - Специфичный для доски бамплимит.<br>
- * 'force_anonymous' - Флаг отображения имени отправителя.<br>
- * 'default_name' - Имя отправителя по умолчанию.<br>
- * 'with_attachments' - Флаг вложений.<br>
- * 'enable_macro' - Включение интеграции с макрочаном.<br>
- * 'enable_youtube' - Включение вложения видео с ютуба.<br>
- * 'enable_captcha' - Включение капчи.<br>
- * 'same_upload' - Политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - Обработчик автоматического удаления нитей.<br>
- * 'category' - Категория.<br>
- * 'category_name' - Имя категории.</p>
+ * board.
  */
-function db_boards_get_changeable_by_id($link, $board_id, $user_id) { // Java CC
-    $result = mysqli_query($link,
-            "call sp_boards_get_changeable_by_id($board_id, $user_id)");
+function db_boards_get_changeable_by_id($link, $board_id, $user_id) {
+    $result = mysqli_query($link, "call sp_boards_get_changeable_by_id($board_id, $user_id)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
@@ -1137,24 +1104,25 @@ function db_favorites_mark_readed($link, $user, $thread) {
     db_cleanup_link($link);
 }
 
-/* ******************************
- * Работа с вложенными файлами. *
- ********************************/
+/* ********
+ * Files. *
+ **********/
 
 /**
- * Добавляет файл.
- * @param MySQLi $link Связь с базой данных.
- * @param string $hash Хеш.
- * @param string $name Имя.
- * @param int $size Размер в байтах.
- * @param string $thumbnail Уменьшенная копия.
- * @param int $thumbnail_w Ширина уменьшенной копии.
- * @param int $thumbnail_h Высота уменьшенной копии.
- * @return string
- * Возвращает идентификатор вложенного файла.
+ * Add file.
+ * @param MySQLi $link Link to database.
+ * @param string $hash Hash.
+ * @param string $name Name.
+ * @param int $size Size in bytes..
+ * @param string $thumbnail Thumbnail.
+ * @param int $thumbnail_w Thumbnail width.
+ * @param int $thumbnail_h Thumbnail height.
+ * @return int
+ * added file id.
  */
-function db_files_add($link, $hash, $name, $size, $thumbnail, $thumbnail_w, $thumbnail_h) { // Java CC
-    $result = mysqli_query($link, "call sp_files_add('$hash', '$name', $size, '$thumbnail', $thumbnail_w, $thumbnail_h)");
+function db_files_add($link, $hash, $name, $size, $thumbnail, $thumbnail_w, $thumbnail_h) {
+    $query = "call sp_files_add('$hash', '$name', $size, '$thumbnail', $thumbnail_w, $thumbnail_h)";
+    $result = mysqli_query($link, $query);
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
@@ -1162,7 +1130,7 @@ function db_files_add($link, $hash, $name, $size, $thumbnail, $thumbnail_w, $thu
     $row = mysqli_fetch_assoc($result);
     mysqli_free_result($result);
     db_cleanup_link($link);
-    return $row['id'];
+    return is_int($row['id']) ? $row['id'] : kotoba_intval($row['id']);
 }
 /**
  * Get files.
@@ -1276,24 +1244,15 @@ function db_files_get_dangling($link) { // Java CC
     return $files;
 }
 /**
- * Получает одинаковые файлы, вложенные в сообщения на заданной доске.
- * @param MySQLi $link Связь с базой данных.
- * @param string|int $board_id Идентификатор доски.
- * @param string|int $user_id Идентификатор пользователя.
- * @param string $file_hash Хеш файла.
+ * Get same files.
+ * @param MySQLi $link Link to database.
+ * @param int $board_id Board id.
+ * @param int $user_id User id.
+ * @param string $file_hash File hash.
  * @return array
- * Возвращает вложенные файлы:<br>
- * 'id' - Идентификатор.<br>
- * 'hash' - Хеш.<br>
- * 'name' - Имя.<br>
- * 'size' - Размер в байтах.<br>
- * 'thumbnail' - Уменьшенная копия.<br>
- * 'thumbnail_w' - Ширина уменьшенной копии.<br>
- * 'thumbnail_h' - Высота уменьшенной копии.<br>
- * 'attachment_type' - Тип вложения.<br>
- * 'view' - Право на просмотр сообщения, в которое вложено изображение.
+ * files.
  */
- function db_files_get_same($link, $board_id, $user_id, $file_hash) { // Java CC
+ function db_files_get_same($link, $board_id, $user_id, $file_hash) {
     $result = mysqli_query($link, "call sp_files_get_same($board_id, $user_id, '$file_hash')");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
@@ -1301,17 +1260,42 @@ function db_files_get_dangling($link) { // Java CC
 
     $files = array();
     if (mysqli_affected_rows($link) > 0) {
-        while (($row = mysqli_fetch_assoc($result)) !== null) {
+        while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            if (!isset($thread_data[$row['thread_id']])) {
+                $thread_data[$row['thread_id']] = array('id' => $row['thread_id'],
+                                                        'board' => $row['thread_board'],
+                                                        'original_post' => $row['thread_original_post'],
+                                                        'bump_limit' => $row['thread_bump_limit'],
+                                                        'sage' => $row['thread_sage'],
+                                                        'sticky' => $row['thread_sticky'],
+                                                        'with_attachments' => $row['thread_with_attachments']);
+            }
+            if (!isset($post_data[$row['post_id']])) {
+                $post_data[$row['post_id']] = array('id' => $row['post_id'],
+                                                    'board' => $row['post_board'],
+                                                    'thread' => &$thread_data[$row['thread_id']],
+                                                    'number' => $row['post_number'],
+                                                    'user' => $row['post_user'],
+                                                    'password' => $row['post_password'],
+                                                    'name' => $row['post_name'],
+                                                    'tripcode' => $row['post_tripcode'],
+                                                    'ip' => $row['post_ip'],
+                                                    'subject' => $row['post_subject'],
+                                                    'date_time' => $row['post_date_time'],
+                                                    'text`' => $row['post_text'],
+                                                    'sage' => $row['post_sage']);
+            }
             array_push($files,
-                array('id' => $row['id'],
-                      'hash' => $row['hash'],
-                      'name' => $row['name'],
-                      'size' => $row['size'],
-                      'thumbnail' => $row['thumbnail'],
-                      'thumbnail_w' => $row['thumbnail_w'],
-                      'thumbnail_h' => $row['thumbnail_h'],
-                      'attachment_type' => Config::ATTACHMENT_TYPE_FILE,
-                      'view' => $row['view']));
+                       array('id' => $row['file_id'],
+                             'hash' => $row['file_hash'],
+                             'name' => $row['file_name'],
+                             'size' => $row['file_size'],
+                             'thumbnail' => $row['file_thumbnail'],
+                             'thumbnail_w' => $row['file_thumbnail_w'],
+                             'thumbnail_h' => $row['file_thumbnail_h'],
+                             'attachment_type' => Config::ATTACHMENT_TYPE_FILE,
+                             'post' => &$post_data[$row['post_id']],
+                             'view' => $row['view']));
         }
     }
 
@@ -1552,30 +1536,41 @@ function db_hidden_threads_get_visible($link, $board_id, $thread_num, $user_id)
 }
 
 
-/* ************************************
- * Работа с вложенными изображениями. *
- **************************************/
+/* *********
+ * Images. *
+ ***********/
 
 /**
- * Добавляет вложенное изображение.
- * @param MySQLi $link Связь с базой данных.
- * @param string|null $hash Хеш.
- * @param string $name Имя.
- * @param int $widht Ширина.
- * @param int $height Высота.
- * @param int $size Размер в байтах.
- * @param string $thumbnail Уменьшенная копия.
- * @param int $thumbnail_w Ширина уменьшенной копии.
- * @param int $thumbnail_h Высота уменьшенной копии.
- * @param boolean $spoiler Флаг спойлера.
- * @return string
- * Возвращает идентификатор вложенного изображения.
+ * Add image.
+ * @param MySQLi $link Link to database.
+ * @param string|null $hash Hash.
+ * @param string $name Name.
+ * @param int $widht Width.
+ * @param int $height Height.
+ * @param int $size Size in bytes.
+ * @param string $thumbnail Thumbnail.
+ * @param int $thumbnail_w Thumbnail width.
+ * @param int $thumbnail_h Thumbnail height.
+ * @param boolean $spoiler Spoiler flag.
+ * @return int
+ * added image id.
  */
-function db_images_add($link, $hash, $name, $widht, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h, $spoiler) { // Java CC
+function db_images_add($link,
+                       $hash,
+                       $name,
+                       $widht,
+                       $height,
+                       $size,
+                       $thumbnail,
+                       $thumbnail_w,
+                       $thumbnail_h,
+                       $spoiler) {
+
     $hash = ($hash == null ? 'null' : "'$hash'");
     $spoiler = ($spoiler ? '1' : '0');
 
-    $result = mysqli_query($link, "call sp_images_add($hash, '$name', $widht, $height, $size, '$thumbnail', $thumbnail_w, $thumbnail_h, $spoiler)");
+    $query = "call sp_images_add($hash, '$name', $widht, $height, $size, '$thumbnail', $thumbnail_w, $thumbnail_h, $spoiler)";
+    $result = mysqli_query($link, $query);
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
@@ -1583,7 +1578,7 @@ function db_images_add($link, $hash, $name, $widht, $height, $size, $thumbnail, 
     $row = mysqli_fetch_assoc($result);
 	mysqli_free_result($result);
 	db_cleanup_link($link);
-	return $row['id'];
+	return is_int($row['id']) ? $row['id'] : kotoba_intval($row['id']);
 }
 /**
  * Get images.
@@ -1747,52 +1742,61 @@ function db_images_get_dangling($link) { // Java CC
     return $images;
 }
 /**
- * Получает одинаковые изображения, вложенные в сообщения на заданной доске.
- * @param MySQLi $link Связь с базой данных.
- * @param string|int $board_id Идентификатор доски.
- * @param string|int $user_id Идентификатор пользователя.
- * @param string $image_hash Хеш вложенного изображения.
+ * Get same images.
+ * @param MySQLi $link Link to database.
+ * @param int $board_id Board id.
+ * @param int $user_id User id.
+ * @param string $image_hash Image file hash.
  * @return array
- * Возвращает изображения:<br>
- * 'id' - Идентификатор.<br>
- * 'hash' - Хеш.<br>
- * 'name' - Имя.<br>
- * 'widht' - Ширина.<br>
- * 'height' - Высота.<br>
- * 'size' - Размер в байтах.<br>
- * 'thumbnail' - Уменьшенная копия.<br>
- * 'thumbnail_w' - Ширина уменьшенной копии.<br>
- * 'thumbnail_h' - Высота уменьшенной копии.</p>
- * 'spoiler' - Флаг спойлера.<br>
- * 'post_number' - Номер сообщения, в которое вложено изображение.<br>
- * 'thread_number' - Номер нити с сообщением, в которое вложено	изображение.<br>
- * 'attachment_type' - Тип вложения.<br>
- * 'view' - Право на просмотр сообщения, в которое вложено изображение.
+ * images.
  */
-function db_images_get_same($link, $board_id, $user_id, $image_hash) { // Java CC
-    $result = mysqli_query($link, 'call sp_images_get_same(' . $board_id . ', ' . $user_id . ', \'' . $image_hash . '\')');
+function db_images_get_same($link, $board_id, $user_id, $image_hash) {
+    $result = mysqli_query($link, "call sp_images_get_same($board_id, $user_id, '$image_hash')");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
 
     $images = array();
     if (mysqli_affected_rows($link) > 0) {
-        while (($row = mysqli_fetch_assoc($result)) != null) {
+        while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            if (!isset($thread_data[$row['thread_id']])) {
+                $thread_data[$row['thread_id']] = array('id' => $row['thread_id'],
+                                                        'board' => $row['thread_board'],
+                                                        'original_post' => $row['thread_original_post'],
+                                                        'bump_limit' => $row['thread_bump_limit'],
+                                                        'sage' => $row['thread_sage'],
+                                                        'sticky' => $row['thread_sticky'],
+                                                        'with_attachments' => $row['thread_with_attachments']);
+            }
+            if (!isset($post_data[$row['post_id']])) {
+                $post_data[$row['post_id']] = array('id' => $row['post_id'],
+                                                    'board' => $row['post_board'],
+                                                    'thread' => &$thread_data[$row['thread_id']],
+                                                    'number' => $row['post_number'],
+                                                    'user' => $row['post_user'],
+                                                    'password' => $row['post_password'],
+                                                    'name' => $row['post_name'],
+                                                    'tripcode' => $row['post_tripcode'],
+                                                    'ip' => $row['post_ip'],
+                                                    'subject' => $row['post_subject'],
+                                                    'date_time' => $row['post_date_time'],
+                                                    'text`' => $row['post_text'],
+                                                    'sage' => $row['post_sage']);
+            }
             array_push($images,
-                array('id' => $row['id'],
-                      'hash' => $row['hash'],
-                      'name' => $row['name'],
-                      'widht' => $row['widht'],
-                      'height' => $row['height'],
-                      'size' => $row['size'],
-                      'thumbnail' => $row['thumbnail'],
-                      'thumbnail_w' => $row['thumbnail_w'],
-                      'thumbnail_h' => $row['thumbnail_h'],
-                      'spoiler' => $row['spoiler'],
-                      'post_number' => $row['number'],
-                      'thread_number' => $row['original_post'],
-                      'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE,
-                      'view' => $row['view']));
+                       array('id' => $row['image_id'],
+                             'hash' => $row['image_hash'],
+                             'name' => $row['image_name'],
+                             'widht' => $row['image_widht'],
+                             'height' => $row['image_height'],
+                             'size' => $row['image_size'],
+                             'thumbnail' => $row['image_thumbnail'],
+                             'thumbnail_w' => $row['image_thumbnail_w'],
+                             'thumbnail_h' => $row['image_thumbnail_h'],
+                             'spoiler' => $row['image_spoiler'],
+                             'post' => &$post_data[$row['post_id']],
+                             'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE,
+                             'view' => $row['view']));
         }
     }
 
@@ -1857,25 +1861,34 @@ function db_languages_get_all($link) {
     return $languages;
 }
 
-/* **********************************************
- * Работа с вложенными ссылками на изображения. *
- ************************************************/
+/* ********
+ * Links. *
+ **********/
 
 /**
- * Добавляет вложенную ссылку на изображение.
- * @param MySQLi $link Связь с базой данных.
+ * Add link.
+ * @param MySQLi $link Link to database.
  * @param string $url URL.
- * @param int $widht Ширина.
- * @param int $height Высота.
- * @param int $size Размер в байтах.
- * @param string $thumbnail Уменьшенная копия.
- * @param int $thumbnail_w Ширина уменьшенной копии.
- * @param int $thumbnail_h Высота уменьшенной копии.
- * @return string
- * Возвращает идентификатор вложенной ссылки на изображение.
+ * @param int $widht Width.
+ * @param int $height Height.
+ * @param int $size Size in bytes.
+ * @param string $thumbnail Thumbnail URL.
+ * @param int $thumbnail_w Thumbnail width.
+ * @param int $thumbnail_h Thumbnail height.
+ * @return int
+ * added link id.
  */
-function db_links_add($link, $url, $widht, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h) {
-    $result = mysqli_query($link, "call sp_links_add('$url', $widht, $height, $size, '$thumbnail', $thumbnail_w, $thumbnail_h)");
+function db_links_add($link,
+                      $url,
+                      $widht,
+                      $height,
+                      $size,
+                      $thumbnail,
+                      $thumbnail_w,
+                      $thumbnail_h) {
+
+    $query = "call sp_links_add('$url', $widht, $height, $size, '$thumbnail', $thumbnail_w, $thumbnail_h)";
+    $result = mysqli_query($link, $query);
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
@@ -1883,7 +1896,7 @@ function db_links_add($link, $url, $widht, $height, $size, $thumbnail, $thumbnai
     $row = mysqli_fetch_assoc($result);
 	mysqli_free_result($result);
 	db_cleanup_link($link);
-	return $row['id'];
+	return is_int($row['id']) ? $row['id'] : kotoba_intval($row['id']);
 }
 /**
  * Get links.
@@ -2166,29 +2179,20 @@ function db_macrochan_images_get_all($link) { // Java CC
     return $images;
 }
 /**
- * Получает случайное изображение макрочана с заданным именем тега макрочана.
- * @param MySQLi $link Связь с базой данных.
- * @param string $name Имя тега макрочана.
- * @return array|null
- * Возвращает изображения макрочана:<p>
- * 'id' - Идентификатор.<br>
- * 'name' - Имя.<br>
- * 'width' - Ширина.<br>
- * 'height' - Высота.<br>
- * 'size' - Размер в байтах.<br>
- * 'thumbnail' - Уменьшенная копия.<br>
- * 'thumbnail_w' - Ширина уменьшенной копии.<br>
- * 'thumbnail_h' - Высота уменьшенной копии.</p>
+ * Get random macrochan image.
+ * @param MySQLi $link Link to database.
+ * @param string $name Tag name.
+ * @return array
+ * macrochan image.
  */
-function db_macrochan_images_get_random($link, $name) { // Java CC
-    $result = mysqli_query($link,
-            "call sp_macrochan_images_get_random('$name')");
+function db_macrochan_images_get_random($link, $name) {
+    $result = mysqli_query($link, "call sp_macrochan_images_get_random('$name')");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
 
     $images = null;
-    if (mysqli_affected_rows($link) > 0 && ($row = mysqli_fetch_assoc($result)) != null) {
+    if (mysqli_affected_rows($link) > 0 && ($row = mysqli_fetch_assoc($result)) != NULL) {
         $images['id'] = $row['id'];
         $images['name'] = $row['name'];
         $images['width'] = $row['width'];
@@ -2356,42 +2360,40 @@ function db_popdown_handlers_get_all($link) {
     return $popdown_handlers;
 }
 
-/* ***********************
- * Работа с сообщениями. *
- *************************/
+/* ********
+ * Posts. *
+ **********/
 
 /**
- * Добавляет сообщение.
- * @param MySQLi $link Связь с базой данных.
- * @param int $board_id Идентификатор доски.
- * @param int $thread_id Идентификатор нити.
- * @param int $user_id Идентификатор пользователя.
- * @param string|null $password Пароль на удаление сообщения.
- * @param string|null $name Имя отправителя.
- * @param string|null $tripcode Трипкод.
- * @param int $ip IP-адрес отправителя.
- * @param string|null $subject Тема.
- * @param string $date_time Время сохранения.
- * @param string|null $text Текст.
- * @param int|null $sage Флаг поднятия нити.
+ * Add post.
+ * @param MySQLi $link Link to database.
+ * @param int $board_id Board id.
+ * @param int $thread_id Thread id.
+ * @param int $user_id User id.
+ * @param string|null $password Password.
+ * @param string|null $name Name.
+ * @param string|null $tripcode Tripcode.
+ * @param int $ip IP-address.
+ * @param string|null $subject Subject.
+ * @param string $date_time Date.
+ * @param string|null $text Text.
+ * @param int|null $sage Sage flag.
  * @return array
- * Возвращает добавленное сообщение:<p>
- * 'id' - Идентификатор.<br>
- * 'board' - Доска.<br>
- * 'thread' - Нить.<br>
- * 'number' - Номер.<br>
- * 'user' - Пользователь.<br>
- * 'password' - Пароль.<br>
- * 'name' - Имя отправителя.<br>
- * 'tripcode' - Трипкод.<br>
- * 'ip'- IP-адрес отправителя.<br>
- * 'subject' - Тема.<br>
- * 'date_time' - Время сохранения.<br>
- * 'text' - Текст.<br>
- * 'sage' - Флаг поднятия нити.</p>
+ * added post.
  */
-function db_posts_add($link, $board_id, $thread_id, $user_id, $password, $name,
-        $tripcode, $ip, $subject, $date_time, $text, $sage) { // Java CC
+function db_posts_add($link,
+                      $board_id,
+                      $thread_id,
+                      $user_id,
+                      $password,
+                      $name,
+                      $tripcode,
+                      $ip,
+                      $subject,
+                      $date_time,
+                      $text,
+                      $sage) {
+    
     if ($sage === null) {
         $sage = 'null';
     }
@@ -2401,28 +2403,26 @@ function db_posts_add($link, $board_id, $thread_id, $user_id, $password, $name,
     $name = ($name == null ? 'null' : "'$name'");
     $password = ($password == null ? 'null' : "'$password'");
 
-    $result = mysqli_query($link,
-            "call sp_posts_add($board_id, $thread_id, $user_id, $password,
-            $name, $tripcode, $ip, $subject, '$date_time', $text, $sage)");
+    $query = "call sp_posts_add($board_id, $thread_id, $user_id, $password, $name, $tripcode, $ip, $subject, '$date_time', $text, $sage)";
+    $result = mysqli_query($link, $query);
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
 
     $post = null;
-    if(mysqli_affected_rows($link) > 0
-            && ($row = mysqli_fetch_assoc($result)) !== null) {
-        $post = array('id' => $row['id'],
-                      'board' => $row['board'],
-                      'thread' => $row['thread'],
-                      'number' => $row['number'],
-                      'password' => $row['password'],
-                      'name' => $row['name'],
-                      'tripcode' => $row['tripcode'],
-                      'ip' => $row['ip'],
-                      'subject' => $row['subject'],
-                      'date_time' => $row['date_time'],
-                      'text' => $row['text'],
-                      'sage' => $row['sage']);
+    if(mysqli_affected_rows($link) > 0 && ($row = mysqli_fetch_assoc($result)) != NULL) {
+        $post['id'] = $row['id'];
+        $post['board'] = $row['board'];
+        $post['thread'] = $row['thread'];
+        $post['number'] = $row['number'];
+        $post['password'] = $row['password'];
+        $post['name'] = $row['name'];
+        $post['tripcode'] = $row['tripcode'];
+        $post['ip'] = $row['ip'];
+        $post['subject'] = $row['subject'];
+        $post['date_time'] = $row['date_time'];
+        $post['text'] = $row['text'];
+        $post['sage'] = $row['sage'];
     }
 
     mysqli_free_result($result);
@@ -2991,20 +2991,19 @@ function db_posts_search_visible_by_boards($link, $boards, $keyword, $user) {
     return $posts;
 }
 
-/* *************************************************
- * Работа со связями сообщений и вложенных файлов. *
- ***************************************************/
+/* ************************
+ * Posts files relations. *
+ **************************/
 
 /**
- * Добавляет связь сообщения с вложенным файлом.
- * @param MySQLi $link Связь с базой данных.
- * @param int $post Идентификатор сообщения.
- * @param int file Идентификатор вложенного файла.
- * @param int $deleted Флаг удаления.
+ * Add post file relation.
+ * @param MySQLi $link Link to database.
+ * @param int $post Post id.
+ * @param int file File id.
+ * @param int $deleted Mark to delete.
  */
-function db_posts_files_add($link, $post, $file, $deleted) { // Java CC
-    if(!mysqli_query($link,
-            "call sp_posts_files_add($post, $file, $deleted)")) {
+function db_posts_files_add($link, $post, $file, $deleted) {
+    if (!mysqli_query($link, "call sp_posts_files_add($post, $file, $deleted)")) {
         throw new CommonException(mysqli_error($link));
     }
     db_cleanup_link($link);
@@ -3058,20 +3057,19 @@ function db_posts_files_get_by_post($link, $post_id) {
     return $posts_files;
 }
 
-/* ******************************************************
- * Работа со связями сообщений и вложенных изображений. *
- ********************************************************/
+/* *************************
+ * Posts images relations. *
+ ***************************/
 
 /**
- * Добавляет связь сообщения с вложенным изображением.
- * @param MySQLi $link Связь с базой данных.
- * @param int $post Идентификатор сообщения.
- * @param int $image Идентификатор вложенного изображения.
- * @param int $deleted Флаг удаления.
+ * Add post image relation.
+ * @param MySQLi $link Link to database.
+ * @param int $post Post id.
+ * @param int $image Image id.
+ * @param int $deleted Mark to delete.
  */
-function db_posts_images_add($link, $post, $image, $deleted) { // Java CC
-    if(!mysqli_query($link,
-            "call sp_posts_images_add($post, $image, $deleted)")) {
+function db_posts_images_add($link, $post, $image, $deleted) {
+    if(!mysqli_query($link, "call sp_posts_images_add($post, $image, $deleted)")) {
         throw new CommonException(mysqli_error($link));
     }
     db_cleanup_link($link);
@@ -3125,20 +3123,19 @@ function db_posts_images_get_by_post($link, $post_id) {
     return $posts_images;
 }
 
-/* ****************************************************************
- * Работа со связями сообщений и вложенных ссылок на изображения. *
- ******************************************************************/
+/* ************************
+ * Posts links relations. *
+ **************************/
 
 /**
- * Добавляет связь сообщения с вложенной ссылкой на изображение.
- * @param MySQLi $link Связь с базой данных.
- * @param int $post Идентификатор сообщения.
- * @param int $posts_links_link Идентификатор вложенной ссылки на изображение.
- * @param int $deleted Флаг удаления.
+ * Add post link relation.
+ * @param MySQLi $link Link to database.
+ * @param int $post Post id.
+ * @param int $link Link id.
+ * @param int $deleted Mark to delete.
  */
-function db_posts_links_add($link, $post, $posts_links_link, $deleted) { // Java CC
-    if(!mysqli_query($link,
-            "call sp_posts_links_add($post, $posts_links_link, $deleted)")) {
+function db_posts_links_add($link, $post, $posts_links_link, $deleted) {
+    if(!mysqli_query($link, "call sp_posts_links_add($post, $posts_links_link, $deleted)")) {
         throw new CommonException(mysqli_error($link));
     }
     db_cleanup_link($link);
@@ -3192,20 +3189,19 @@ function db_posts_links_get_by_post($link, $post_id) {
     return $posts_links;
 }
 
-/* *************************************************
- * Работа со связями сообщений и вложенного видео. *
- ***************************************************/
+/* *************************
+ * Posts videos relations. *
+ ***************************/
 
 /**
- * Добавляет связь сообщения с вложенным видео.
- * @param MySQLi $link Связь с базой данных.
- * @param int $post Идентификатор сообщения.
- * @param int $video Идентификатор вложенного видео.
- * @param int $deleted Флаг удаления.
+ * Add post video relation.
+ * @param MySQLi $link Link to database.
+ * @param int $post Post id.
+ * @param int $video Video id.
+ * @param int $deleted Mark to delete.
  */
-function db_posts_videos_add($link, $post, $video, $deleted) { // Java CC
-    if(!mysqli_query($link,
-            "call sp_posts_videos_add($post, $video, $deleted)")) {
+function db_posts_videos_add($link, $post, $video, $deleted) {
+    if(!mysqli_query($link, "call sp_posts_videos_add($post, $video, $deleted)")) {
         throw new CommonException(mysqli_error($link));
     }
     db_cleanup_link($link);
@@ -3329,14 +3325,12 @@ function db_spamfilter_delete($link, $id) { // Java CC
 	db_cleanup_link($link);
 }
 /**
- * Получает все шаблоны спамфильтра.
- * @param MySQLi $link Связь с базой данных.
+ * Get spamfilter records.
+ * @param MySQLi $link Link to database.
  * @return array
- * Возвращает стили:<br>
- * 'id' - Идентификатор.<br>
- * 'pattern' - Шаблон.
+ * spamfilter records.
  */
-function db_spamfilter_get_all($link) { // Java CC
+function db_spamfilter_get_all($link) {
     $result = mysqli_query($link, 'call sp_spamfilter_get_all()');
     if (!$result) {
         throw new CommonException(mysqli_error($link));
@@ -3344,10 +3338,10 @@ function db_spamfilter_get_all($link) { // Java CC
 
     $patterns = array();
     if (mysqli_affected_rows($link) > 0) {
-        while (($row = mysqli_fetch_assoc($result)) != null) {
+        while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             array_push($patterns,
-                    array('id' => $row['id'],
-                          'pattern' => $row['pattern']));
+                       array('id' => $row['id'],
+                             'pattern' => $row['pattern']));
         }
     }
 
@@ -3663,41 +3657,54 @@ function db_threads_get_by_original_post($link, $board, $original_post) { // Jav
     return $thread;
 }
 /**
- * Получает заданную нить, доступную для редактирования заданному пользователю.
- * @param MySQLi $link Связь с базой данных.
- * @param int $thread_id Идентификатор нити.
- * @param int $user_id Идентификатор пользователя.
+ * Get changeable thread.
+ * @param MySQLi $link Link to database.
+ * @param int $thread_id Thread id.
+ * @param int $user_id User id.
  * @return array
- * Возвращает нить:<p>
- * 'id' - Идентификатор.<br>
- * 'board' - Идентификатор доски.<br>
- * 'original_post' - Номер оригинального сообщения.<br>
- * 'bump_limit' - Специфичный для нити бамплимит.<br>
- * 'archived' - Флаг архивирования.<br>
- * 'sage' - Флаг поднятия нити.<br>
- * 'with_attachments' - Флаг вложений.</p>
+ * thread.
  */
-function db_threads_get_changeable_by_id($link, $thread_id, $user_id) { // Java CC
+function db_threads_get_changeable_by_id($link, $thread_id, $user_id) {
 	$result = mysqli_query($link,
             "call sp_threads_get_changeable_by_id($thread_id, $user_id)");
 	if (!$result) {
 		throw new CommonException(mysqli_error($link));
     }
 
-	$thread = array();
+	$thread = NULL;
 	if(mysqli_affected_rows($link) > 0) {
-		if(($row = mysqli_fetch_assoc($result)) !== null) {
-			$thread['id'] = $row['id'];
-			$thread['board'] = $row['board'];
-			$thread['original_post'] = $row['original_post'];
-			$thread['bump_limit'] = $row['bump_limit'];
-			$thread['archived'] = $row['archived'];
-			$thread['sage'] = $row['sage'];
-			$thread['with_attachments'] = $row['with_attachments'];
+		if( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            $board_data = array('id' => $row['board_id'],
+                                'name' => $row['board_name'],
+                                'title' => $row['board_title'],
+                                'annotation' => $row['board_annotation'],
+                                'bump_limit' => $row['board_bump_limit'],
+                                'force_anonymous' => $row['board_force_anonymous'],
+                                'default_name' => $row['board_default_name'],
+                                'with_attachments' => $row['board_with_attachments'],
+                                'enable_macro' => $row['board_enable_macro'],
+                                'enable_youtube' => $row['board_enable_youtube'],
+                                'enable_captcha' => $row['board_enable_captcha'],
+                                'enable_translation' => $row['board_enable_translation'],
+                                'enable_geoip' => $row['board_enable_geoip'],
+                                'enable_shi' => $row['board_enable_shi'],
+                                'enable_postid' => $row['board_enable_postid'],
+                                'same_upload' => $row['board_same_upload'],
+                                'popdown_handler' => $row['board_popdown_handler'],
+                                'category' => $row['board_category']);
+
+			$thread['id'] = $row['thread_id'];
+			$thread['board'] = &$board_data;
+			$thread['original_post'] = $row['thread_original_post'];
+			$thread['bump_limit'] = $row['thread_bump_limit'];
+			$thread['archived'] = $row['thread_archived'];
+			$thread['sage'] = $row['thread_sage'];
+			$thread['with_attachments'] = $row['thread_with_attachments'];
 		}
 	} else {
+        // TODO It happens if thread not exist also.
 		throw new PermissionException(PermissionException::$messages['THREAD_NOT_ALLOWED']);
-    }
+	}
 
 	mysqli_free_result($result);
 	db_cleanup_link($link);
@@ -4389,46 +4396,45 @@ function db_users_get_by_keyword($link, $keyword) {
     return $user_settings;
 }
 /**
- * Устанавливает перенаправление заданному пользователю.
- * @param MySQLi $link Связь с базой данных.
- * @param int $id Идентификатор пользователя.
- * @param string $goto Перенаправление.
+ * Set redirection.
+ * @param MySQLi $link Link to database.
+ * @param int $id User id.
+ * @param string $goto Redirection.
  */
-function db_users_set_goto($link, $id, $goto) { // Java CC
+function db_users_set_goto($link, $id, $goto) {
     if(!mysqli_query($link, "call sp_users_set_goto($id, '$goto')")) {
         throw new CommonException(mysqli_error($link));
     }
     db_cleanup_link($link);
 }
 /**
- * Устанавливает пароль для удаления сообщений заданному пользователю.
- * @param MySQLi $link Связь с базой данных.
- * @param int $id Идентификатор пользователя.
- * @param string $password Пароль для удаления сообщений.
+ * Set password.
+ * @param MySQLi $link Link to database.
+ * @param int $id User id.
+ * @param string $password New password.
  */
-function db_users_set_password($link, $id, $password) { // Java CC
+function db_users_set_password($link, $id, $password) {
     if (!mysqli_query($link, "call sp_users_set_password($id, '$password')")) {
         throw new CommonException(mysqli_error($link));
     }
     db_cleanup_link($link);
 }
 
-/* ***************************
- * Работа с вложенным видео. *
- *****************************/
+/* *********
+ * Videos. *
+ ***********/
 
 /**
- * Добавляет вложенное видео.
- * @param MySQLi $link Связь с базой данных.
- * @param string $code HTML-код.
- * @param int $widht Ширина.
- * @param int $height Высота.
- * @return string
- * Возвращает идентификатор вложенного видео.
+ * Add video.
+ * @param MySQLi $link Link to database.
+ * @param string $code Code.
+ * @param int $widht Width.
+ * @param int $height Height.
+ * @return int
+ * added video id.
  */
 function db_videos_add($link, $code, $widht, $height) {
-    $result = mysqli_query($link,
-            "call sp_videos_add('$code', $widht, $height)");
+    $result = mysqli_query($link, "call sp_videos_add('$code', $widht, $height)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
@@ -4436,7 +4442,7 @@ function db_videos_add($link, $code, $widht, $height) {
     $row = mysqli_fetch_assoc($result);
 	mysqli_free_result($result);
 	db_cleanup_link($link);
-	return $row['id'];
+	return is_int($row['id']) ? $row['id'] : kotoba_intval($row['id']);
 }
 /**
  * Get videos.

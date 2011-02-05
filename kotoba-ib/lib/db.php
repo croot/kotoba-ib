@@ -345,24 +345,18 @@ function attachments_get_dangling() {
     return $attachments;
 }
 /**
- * Получает одинаковые вложения на заданной доске.
- * @param int $board_id Идентификатор доски.
- * @param int $user_id Идентификатор пользователя.
- * @param string $hash Хеш файла.
+ * Get same attachments (files and images).
+ * @param int $board_id Board id.
+ * @param int $user_id User id.
+ * @param string $hash File hash.
  * @return array
- * Возвращает вложения:<p>
- * 'id' - Идентификатор.<br>
- * ... - Атрибуты, зависимые от конкретного типа вложения.<br>
- * 'attachment_type' - Тип вложения.<br>
- * 'visible' - Право на просмотр сообщения, в которое вложено изображение.</p>
+ * attachments.
  */
-function attachments_get_same($board_id, $user_id, $hash) { // Java CC
+function attachments_get_same($board_id, $user_id, $hash) {
 	$attachments = array();
 
-    $files = db_files_get_same(DataExchange::getDBLink(), $board_id, $user_id,
-        $hash);
-    $images = db_images_get_same(DataExchange::getDBLink(), $board_id, $user_id,
-        $hash);
+    $files = db_files_get_same(DataExchange::getDBLink(), $board_id, $user_id, $hash);
+    $images = db_images_get_same(DataExchange::getDBLink(), $board_id, $user_id, $hash);
 
     foreach ($files as $file) {
         array_push($attachments, $file);
@@ -574,15 +568,12 @@ function words_get_all() {
     return db_words_get_all(DataExchange::getDBLink());
 }
 /**
- * Получает все слова по идентификатору доски.
- * @param string|int $board_id Идентификатор доски.
+ * Get all words from wordfilter.
+ * @param int $board_id Board id.
  * @return array
- * Возвращает слова:<p>
- * 'id' - идентификатор.<br>
- * 'word' - слово для замены.<br>
- * 'replace' - замена.</p>
+ * words.
  */
-function words_get_all_by_board($board_id) { // Java CC
+function words_get_all_by_board($board_id) {
     return db_words_get_all_by_board(DataExchange::getDBLink(), $board_id);
 }
 
@@ -747,26 +738,12 @@ function boards_get_all() {
     return db_boards_get_all(DataExchange::getDBLink());
 }
 /**
- * Получает заданную доску.
- * @param int $board_id Идентификатор доски.
+ * Get board.
+ * @param int $board_id Board id.
  * @return array
- * Возвращает доску:<p>
- * 'id' - идентификатор.<br>
- * 'name' - имя.<br>
- * 'title' - заголовок.<br>
- * 'annotation' - аннотация.<br>
- * 'bump_limit' - специфичный для доски бамплимит.<br>
- * 'force_anonymous' - флаг отображения имени отправителя.<br>
- * 'default_name' - имя отправителя по умолчанию.<br>
- * 'with_attachments' - флаг вложений.<br>
- * 'enable_macro' - включение интеграции с макрочаном.<br>
- * 'enable_youtube' - включение вложения видео с ютуба.<br>
- * 'enable_captcha' - включение капчи.<br>
- * 'same_upload' - политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - обработчик автоматического удаления нитей.<br>
- * 'category' - категория.</p>
+ * board.
  */
-function boards_get_by_id($board_id) { // Java CC
+function boards_get_by_id($board_id) {
     return db_boards_get_by_id(DataExchange::getDBLink(), $board_id);
 }
 /**
@@ -819,31 +796,14 @@ function boards_get_changeable($user_id)
 	return db_boards_get_changeable(DataExchange::getDBLink(), $user_id);
 }
 /**
- * Получает заданную доску, доступную для редактирования заданному
- * пользователю.
- * @param string|int $board_id Идентификатор доски.
- * @param string|int $user_id Идентификатор пользователя.
+ * Get changeable board.
+ * @param int $board_id Board id.
+ * @param int $user_id User id.
  * @return array
- * Возвращает доску:<p>
- * 'id' - Идентификатор.<br>
- * 'name' - Имя.<br>
- * 'title' - Заголовок.<br>
- * 'annotation' - Аннотация.<br>
- * 'bump_limit' - Специфичный для доски бамплимит.<br>
- * 'force_anonymous' - Флаг отображения имени отправителя.<br>
- * 'default_name' - Имя отправителя по умолчанию.<br>
- * 'with_attachments' - Флаг вложений.<br>
- * 'enable_macro' - Включение интеграции с макрочаном.<br>
- * 'enable_youtube' - Включение вложения видео с ютуба.<br>
- * 'enable_captcha' - Включение капчи.<br>
- * 'same_upload' - Политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - Обработчик автоматического удаления нитей.<br>
- * 'category' - Категория.<br>
- * 'category_name' - Имя категории.</p>
+ * board.
  */
-function boards_get_changeable_by_id($board_id, $user_id) { // Java CC
-    return db_boards_get_changeable_by_id(DataExchange::getDBLink(), $board_id,
-            $user_id);
+function boards_get_changeable_by_id($board_id, $user_id) {
+    return db_boards_get_changeable_by_id(DataExchange::getDBLink(), $board_id, $user_id);
 }
 /**
  * Получает заданную доску, доступную для редактирования заданному
@@ -992,25 +952,29 @@ function categories_get_all() {
     return db_categories_get_all(DataExchange::getDBLink());
 }
 
-/********************************
- * Работа с вложенными файлами. *
- ********************************/
+/* ********
+ * Files. *
+ **********/
 
 /**
- * Добавляет файл.
- * @param string $hash Хеш.
- * @param string $name Имя.
- * @param int $size Размер в байтах.
- * @param string $thumbnail Уменьшенная копия.
- * @param int $thumbnail_w Ширина уменьшенной копии.
- * @param int $thumbnail_h Высота уменьшенной копии.
- * @return string
- * Возвращает идентификатор вложенного файла.
+ * Add file.
+ * @param string $hash Hash.
+ * @param string $name Name.
+ * @param int $size Size in bytes..
+ * @param string $thumbnail Thumbnail.
+ * @param int $thumbnail_w Thumbnail width.
+ * @param int $thumbnail_h Thumbnail height.
+ * @return int
+ * added file id.
  */
-function files_add($hash, $name, $size, $thumbnail, $thumbnail_w,
-        $thumbnail_h) { // Java CC
-    return db_files_add(DataExchange::getDBLink(), $hash, $name, $size,
-        $thumbnail, $thumbnail_w, $thumbnail_h);
+function files_add($hash, $name, $size, $thumbnail, $thumbnail_w, $thumbnail_h) {
+    return db_files_add(DataExchange::getDBLink(),
+                        $hash,
+                        $name,
+                        $size,
+                        $thumbnail,
+                        $thumbnail_w,
+                        $thumbnail_h);
 }
 
 /**********************
@@ -1183,32 +1147,50 @@ function hidden_threads_get_visible($board_id, $thread_num, $user_id)
 			$thread_num, $user_id);
 }
 
-/**************************************
- * Работа с вложенными изображениями. *
- **************************************/
+/* *********
+ * Images. *
+ ***********/
 
 /**
- * Добавляет вложенное изображение.
- * @param string|null $hash Хеш.
- * @param string $name Имя.
- * @param int $widht Ширина.
- * @param int $height Высота.
- * @param int $size Размер в байтах.
- * @param string $thumbnail Уменьшенная копия.
- * @param int $thumbnail_w Ширина уменьшенной копии.
- * @param int $thumbnail_h Высота уменьшенной копии.
- * @param boolean $spoiler Флаг спойлера.
- * @return string
- * Возвращает идентификатор вложенного изображения.
+ * Add image.
+ * @param string|null $hash Hash.
+ * @param string $name Name.
+ * @param int $widht Width.
+ * @param int $height Height.
+ * @param int $size Size in bytes.
+ * @param string $thumbnail Thumbnail.
+ * @param int $thumbnail_w Thumbnail width.
+ * @param int $thumbnail_h Thumbnail height.
+ * @param boolean $spoiler Spoiler flag.
+ * @return int
+ * added image id.
  */
-function images_add($hash, $name, $widht, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h, $spoiler) { // Java CC
-    return db_images_add(DataExchange::getDBLink(), $hash, $name, $widht, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h, $spoiler);
+function images_add($hash,
+                    $name,
+                    $widht,
+                    $height,
+                    $size,
+                    $thumbnail,
+                    $thumbnail_w,
+                    $thumbnail_h,
+                    $spoiler) {
+
+    return db_images_add(DataExchange::getDBLink(),
+                         $hash,
+                         $name,
+                         $widht,
+                         $height,
+                         $size,
+                         $thumbnail,
+                         $thumbnail_w,
+                         $thumbnail_h,
+                         $spoiler);
 }
 /**
- * Проверяет, удовлетворяет ли загружаемое изображение ограничениям по размеру.
- * @param int $img_size Размер изображения в байтах.
+ * Check image size.
+ * @param int $img_size image size.
  */
-function images_check_size($size) { // Java CC
+function images_check_size($size) {
     if ($size < Config::MIN_IMGSIZE) {
         throw new LimitException(LimitException::$messages['MIN_IMG_SIZE']);
     }
@@ -1305,25 +1287,40 @@ function languages_get_all() {
     return db_languages_get_all(DataExchange::getDBLink());
 }
 
-/************************************************
- * Работа с вложенными ссылками на изображения. *
- ************************************************/
+/* ********
+ * Links. *
+ **********/
 
 /**
- * Добавляет вложенную ссылку на изображение.
+ * Add link.
  * @param string $url URL.
- * @param int $widht Ширина.
- * @param int $height Высота.
- * @param int $size Размер в байтах.
- * @param string $thumbnail Уменьшенная копия.
- * @param int $thumbnail_w Ширина уменьшенной копии.
- * @param int $thumbnail_h Высота уменьшенной копии.
- * @return string
- * Возвращает идентификатор вложенной ссылки на изображение.
+ * @param int $widht Width.
+ * @param int $height Height.
+ * @param int $size Size in bytes.
+ * @param string $thumbnail Thumbnail URL.
+ * @param int $thumbnail_w Thumbnail width.
+ * @param int $thumbnail_h Thumbnail height.
+ * @return int
+ * added link id.
  */
-function links_add($url, $widht, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h) { // Java CC
-    return db_links_add(DataExchange::getDBLink(), $url, $widht, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h);
+function links_add($url,
+                   $widht,
+                   $height,
+                   $size,
+                   $thumbnail,
+                   $thumbnail_w,
+                   $thumbnail_h) {
+
+    return db_links_add(DataExchange::getDBLink(),
+                        $url,
+                        $widht,
+                        $height,
+                        $size,
+                        $thumbnail,
+                        $thumbnail_w,
+                        $thumbnail_h);
 }
+
 /******************************
  * Работа с тегами макрочана. *
  ******************************/
@@ -1336,9 +1333,10 @@ function macrochan_tags_add($name) { // Java CC
     db_macrochan_tags_add(DataExchange::getDBLink(), $name);
 }
 /**
- * Проверяет корректность тега макрочана.
- * @param string $name Имя.
- * @return string Возвращает безопасный для использования тег макрочана.
+ * Check if macrochan tag valid.
+ * @param string $name Tag name.
+ * @return string
+ * safe macrochan tag name.
  */
 function macrochan_tags_check($name) {
     $macrochan_tags = macrochan_tags_get_all();
@@ -1409,18 +1407,10 @@ function macrochan_images_get_by_tag() {
     throw new CommonException('No Implemented yet.');
 }
 /**
- * Получает случайное изображение макрочана с заданным именем тега макрочана.
- * @param string $name Имя тега макрочана.
+ * Get random macrochan image.
+ * @param string $name Tag name.
  * @return array
- * Возвращает изображение макрочана:<p>
- * 'id' - Идентификатор.<br>
- * 'name' - Имя.<br>
- * 'width' - Ширина.<br>
- * 'height' - Высота.<br>
- * 'size' - Размер в байтах.<br>
- * 'thumbnail' - Уменьшенная копия.<br>
- * 'thumbnail_w' - Ширина уменьшенной копии.<br>
- * 'thumbnail_h' - Высота уменьшенной копии.</p>
+ * macrochan image.
  */
 function macrochan_images_get_random($name) {
     return db_macrochan_images_get_random(DataExchange::getDBLink(), $name);
@@ -1530,44 +1520,50 @@ function popdown_handlers_get_all() {
     return db_popdown_handlers_get_all(DataExchange::getDBLink());
 }
 
-/*************************
- * Работа с сообщениями. *
- *************************/
+/* ********
+ * Posts. *
+ **********/
 
 /**
- * Добавляет сообщение.
- * @param int $board_id Идентификатор доски.
- * @param int $thread_id Идентификатор нити.
- * @param int $user_id Идентификатор пользователя.
- * @param string|null $password Пароль на удаление сообщения.
- * @param string|null $name Имя отправителя.
- * @param string|null $tripcode Трипкод.
- * @param int $ip IP-адрес отправителя.
- * @param string|null $subject Тема.
- * @param string $date_time Время сохранения.
- * @param string|null $text Текст.
- * @param int|null $sage Флаг поднятия нити.
+ * Add post.
+ * @param int $board_id Board id.
+ * @param int $thread_id Thread id.
+ * @param int $user_id User id.
+ * @param string|null $password Password.
+ * @param string|null $name Name.
+ * @param string|null $tripcode Tripcode.
+ * @param int $ip IP-address.
+ * @param string|null $subject Subject.
+ * @param string $date_time Date.
+ * @param string|null $text Text.
+ * @param int|null $sage Sage flag.
  * @return array
- * Возвращает добавленное сообщение:<p>
- * 'id' - Идентификатор.<br>
- * 'board' - Доска.<br>
- * 'thread' - Нить.<br>
- * 'number' - Номер.<br>
- * 'user' - Пользователь.<br>
- * 'password' - Пароль.<br>
- * 'name' - Имя отправителя.<br>
- * 'tripcode' - Трипкод.<br>
- * 'ip'- IP-адрес отправителя.<br>
- * 'subject' - Тема.<br>
- * 'date_time' - Время сохранения.<br>
- * 'text' - Текст.<br>
- * 'sage' - Флаг поднятия нити.</p>
+ * added post.
  */
-function posts_add($board_id, $thread_id, $user_id, $password, $name, $tripcode,
-        $ip, $subject, $date_time, $text, $sage) { // Java CC
-    return db_posts_add(DataExchange::getDBLink(), $board_id, $thread_id,
-            $user_id, $password, $name, $tripcode, $ip, $subject, $date_time,
-            $text, $sage);
+function posts_add($board_id,
+                   $thread_id,
+                   $user_id,
+                   $password,
+                   $name,
+                   $tripcode,
+                   $ip,
+                   $subject,
+                   $date_time,
+                   $text,
+                   $sage) {
+
+    return db_posts_add(DataExchange::getDBLink(),
+                        $board_id,
+                        $thread_id,
+                        $user_id,
+                        $password,
+                        $name,
+                        $tripcode,
+                        $ip,
+                        $subject,
+                        $date_time,
+                        $text,
+                        $sage);
 }
 /**
  * Добавляет текст в конец текста заданного сообщения.
@@ -1587,10 +1583,10 @@ function posts_check_id($id) {
     return kotoba_intval($id);
 }
 /**
- * Проверяет, удовлетворяет ли имя отправителя ограничениям по размеру.
- * @param string $name Имя отправителя.
+ * Check name length.
+ * @param string $name Name.
  */
-function posts_check_name_size($name) { // Java CC
+function posts_check_name_size($name) {
     if (strlen($name) > Config::MAX_THEME_LENGTH) {
         throw new LimitException(LimitException::$messages['MAX_NAME_LENGTH']);
     }
@@ -1617,19 +1613,19 @@ function posts_check_number($number)
 	return $number;
 }
 /**
- * Проверяет корректность пароля для удаления сообщения.
- * @param mixed $password Пароль.
+ * Check password.
+ * @param string $password Password.
  * @return string
- * Возвращает безопасный для использования пароль для удаления сообщения.
+ * safe password.
  */
-function posts_check_password($password) { // Java CC
+function posts_check_password($password) {
     $password = kotoba_strval($password);
     $l = strlen($password);
 
-    // Пароль должен быть длиной от 1 до 12 символов включительно.
+    // Password must be at 1 to 12 symbols.
     if ($l <= 12 && $l >= 1) {
 
-        // Все символы пароля должны быть цифрами 0-9, латинскими буквами a-z или A-Z.
+        // Valid symbold is digits and latin letters.
         for ($i = 0; $i < $l; $i++) {
             $code = ord($password[$i]);
             if ($code < 0x30 || $code > 0x39 && $code < 0x41 || $code > 0x5A && $code < 0x61 || $code > 0x7A) {
@@ -1642,28 +1638,28 @@ function posts_check_password($password) { // Java CC
     throw new FormatException(FormatException::$messages['POST_PASSWORD']);
 }
 /**
- * Проверяет, удовлетворяет ли тема сообщения ограничениям по размеру.
- * @param string $subject Тема сообщения.
+ * Check subject size.
+ * @param string $subject Subject.
  */
-function posts_check_subject_size($subject) { // Java CC
+function posts_check_subject_size($subject) {
     if (strlen($subject) > Config::MAX_THEME_LENGTH) {
         throw new LimitException(LimitException::$messages['MAX_SUBJECT_LENGTH']);
     }
 }
 /**
- * Проверяет корректность текста.
- * @param string $text Текст сообщения.
+ * Validate text.
+ * @param string $text Text.
  */
-function posts_check_text($text) { // Java CC
+function posts_check_text($text) {
     if (!check_utf8($text)) {
         throw new CommonException(CommonException::$messages['TEXT_UNICODE']);
     }
 }
 /**
- * Проверяет, удовлетворяет ли текст сообщения ограничениям по размеру.
- * @param string $text Текст сообщения.
+ * Check text size.
+ * @param string $text Text.
  */
-function posts_check_text_size($text) { // Java CC
+function posts_check_text_size($text) {
     if (mb_strlen($text) > Config::MAX_MESSAGE_LENGTH) {
         throw new LimitException(LimitException::$messages['MAX_TEXT_LENGTH']);
     }
@@ -1874,11 +1870,11 @@ function posts_get_visible_filtred_by_threads($threads, $user_id, $filter) {
             array_slice(func_get_args(), 3, func_num_args()));
 }
 /**
- * Очищает и размечает текст сообщения заданной доски.
- * @param string $text Текст сообщения.
- * @param array $board Доска.
+ * Cleanup and markup text.
+ * @param string $text Text.
+ * @param array $board Board.
  */
-function posts_prepare_text(&$text, $board) { // Java CC
+function posts_prepare_text(&$text, $board) {
     purify_ascii($text);
     kotoba_mark($text, $board);
     $text = str_replace("</blockquote>\n", '</blockquote>', $text);
@@ -1898,59 +1894,59 @@ function posts_search_visible_by_boards($boards, $keyword, $user) {
     return db_posts_search_visible_by_boards(DataExchange::getDBLink(), $boards, $keyword, $user);
 }
 
-/***************************************************
- * Работа со связями сообщений и вложенных файлов. *
- ***************************************************/
+/* ************************
+ * Posts files relations. *
+ **************************/
 
 /**
- * Добавляет связь сообщения с вложенным файлом.
- * @param int $post Идентификатор сообщения.
- * @param int file Идентификатор вложенного файла.
- * @param int $deleted Флаг удаления.
+ * Add post file relation.
+ * @param int $post Post id.
+ * @param int file File id.
+ * @param int $deleted Mark to delete.
  */
-function posts_files_add($post, $file, $deleted) { // Java CC
+function posts_files_add($post, $file, $deleted) {
     db_posts_files_add(DataExchange::getDBLink(), $post, $file, $deleted);
 }
 
-/********************************************************
- * Работа со связями сообщений и вложенных изображений. *
- ********************************************************/
+/* *************************
+ * Posts images relations. *
+ ***************************/
 
 /**
- * Добавляет связь сообщения с вложенным изображением.
- * @param int $post Идентификатор сообщения.
- * @param int $image Идентификатор вложенного изображения.
- * @param int $deleted Флаг удаления.
+ * Add post image relation.
+ * @param int $post Post id.
+ * @param int $image Image id.
+ * @param int $deleted Mark to delete.
  */
-function posts_images_add($post, $image, $deleted) { // Java CC
+function posts_images_add($post, $image, $deleted) {
     db_posts_images_add(DataExchange::getDBLink(), $post, $image, $deleted);
 }
 
-/******************************************************************
- * Работа со связями сообщений и вложенных ссылок на изображения. *
- ******************************************************************/
+/* ************************
+ * Posts links relations. *
+ **************************/
 
 /**
- * Добавляет связь сообщения с вложенной ссылкой на изображение.
- * @param int $post Идентификатор сообщения.
- * @param int $link Идентификатор вложенной ссылки на изображение.
- * @param int $deleted Флаг удаления.
+ * Add post link relation.
+ * @param int $post Post id.
+ * @param int $link Link id.
+ * @param int $deleted Mark to delete.
  */
-function posts_links_add($post, $link, $deleted) { // Java CC
+function posts_links_add($post, $link, $deleted) {
     db_posts_links_add(DataExchange::getDBLink(), $post, $link, $deleted);
 }
 
-/***************************************************
- * Работа со связями сообщений и вложенного видео. *
- ***************************************************/
+/* *************************
+ * Posts videos relations. *
+ ***************************/
 
 /**
- * Добавляет связь сообщения с вложенным видео.
- * @param int $post Идентификатор сообщения.
- * @param int $video Идентификатор вложенного видео.
- * @param int $deleted Флаг удаления.
+ * Add post video relation.
+ * @param int $post Post id.
+ * @param int $video Video id.
+ * @param int $deleted Mark to delete.
  */
-function posts_videos_add($post, $video, $deleted) { // Java CC
+function posts_videos_add($post, $video, $deleted) {
     db_posts_videos_add(DataExchange::getDBLink(), $post, $video, $deleted);
 }
 
@@ -2006,13 +2002,11 @@ function spamfilter_delete($id) { // Java CC
 	db_spamfilter_delete(DataExchange::getDBLink(), $id);
 }
 /**
- * Получает все шаблоны спамфильтра.
+ * Get spamfilter records.
  * @return array
- * Возвращает стили:<br>
- * 'id' - Идентификатор.<br>
- * 'pattern' - Шаблон.
+ * spamfilter records.
  */
-function spamfilter_get_all() { // Java CC
+function spamfilter_get_all() {
     return db_spamfilter_get_all(DataExchange::getDBLink());
 }
 
@@ -2232,22 +2226,16 @@ function threads_get_by_original_post($board, $original_post) {
     return db_threads_get_by_original_post(DataExchange::getDBLink(), $board, $original_post);
 }
 /**
- * Получает заданную нить, доступную для изменения заданному пользователю.
- * @param int $thread_id Идентификатор нити.
- * @param int $user_id Идентификатор пользователя.
+ * Get changeable thread.
+ * @param int $thread_id Thread id.
+ * @param int $user_id User id.
  * @return array
- * Возвращает нить:<p>
- * 'id' - Идентификатор.<br>
- * 'board' - Идентификатор доски.<br>
- * 'original_post' - Номер оригинального сообщения.<br>
- * 'bump_limit' - Специфичный для нити бамплимит.<br>
- * 'archived' - Флаг архивирования.<br>
- * 'sage' - Флаг поднятия нити.<br>
- * 'with_attachments' - Флаг вложений.</p>
+ * thread.
  */
-function threads_get_changeable_by_id($thread_id, $user_id) { // Java CC
+function threads_get_changeable_by_id($thread_id, $user_id) {
     return db_threads_get_changeable_by_id(DataExchange::getDBLink(),
-            $thread_id, $user_id);
+                                           $thread_id,
+                                           $user_id);
 }
 /**
  * Получает нити, доступные для модерирования заданному пользователю.
@@ -2822,44 +2810,44 @@ function users_get_by_keyword($keyword) {
     return db_users_get_by_keyword(DataExchange::getDBLink(), $keyword);
 }
 /**
- * Устанавливает перенаправление заданному пользователю.
- * @param int $id Идентификатор пользователя.
- * @param string $goto Перенаправление.
+ * Set redirection.
+ * @param int $id User id.
+ * @param string $goto Redirection.
  */
-function users_set_goto($id, $goto) { // Java CC
+function users_set_goto($id, $goto) {
     db_users_set_goto(DataExchange::getDBLink(), $id, $goto);
 }
 /**
- * Устанавливает пароль для удаления сообщений заданному пользователю.
- * @param int $id Идентификатор пользователя.
- * @param string $password Пароль для удаления сообщений.
+ * Set password.
+ * @param int $id User id.
+ * @param string $password New password.
  */
-function users_set_password($id, $password) { // Java CC
+function users_set_password($id, $password) {
     db_users_set_password(DataExchange::getDBLink(), $id, $password);
 }
 
-/*****************************
- * Работа с вложенным видео. *
- *****************************/
+/* *********
+ * Videos. *
+ ***********/
 
 /**
- * Добавляет вложенное видео.
- * @param string $code HTML-код.
- * @param int $widht Ширина.
- * @param int $height Высота.
- * @return string
- * Возвращает идентификатор вложенного видео.
+ * Add video.
+ * @param string $code Code.
+ * @param int $widht Width.
+ * @param int $height Height.
+ * @return int
+ * added video id.
  */
-function videos_add($code, $widht, $height) { // Java CC
+function videos_add($code, $widht, $height) {
     return db_videos_add(DataExchange::getDBLink(), $code, $widht, $height);
 }
 /**
- * Проверяет корректность кода видео.
- * @param string $code Код видео.
+ * Check youtube video code.
+ * @param string $code Code of vide.
  * @return string
- * Возвращает безопасный для использования код видео.
+ * safe code of vide.
  */
-function videos_check_code($code) { // Java CC
+function videos_check_code($code) {
     $code = RawURLEncode($code);
     if (strlen($code) > Config::MAX_FILE_LINK) {
         throw new LimitException(LimitException::$messages['MAX_FILE_LINK']);

@@ -536,15 +536,26 @@ begin
         join categories c on c.id = b.category;
 end|
 
--- Выбирает доску с заданным идентификатором.
+-- Select board.
 create procedure sp_boards_get_by_id
 (
-    board_id int    -- Идентификатор доски.
+    board_id int    -- Board id.
 )
 begin
-    select id, name, title, annotation, bump_limit, force_anonymous,
-            default_name, with_attachments, enable_macro, enable_youtube,
-            enable_captcha, same_upload, popdown_handler, category
+    select id,
+           name,
+           title,
+           annotation,
+           bump_limit,
+           force_anonymous,
+           default_name,
+           with_attachments,
+           enable_macro,
+           enable_youtube,
+           enable_captcha,
+           same_upload,
+           popdown_handler,
+           category
         from boards where id = board_id;
 end|
 
@@ -602,12 +613,11 @@ begin
         order by b.category, b.name;
 end|
 
--- Выбирает заданную доску, доступную для редактирования заданному
--- пользователю.
+-- Select changeable board.
 create procedure sp_boards_get_changeable_by_id
 (
-    _board_id int,  -- Идентификатор доски.
-    user_id int     -- Идентификатор пользователя.
+    _board_id int,  -- Board id.
+    user_id int     -- User id.
 )
 begin
     declare board_id int;
@@ -615,11 +625,21 @@ begin
     if (board_id is null) then
         select 'NOT_FOUND' as error;
     else
-        select b.id, b.name, b.title, b.annotation, b.bump_limit,
-                b.force_anonymous, b.default_name, b.with_attachments,
-                b.enable_macro, b.enable_youtube, b.enable_captcha,
-                b.same_upload, b.popdown_handler, b.category,
-                ct.name as category_name
+        select b.id,
+               b.name,
+               b.title,
+               b.annotation,
+               b.bump_limit,
+               b.force_anonymous,
+               b.default_name,
+               b.with_attachments,
+               b.enable_macro,
+               b.enable_youtube,
+               b.enable_captcha,
+               b.same_upload,
+               b.popdown_handler,
+               b.category,
+               ct.name as category_name
             from boards b
             join categories ct on ct.id = b.category
             join user_groups ug on ug.user = user_id
@@ -935,19 +955,19 @@ begin
     close `c`;
 end|
 
--- -------------------------------
--- Работа с вложенными файлами. --
--- -------------------------------
+-- ---------
+-- Files. --
+-- ---------
 
--- Добавляет файл.
+-- Add file.
 create procedure sp_files_add
 (
-    _hash varchar(32),          -- Хеш.
-    _name varchar(256),         -- Имя.
-    _size int,                  -- Размер в байтах.
-    _thumbnail varchar(256),    -- Уменьшенная копия.
-    _thumbnail_w int,           -- Ширина уменьшенной копии.
-    _thumbnail_h int            -- Высота уменьшенной копии.
+    _hash varchar(32),          -- Hash.
+    _name varchar(256),         -- Name.
+    _size int,                  -- Size in bytes.
+    _thumbnail varchar(256),    -- Thumbnail.
+    _thumbnail_w int,           -- Thumbnail width.
+    _thumbnail_h int            -- Thumbnail height.
 )
 begin
     insert into files (hash, name, size, thumbnail, thumbnail_w, thumbnail_h)
@@ -993,45 +1013,74 @@ begin
         where pf.post is null;
 end|
 
--- Выбирает одинаковые файлы, вложенные в сообщения на заданной доске.
+-- Select same files.
 create procedure sp_files_get_same
 (
-    board_id int,           -- Идентификатор доски.
-    user_id int,            -- Идентификатор пользователя.
-    file_hash varchar(32)   -- Хеш файла.
+    board_id int,           -- Board id.
+    user_id int,            -- User id.
+    file_hash varchar(32)   -- File hash.
 )
 begin
-	select f.id, f.hash, f.name, f.size, f.thumbnail, f.thumbnail_w,
-                f.thumbnail_h, max(case when a1.`view` = 0 then 0
-                                        when a2.`view` = 0 then 0
-                                        when a3.`view` = 0 then 0
-                                        when a4.`view` = 0 then 0
-                                        when a5.`view` = 0 then 0
-                                        when a6.`view` = 0 then 0
-                                        when a7.`view` = 0 then 0
-                                        else 1 end) as `view`
-            from posts_files pf
-            join files f on f.id = pf.file
-            join posts p on p.id = pf.post and p.board = board_id
-            join threads t on t.id = p.thread
-            join user_groups ug on ug.user = user_id
-            -- Правило для конкретной группы и сообщения.
-            left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
-            -- Правило для всех групп и конкретного сообщения.
-            left join acl a2 on a2.`group` is null and a2.post = p.id
-            -- Правила для конкретной группы и нити.
-            left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
-            -- Правило для всех групп и конкретной нити.
-            left join acl a4 on a4.`group` is null and a4.thread = p.thread
-            -- Правила для конкретной группы и доски.
-            left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
-            -- Правило для всех групп и конкретной доски.
-            left join acl a6 on a6.`group` is null and a6.board = p.board
-            -- Правило для конкретной групы.
-            left join acl a7 on a7.`group` = ug.`group` and a7.board is null
-                and a7.thread is null and a7.post is null
-            where f.`hash` = file_hash and pf.deleted is null
-            group by f.id, p.id;
+    select f.id as file_id,
+           f.hash as file_hash,
+           f.name as file_name,
+           f.size as file_size,
+           f.thumbnail as file_thumbnail,
+           f.thumbnail_w as file_thumbnail_w,
+           f.thumbnail_h as file_thumbnail_h,
+
+           p.id as post_id,
+           p.board as post_board,
+           p.thread as post_thread,
+           p.number as post_number,
+           p.user as post_user,
+           p.password as post_password,
+           p.name as post_name,
+           p.tripcode as post_tripcode,
+           p.ip as post_ip,
+           p.subject as post_subject,
+           p.date_time as post_date_time,
+           p.`text` as post_text,
+           p.sage as post_sage,
+
+           t.id as thread_id,
+           t.board as thread_board,
+           t.original_post as thread_original_post,
+           t.bump_limit as thread_bump_limit,
+           t.sage as thread_sage,
+           t.sticky as thread_sticky,
+           t.with_attachments as thread_with_attachments,
+
+           max(case when a1.`view` = 0 then 0
+                    when a2.`view` = 0 then 0
+                    when a3.`view` = 0 then 0
+                    when a4.`view` = 0 then 0
+                    when a5.`view` = 0 then 0
+                    when a6.`view` = 0 then 0
+                    when a7.`view` = 0 then 0
+                    else 1 end) as `view`
+        from posts_files pf
+        join files f on f.id = pf.file
+        join posts p on p.id = pf.post and p.board = board_id
+        join threads t on t.id = p.thread
+        join user_groups ug on ug.user = user_id
+        -- Правило для конкретной группы и сообщения.
+        left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+        -- Правило для всех групп и конкретного сообщения.
+        left join acl a2 on a2.`group` is null and a2.post = p.id
+        -- Правила для конкретной группы и нити.
+        left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+        -- Правило для всех групп и конкретной нити.
+        left join acl a4 on a4.`group` is null and a4.thread = p.thread
+        -- Правила для конкретной группы и доски.
+        left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+        -- Правило для всех групп и конкретной доски.
+        left join acl a6 on a6.`group` is null and a6.board = p.board
+        -- Правило для конкретной групы.
+        left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+            and a7.thread is null and a7.post is null
+        where f.`hash` = file_hash and pf.deleted is null
+        group by f.id, p.id;
 end|
 
 -- ----------------------
@@ -1216,22 +1265,22 @@ begin
 	end if;
 end|
 
--- -------------------------------------
--- Работа с вложенными изображениями. --
--- -------------------------------------
+-- ----------
+-- Images. --
+-- ----------
 
--- Добавляет вложенное изображение.
+-- Add image.
 create procedure sp_images_add
 (
-    _hash varchar(32),          -- Хеш.
-    _name varchar(256),         -- Имя.
-    _widht int,                 -- Ширина.
-    _height int,                -- Высота.
-    _size int,                  -- Размер в байтах.
-    _thumbnail varchar(256),    -- Уменьшенная копия.
-    _thumbnail_w int,           -- Ширина уменьшенной копии.
-    _thumbnail_h int,           -- Высота уменьшенной копии.
-    _spoiler bit                -- Флаг спойлера.
+    _hash varchar(32),          -- Hash.
+    _name varchar(256),         -- Name.
+    _widht int,                 -- Width.
+    _height int,                -- Height.
+    _size int,                  -- Size in bytes.
+    _thumbnail varchar(256),    -- Thumbnail.
+    _thumbnail_w int,           -- Thumbnail width.
+    _thumbnail_h int,           -- Thumbnail height.
+    _spoiler bit                -- Spoiler flag.
 )
 begin
     insert into images (hash, name, widht, height, size, thumbnail, thumbnail_w, thumbnail_h, spoiler)
@@ -1302,47 +1351,77 @@ begin
         where pi.post is null;
 end|
 
--- Выбирает одинаковые изображения, вложенные в сообщения на заданной доске.
+-- Select same images.
 create procedure sp_images_get_same
 (
-    board_id int,           -- Идентификатор доски.
-    user_id int,            -- Идентификатор пользователя.
-    image_hash varchar(32)  -- Хеш вложенного изображения.
+    board_id int,           -- Board id.
+    user_id int,            -- User id.
+    image_hash varchar(32)  -- Image file hash.
 )
 begin
-	select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail,
-                    i.thumbnail_w, i.thumbnail_h, i.spoiler, p.number, t.original_post,
-                    max(case
-                            when a1.`view` = 0 then 0
-                            when a2.`view` = 0 then 0
-                            when a3.`view` = 0 then 0
-                            when a4.`view` = 0 then 0
-                            when a5.`view` = 0 then 0
-                            when a6.`view` = 0 then 0
-                            when a7.`view` = 0 then 0
-                            else 1 end) as `view`
-            from images i
-            join posts_images pi on pi.image = i.id
-            join posts p on p.id = pi.post and p.board = board_id
-            join threads t on t.id = p.thread
-            join user_groups ug on ug.`user` = user_id
-            -- Правило для конкретной группы и сообщения.
-            left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
-            -- Правило для всех групп и конкретного сообщения.
-            left join acl a2 on a2.`group` is null and a2.post = p.id
-            -- Правила для конкретной группы и нити.
-            left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
-            -- Правило для всех групп и конкретной нити.
-            left join acl a4 on a4.`group` is null and a4.thread = p.thread
-            -- Правила для конкретной группы и доски.
-            left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
-            -- Правило для всех групп и конкретной доски.
-            left join acl a6 on a6.`group` is null and a6.board = p.board
-            -- Правило для конкретной групы.
-            left join acl a7 on a7.`group` = ug.`group` and a7.board is null
-                    and a7.thread is null and a7.post is null
-            where i.hash = image_hash and pi.deleted is null
-            group by i.id, p.id;
+    select i.id as image_id,
+           i.hash as image_hash,
+           i.name as image_name,
+           i.widht as image_widht,
+           i.height as image_height,
+           i.size as image_size,
+           i.thumbnail as image_thumbnail,
+           i.thumbnail_w as image_thumbnail_w,
+           i.thumbnail_h as image_thumbnail_h,
+           i.spoiler as image_spoiler,
+
+           p.id as post_id,
+           p.board as post_board,
+           p.thread as post_thread,
+           p.number as post_number,
+           p.user as post_user,
+           p.password as post_password,
+           p.name as post_name,
+           p.tripcode as post_tripcode,
+           p.ip as post_ip,
+           p.subject as post_subject,
+           p.date_time as post_date_time,
+           p.`text` as post_text,
+           p.sage as post_sage,
+
+           t.id as thread_id,
+           t.board as thread_board,
+           t.original_post as thread_original_post,
+           t.bump_limit as thread_bump_limit,
+           t.sage as thread_sage,
+           t.sticky as thread_sticky,
+           t.with_attachments as thread_with_attachments,
+
+           max(case when a1.`view` = 0 then 0
+                    when a2.`view` = 0 then 0
+                    when a3.`view` = 0 then 0
+                    when a4.`view` = 0 then 0
+                    when a5.`view` = 0 then 0
+                    when a6.`view` = 0 then 0
+                    when a7.`view` = 0 then 0
+                    else 1 end) as `view`
+        from images i
+        join posts_images pi on pi.image = i.id
+        join posts p on p.id = pi.post and p.board = board_id
+        join threads t on t.id = p.thread
+        join user_groups ug on ug.`user` = user_id
+        -- Правило для конкретной группы и сообщения.
+        left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+        -- Правило для всех групп и конкретного сообщения.
+        left join acl a2 on a2.`group` is null and a2.post = p.id
+        -- Правила для конкретной группы и нити.
+        left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+        -- Правило для всех групп и конкретной нити.
+        left join acl a4 on a4.`group` is null and a4.thread = p.thread
+        -- Правила для конкретной группы и доски.
+        left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+        -- Правило для всех групп и конкретной доски.
+        left join acl a6 on a6.`group` is null and a6.board = p.board
+        -- Правило для конкретной групы.
+        left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+            and a7.thread is null and a7.post is null
+        where i.hash = image_hash and pi.deleted is null
+        group by i.id, p.id;
 end|
 
 -- ---------------------
@@ -1379,20 +1458,20 @@ begin
 	select id, code from languages;
 end|
 
--- -----------------------------------------------
--- Работа с вложенными ссылками на изображения. --
--- -----------------------------------------------
+-- ---------
+-- Links. --
+-- ---------
 
--- Добавляет вложенную ссылку на изображение.
+-- Add link.
 create procedure sp_links_add
 (
     _url varchar(256),          -- URL.
-    _widht int,                 -- Ширина.
-    _height int,                -- Высота.
-    _size int,                  -- Размер в байтах.
-    _thumbnail varchar(256),    -- Уменьшенная копия.
-    _thumbnail_w int,           -- Ширина уменьшенной копии.
-    _thumbnail_h int            -- Высота уменьшенной копии.
+    _widht int,                 -- Width.
+    _height int,                -- Height.
+    _size int,                  -- Size in bytes.
+    _thumbnail varchar(256),    -- Thumbnail URL.
+    _thumbnail_w int,           -- Thumbnail width.
+    _thumbnail_h int            -- Thumbnail height.
 )
 begin
     insert into links (url, widht, height, size, thumbnail, thumbnail_w, thumbnail_h)
@@ -1525,14 +1604,20 @@ begin
         from macrochan_images;
 end|
 
--- Получает случайное изображение макрочана с заданным именем тега макрочана.
+-- Select random macrochan image.
 create procedure sp_macrochan_images_get_random
 (
-    _name varchar(256)    -- Имя тега макрочана.
+    _name varchar(256)    -- Tag name.
 )
 begin
-    select mi.id, mi.name, mi.width, mi.height, mi.size, mi.thumbnail,
-            mi.thumbnail_w, mi.thumbnail_h
+    select mi.id,
+           mi.name,
+           mi.width,
+           mi.height,
+           mi.size,
+           mi.thumbnail,
+           mi.thumbnail_w,
+           mi.thumbnail_h
         from macrochan_images mi
         join macrochan_tags_images mti on mi.id = mti.image
         join macrochan_tags mt on mti.tag = mt.id and mt.name = _name
@@ -1616,24 +1701,24 @@ begin
     select id, name from popdown_handlers;
 end|
 
--- -------------------------
---  Работа с сообщениями. --
--- -------------------------
+-- ----------
+--  Posts. --
+-- ----------
 
--- Добавляет сообщение.
+-- Add post.
 create procedure sp_posts_add
 (
-    board_id int,           -- Идентификатор доски.
-    thread_id int,          -- Идентификатор нити.
-    user_id int,            -- Идентификатор пользователя.
-    _password varchar(128), -- Пароль на удаление сообщения.
-    _name varchar(128),     -- Имя отправителя.
-    _tripcode varchar(128), -- Трипкод.
-    _ip bigint,             -- IP-адрес отправителя.
-    _subject varchar(128),  -- Тема.
-    _date_time datetime,    -- Время сохранения.
-    _text text,             -- Текст.
-    _sage bit               -- Флаг поднятия нити.
+    board_id int,           -- Board id.
+    thread_id int,          -- Thread id.
+    user_id int,            -- User id.
+    _password varchar(128), -- Password.
+    _name varchar(128),     -- Name.
+    _tripcode varchar(128), -- Tripcode.
+    _ip bigint,             -- IP-address.
+    _subject varchar(128),  -- Subject.
+    _date_time datetime,    -- Date.
+    _text text,             -- Text.
+    _sage bit               -- Sage flag.
 )
 begin
     declare count_posts int;    -- posts in thread
@@ -2196,16 +2281,16 @@ begin
         order by p.number asc;
 end|
 
--- --------------------------------------------------
--- Работа со связями сообщений и вложенных файлов. --
--- --------------------------------------------------
+-- -------------------------
+-- Posts files relations. --
+-- -------------------------
 
--- Добавляет связь сообщения с вложенным файлом.
+-- Add post file relation.
 create procedure sp_posts_files_add
 (
-    _post int,      -- Идентификатор сообщения.
-    _file int,      -- Идентификатор вложенного файла.
-    _deleted bit    -- Флаг удаления.
+    _post int,      -- Post id.
+    _file int,      -- File id.
+    _deleted bit    -- Mark to delete.
 )
 begin
     insert into posts_files (post, file, deleted)
@@ -2236,16 +2321,16 @@ begin
     select post, file, deleted from posts_files where post = post_id;
 end|
 
--- -------------------------------------------------------
--- Работа со связями сообщений и вложенных изображений. --
--- -------------------------------------------------------
+-- --------------------------
+-- Posts images relations. --
+-- --------------------------
 
--- Добавляет связь сообщения с вложенным изображением.
+-- Add post image relation.
 create procedure sp_posts_images_add
 (
-    _post int,      -- Идентификатор сообщения.
-    _image int,     -- Идентификатор вложенного изображения.
-    _deleted bit    -- Флаг удаления.
+    _post int,      -- Post id.
+    _image int,     -- Image id.
+    _deleted bit    -- Mark to delete.
 )
 begin
     insert into posts_images (post, image, deleted)
@@ -2276,16 +2361,16 @@ begin
     select post, image, deleted from posts_images where post = post_id;
 end|
 
--- -----------------------------------------------------------------
--- Работа со связями сообщений и вложенных ссылок на изображения. --
--- -----------------------------------------------------------------
+-- -------------------------
+-- Posts links relations. --
+-- -------------------------
 
--- Добавляет связь сообщения с вложенной ссылкой на изображение.
+-- Add post link relation.
 create procedure sp_posts_links_add
 (
-    _post int,      -- Идентификатор сообщения.
-    _link int,      -- Идентификатор вложенной ссылки на изображение.
-    _deleted bit    -- Флаг удаления.
+    _post int,      -- Post id.
+    _link int,      -- Link id.
+    _deleted bit    -- Mark to delete.
 )
 begin
     insert into posts_links (post, link, deleted)
@@ -2316,16 +2401,16 @@ begin
     select post, link, deleted from posts_links where post = post_id;
 end|
 
--- --------------------------------------------------
--- Работа со связями сообщений и вложенного видео. --
--- --------------------------------------------------
+-- --------------------------
+-- Posts videos relations. --
+-- --------------------------
 
--- Добавляет связь сообщения с вложенным видео.
+-- Add post video relation.
 create procedure sp_posts_videos_add
 (
-    _post int,      -- Идентификатор сообщения.
-    _video int,     -- Идентификатор вложенного видео.
-    _deleted bit    -- Флаг удаления.
+    _post int,      -- Post id.
+    _video int,     -- Video id.
+    _deleted bit    -- Mark to delete.
 )
 begin
     insert into posts_videos (post, video, deleted)
@@ -2411,7 +2496,7 @@ begin
     delete from spamfilter where id = _id;
 end|
 
--- Выбирает все шаблоны спамфильтра.
+-- Select spamfilter records.
 create procedure sp_spamfilter_get_all ()
 begin
     select id, pattern from spamfilter;
@@ -2646,16 +2731,41 @@ begin
             and archived = 0;
 end|
 
--- Выбирает заданную нить, доступную для редактирования заданному пользователю.
+-- Get changeable thread.
 create procedure sp_threads_get_changeable_by_id
 (
-    thread_id int,  -- Идентификатор нити.
-    user_id int     -- Идентификатор пользователя.
+    thread_id int,  -- Thread id.
+    user_id int     -- User id.
 )
 begin
-    select t.id, t.board, t.original_post, t.bump_limit, t.archived, t.sage,
-            t.with_attachments
+    select t.id as thread_id,
+           t.original_post as thread_original_post,
+           t.bump_limit as thread_bump_limit,
+           t.archived as thread_archived,
+           t.sage as thread_sage,
+           t.with_attachments as thread_with_attachments,
+
+           b.id as board_id,
+           b.name as board_name,
+           b.title as board_title,
+           b.annotation as board_annotation,
+           b.bump_limit as board_bump_limit,
+           b.force_anonymous as board_force_anonymous,
+           b.default_name as board_default_name,
+           b.with_attachments as board_with_attachments,
+           b.enable_macro as board_enable_macro,
+           b.enable_youtube as board_enable_youtube,
+           b.enable_captcha as board_enable_captcha,
+           b.enable_translation as board_enable_translation,
+           b.enable_geoip as board_enable_geoip,
+           b.enable_shi as board_enable_shi,
+           b.enable_postid as board_enable_postid,
+           b.same_upload as board_same_upload,
+           b.popdown_handler as board_popdown_handler,
+           b.category as board_category
+
         from threads t
+        join boards b on b.id = t.board
         join user_groups ug on ug.user = user_id
         left join hidden_threads ht on t.id = ht.thread and ug.user = ht.user
         -- Правила для конкретной группы и нити.
@@ -3697,36 +3807,36 @@ begin
         join groups g on ug.`group` = g.id;
 end|
 
--- Устанавливает перенаправление заданному пользователю.
+-- Set redirection.
 create procedure sp_users_set_goto
 (
-    _id int,            -- Идентификатор пользователя.
-    _goto varchar(32)   -- Перенаправление.
+    _id int,            -- User id.
+    _goto varchar(32)   -- Redirection.
 )
 begin
     update users set `goto` = _goto where id = _id;
 end|
 
--- Устанавливает пароль для удаления сообщений заданному пользователю.
+-- Set password.
 create procedure sp_users_set_password
 (
-    _id int,                -- Идентификатор пользователя.
-    _password varchar(12)   -- Пароль для удаления сообщений.
+    _id int,                -- User id.
+    _password varchar(12)   -- New password.
 )
 begin
     update users set password = _password where id = _id;
 end|
 
--- ----------------------------
--- Работа с вложенным видео. --
--- ----------------------------
+-- ----------
+-- Videos. --
+-- ----------
 
--- Добавляет вложенное видео.
+-- Add video.
 create procedure sp_videos_add
 (
-    _code varchar(256), -- HTML-код.
-    _widht int,         -- Ширина.
-    _height int         -- Высота.
+    _code varchar(256), -- Code.
+    _widht int,         -- Width.
+    _height int         -- Height.
 )
 begin
     insert into videos (code, widht, height) values (_code, _widht, _height);
@@ -3825,15 +3935,13 @@ begin
     from words;
 end|
 
--- Выбирает все слова, их замени и идентификаторы из таблицы вордфильтра.
+-- Select words.
 create procedure sp_words_get_all_by_board
 (
-	_board_id int
+    _board_id int   -- Board id.
 )
 begin
-    select id, word, `replace`
-    from words
-    where board_id = _board_id;
+    select id, word, `replace` from words where board_id = _board_id;
 end|
 
 /*
