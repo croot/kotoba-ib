@@ -143,9 +143,9 @@ PermissionException::$messages['USER_NOT_EXIST'] = 'Пользователя с 
 
 DataExchangeException::$messages['SAVE_USER_SETTINGS'] = 'Не удалось сохранить настройки пользователя.';
 
-/* ************************
- * Ошибки загрузки файла. *
- **************************/
+/* ****************
+ * Upload errors. *
+ ******************/
 
 UploadException::$messages['UPLOAD_ERR_INI_SIZE'] = 'Загруженный файл превышает размер, заданный директивой upload_max_filesize в php.ini.';
 UploadException::$messages['UPLOAD_ERR_FORM_SIZE'] = 'Загруженный файл превышает размер, заданный директивой MAX_FILE_SIZE, определённой в HTML форме.';
@@ -154,9 +154,9 @@ UploadException::$messages['UPLOAD_ERR_NO_FILE'] = 'Файл не был заг�
 UploadException::$messages['UPLOAD_ERR_NO_TMP_DIR'] = 'Временная папка не найдена.';
 UploadException::$messages['UPLOAD_ERR_CANT_WRITE'] = 'Не удалось записать файл на диск.';
 UploadException::$messages['UPLOAD_ERR_EXTENSION'] = 'Загрузка файла прервана расширением.';
-UploadException::$messages['UPLOAD_SAVE'] = 'Файл не удалось сохранить.';
-UploadException::$messages['UPLOAD_HASH'] = 'Не удалось вычислить хеш файла.';
 UploadException::$messages['UPLOAD_FILETYPE_NOT_SUPPORTED'] = 'Тип файла не поодерживается.';
+UploadException::$messages['UPLOAD_HASH'] = 'Не удалось вычислить хеш файла.';
+UploadException::$messages['UPLOAD_SAVE'] = 'Файл не удалось сохранить.';
 UploadException::$messages['UNKNOWN'] = 'Неизвестное вложение.';
 
 /* ***************

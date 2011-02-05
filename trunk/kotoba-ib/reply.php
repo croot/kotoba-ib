@@ -1,19 +1,31 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.		   *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
 
-// Скрипт ответа в нить.
+/*
+ * Reply script.
+ *
+ * Parameters:
+ * MAX_FILE_SIZE - maximum size of uploaded file in bytes (see config.default).
+ * name - name.
+ * subject - subject.
+ * text - text.
+ * file (optional) - uploaded file.
+ * spoiler (optional) - attachment is spoiler.
+ * use_oekaki (optional) - use drawn picture as attachment.
+ * macrochan_tag (optional) - macrochan tag name.
+ * youtube_video_code (optional) - code of youtube video.
+ * captcha_code (optional) - captcha code.
+ * password - password.
+ * goto - redirection.
+ * sage - sage flag.
+ * t - thread id.
+ */
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
 require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
@@ -22,14 +34,19 @@ require_once Config::ABS_PATH . '/lib/mark.php';
 require_once Config::ABS_PATH . '/lib/latex_render.php';
 
 try {
+    // Initialization.
     kotoba_session_start();
+    if (Config::LANGUAGE != $_SESSION['language']) {
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+    }
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup();
 
-    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+    // Check if client banned.
+    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
-    if (($ban = bans_check($ip)) !== false) {
+    if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
         session_destroy();
@@ -37,14 +54,14 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    /* TODO: Логичней было бы если бы проверка была вне фунции. */
     $thread = threads_get_changeable_by_id(threads_check_id($_POST['t']), $_SESSION['user']);
     if ($thread['archived']) {
         throw new CommonException(CommonException::$messages['THREAD_ARCHIVED']);
     }
 
-    $board = boards_get_by_id($thread['board']);
+    $board = $thread['board'];
 
+    // Captcha.
     if (!is_admin() && (($board['enable_captcha'] === null && Config::ENABLE_CAPTCHA) || $board['enable_captcha'])) {
         if (!isset($_POST['captcha_code'])
                 || !isset($_SESSION['captcha_code'])
@@ -56,6 +73,7 @@ try {
         }
     }
 
+    // Redirection.
     $goto = null;
     $should_update_goto = false;
     if (isset($_POST['goto'])) {
@@ -68,6 +86,7 @@ try {
 		throw new FormatException(FormatException::$messages['USER_GOTO']);
     }
 
+    // Password.
 	$password = null;
 	$should_update_password = false;
 	if (isset($_POST['password']) && $_POST['password'] != '') {
@@ -78,11 +97,13 @@ try {
         }
     }
 
+    // Sage.
     $sage = $thread['sage'];
 	if (isset($_POST['sage']) && $_POST['sage'] === 'sage') {
 		$sage = 1;
     }
 
+    // Name and tripcode.
     $name = null;
     $tripcode = null;
 	if (!$board['force_anonymous']) {
@@ -93,13 +114,13 @@ try {
 		$name = str_replace("\n", '', $name);
 		$name = str_replace("\r", '', $name);
 		posts_check_name_size($name);
-        // TODO: Check what tripcode cannot be empty string.
 		$name_tripcode = calculate_tripcode($name);
         $_SESSION['name'] = $name;
 		$name = $name_tripcode[0];
 		$tripcode = $name_tripcode[1];
 	}
 
+    // Subject.
     posts_check_subject_size($_POST['subject']);
 	$subject = htmlentities($_POST['subject'], ENT_QUOTES, Config::MB_ENCODING);
 	$subject = str_replace('\\', '\\\\', $subject);
@@ -107,6 +128,7 @@ try {
 	$subject = str_replace("\n", '', $subject);
 	$subject = str_replace("\r", '', $subject);
 
+    // Text.
     posts_check_text_size($_POST['text']);
     if (Config::ENABLE_SPAMFILTER) {
         $spam_filter = spamfilter_get_all();
@@ -131,6 +153,7 @@ try {
 	posts_prepare_text($text, $board);
 	posts_check_text_size($text);
 
+    // Attachment type.
 	$attachment_type = null;
     if ($thread['with_attachments'] || ($thread['with_attachments'] === null && $board['with_attachments'])) {
         if ($_FILES['file']['error'] != UPLOAD_ERR_NO_FILE || use_oekaki()) {
@@ -183,33 +206,37 @@ try {
         }
     }
 
-    /* TODO: А если одни пробелы или другие пустые сущности? */
+    // TODO: А если одни пробелы или другие пустые сущности?
     if ($attachment_type === null && $text == '') {
         throw new NodataException(NodataException::$messages['EMPTY_MESSAGE']);
     }
 
+    // Attachment.
     if ($attachment_type !== null) {
-        if ($attachment_type == Config::ATTACHMENT_TYPE_FILE || $attachment_type == Config::ATTACHMENT_TYPE_IMAGE) {
+        if ($attachment_type == Config::ATTACHMENT_TYPE_FILE
+                || $attachment_type == Config::ATTACHMENT_TYPE_IMAGE) {
+
             $file_hash = calculate_file_hash($uploaded_file_path);
             $file_exists = false;
             $same_attachments = null;
             switch ($board['same_upload']) {
                 case 'once':
-                    $same_attachments = attachments_get_same($board['id'],
-                        $_SESSION['user'], $file_hash);
+                    $same_attachments = attachments_get_same($board['id'], $_SESSION['user'], $file_hash);
                     if (count($same_attachments) > 0) {
                         $file_exists = true;
                     }
                     break;
 
                 case 'no':
-                    $same_attachments = attachments_get_same($board['id'],
-                        $_SESSION['user'], $file_hash);
+                    $same_attachments = attachments_get_same($board['id'], $_SESSION['user'], $file_hash);
                     if (count($same_attachments) > 0) {
-                        show_same_attachments($smarty, $board['name'],
-                            $same_attachments);
+                        $smarty->assign('show_control', is_admin() || is_mod());
+                        $smarty->assign('boards', boards_get_visible($_SESSION['user']));
+                        $smarty->assign('board', $board);
+                        $smarty->assign('same_attachments', $same_attachments);
+                        $smarty->display('same_attachments.tpl');
                         DataExchange::releaseResources();
-                        exit;
+                        exit(0);
                     }
                     break;
 
@@ -226,12 +253,14 @@ try {
             if ($file_exists) {
                 $attachment_id = $same_attachments[0]['id'];
             } else {
-                $abs_file_path = Config::ABS_PATH
-                    . "/{$board['name']}/other/{$file_names[0]}";
+                $abs_file_path = Config::ABS_PATH . "/{$board['name']}/other/{$file_names[0]}";
                 move_uploded_file($uploaded_file_path, $abs_file_path);
-                $attachment_id = files_add($file_hash, $file_names[0],
-                    $uploaded_file_size, $upload_type['thumbnail_image'],
-                    Config::THUMBNAIL_WIDTH, Config::THUMBNAIL_HEIGHT);
+                $attachment_id = files_add($file_hash,
+                                           $file_names[0],
+                                           $uploaded_file_size,
+                                           $upload_type['thumbnail_image'],
+                                           Config::THUMBNAIL_WIDTH,
+                                           Config::THUMBNAIL_HEIGHT);
             }
         } elseif ($attachment_type === Config::ATTACHMENT_TYPE_IMAGE) {
             if ($file_exists) {
@@ -279,10 +308,12 @@ try {
             $macrochan_image['name'] = "http://12ch.ru/macro/index.php/image/{$macrochan_image['name']}";
             $macrochan_image['thumbnail'] = "http://12ch.ru/macro/index.php/thumb/{$macrochan_image['thumbnail']}";
             $attachment_id = links_add($macrochan_image['name'],
-                    $macrochan_image['width'], $macrochan_image['height'],
-                    $macrochan_image['size'], $macrochan_image['thumbnail'],
-                    $macrochan_image['thumbnail_w'],
-                    $macrochan_image['thumbnail_h']);
+                                       $macrochan_image['width'],
+                                       $macrochan_image['height'],
+                                       $macrochan_image['size'],
+                                       $macrochan_image['thumbnail'],
+                                       $macrochan_image['thumbnail_w'],
+                                       $macrochan_image['thumbnail_h']);
         } elseif ($attachment_type == Config::ATTACHMENT_TYPE_VIDEO) {
             $attachment_id = videos_add($youtube_video_code, 220, 182);
         } else {
@@ -290,11 +321,21 @@ try {
         }
     }
 
+    // Save post.
     date_default_timezone_set(Config::DEFAULT_TIMEZONE);
-    $post = posts_add($board['id'], $thread['id'], $_SESSION['user'], $password,
-            $name, $tripcode, ip2long($_SERVER['REMOTE_ADDR']), $subject,
-            date(Config::DATETIME_FORMAT), $text, $sage);
+    $post = posts_add($board['id'],
+                      $thread['id'],
+                      $_SESSION['user'],
+                      $password,
+                      $name,
+                      $tripcode,
+                      ip2long($_SERVER['REMOTE_ADDR']),
+                      $subject,
+                      date(Config::DATETIME_FORMAT),
+                      $text,
+                      $sage);
 
+    // Save attachment.
     if ($attachment_type !== null) {
         switch ($attachment_type) {
             case Config::ATTACHMENT_TYPE_FILE:
@@ -315,6 +356,7 @@ try {
         }
     }
 
+    // Update password and redirection.
 	if ($_SESSION['user'] != Config::GUEST_ID && $should_update_password) {
         users_set_password($_SESSION['user'], $password);
     }
@@ -322,6 +364,7 @@ try {
         users_set_goto($_SESSION['user'], $goto);
     }
 
+    // Popdown threads.
 	foreach (popdown_handlers_get_all() as $popdown_handler) {
         if ($board['popdown_handler'] == $popdown_handler['id']) {
             $popdown_handler['name']($board['id']);
@@ -329,14 +372,17 @@ try {
         }
     }
 
-    DataExchange::releaseResources();
     unset($_SESSION['oekaki']);
 
+    // Redirect.
     if ($_SESSION['goto'] == 't') {
         header('Location: ' . Config::DIR_PATH . "/{$board['name']}/{$thread['original_post']}/");
     } else {
         header('Location: ' . Config::DIR_PATH . "/{$board['name']}/");
     }
+
+    // Cleanup.
+    DataExchange::releaseResources();
 
     exit(0);
 } catch (Exception $e) {

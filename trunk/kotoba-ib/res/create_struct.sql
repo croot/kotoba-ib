@@ -346,10 +346,10 @@ create table words                      -- Таблица фильтра сло�
 )
 engine=InnoDB;
 
-create table macrochan_tags             -- Теги макрочана.
+create table macrochan_tags             -- Macrochan tags.
 (
-    id int not null auto_increment,     -- Идентификатор.
-    name varchar(256) not null,         -- Имя.
+    id int not null auto_increment,     -- Id.
+    name varchar(256) not null,         -- Name.
     unique key (id)
 )
 engine=InnoDB;
