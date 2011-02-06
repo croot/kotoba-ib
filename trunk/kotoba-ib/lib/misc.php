@@ -382,18 +382,29 @@ function is_guest()
 	return false;
 }
 /**
- * Проверяет, является ли пользователь модератором.
+ * Check if user is moderator.
  * @return boolean
- * Возвращает true, если пользователь является модератором и false в противном
- * случае.
+ * TRUE if user is moderator and FALSE otherwise.
  */
-function is_mod()
-{
-	if(isset($_SESSION['groups']) && is_array($_SESSION['groups']))
-		foreach($_SESSION['groups'] as $group_name)
-			if(in_array($group_name, Config::$MOD_GROUPS))
-				return true;
-	return false;
+function is_mod() {
+    if (isset($_SESSION['groups']) && is_array($_SESSION['groups'])) {
+        foreach ($_SESSION['groups'] as $group_name) {
+            if (in_array($group_name, Config::$MOD_GROUPS)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+/**
+ * Check if translation enabled.
+ * @param array $board Board.
+ * @return
+ * TRUE if translation enabled and FALSE otherwise.
+ */
+function is_translation_enabled($board) {
+    return $board['enable_translation'] === null ? Config::ENABLE_TRANSLATION : $board['enable_translation'];
 }
 
 /* *********

@@ -45,7 +45,7 @@ NodataException::$messages['GROUPS_NOT_EXIST'] = 'Не создана ни од�
 // Параметры: идентификатор языка.
 NodataException::$messages['LANGUAGE_NOT_EXIST'] = 'Language id=%s not exist.';
 NodataException::$messages['LANGUAGES_NOT_EXIST'] = 'No languages.';
-NodataException::$messages['POST_NOT_FOUND'] = 'Сообщение с идентификатором %s не найдено или не доступно для просмотра пользователю с идентификатором %s.';
+NodataException::$messages['POST_NOT_FOUND'] = 'Post not found or you have no permission to it.';
 NodataException::$messages['SEARCH_KEYWORD'] = 'Не задано достаточно текста для поиска.';
 // Параметры: идентификатор стиля оформления.
 NodataException::$messages['STYLESHEET_NOT_EXIST'] = 'Stylesheeit id=%s not exist.';

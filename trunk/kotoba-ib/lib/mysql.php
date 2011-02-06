@@ -2786,49 +2786,66 @@ function db_posts_get_visible_by_id($link, $post_id, $user_id) { // Java CC
     return $post;
 }
 /**
- * Получает заданное сообщение, доступное для просмотра заданному пользователю.
- * @param MySQLi $link Связь с базой данных.
- * @param string|int $board_id Идентификатор доски.
- * @param string|int $post_number Номер сообщения.
- * @param string|int $user_id Идентификатор пользователя.
+ * Get visible post.
+ * @param MySQLi $link Link to database.
+ * @param string $board_name Board name.
+ * @param int $post_number Post number.
+ * @param int $user_id User id.
  * @return array
- * Возвращает сообщение:<br>
- * id - Идентификатор.<br>
- * thread - Идентификатор нити.<br>
- * number - Номер.<br>
- * password - Пароль.<br>
- * name - Имя отправителя.<br>
- * tripcode - Трипкод.<br>
- * ip - IP-адрес отправителя.<br>
- * subject - Тема.<br>
- * date_time - Время сохранения.<br>
- * text - Текст.<br>
- * sage - Флаг поднятия нити.
+ * post.
  */
-function db_posts_get_visible_by_number($link, $board_id, $post_number, $user_id) {
+function db_posts_get_visible_by_number($link, $board_name, $post_number, $user_id) {
     // Query.
-    $result = mysqli_query($link, "call sp_posts_get_visible_by_number($board_id, $post_number, $user_id)");
+    $result = mysqli_query($link, "call sp_posts_get_visible_by_number('$board_name', $post_number, $user_id)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
 
     // Collect data from query result.
-    $post = null;
-    if(mysqli_affected_rows($link) > 0 && ($row = mysqli_fetch_assoc($result)) != null) {
-        $post['id'] = $row['id'];
-        $post['thread'] = $row['thread'];
-        $post['number'] = $row['number'];
-        $post['user'] = $row['user'];
-        $post['password'] = $row['password'];
-        $post['name'] = $row['name'];
-        $post['tripcode'] = $row['tripcode'];
-        $post['ip'] = $row['ip'];
-        $post['subject'] = $row['subject'];
-        $post['date_time'] = $row['date_time'];
-        $post['text'] = $row['text'];
-        $post['sage'] = $row['sage'];
+    $post = NULL;
+    if(mysqli_affected_rows($link) > 0 && ($row = mysqli_fetch_assoc($result)) != NULL) {
+        $board_data = array('id' => $row['board_id'],
+                            'name' => $row['board_name'],
+                            'title' => $row['board_title'],
+                            'annotation' => $row['board_annotation'],
+                            'bump_limit' => $row['board_bump_limit'],
+                            'force_anonymous' => $row['board_force_anonymous'],
+                            'default_name' => $row['board_default_name'],
+                            'with_attachments' => $row['board_with_attachments'],
+                            'enable_macro' => $row['board_enable_macro'],
+                            'enable_youtube' => $row['board_enable_youtube'],
+                            'enable_captcha' => $row['board_enable_captcha'],
+                            'enable_translation' => $row['board_enable_translation'],
+                            'enable_geoip' => $row['board_enable_geoip'],
+                            'enable_shi' => $row['board_enable_shi'],
+                            'enable_postid' => $row['board_enable_postid'],
+                            'same_upload' => $row['board_same_upload'],
+                            'popdown_handler' => $row['board_popdown_handler'],
+                            'category' => $row['board_category']);
+
+        $thread_data = array('id' => $row['thread_id'],
+                             'board' => $row['thread_board'],
+                             'original_post' => $row['thread_original_post'],
+                             'bump_limit' => $row['thread_bump_limit'],
+                             'sage' => $row['thread_sage'],
+                             'sticky' => $row['thread_sticky'],
+                             'with_attachments' => $row['thread_with_attachments']);
+
+        $post['id'] = $row['post_id'];
+        $post['board'] = &$board_data;
+        $post['thread'] = &$thread_data;
+        $post['number'] = $row['post_number'];
+        $post['user'] = $row['post_user'];
+        $post['password'] = $row['post_password'];
+        $post['name'] = $row['post_name'];
+        $post['tripcode'] = $row['post_tripcode'];
+        $post['ip'] = $row['post_ip'];
+        $post['subject'] = $row['post_subject'];
+        $post['date_time'] = $row['post_date_time'];
+        $post['text'] = $row['post_text'];
+        $post['sage'] = $row['post_sage'];
     }
-    if ($post === null) {
+    if ($post === NULL) {
         throw new NodataException(NodataException::$messages['POST_NOT_FOUND']);
     }
 

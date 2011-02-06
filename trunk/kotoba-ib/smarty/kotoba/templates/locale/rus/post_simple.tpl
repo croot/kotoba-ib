@@ -23,6 +23,7 @@ Variables:
     $is_board_view -
     $enable_postid - Post identification flag.
     $postid - Post identifer if post identification flag up.
+    $is_admin - Current user is admin.
     $attachments - Attachments.
     $enable_translation - Translation flag. (see config.default).
 *}

@@ -57,6 +57,10 @@ function post_simple_generate_html($smarty,
     $smarty->assign('enable_anchor', TRUE);
     $smarty->assign('enable_remove_post', TRUE);
     $smarty->assign('enable_extrabtns', TRUE);
+    $smarty->assign('enable_geoip', $enable_geoip);
+    $smarty->assign('enable_postid', $enable_postid);
+    $smarty->assign('is_admin', is_admin());
+    $smarty->assign('enable_translation', is_translation_enabled($board));
     $smarty->assign('post', $post);
     $smarty->assign('attachments', $post_attachments);
     if ($enable_postid) {
@@ -127,6 +131,10 @@ function post_original_generate_html($smarty,
     $smarty->assign('enable_anchor', TRUE);
     $smarty->assign('enable_remove_post', TRUE);
     $smarty->assign('enable_extrabtns', TRUE);
+    $smarty->assign('enable_geoip', $enable_geoip);
+    $smarty->assign('enable_postid', $enable_postid);
+    $smarty->assign('is_admin', is_admin());
+    $smarty->assign('enable_translation', is_translation_enabled($board));
     $smarty->assign('post', $post);
     $smarty->assign('attachments', $original_attachments);
     $smarty->assign('show_reply', $show_reply);
