@@ -33,11 +33,20 @@ Variables:
 *}
 {include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title="`$ib_name` — /`$board.name`/ `$board.title`. Просмотр, страница $page"}
 
-{if $enable_translation}<script type="text/javascript" src="http://www.google.com/jsapi"></script>{/if}
+{if $enable_translation}
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+{literal}<script type="text/javascript">
+<!--
+google.load("language", "1");
+//-->
+</script>{/literal}
+{else}
+<!-- Translation disabled -->
+{/if}
 
 <script type="text/javascript">var DIR_PATH = '{$DIR_PATH}';</script>
-<script src="{$DIR_PATH}/kotoba.js"></script>
 <script src="{$DIR_PATH}/protoaculous-compressed.js"></script>
+<script src="{$DIR_PATH}/kotoba.js"></script>
 
 {include file='adminbar.tpl' DIR_PATH=$DIR_PATH show_control=$show_control}
 

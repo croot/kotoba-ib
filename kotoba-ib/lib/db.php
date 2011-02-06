@@ -1844,15 +1844,15 @@ function posts_get_visible_by_id($post_id, $user_id) { // Java CC
     return db_posts_get_visible_by_id(DataExchange::getDBLink(), $post_id, $user_id);
 }
 /**
- * Получает заданное сообщение, доступное для просмотра заданному пользователю.
- * @param int $board_id Идентификатор доски.
- * @param int $post_number Номер сообщения.
- * @param int $user_id Идентификатор пользователя.
+ * Get visible post.
+ * @param string $board_name Board name.
+ * @param int $post_number Post number.
+ * @param int $user_id User id.
  * @return array
- * Возвращает сообщение.
+ * post.
  */
-function posts_get_visible_by_number($board_id, $post_number, $user_id) {
-    return db_posts_get_visible_by_number(DataExchange::getDBLink(), $board_id, $post_number, $user_id);
+function posts_get_visible_by_number($board_name, $post_number, $user_id) {
+    return db_posts_get_visible_by_number(DataExchange::getDBLink(), $board_name, $post_number, $user_id);
 }
 /**
  * Get posts visible to user and filter it.

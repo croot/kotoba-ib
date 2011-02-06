@@ -1,4 +1,3 @@
-
 function insert(number) {
     var my_form = document.forms.postform.text;
     if (my_form) {
@@ -18,6 +17,7 @@ function insert(number) {
         my_form.focus();
     }
 }
+
 /*
  * Based on examples from http://javascript.ru/ui/draganddrop thanks a lot to
  * it's author!
@@ -178,8 +178,6 @@ window.onload=function() {
 }
 
 var path = "http://410chan.ru";
-
-google.load("language", "1");
 
 function hide(id) {
     var container = document.getElementById("translation" + id);
