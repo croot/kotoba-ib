@@ -86,7 +86,7 @@ Logging::$f['LOG_VIEW_USE'] = function () {
 };
 
 Logging::$f['MANAGE_USE'] = function () {
-    Logging::write_msg('Использован скрипт административных фукнций и фукнций модераторов.');
+    Logging::write_msg('Manage script used.');
 };
 
 Logging::$f['MASS_BAN_ADD'] = function ($range_beg, $range_end, $reason, $until) {

@@ -827,9 +827,9 @@ begin
     select id, name from categories;
 end|
 
--- ------------------------------
--- Работа с избранными нитями. --
--- ------------------------------
+-- -------------
+-- Favorites. --
+-- -------------
 
 -- Adds thread to user's favorites.
 create procedure sp_favorites_add
@@ -877,6 +877,21 @@ begin
             u.stylesheet as user_stylesheet,
             u.password as user_password,
             u.`goto` as user_goto,
+
+            p.id as post_id,
+            p.board as post_board,
+            p.thread as post_thread,
+            p.number as post_number,
+            p.user as post_user,
+            p.password as post_password,
+            p.name as post_name,
+            p.tripcode as post_tripcode,
+            p.ip as post_ip,
+            p.subject as post_subject,
+            p.date_time as post_date_time,
+            p.text as post_text,
+            p.sage as post_sage,
+
             t.id as thread_id,
             t.board as thread_board,
             t.original_post as thread_original_post,
@@ -886,6 +901,7 @@ begin
             t.sage as thread_sage,
             t.sticky as thread_sticky,
             t.with_attachments as thread_with_attachments,
+
             b.id as board_id,
             b.name as board_name,
             b.title as board_title,
@@ -900,11 +916,13 @@ begin
             b.same_upload as board_same_upload,
             b.popdown_handler as board_popdown_handler,
             b.category as board_category,
+
             f.last_readed
         from favorites f
         join users u on u.id = f.user and u.id = _user
         join threads t on t.id = f.thread
-        join boards b on b.id = t.board;
+        join boards b on b.id = t.board
+        join posts p on p.thread = t.id and p.number = t.original_post;
 end|
 
 -- Mark thread as readed in user favorites. If thread is null then marks 

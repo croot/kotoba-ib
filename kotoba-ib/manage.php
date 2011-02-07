@@ -1,35 +1,32 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
 
-// Скрипт страницы административных фукнций и фукнций модераторов.
+// Script of manage page.
 
 require 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/logging.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
 
 try {
-    // Инициализация.
+    // Initialization.
     kotoba_session_start();
+    if (Config::LANGUAGE != $_SESSION['language']) {
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/logging.php";
+    }
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup();
 
-    // Проверка, не заблокирован ли клиент.
-    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+    // Check if client banned.
+    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
-    if (($ban = bans_check($ip)) !== false) {
+    if ( ($ban = bans_check($ip)) !== FALSE) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
         session_destroy();
@@ -37,15 +34,14 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    // Проверка уровня доступа и запись сообщения в лог.
+    // Check permission and write message to log file.
     if (!is_admin() && !is_mod()) {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN']
               . ' ' . PermissionException::$messages['NOT_MOD']);
     }
-    call_user_func(Logging::$f['MANAGE']);
-    Logging::close_log();
+    call_user_func(Logging::$f['MANAGE_USE']);
 
-    // Формирование и вывод кода страницы.
+    // Create html-code of manage page and display it.
     $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('boards', boards_get_visible($_SESSION['user']));
     if (is_mod()) {
@@ -55,8 +51,9 @@ try {
     }
     $smarty->display('manage.tpl');
 
-    // Освобождение ресурсов и очистка.
+    // Cleanup.
     DataExchange::releaseResources();
+    Logging::close_log();
 
     exit(0);
 } catch(Exception $e) {

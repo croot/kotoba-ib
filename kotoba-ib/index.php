@@ -41,6 +41,10 @@ try {
     foreach ($boards as $board) {
         if ($board['name'] == Config::NEWS_BOARD) {
 
+            // Requied for simple and original post templates =\
+            $smarty->assign('is_board_view', TRUE);
+            $smarty->assign('show_favorites', TRUE);
+
             // Pass all threads.
             $tfilter = function($thread) {
                 return true;
@@ -86,7 +90,7 @@ try {
 
                         // Original post or reply.
                         if ($t['original_post'] == $p['number']) {
-                            $original_post_html .= post_original_generate_html($smarty,
+                            $original_post_html = post_original_generate_html($smarty,
                                     $board,
                                     $t,
                                     $p,
@@ -98,6 +102,9 @@ try {
                                     null,
                                     false,
                                     $author_admin,
+                                    false,
+                                    false,
+                                    false,
                                     false,
                                     false);
                         } else {
@@ -110,6 +117,10 @@ try {
                                     false,
                                     null,
                                     $author_admin,
+                                    false,
+                                    false,
+                                    false,
+                                    false,
                                     false,
                                     false);
                         }

@@ -106,14 +106,14 @@ function create_language_directories($code) { // Java CC
     chmod($dir, 0777);
 }
 
-/*******************************
- * Работа с избранными нитями. *
- *******************************/
+/* ************
+ * Favorites. *
+ **************/
 
 /**
  * Adds thread to user's favorites.
- * @param string|int $user User id.
- * @param string|int $thread Thread id.
+ * @param int $user User id.
+ * @param int $thread Thread id.
  */
 function favorites_add($user, $thread) {
     db_favorites_add(DataExchange::getDBLink(), $user, $thread);
@@ -121,8 +121,8 @@ function favorites_add($user, $thread) {
 
 /**
  * Removes thread from user's favorites.
- * @param string|int $user User id.
- * @param string|int $thread Thread id.
+ * @param int $user User id.
+ * @param int $thread Thread id.
  */
 function favorites_delete($user, $thread) {
     db_favorites_delete(DataExchange::getDBLink(), $user, $thread);
@@ -144,7 +144,7 @@ function favorites_get_by_user($user) {
  * @param int $user User id.
  * @param int|null $thread Thread id or NULL.
  */
-function favorites_mark_readed($user, $thread = null) {
+function favorites_mark_readed($user, $thread = NULL) {
     db_favorites_mark_readed(DataExchange::getDBLink(), $user, $thread);
 }
 
@@ -2119,13 +2119,13 @@ function threads_check_bump_limit($bump_limit)
 	return $bump_limit;
 }
 /**
- * Проверяет корректность идентификатора нити.
- * @param mixed $id Идентификатор нити.
+ * Check thread id.
+ * @param mixed $id Thread id.
  * @return int
- * Возвращает безопасный для использования идентификатор нити.
+ * thread id.
  */
-function threads_check_id($id) { // Java CC
-	return kotoba_intval($id);
+function threads_check_id($id) {
+    return kotoba_intval($id);
 }
 /**
  * Check original post number.
