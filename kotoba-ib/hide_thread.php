@@ -1,39 +1,36 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
 
 /*
- * Скрипт скрытия нитей. Скрипт принимает один параметр, который передаётся
- * с помощью POST или GET запроса:
- * thread - Идентификатор нити, которую нужно скрыть.
+ * Hide thread script.
+ *
+ * Parameters:
+ * thread - thread id.
  */
 
 require 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/logging.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
 
 try {
-    // Инициализация.
+    // Initialization.
     kotoba_session_start();
+    if (Config::LANGUAGE != $_SESSION['language']) {
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+    }
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup();
 
-    // Проверка, не заблокирован ли клиент.
-    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+    // Check if client banned.
+    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
-    if (($ban = bans_check($ip)) !== false) {
+    if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
         session_destroy();
@@ -41,12 +38,12 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    // Гости не могут скрывать нити.
+    // Guests cannot hide favorites.
     if (is_guest()) {
         throw new PermissionException(PermissionException::$messages['GUEST']);
     }
 
-    // Проверка входных параметров и получение данных о нити.
+    // Check input parameters.
     $REQUEST = "_{$_SERVER['REQUEST_METHOD']}";
     $REQUEST = $$REQUEST;
     if (isset($REQUEST['thread'])) {
@@ -57,11 +54,10 @@ try {
         exit(1);
     }
 
-    // Скрытие нити.
     hidden_threads_add($thread['id'], $_SESSION['user']);
+
     header('Location: ' . Config::DIR_PATH . "/{$thread['board']['name']}/");
 
-    // Освобождение ресурсов и очистка.
     DataExchange::releaseResources();
 
     exit(0);

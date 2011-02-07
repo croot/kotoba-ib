@@ -9,7 +9,7 @@
  * See license.txt for more info.*
  *********************************}
 {*
-Код обычного сообщения с вложенным файлом.
+Код обычного сообщения с вложенным изображением.
 
 $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
 
@@ -57,9 +57,9 @@ $enable_translation - Включение перевода текста сооб�
 {block name=mod_mini_panel}{if $is_admin}{include file='mod_mini_panel.tpl' post=$post}{else}<!-- You are not admin. -->{/if}
 {/block}
 
-{block name=attachment}<span class="filesize">Файл: <a target="_blank" href="{$DIR_PATH}/{$post.board.name}/other/{$attachments[0].name}">{$attachments[0].name}</a>-({$attachments[0].size} Байт)</span>
+{block name=attachment}<span class="filesize">Файл: <a target="_blank" href="{$DIR_PATH}/{$post.board.name}/img/{$attachments[0].name}">{$attachments[0].name}</a>-({$attachments[0].size} Байт, {$attachments[0].widht}x{$attachments[0].height})</span>
                 <br/>
-                <a target="_blank" href="{$DIR_PATH}/{$post.board.name}/other/{$attachments[0].name}"><img src="{$DIR_PATH}/img/{$attachments[0].thumbnail}" class="thumb" width="{$attachments[0].thumbnail_w}" height="{$attachments[0].thumbnail_h}"></a>{/block}
+                <a target="_blank" href="{$DIR_PATH}/{$post.board.name}/img/{$attachments[0].name}"><img src="{if $attachments[0].spoiler}{$DIR_PATH}/img/spoiler.png{else}{$DIR_PATH}/{$post.board.name}/thumb/{$attachments[0].thumbnail}{/if}" class="thumb"{if !$attachments[0].spoiler} width="{$attachments[0].thumbnail_w}" height="{$simple_attachments[0].thumbnail_h}{/if}"></a>{/block}
 
 {block name=text}<blockquote id="post{$post.number}">
                     {$post.text}

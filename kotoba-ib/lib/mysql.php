@@ -1440,22 +1440,22 @@ function db_hard_ban_add($link, $range_beg, $range_end) {
     db_cleanup_link($link);
 }
 
-/* ****************************
- * Работа со скрытыми нитями. *
- ******************************/
+/* *****************
+ * Hidden threads. *
+ *******************/
 
 /**
- * Скрывает нить.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param thread_id mixed <p>Идентификатор нити.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * Hide thread.
+ * @param MySQLi $link Link to database.
+ * @param int $thread_id Thread id.
+ * @param int $user_id User id.
  */
-function db_hidden_threads_add($link, $thread_id, $user_id)
-{
-	if(!mysqli_query($link, 'call sp_hidden_threads_add(' . $thread_id . ', '
-			. $user_id . ')'))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+function db_hidden_threads_add($link, $thread_id, $user_id) {
+    if (!mysqli_query($link, "call sp_hidden_threads_add($thread_id, $user_id)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    db_cleanup_link($link);
 }
 /**
  * Отменяет скрытие нити.
@@ -3609,23 +3609,20 @@ function db_threads_get_archived($link)
 	return $threads;
 }
 /**
- * Получает нить по идентификатору.
- * @param MySQLi $link Связь с базой данных.
- * @param int $id Идентификатор нити.
+ * Get thread.
+ * @param MySQLi $link Link to database.
+ * @param int $id Thread id.
  * @return array
- * Возвращает нить с развернутыми данными о доске.
+ * thread.
  */
-function db_threads_get_by_id($link, $id) { // Java CC
-    
-    // Запрос.
+function db_threads_get_by_id($link, $id) {
     $result = mysqli_query($link, "call sp_threads_get_by_id($id)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
 
-    // Выбор данных из результата выполнения запроса.
     $thread = null;
-    if(mysqli_affected_rows($link) > 0 && ($row = mysqli_fetch_assoc($result)) != null) {
+    if(mysqli_affected_rows($link) > 0 && ($row = mysqli_fetch_assoc($result)) != NULL) {
         $thread['id'] = $row['thread_id'];
         $thread['original_post'] = $row['thread_original_post'];
         $thread['bump_limit'] = $row['thread_bump_limit'];
@@ -3648,7 +3645,6 @@ function db_threads_get_by_id($link, $id) { // Java CC
         $thread['board']['category'] = $row['board_category'];
     }
 
-    // Очистка и освобождение ресурсов.
     mysqli_free_result($result);
     db_cleanup_link($link);
 

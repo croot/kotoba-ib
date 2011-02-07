@@ -1163,22 +1163,18 @@ begin
     delete from hard_ban where 1 = 1;
 end|
 
--- ------------------------------
---  Работа со скрытыми нитями. --
--- ------------------------------
+-- -------------------
+--  Hidden threads. --
+-- -------------------
 
--- Скрывает нить.
---
--- Аргументы:
--- thread_id - Идентификатор доски.
--- user_id - Идентификатор пользователя.
+-- Hide thread.
 create procedure sp_hidden_threads_add
 (
-	thread_id int,
-	user_id int
+    thread_id int,  -- Thread id.
+    user_id int     -- User id.
 )
 begin
-	insert into hidden_threads (user, thread) values (user_id, thread_id);
+    insert into hidden_threads (user, thread) values (user_id, thread_id);
 end|
 
 -- Отменяет скрытие нити.
@@ -2740,10 +2736,10 @@ begin
 	where deleted = 0 and archived = 1;
 end|
 
--- Выбирает нить по идентификатору.
+-- Select thread.
 create procedure sp_threads_get_by_id
 (
-    _id int -- Идентификатор нити.
+    _id int -- Thread id.
 )
 begin
     select  t.id as thread_id,
@@ -2769,9 +2765,7 @@ begin
             b.category as board_category
         from threads t
         join boards b on b.id = t.board
-        where t.id = _id
-            and t.deleted = 0
-            and t.archived = 0;
+        where t.id = _id and t.deleted = 0 and t.archived = 0;
 end|
 
 -- Выбирает нить по номеру нити и идентификатору доски.

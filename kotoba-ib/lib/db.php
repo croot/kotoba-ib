@@ -1077,19 +1077,17 @@ function hard_ban_add($range_beg, $range_end) {
     db_hard_ban_add(DataExchange::getDBLink(), $range_beg, $range_end);
 }
 
-/*******************
+/* *****************
  * Hidden threads. *
  *******************/
 
 /**
- * Скрывает нить.
- * @param thread_id mixed <p>Идентификатор нити.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * Hide thread.
+ * @param int $thread_id Thread id.
+ * @param int $user_id User id.
  */
-function hidden_threads_add($thread_id, $user_id)
-{
-	return db_hidden_threads_add(DataExchange::getDBLink(), $thread_id,
-		$user_id);
+function hidden_threads_add($thread_id, $user_id) {
+    return db_hidden_threads_add(DataExchange::getDBLink(), $thread_id, $user_id);
 }
 /**
  * Отменяет скрытие нити.
@@ -2198,12 +2196,12 @@ function threads_get_archived()
 	return db_threads_get_archived(DataExchange::getDBLink());
 }
 /**
- * Получает нить по идентификатору.
- * @param int $id Идентификатор нити.
+ * Get thread.
+ * @param int $id Thread id.
  * @return array
- * Возвращает нить с развернутыми данными о доске.
+ * thread.
  */
-function threads_get_by_id($id) { // Java CC
+function threads_get_by_id($id) {
     return db_threads_get_by_id(DataExchange::getDBLink(), $id);
 }
 /**
