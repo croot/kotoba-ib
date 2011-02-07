@@ -124,9 +124,9 @@ FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE'] = 'Имя картин
  ****************************************************************************/
 
 PermissionException::$messages['BOARD_NOT_ALLOWED'] = 'You have no rights to do it.';
-PermissionException::$messages['GUEST'] = 'Гости не могут скрывать нити.';
+PermissionException::$messages['GUEST'] = 'Guests cannot hide threads.';
 PermissionException::$messages['NOT_ADMIN'] = 'You are not admin.';
-PermissionException::$messages['NOT_MOD'] = 'Вы не являетесь модератором.';
+PermissionException::$messages['NOT_MOD'] = 'You are not moderator.';
 PermissionException::$messages['THREAD_NOT_ALLOWED'] = 'You have no rights to do it.';
 PermissionException::$messages['USER_NOT_EXIST'] = 'User not exist.';
 

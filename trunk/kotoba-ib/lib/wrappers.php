@@ -31,7 +31,11 @@ function post_simple_generate_html($smarty,
                                    $lines_per_post,
                                    $author_admin,
                                    $enable_geoip,
-                                   $enable_postid) {
+                                   $enable_postid,
+                                   $enable_doubledash = TRUE,
+                                   $enable_anchor = TRUE,
+                                   $enable_remove_post = TRUE,
+                                   $enable_extrabtns = TRUE) {
 
     if ($crop) {
         $post['text'] = posts_corp_text($post['text'],
@@ -53,10 +57,10 @@ function post_simple_generate_html($smarty,
                         array('name' => $geoip['country_name'],
                               'code' => strtolower($geoip['country_code'])));
     }
-    $smarty->assign('enable_doubledash', TRUE);
-    $smarty->assign('enable_anchor', TRUE);
-    $smarty->assign('enable_remove_post', TRUE);
-    $smarty->assign('enable_extrabtns', TRUE);
+    $smarty->assign('enable_doubledash', $enable_doubledash);
+    $smarty->assign('enable_anchor', $enable_anchor);
+    $smarty->assign('enable_remove_post', $enable_remove_post);
+    $smarty->assign('enable_extrabtns', $enable_extrabtns);
     $smarty->assign('enable_geoip', $enable_geoip);
     $smarty->assign('enable_postid', $enable_postid);
     $smarty->assign('is_admin', is_admin());
@@ -99,7 +103,10 @@ function post_original_generate_html($smarty,
                                      $show_reply,
                                      $author_admin,
                                      $enable_geoip,
-                                     $enable_postid) {
+                                     $enable_postid,
+                                     $enable_anchor = TRUE,
+                                     $enable_remove_post = TRUE,
+                                     $enable_extrabtns = TRUE) {
 
     if ($crop) {
         $post['text'] = posts_corp_text($post['text'],
@@ -128,9 +135,9 @@ function post_original_generate_html($smarty,
         // - 1 is original post.
         $smarty->assign('skipped', ($thread['posts_count'] - $posts_per_thread - 1));
     }
-    $smarty->assign('enable_anchor', TRUE);
-    $smarty->assign('enable_remove_post', TRUE);
-    $smarty->assign('enable_extrabtns', TRUE);
+    $smarty->assign('enable_anchor', $enable_anchor);
+    $smarty->assign('enable_remove_post', $enable_remove_post);
+    $smarty->assign('enable_extrabtns', $enable_extrabtns);
     $smarty->assign('enable_geoip', $enable_geoip);
     $smarty->assign('enable_postid', $enable_postid);
     $smarty->assign('is_admin', is_admin());

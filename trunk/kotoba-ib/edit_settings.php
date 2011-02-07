@@ -123,16 +123,12 @@ try {
     };
     $posts = posts_get_visible_filtred_by_threads($threads, $_SESSION['user'], $pfilter);
     foreach ($favorites as &$f) {
-        $unread = 0;
+        $f['unread'] = 0;
         foreach ($posts as $post) {
-            if ($f['thread']['id'] == $post['thread'] && $f['thread']['original_post'] == $post['number']) {
-                $f['post'] = $post;
-            }
-            if ($f['thread']['id'] == $post['thread'] && $post['number'] > $f['last_readed']) {
-                $unread++;
+            if ($f['thread']['id'] == $post['thread']['id'] && $post['number'] > $f['last_readed']) {
+                $f['unread']++;
             }
         }
-        $f['unread'] = $unread;
     }
     // Order by last unread.
     $cmp = function($a, $b) {

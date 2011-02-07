@@ -992,15 +992,15 @@ function db_categories_get_all($link) {
     return $categories;
 }
 
-/*******************************
- * Работа с избранными нитями. *
- *******************************/
+/* ************
+ * Favorites. *
+ **************/
 
 /**
  * Adds thread to user's favorites.
  * @param MySQLi $link Link to database.
- * @param string|int $user User id.
- * @param string|int $thread Thread id.
+ * @param int $user User id.
+ * @param int $thread Thread id.
  */
 function db_favorites_add($link, $user, $thread) {
     if (!mysqli_query($link, "call sp_favorites_add($user, $thread)")) {
@@ -1013,8 +1013,8 @@ function db_favorites_add($link, $user, $thread) {
 /**
  * Removes thread from user's favorites.
  * @param MySQLi $link Link to database.
- * @param string|int $user User id.
- * @param string|int $thread Thread id.
+ * @param int $user User id.
+ * @param int $thread Thread id.
  */
 function db_favorites_delete($link, $user, $thread) {
     if (!mysqli_query($link, "call sp_favorites_delete($user, $thread)")) {
@@ -1032,47 +1032,69 @@ function db_favorites_delete($link, $user, $thread) {
  */
 function db_favorites_get_by_user($link, $user) {
     // Query.
-    if ( ($result = mysqli_query($link, "call sp_favorites_get_by_user($user)")) == false) {
+    if ( ($result = mysqli_query($link, "call sp_favorites_get_by_user($user)")) == FALSE) {
         throw new CommonException(mysqli_error($link));
     }
 
     // Collect data from query result.
     $favorites = array();
     if (mysqli_affected_rows($link) > 0) {
-        while (($row = mysqli_fetch_assoc($result)) != null) {
+        while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            if (!isset($board_data[$row['board_id']])) {
+                $board_data[$row['board_id']] = array('id' => $row['board_id'],
+                                                      'name' => $row['board_name'],
+                                                      'title' => $row['board_title'],
+                                                      'annotation' => $row['board_annotation'],
+                                                      'bump_limit' => $row['board_bump_limit'],
+                                                      'force_anonymous' => $row['board_force_anonymous'],
+                                                      'default_name' => $row['board_default_name'],
+                                                      'with_attachments' => $row['board_with_attachments'],
+                                                      'enable_macro' => $row['board_enable_macro'],
+                                                      'enable_youtube' => $row['board_enable_youtube'],
+                                                      'enable_captcha' => $row['board_enable_captcha'],
+                                                      'same_upload' => $row['board_same_upload'],
+                                                      'popdown_handler' => $row['board_popdown_handler'],
+                                                      'category' => $row['board_category']);
+            }
+            if (!isset($thread_data[$row['thread_id']])) {
+                $thread_data[$row['thread_id']] = array('id' => $row['thread_id'],
+                                                        'board' => &$board_data[$row['board_id']],
+                                                        'original_post' => $row['thread_original_post'],
+                                                        'bump_limit' => $row['thread_bump_limit'],
+                                                        'deleted' => $row['thread_deleted'],
+                                                        'archived' => $row['thread_archived'],
+                                                        'sage' => $row['thread_sage'],
+                                                        'sticky' => $row['thread_sticky'],
+                                                        'with_attachments' => $row['thread_with_attachments']);
+            }
+            if (!isset($user_data[$row['user_id']])) {
+                $user_data[$row['user_id']] = array('id' => $row['user_id'],
+                                                    'keyword' => $row['user_keyword'],
+                                                    'posts_per_thread' => $row['user_posts_per_thread'],
+                                                    'threads_per_page' => $row['user_threads_per_page'],
+                                                    'lines_per_post' => $row['user_lines_per_post'],
+                                                    'language' => $row['user_language'],
+                                                    'stylesheet' => $row['user_stylesheet'],
+                                                    'password' => $row['user_password'],
+                                                    'goto' => $row['user_goto']);
+            }
             array_push($favorites,
-                array('user' => array('id' => $row['user_id'],
-                                      'keyword' => $row['user_keyword'],
-                                      'posts_per_thread' => $row['user_posts_per_thread'],
-                                      'threads_per_page' => $row['user_threads_per_page'],
-                                      'lines_per_post' => $row['user_lines_per_post'],
-                                      'language' => $row['user_language'],
-                                      'stylesheet' => $row['user_stylesheet'],
-                                      'password' => $row['user_password'],
-                                      'goto' => $row['user_goto']),
-                      'thread' => array('id' => $row['thread_id'],
-                                        'board' => array('id' => $row['board_id'],
-                                                         'name' => $row['board_name'],
-                                                         'title' => $row['board_title'],
-                                                         'annotation' => $row['board_annotation'],
-                                                         'bump_limit' => $row['board_bump_limit'],
-                                                         'force_anonymous' => $row['board_force_anonymous'],
-                                                         'default_name' => $row['board_default_name'],
-                                                         'with_attachments' => $row['board_with_attachments'],
-                                                         'enable_macro' => $row['board_enable_macro'],
-                                                         'enable_youtube' => $row['board_enable_youtube'],
-                                                         'enable_captcha' => $row['board_enable_captcha'],
-                                                         'same_upload' => $row['board_same_upload'],
-                                                         'popdown_handler' => $row['board_popdown_handler'],
-                                                         'category' => $row['board_category']),
-                                        'original_post' => $row['thread_original_post'],
-                                        'bump_limit' => $row['thread_bump_limit'],
-                                        'deleted' => $row['thread_deleted'],
-                                        'archived' => $row['thread_archived'],
-                                        'sage' => $row['thread_sage'],
-                                        'sticky' => $row['thread_sticky'],
-                                        'with_attachments' => $row['thread_with_attachments']),
-                      'last_readed' => $row['last_readed']));
+                       array('user' => &$user_data[$row['user_id']],
+                             'thread' => &$thread_data[$row['thread_id']],
+                             'post' => array('id' => $row['post_id'],
+                                             'board' => &$board_data[$row['board_id']],
+                                             'thread' => &$thread_data[$row['thread_id']],
+                                             'number' => $row['post_number'],
+                                             'user' => &$user_data[$row['user_id']],
+                                             'password' => $row['post_password'],
+                                             'name' => $row['post_name'],
+                                             'tripcode' => $row['post_tripcode'],
+                                             'ip' => $row['post_ip'],
+                                             'subject' => $row['post_subject'],
+                                             'date_time' => $row['post_date_time'],
+                                             'text' => $row['post_text'],
+                                             'sage' => $row['post_sage']),
+                             'last_readed' => $row['last_readed']));
         }
     }
 
