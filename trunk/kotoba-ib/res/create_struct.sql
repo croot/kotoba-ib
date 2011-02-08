@@ -384,10 +384,10 @@ create table db_version     -- Версия базы данных.
 )
 engine=InnoDB;
 
-create table hard_ban               -- Блокировки в фаерволе.
+create table hard_ban               -- Bans in firewall.
 (
-    range_beg varchar(15) not null, -- Начало диапазона IP-адресов.
-    range_end varchar(15) not null  -- Конец диапазона IP-адресов.
+    range_beg varchar(15) not null, -- Begin of banned IP-address range.
+    range_end varchar(15) not null  -- End of banned IP-address range.
 )
 engine=InnoDB;
 

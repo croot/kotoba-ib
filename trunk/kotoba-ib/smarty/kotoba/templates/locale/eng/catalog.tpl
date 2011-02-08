@@ -20,7 +20,7 @@ Variables:
     $posts_attachments (optional) - posts attachments relations.
     $attachments (optional) - attachments.
 *}
-{include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title="Просмотр нитей доски /`$board.name`/ `$board.title`"}
+{include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title="Threads catalog /`$board.name`/ `$board.title`"}
 
 <script type="text/javascript">var DIR_PATH = '{$DIR_PATH}';</script>
 <script src="{$DIR_PATH}/protoaculous-compressed.js"></script>

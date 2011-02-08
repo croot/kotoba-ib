@@ -358,6 +358,15 @@ function is_admin() {
     return false;
 }
 /**
+ * Check if geoip enabled.
+ * @param array $board Board.
+ * @return
+ * TRUE if geoip enabled or FALSE otherwise.
+ */
+function is_geoip_enabled($board) {
+    return $board['enable_geoip'] === NULL ? Config::ENABLE_GEOIP : $board['enable_geoip'];
+}
+/**
  * Проверяет, является ли пользователь гостем.
  * @return boolean
  * Возвращает true, если пользователь является гостем и false в противном
@@ -396,6 +405,15 @@ function is_mod() {
     }
 
     return false;
+}
+/**
+ * Check if postid enabled.
+ * @param array $board Board.
+ * @return
+ * TRUE if postid enabled and FALSE otherwise.
+ */
+function is_postid_enabled($board) {
+    return $board['enable_postid'] === NULL ? Config::ENABLE_POSTID : $board['enable_postid'];
 }
 /**
  * Check if translation enabled.

@@ -1,33 +1,39 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
 
-// Скрипт поиска сообщений.
+/*
+ * Search script.
+ *
+ * Parameters:
+ * search - array of various search data:
+ * search['page'] - page of result view.
+ * search['keyword'] - keyword for search.
+ * search['boards'] - array of boards for search.
+ */
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/wrappers.php';
 
 try {
-    // Инициализация.
+    // Initialization.
     kotoba_session_start();
+    if (Config::LANGUAGE != $_SESSION['language']) {
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+    }
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup();
 
-    // Проверка, не заблокирован ли клиент.
-    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+    // Check if client banned.
+    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
-    if (($ban = bans_check($ip)) !== false) {
+    if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
         session_destroy();
@@ -38,8 +44,9 @@ try {
     // Fix for Firefox.
     header("Cache-Control: private");
 
-    // Проверка входных параметров и получение данных о досках.
     $boards = boards_get_visible($_SESSION['user']);
+
+    // Check input parameters.
     $REQUEST = "_{$_SERVER['REQUEST_METHOD']}";
     $REQUEST = $$REQUEST;
     $page = 1;
@@ -47,15 +54,15 @@ try {
         $page = check_page($REQUEST['search']['page']);
     }
 
-    $posts_per_page = 10;   // Число сообщений на странице.
+    $posts_per_page = 10;   // Count of posts per page.
     $pages = array();
     $keyword = '';
-    $search_result = '';
+    $posts_html = '';
 
-    // Осуществляется поиск.
+    // Do search.
     if (isset($REQUEST['search'])) {
 
-        // Проверка входых параметров поиска.
+        // Check input parameters.
         if (!isset($REQUEST['search']['keyword'])
                 || mb_strlen($REQUEST['search']['keyword'], Config::MB_ENCODING) < 4) {
 
@@ -63,25 +70,19 @@ try {
         }
         posts_check_text_size($REQUEST['search']['keyword']);
 
-        // Преобразуем кавычки, угловые скобки и знак процента в соответствующие html сущности.
+        // Encode quotes, bracers and percent sign into html entities.
         $keyword = htmlentities($REQUEST['search']['keyword'], ENT_QUOTES, Config::MB_ENCODING);
         
-        // Заэкранируем экранирующие символы.
+        // Strip slashes.
         $keyword = str_replace('\\', '\\\\', $keyword);
 
-        /*
-         * Ключевая фраза для поиска в тексте сообщения не может быть больше
-         * максимально возможного текста сообщения. Так же, ключевая фраза
-         * не может содержать не верных юникод символов и управляющих символов
-         * ASCII.
-         */
         posts_check_text_size($keyword);
         posts_check_text($keyword);
 
-        // Экранирование символов % и _
+        // Strip % and _ signs.
         $keyword = addcslashes($keyword, '%_');
 
-        // Выбор досок для поиска.
+        // Choose boards for search.
         $search_boards = array();
         if (!isset($REQUEST['search']['boards'])) {
             $search_boards = $boards;
@@ -91,10 +92,7 @@ try {
                 foreach ($boards as &$board) {
                     if ($board['id'] == $id) {
 
-                        /*
-                         * Добавление фиктивного поля, которое указывает, что
-                         * на доске производится поиск.
-                         */
+                        // Fake field what means what board selected to search.
                         $board = array_merge($board, array('selected' => true));
 
                         array_push($search_boards, $board);
@@ -104,14 +102,13 @@ try {
             }
         }
 
-        // Поиск.
+        // Search.
         $posts = posts_search_visible_by_boards($search_boards, $keyword, users_check_id($_SESSION['user']));
 
-        // Формирование кода заголовка результатов поиска.
+        // Assign total founded posts count here.
         $smarty->assign('count', count($posts));
-        $search_result .= $smarty->fetch('search_result.tpl');
 
-        // Вычисление числа страниц, на которых будут размещены найденные сообщения.
+        // Calculate page count.
         $page_max = (count($posts) % $posts_per_page == 0
             ? (int)(count($posts) / $posts_per_page)
             : (int)(count($posts) / $posts_per_page) + 1);
@@ -125,29 +122,14 @@ try {
             array_push($pages, $i);
         }
 
-        // Из всех найденных сообщений выбираются только сообщения с нужной страницы.
+        // Select posts only from correspond page.
         $posts = array_slice($posts, ($page - 1) * $posts_per_page, $posts_per_page);
 
         $admins = users_get_admins();
 
-        // Формирование кода найденных сообщений.
+        // Create html code of founded posts.
         foreach ($posts as $p) {
-
-            // Geoip.
-            $p['ip'] = long2ip($p['ip']);
-            $enable_geoip = ($p['board']['enable_geoip'] === null) ? Config::ENABLE_GEOIP : $p['board']['enable_geoip'];
-            $smarty->assign('enable_geoip', $enable_geoip);
-            if ($enable_geoip && $p['ip'] != '127.0.0.1') {
-                $geoip = geoip_record_by_name($p['ip']);
-                $smarty->assign('country', array('name' => $geoip['country_name'], 'code' => strtolower($geoip['country_code'])));
-            }
-
-            // Postid.
-            $smarty->assign('enable_postid', ($p['board']['enable_postid'] === null) ? Config::ENABLE_POSTID : $p['board']['enable_postid']);
-            $tripcode = calculate_tripcode("#{$p['ip']}");
-            $smarty->assign('postid', $tripcode[1]);
-
-            // Является ли автор сообщения администратором?
+            // Find if author of this post is admin.
             $author_admin = false;
             foreach ($admins as $admin) {
                 if ($p['user'] == $admin['id']) {
@@ -155,25 +137,22 @@ try {
                     break;
                 }
             }
-            $smarty->assign('author_admin', $author_admin);
 
-            $smarty->assign('post', $p);
-            $smarty->assign('enable_translation', ($p['board']['enable_translation'] === null) ? Config::ENABLE_TRANSLATION : $p['board']['enable_translation']);
-
-            $search_result .= $smarty->fetch('search_post.tpl');
+            $posts_html .= post_search_generate_html($smarty, $p, $author_admin);
         }
     }
 
-    // Освобождение ресурсов и очистка.
-    DataExchange::releaseResources();
-
-    // Формирование кода страницы поиска и вывод.
+    // Generate html code of search page and display it.
     $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('boards', $boards);
     $smarty->assign('pages', $pages);
     $smarty->assign('page', $page);
     $smarty->assign('keyword', $keyword);
-    echo $smarty->fetch('search_header.tpl') . $search_result . $smarty->fetch('search_footer.tpl');
+    $smarty->assign('posts_html', $posts_html);
+    $smarty->display('search.tpl');
+
+    // Cleanup.
+    DataExchange::releaseResources();
 
     exit(0);
 } catch(Exception $e) {

@@ -93,7 +93,7 @@ function post_simple_generate_html($smarty,
 function post_original_generate_html($smarty,
                                      $board,
                                      $thread,
-                                     $post,
+                                     &$post,
                                      $posts_attachments,
                                      $attachments,
                                      $crop,
@@ -152,7 +152,55 @@ function post_original_generate_html($smarty,
     $smarty->assign('author_admin', $author_admin);
     return $smarty->fetch('post_original.tpl');
 }
+/**
+ *
+ */
+function post_search_generate_html($smarty, &$post, $author_admin) {
 
+    $post['ip'] = long2ip($post['ip']);
+    if (is_geoip_enabled($post['board']) && $post['ip'] != '127.0.0.1' && strpos($post['ip'], '192.168') === false) {
+        $geoip = geoip_record_by_name($post['ip']);
+        $smarty->assign('country',
+                        array('name' => $geoip['country_name'],
+                              'code' => strtolower($geoip['country_code'])));
+    }
+
+    if (is_postid_enabled($post['board'])) {
+        $postid = calculate_tripcode("#{$post['ip']}");
+        $smarty->assign('postid', $postid[1]);
+    }
+
+    $smarty->assign('author_admin', $author_admin);
+
+    $smarty->assign('post', $post);
+    $smarty->assign('enable_translation', is_translation_enabled($post['board']));
+
+    return $smarty->fetch('search_post.tpl');
+}
+/**
+ * 
+ */
+function post_report_generate_html($smarty,
+                                   &$post,
+                                   $posts_attachments,
+                                   $attachments,
+                                   $author_admin) {
+
+    $post_attachments = wrappers_attachments_get_by_post($smarty,
+                                                         $post['board'],
+                                                         $post,
+                                                         $posts_attachments,
+                                                         $attachments);
+    $post['ip'] = long2ip($post['ip']);
+    $smarty->assign('post', $post);
+    $smarty->assign('author_admin', $author_admin);
+    $smarty->assign('attachments', $post_attachments);
+    $smarty->assign('enable_translation', is_translation_enabled($post['board']));
+    return $smarty->fetch('reports_post.tpl');
+}
+/**
+ * 
+ */
 function wrappers_attachments_get_by_post($smarty, $board, &$post, $posts_attachments, $attachments) {
     $desired_attachments = array();
 
@@ -168,6 +216,7 @@ function wrappers_attachments_get_by_post($smarty, $board, &$post, $posts_attach
                                     . "/{$board['name']}/other/{$a['name']}";
                                 $a['thumbnail_link'] = Config::DIR_PATH
                                     . "/img/{$a['thumbnail']}";
+                                $a['deleted'] = $pa['deleted'];
                                 $post['with_attachments'] = true;
                                 array_push($desired_attachments, $a);
                             }
@@ -178,18 +227,21 @@ function wrappers_attachments_get_by_post($smarty, $board, &$post, $posts_attach
                                     . "/{$board['name']}/img/{$a['name']}";
                                 $a['thumbnail_link'] = Config::DIR_PATH
                                     . "/{$board['name']}/thumb/{$a['thumbnail']}";
+                                $a['deleted'] = $pa['deleted'];
                                 $post['with_attachments'] = true;
                                 array_push($desired_attachments, $a);
                             }
                             break;
                         case Config::ATTACHMENT_TYPE_LINK:
                             if ($a['id'] == $pa['link']) {
+                                $a['deleted'] = $pa['deleted'];
                                 $post['with_attachments'] = true;
                                 array_push($desired_attachments, $a);
                             }
                             break;
                         case Config::ATTACHMENT_TYPE_VIDEO:
                             if ($a['id'] == $pa['video']) {
+                                $a['deleted'] = $pa['deleted'];
                                 $smarty->assign('code', $a['code']);
                                 $a['video_link'] = $smarty->fetch('youtube.tpl');
                                 $post['with_attachments'] = true;

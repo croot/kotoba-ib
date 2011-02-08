@@ -1,19 +1,13 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
 
-// Скрипт просмотра нитей доски.
+// Catalog of threads.
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
 require_once Config::ABS_PATH . '/lib/wrappers.php';
@@ -21,16 +15,19 @@ require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
 require_once Config::ABS_PATH . '/lib/events.php';
 
 try {
-    // Инициализация.
+    // Initialization.
     kotoba_session_start();
+    if (Config::LANGUAGE != $_SESSION['language']) {
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+    }
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup();
 
-    // Проверка, не заблокирован ли клиент.
-    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+    // Check if client banned.
+    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
-    if (($ban = bans_check($ip)) !== false) {
+    if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
         session_destroy();
@@ -53,7 +50,7 @@ try {
         throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']);
     }
 
-    // Фильтр выбирает все нити.
+    // Pass all threads.
     $tfilter = function($thread) {
         return true;
     };
@@ -69,7 +66,7 @@ try {
     }
     $threads = array_merge($sticky_threads, $other_threads);
 
-    // Фильтр выбирает только оригинальные сообщения.
+    // Pass only original posts.
     $pfilter = function($thread, $post) {
         static $prev_thread = null;
 
@@ -77,7 +74,7 @@ try {
             $prev_thread = $thread;
         }
 
-        if ($thread['original_post'] == $post['number']) {
+        if ($thread['original_post'] == $post['post_number']) {
             return true;
         }
         return false;
@@ -89,7 +86,7 @@ try {
         $smarty->assign('attachments', attachments_get_by_posts($posts));
     }
 
-    // Формирование кода страницы и вывод.
+    // Generate html code of page and display it.
     $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('boards', $boards);
     $smarty->assign('board', $board);
@@ -100,7 +97,7 @@ try {
     $smarty->assign('posts', $posts);
     $smarty->display('catalog.tpl');
 
-    // Освобождение ресурсов и очистка.
+    // Cleanup.
     DataExchange::releaseResources();
 
     exit(0);

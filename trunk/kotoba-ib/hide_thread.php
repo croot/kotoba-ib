@@ -38,7 +38,7 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    // Guests cannot hide favorites.
+    // Guests cannot hide threads.
     if (is_guest()) {
         throw new PermissionException(PermissionException::$messages['GUEST']);
     }

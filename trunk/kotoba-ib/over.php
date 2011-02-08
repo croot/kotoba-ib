@@ -1,15 +1,10 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
 
-// Скрипт, предоставляющий данные для оверчана.
+// Share imageboard data for overchan.
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
@@ -17,11 +12,11 @@ require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 
 try {
-    // Получение данных о досках и категориях.
+    // Get data about boards and categories.
     $boards = boards_get_all();
     $categories = categories_get_all();
 
-    // Формирование кода страницы и вывод.
+    // Create code and display.
     $out = '[';
     foreach ($categories as $category) {
         foreach ($boards as $board) {
@@ -36,7 +31,7 @@ try {
     $out .= ']';
     echo $out;
 
-    // Освобождение ресурсов и очистка.
+    // Cleanup.
     DataExchange::releaseResources();
 
     exit(0);

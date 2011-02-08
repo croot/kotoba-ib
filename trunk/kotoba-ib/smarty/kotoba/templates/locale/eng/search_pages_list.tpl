@@ -13,6 +13,6 @@ Variables:
     $keyword - keyword.
     $boards - boards.
 *}
-{if isset($pages) && isset($page) && count($pages) > 0}<div class="boardpages">Страницы: {section name=i loop=$pages}
+{if isset($pages) && isset($page) && count($pages) > 0}<div class="boardpages">Pages: {section name=i loop=$pages}
 {if $pages[i] == $page} ({$pages[i]}){else} <a href="{$DIR_PATH}/search.php?search[page]={$pages[i]}&search[keyword]={$keyword}{section name=j loop=$boards}{if isset($boards[j].selected)}&search[boards][]={$boards[j].id}{/if}{/section}">({$pages[i]})</a>{/if}{/section}
 </div>{/if}

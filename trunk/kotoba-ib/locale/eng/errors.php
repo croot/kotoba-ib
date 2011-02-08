@@ -46,7 +46,7 @@ NodataException::$messages['GROUPS_NOT_EXIST'] = 'Не создана ни од�
 NodataException::$messages['LANGUAGE_NOT_EXIST'] = 'Language id=%s not exist.';
 NodataException::$messages['LANGUAGES_NOT_EXIST'] = 'No languages.';
 NodataException::$messages['POST_NOT_FOUND'] = 'Post not found or you have no permission to it.';
-NodataException::$messages['SEARCH_KEYWORD'] = 'Не задано достаточно текста для поиска.';
+NodataException::$messages['SEARCH_KEYWORD'] = 'Search keyword not set or too short.';
 // Параметры: идентификатор стиля оформления.
 NodataException::$messages['STYLESHEET_NOT_EXIST'] = 'Stylesheeit id=%s not exist.';
 NodataException::$messages['STYLESHEETS_NOT_EXIST'] = 'No stylesheets.';

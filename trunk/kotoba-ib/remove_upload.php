@@ -1,40 +1,37 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
 
 /*
- * Скрипт удаления вложений. Скрипт принимает один параметр, который передаётся
- * с помощью POST или GET запроса:
- * post - Идентификатор удаляемого сообщения.
+ * Remove attachment script:
+ *
+ * Parameters:
+ * post - post id.
+ * password (optional) - password.
  */
 
 require 'config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
-require_once Config::ABS_PATH . '/lib/logging.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
 require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
 
 try {
-    // Инициализация.
+    // Initialization.
     kotoba_session_start();
+    if (Config::LANGUAGE != $_SESSION['language']) {
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+    }
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup();
 
-    // Проверка, не заблокирован ли клиент.
-    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+    // Check if client banned.
+    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
-    if (($ban = bans_check($ip)) !== false) {
+    if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
         session_destroy();
@@ -53,22 +50,22 @@ try {
     }
     $password = isset($REQUEST['password']) ? posts_check_password($REQUEST['password']) : $_SESSION['password'];
 
-    // Удаление вложения.
+    // Remove attachemnt
     if (is_admin() || ($post['password'] !== null && $post['password'] === $password)) {
         posts_attachments_delete_by_post($post['id']);
         header('Location: ' . Config::DIR_PATH . "/{$post['board']['name']}/");
     } else {
 
-        // Вывод формы ввода пароля.
+        // Display password request form.
         $smarty->assign('show_control', is_admin() || is_mod());
         $smarty->assign('boards', boards_get_visible($_SESSION['user']));
         $smarty->assign('post', $post);
         $smarty->assign('password', $password);
         $smarty->assign('_SERVER', $_SERVER);
-        $smarty->display('remove_upload.tpl');
+        $smarty->display('remove_attachment.tpl');
     }
 
-    // Освобождение ресурсов и очистка.
+    // Cleanup.
     DataExchange::releaseResources();
 
     exit(0);
