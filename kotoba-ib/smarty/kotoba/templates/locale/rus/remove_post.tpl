@@ -1,23 +1,18 @@
 {* Smarty *}
-{*************************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************
- *********************************
+{*********************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************}
 {*
-Код страницы удаления сообщения.
+Remove post.
 
-Описание переменных:
-    $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $STYLESHEET - стиль (см. config.default).
-    $show_control - показывать ссылку на страницу административных фукнций и фукнций модераторов в панели администратора.
-    $boards - доски.
-    $post - сообщение.
-    $password - пароль для удаления сообщения.
+Variables:
+    $DIR_PATH - path from server document root to index.php directory (see config.default).
+    $STYLESHEET - stylesheet (see config.default).
+    $show_control - show link to manage page.
+    $boards - boards.
+    $post - post.
+    $password - password.
 *}
 {include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title='Ввод пароля для удаления сообщения'}
 
@@ -30,7 +25,7 @@
 <br/>
 {if $post.password}
 <form action="{$DIR_PATH}/remove_post.php" method="post">
-<input type="hidden" name="post" value="{$id}">
+<input type="hidden" name="post" value="{$post.id}">
 <table align="center" border="0">
 <tr valign="top">
     <td>Пароль:</td>

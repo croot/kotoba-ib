@@ -1,33 +1,33 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
 
-// Скрипт работы с жалобами.
+// Report handing script.
 
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require Config::ABS_PATH . '/lib/logging.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
 require Config::ABS_PATH . '/lib/db.php';
 require Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/wrappers.php';
 
 try {
+    // Initialization.
     kotoba_session_start();
+    if (Config::LANGUAGE != $_SESSION['language']) {
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/logging.php";
+    }
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup();
 
-    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+    // Check if client banned.
+    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
-    if (($ban = bans_check($ip)) !== false) {
+    if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
         session_destroy();
@@ -35,22 +35,19 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
+    // Check permission and write message to log file.
     if (!is_admin()) {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
     }
-    Logging::write_msg(Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log',
-            Logging::$messages['ADM_FUNCTIONS_REPORTS'],
-            $_SESSION['user'], $_SERVER['REMOTE_ADDR']);
-    Logging::close_log();
+    call_user_func(Logging::$f['REPORTS_USE']);
 
     $boards = boards_get_all();
-    $output = '';
+    $reported_posts = array();
     $smarty->assign('boards', $boards);
     $smarty->assign('ATTACHMENT_TYPE_FILE', Config::ATTACHMENT_TYPE_FILE);
     $smarty->assign('ATTACHMENT_TYPE_LINK', Config::ATTACHMENT_TYPE_LINK);
     $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
     $smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
-    $output .= $smarty->fetch('reports_header.tpl');
     date_default_timezone_set(Config::DEFAULT_TIMEZONE);
 
     // Request posts. Apply defined filter to posts and show.
@@ -66,7 +63,7 @@ try {
             foreach ($boards as $board) {
                 if ($_POST['filter_board'] == $board['id']) {
                     array_push($filter_boards, $board);
-                    break;  // Пока выбрать можно только одну.
+                    break;  // Only one yet.
                 }
             }
         }
@@ -75,60 +72,23 @@ try {
         $posts = posts_get_reported_by_boards($filter_boards);
         $posts_attachments = posts_attachments_get_by_posts($posts);
         $attachments = attachments_get_by_posts($posts);
+        $admins = users_get_admins();
         foreach ($posts as $post) {
 
-            // By default post have no attachments. This is fake field.
-            $post['with_attachments'] = false;
-
-            $post_attachments = array();
-            foreach ($posts_attachments as $pa) {
-                if ($pa['post'] == $post['id']) {
-                    foreach ($attachments as $a) {
-                        if ($a['attachment_type'] == $pa['attachment_type']) {
-                            switch ($a['attachment_type']) {
-                                case Config::ATTACHMENT_TYPE_FILE:
-                                    if ($a['id'] == $pa['file']) {
-                                        $a['file_link'] = Config::DIR_PATH . "/{$filter_boards[0]['name']}/other/{$a['name']}";
-                                        $a['thumbnail_link'] = Config::DIR_PATH . "/img/{$a['thumbnail']}";
-                                        $post['with_attachments'] = true;
-                                        array_push($post_attachments, $a);
-                                    }
-                                    break;
-                                case Config::ATTACHMENT_TYPE_IMAGE:
-                                    if ($a['id'] == $pa['image']) {
-                                        $a['image_link'] = Config::DIR_PATH . "/{$filter_boards[0]['name']}/img/{$a['name']}";
-                                        $a['thumbnail_link'] = Config::DIR_PATH . "/{$filter_boards[0]['name']}/thumb/{$a['thumbnail']}";
-                                        $post['with_attachments'] = true;
-                                        array_push($post_attachments, $a);
-                                    }
-                                    break;
-                                case Config::ATTACHMENT_TYPE_LINK:
-                                    if ($a['id'] == $pa['link']) {
-                                        $post['with_attachments'] = true;
-                                        array_push($post_attachments, $a);
-                                    }
-                                    break;
-                                case Config::ATTACHMENT_TYPE_VIDEO:
-                                    if ($a['id'] == $pa['video']) {
-                                        $smarty->assign('code', $a['code']);
-                                        $a['video_link'] = $smarty->fetch('youtube.tpl');
-                                        $post['with_attachments'] = true;
-                                        array_push($post_attachments, $a);
-                                    }
-                                    break;
-                                default:
-                                    throw new CommonException('Not supported.');
-                                    break;
-                            }
-                        }
-                    }
+            // Find if author of this post is admin.
+            $author_admin = false;
+            foreach ($admins as $admin) {
+                if ($post['user'] == $admin['id']) {
+                    $author_admin = true;
+                    break;
                 }
             }
-            $post['ip'] = long2ip($post['ip']);
-            $smarty->assign('post', $post);
-            $smarty->assign('attachments', $post_attachments);
-            $smarty->assign('board', $filter_boards[0]);
-            $output .= $smarty->fetch('reports_post.tpl');
+
+            array_push($reported_posts, post_report_generate_html($smarty,
+                                                                  $post,
+                                                                  $posts_attachments,
+                                                                  $attachments,
+                                                                  $author_admin));
         }
     }
 
@@ -179,8 +139,8 @@ try {
         }
     }
 
-    $output .= $smarty->fetch('reports_footer.tpl');
-    echo $output;
+    $smarty->assign('reported_posts', $reported_posts);
+    $smarty->display('reports.tpl');
 
     DataExchange::releaseResources();
     exit;

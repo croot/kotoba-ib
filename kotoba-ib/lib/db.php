@@ -213,13 +213,13 @@ function acl_get_all()
 	return db_acl_get_all(DataExchange::getDBLink());
 }
 
-/*********************************************************************
- * Работа с вложениями (абстракция над конкретными типами вложений). *
- *********************************************************************/
+/* ****************************************************
+ * Attachments (abtract of certain attachment types). *
+ ******************************************************/
 
 /**
- * Удаляет связи заданного сообщения с вложениями.
- * @param string|int $post_id Идентификатор сообщения.
+ * Delete post attachments relations.
+ * @param int $post_id Post id.
  */
 function posts_attachments_delete_by_post($post_id) {
     db_posts_files_delete_by_post(DataExchange::getDBLink(), $post_id);
@@ -368,18 +368,18 @@ function attachments_get_same($board_id, $user_id, $hash) {
 	return $attachments;
 }
 
-/**************************
- * Работа с блокировками. *
- **************************/
+/* *******
+ * Bans. *
+ *********/
 
 /**
- * Блокирует заданный диапазон IP-адресов.
- * @param int $range_beg Начало диапазона IP-адресов.
- * @param int $range_end Конец диапазона IP-адресов.
- * @param string $reason Причина блокировки.
- * @param string $untill Время истечения блокировки.
+ * Ban IP-address range.
+ * @param int $range_beg Begin of banned IP-address range.
+ * @param int $range_end End of banned IP-address range.
+ * @param string $reason Ban reason.
+ * @param string $untill Expiration time.
  */
-function bans_add($range_beg, $range_end, $reason, $untill) { // Java CC
+function bans_add($range_beg, $range_end, $reason, $untill) {
     db_bans_add(DataExchange::getDBLink(), $range_beg, $range_end, $reason, $untill);
 }
 /**
@@ -1064,14 +1064,14 @@ function groups_get_by_user($user_id) {
     return db_groups_get_by_user(DataExchange::getDBLink(), $user_id);
 }
 
-/***********************************
-  Работа с блокировками в фаерволе. 
- ***********************************/
+/* ************
+ * Hard bans. *
+ **************/
 
 /**
- * Блокирует диапазон IP-адресов в фаерволе.
- * @param string $range_beg Начало диапазона IP-адресов.
- * @param string $range_end Конец диапазона IP-адресов.
+ * Ban IP-address range in firewall.
+ * @param string $range_beg Begin of banned IP-address range.
+ * @param string $range_end End of banned IP-address range.
  */
 function hard_ban_add($range_beg, $range_end) {
     db_hard_ban_add(DataExchange::getDBLink(), $range_beg, $range_end);
@@ -1090,14 +1090,12 @@ function hidden_threads_add($thread_id, $user_id) {
     return db_hidden_threads_add(DataExchange::getDBLink(), $thread_id, $user_id);
 }
 /**
- * Отменяет скрытие нити.
- * @param thread_id mixed <p>Идентификатор нити.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * Unhide thread.
+ * @param int $thread_id Thread id.
+ * @param int $user_id User id.
  */
-function hidden_threads_delete($thread_id, $user_id)
-{
-	return db_hidden_threads_delete(DataExchange::getDBLink(), $thread_id,
-		$user_id);
+function hidden_threads_delete($thread_id, $user_id) {
+    return db_hidden_threads_delete(DataExchange::getDBLink(), $thread_id, $user_id);
 }
 /**
  * Get hidden threads and filter it.
@@ -1572,10 +1570,10 @@ function posts_add_text_by_id($id, $text) {
 	db_posts_add_text_by_id(DataExchange::getDBLink(), $id, $text);
 }
 /**
- * Проверяет корректность идентификатора сообщения.
- * @param mixed $id Идентификатор сообщения.
+ * Check post id.
+ * @param mixed $id Post id.
  * @return int
- * Возвращает безопасный для использования идентификатор сообщения.
+ * safe post id.
  */
 function posts_check_id($id) {
     return kotoba_intval($id);
@@ -1682,22 +1680,19 @@ function posts_corp_text(&$text, $lines_per_post, &$is_cropped) {
     }
 }
 /**
- * Удаляет сообщение с заданным идентификатором.
- * @param id mixed <p>Идентификатор сообщения.</p>
+ * Remove post.
+ * @param int $id Post id.
  */
-function posts_delete($id)
-{
-	db_posts_delete(DataExchange::getDBLink(), $id);
+function posts_delete($id) {
+    db_posts_delete(DataExchange::getDBLink(), $id);
 }
 /**
- * Удаляет сообщение с заданным идентификатором и все сообщения с ip адреса
- * отправителя, оставленные с заданного момента времени.
- * @param id mixed <p>Идентификатор сообщения.</p>
- * @param date_time mixed <p>Момент времени.</p>
+ * Delete last posts.
+ * @param int $id Post id.
+ * @param string $date_time Date.
  */
-function posts_delete_last($id, $date_time)
-{
-	db_posts_delete_last(DataExchange::getDBLink(), $id, $date_time);
+function posts_delete_last($id, $date_time) {
+    db_posts_delete_last(DataExchange::getDBLink(), $id, $date_time);
 }
 /**
  * Удаляет сообщения, помеченные на удаление.
@@ -1809,36 +1804,22 @@ function posts_get_filtred_by_boards($boards, $filter) { // Java CC
     return $filtred_posts;
 }
 /**
- * Получает сообщения, на которые поступила жалоба, с заданных досок.
- * @param array $boards Доски.
+ * Get reported posts.
+ * @param array $boards Boards.
  * @return array
- * Возвращает сообщения:<br>
- * 'id' - Идентификатор.<br>
- * 'board' - Идентификатор доски.<br>
- * 'board_name' - Имя доски.<br>
- * 'thread' - Идентификатор нити.<br>
- * 'thread_number' - Номер нити.<br>
- * 'number' - Номер.<br>
- * 'password' - Пароль.<br>
- * 'name' - Имя отправителя.<br>
- * 'tripcode' - Трипкод.<br>
- * 'ip' - IP-адрес отправителя.<br>
- * 'subject' - Тема.<br>
- * 'date_time' - Время сохранения.<br>
- * 'text' - Текст.<br>
- * 'sage' - Флаг поднятия нити.
+ * posts.
  */
 function posts_get_reported_by_boards($boards) {
     return db_posts_get_reported_by_boards(DataExchange::getDBLink(), $boards);
 }
 /**
- * Получает заданное сообщение, доступное для просмотра заданному пользователю.
- * @param int $post_id Идентификатор сообщения.
- * @param int $user_id Идентификатор пользователя.
+ * Get visible post.
+ * @param int $post_id Post id.
+ * @param int $user_id User id.
  * @return array
- * Возвращает сообщение с развернутыми данными о доске и нити.
+ * post.
  */
-function posts_get_visible_by_id($post_id, $user_id) { // Java CC
+function posts_get_visible_by_id($post_id, $user_id) {
     return db_posts_get_visible_by_id(DataExchange::getDBLink(), $post_id, $user_id);
 }
 /**
@@ -1881,12 +1862,12 @@ function posts_prepare_text(&$text, $board) {
     $text = preg_replace('/\n/', '<br>', $text);
 }
 /**
- * Ищет в сообщениях досок заданную фразу.
- * @param array $boards Доски.
- * @param string $keyword Искомая фраза.
- * @param int $user Идентификатор пользователя.
+ * Search posts by keyword.
+ * @param array $boards Boards.
+ * @param string $keyword Keyword.
+ * @param int $user User id.
  * @return array
- * Возвращает сообщения, с развёрнутыми данными о нити и доске.
+ * posts.
  */
 function posts_search_visible_by_boards($boards, $keyword, $user) {
     return db_posts_search_visible_by_boards(DataExchange::getDBLink(), $boards, $keyword, $user);
@@ -1948,18 +1929,20 @@ function posts_videos_add($post, $video, $deleted) {
     db_posts_videos_add(DataExchange::getDBLink(), $post, $video, $deleted);
 }
 
-/* ********************
- * Работа с жалобами. *
- **********************/
+/* **********
+ * Reports. *
+ ************/
 
 /**
- *
+ * Add report.
+ * @param int $post_id Post id.
  */
 function reports_add($post_id) {
     db_reports_add(DataExchange::getDBLink(), $post_id);
 }
 /**
- *
+ * Delete report.
+ * @param int $post_id Post id.
  */
 function reports_delete($post_id) {
     db_reports_delete(DataExchange::getDBLink(), $post_id);
@@ -2648,12 +2631,12 @@ function users_check_goto($goto) {
     }
 }
 /**
- * Проверяет корректность идентификатора пользователя.
- * @param mixed $id Идентификатор пользователя.
+ * Check user id.
+ * @param mixed $id User id.
  * @return int
- * Возвращает безопасный для использования идентификатор пользователя.
+ * safe user id.
  */
-function users_check_id($id) { // Java CC
+function users_check_id($id) {
     return kotoba_intval($id);
 }
 /**

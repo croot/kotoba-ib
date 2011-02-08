@@ -156,18 +156,20 @@ function db_acl_get_all($link)
  *********/
 
 /**
- * Блокирует заданный диапазон IP-адресов.
- * @param MySQLi $link Связь с базой данных.
- * @param int $range_beg Начало диапазона IP-адресов.
- * @param int $range_end Конец диапазона IP-адресов.
- * @param string $reason Причина блокировки.
- * @param string $untill Время истечения блокировки.
+ * Ban IP-address range.
+ * @param MySQLi $link Link to database.
+ * @param int $range_beg Begin of banned IP-address range.
+ * @param int $range_end End of banned IP-address range.
+ * @param string $reason Ban reason.
+ * @param string $untill Expiration time.
  */
-function db_bans_add($link, $range_beg, $range_end, $reason, $untill) { // Java CC
+function db_bans_add($link, $range_beg, $range_end, $reason, $untill) {
     $reason = ($reason === null ? 'null' : $reason);
+
     if (!mysqli_query($link, "call sp_bans_add($range_beg, $range_end, '$reason', '$untill')")) {
         throw new CommonException(mysqli_error($link));
     }
+
     db_cleanup_link($link);
 }
 /**
@@ -1423,20 +1425,21 @@ function db_groups_get_by_user($link, $user_id) {
 	return $groups;
 }
 
-/* *********************************
-  Работа с блокировками в фаерволе.
- ***********************************/
+/* ************
+ * Hard bans. *
+ **************/
 
 /**
- * Блокирует диапазон IP-адресов в фаерволе.
- * @param MySQLi $link Связь с базой данных.
- * @param string $range_beg Начало диапазона IP-адресов.
- * @param string $range_end Конец диапазона IP-адресов.
+ * Ban IP-address range in firewall.
+ * @param MySQLi $link Link to database.
+ * @param string $range_beg Begin of banned IP-address range.
+ * @param string $range_end End of banned IP-address range.
  */
 function db_hard_ban_add($link, $range_beg, $range_end) {
     if (!mysqli_query($link, "call sp_hard_ban_add('$range_beg', '$range_end')")) {
         throw new CommonException(mysqli_error($link));
     }
+
     db_cleanup_link($link);
 }
 
@@ -1458,19 +1461,17 @@ function db_hidden_threads_add($link, $thread_id, $user_id) {
     db_cleanup_link($link);
 }
 /**
- * Отменяет скрытие нити.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param thread_id mixed <p>Идентификатор нити.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * Unhide thread.
+ * @param MySQLi $link Link to database.
+ * @param int $thread_id Thread id.
+ * @param int $user_id User id.
  */
-function db_hidden_threads_delete($link, $thread_id, $user_id)
-{
-	if(!mysqli_query($link, 'call sp_hidden_threads_delete(' . $thread_id . ', '
-			. $user_id . ')'))
-	{
-		throw new CommonException(mysqli_error($link));
-	}
-	db_cleanup_link($link);
+function db_hidden_threads_delete($link, $thread_id, $user_id) {
+    if(!mysqli_query($link, "call sp_hidden_threads_delete($thread_id, $user_id)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    db_cleanup_link($link);
 }
 /**
  * Get hidden threads.
@@ -2466,28 +2467,29 @@ function db_posts_add_text_by_id($link, $id, $text) {
 	db_cleanup_link($link);
 }
 /**
- * Удаляет сообщение с заданным идентификатором.
- * @param MySQLi $link Связь с базой данных.
- * @param mixed $id Идентификатор сообщения.
+ * Remove post.
+ * @param MySQLi $link Link to database.
+ * @param int $id Post id.
  */
 function db_posts_delete($link, $id) {
     if (!mysqli_query($link, "call sp_posts_delete($id)")) {
         throw new CommonException(mysqli_error($link));
     }
+
     db_cleanup_link($link);
 }
 /**
- * Удаляет сообщение с заданным идентификатором и все сообщения с ip адреса
- * отправителя, оставленные с заданного момента времени.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param id mixed <p>Идентификатор сообщения.</p>
- * @param date_time mixed <p>Момент времени.</p>
+ * Delete last posts.
+ * @param MySQLi $link Link to database.
+ * @param int $id Post id.
+ * @param string $date_time Date.
  */
-function db_posts_delete_last($link, $id, $date_time)
-{
-	if(!mysqli_query($link, 'call sp_posts_delete_last(' . $id . ', \'' . $date_time . '\')'))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+function db_posts_delete_last($link, $id, $date_time) {
+    if(!mysqli_query($link, "call sp_posts_delete_last($id, '$date_time')")) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    db_cleanup_link($link);
 }
 /**
  * Удаляет сообщения, помеченные на удаление.
@@ -2689,25 +2691,11 @@ function db_posts_get_by_thread($link, $thread_id)
 	return $posts;
 }
 /**
- * Получает сообщения, на которые поступила жалоба, с заданных досок.
- * @param MySQLi $link Связь с базой данных.
- * @param array $boards Доски.
+ * Get reported posts.
+ * @param MySQLi $link Link to database.
+ * @param array $boards Boards.
  * @return array
- * Возвращает сообщения:<br>
- * 'id' - Идентификатор.<br>
- * 'board' - Идентификатор доски.<br>
- * 'board_name' - Имя доски.<br>
- * 'thread' - Идентификатор нити.<br>
- * 'thread_number' - Номер нити.<br>
- * 'number' - Номер.<br>
- * 'password' - Пароль.<br>
- * 'name' - Имя отправителя.<br>
- * 'tripcode' - Трипкод.<br>
- * 'ip' - IP-адрес отправителя.<br>
- * 'subject' - Тема.<br>
- * 'date_time' - Время сохранения.<br>
- * 'text' - Текст.<br>
- * 'sage' - Флаг поднятия нити.
+ * posts.
  */
 function db_posts_get_reported_by_boards($link, $boards) {
     $posts = array();
@@ -2718,22 +2706,22 @@ function db_posts_get_reported_by_boards($link, $boards) {
         }
 
         if (mysqli_affected_rows($link) > 0) {
-            while(($row = mysqli_fetch_assoc($result)) != null) {
+            while( ($row = mysqli_fetch_assoc($result)) != null) {
                 array_push($posts,
-                    array('id' => $row['id'],
-                          'board' => $row['board'],
-                          'board_name' => $row['board_name'],
-                          'thread' => $row['thread'],
-                          'thread_number' => $row['thread_number'],
-                          'number' => $row['number'],
-                          'password' => $row['password'],
-                          'name' => $row['name'],
-                          'tripcode' => $row['tripcode'],
-                          'ip' => $row['ip'],
-                          'subject' => $row['subject'],
-                          'date_time' => $row['date_time'],
-                          'text' => $row['text'],
-                          'sage' => $row['sage']));
+                           array('id' => $row['id'],
+                                 'board' => $row['board'],
+                                 'board_name' => $row['board_name'],
+                                 'thread' => $row['thread'],
+                                 'thread_number' => $row['thread_number'],
+                                 'number' => $row['number'],
+                                 'password' => $row['password'],
+                                 'name' => $row['name'],
+                                 'tripcode' => $row['tripcode'],
+                                 'ip' => $row['ip'],
+                                 'subject' => $row['subject'],
+                                 'date_time' => $row['date_time'],
+                                 'text' => $row['text'],
+                                 'sage' => $row['sage']));
             }
         }
 
@@ -2744,14 +2732,14 @@ function db_posts_get_reported_by_boards($link, $boards) {
     return $posts;
 }
 /**
- * Получает заданное сообщение, доступное для просмотра заданному пользователю.
- * @param MySQLi $link Связь с базой данных.
- * @param int $post_id Идентификатор сообщения.
- * @param int $user_id Идентификатор пользователя.
+ * Get visible post.
+ * @param MySQLi $link Link to database.
+ * @param int $post_id Post id.
+ * @param int $user_id User id.
  * @return array
- * Возвращает сообщение с разверунтыми данными о доске и нити.
+ * post.
  */
-function db_posts_get_visible_by_id($link, $post_id, $user_id) { // Java CC
+function db_posts_get_visible_by_id($link, $post_id, $user_id) {
     $result = mysqli_query($link, "call sp_posts_get_visible_by_id($post_id, $user_id)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
@@ -2957,13 +2945,13 @@ function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id, $fil
     return $posts;
 }
 /**
- * Ищет в сообщениях досок заданную фразу.
- * @param MySQLi $link Связь с базой данных.
- * @param array $boards Доски.
- * @param string $keyword Искомая фраза.
- * @param int $user Идентификатор пользователя.
+ * Search posts by keyword.
+ * @param MySQLi $link Link to database.
+ * @param array $boards Boards.
+ * @param string $keyword Keyword.
+ * @param int $user User id.
  * @return array
- * Возвращает сообщения, с развёрнутыми данными о нити и доске.
+ * posts.
  */
 function db_posts_search_visible_by_boards($link, $boards, $keyword, $user) {
     $posts = array();
@@ -3048,14 +3036,15 @@ function db_posts_files_add($link, $post, $file, $deleted) {
     db_cleanup_link($link);
 }
 /**
- * Удаляет связи заданного сообщения с вложенными файлами.
- * @param MySQLi $link Связь с базой данных.
- * @param string|int $post_id Идентификатор сообщения.
+ * Remove post files relations.
+ * @param MySQLi $link Link to database.
+ * @param int $post_id Post id.
  */
 function db_posts_files_delete_by_post($link, $post_id) {
     if (!mysqli_query($link, "call sp_posts_files_delete_by_post($post_id)")) {
         throw new CommonException(mysqli_error($link));
     }
+
     db_cleanup_link($link);
 }
 /**
@@ -3114,14 +3103,15 @@ function db_posts_images_add($link, $post, $image, $deleted) {
     db_cleanup_link($link);
 }
 /**
- * Удаляет связи заданного сообщения с вложенными изображениями.
- * @param MySQLi $link Связь с базой данных.
- * @param string|int $post_id Идентификатор сообщения.
+ * Delete post images relations.
+ * @param MySQLi $link Link to database.
+ * @param int $post Post id.
  */
 function db_posts_images_delete_by_post($link, $post_id) {
     if (!mysqli_query($link, "call sp_posts_images_delete_by_post($post_id)")) {
         throw new CommonException(mysqli_error($link));
     }
+
     db_cleanup_link($link);
 }
 /**
@@ -3180,14 +3170,15 @@ function db_posts_links_add($link, $post, $posts_links_link, $deleted) {
     db_cleanup_link($link);
 }
 /**
- * Удаляет связи заданного сообщения с вложенными ссылками на изображения.
- * @param MySQLi $link Связь с базой данных.
- * @param string|int $post_id Идентификатор сообщения.
+ * Delete post links relations.
+ * @param MySQLi $link Link to database.
+ * @param int $post Post id.
  */
 function db_posts_links_delete_by_post($link, $post_id) {
     if (!mysqli_query($link, "call sp_posts_links_delete_by_post($post_id)")) {
         throw new CommonException(mysqli_error($link));
     }
+
     db_cleanup_link($link);
 }
 /**
@@ -3246,14 +3237,15 @@ function db_posts_videos_add($link, $post, $video, $deleted) {
     db_cleanup_link($link);
 }
 /**
- * Удаляет связи заданного сообщения с вложенными видео.
- * @param MySQLi $link Связь с базой данных.
- * @param string|int $post_id Идентификатор сообщения.
+ * Delete post videos relations.
+ * @param MySQLi $link Link to database.
+ * @param int $post Post id.
  */
 function db_posts_videos_delete_by_post($link, $post_id) {
     if (!mysqli_query($link, "call sp_posts_videos_delete_by_post($post_id)")) {
         throw new CommonException(mysqli_error($link));
     }
+
     db_cleanup_link($link);
 }
 /**
@@ -3294,26 +3286,32 @@ function db_posts_videos_get_by_post($link, $post_id) {
     return $posts_videos;
 }
 
-/* ********************
- * Работа с жалобами. *
- **********************/
+/* **********
+ * Reports. *
+ ************/
 
 /**
- * 
+ * Add report.
+ * @param MySQLi $link Link to database.
+ * @param int $post_id Post id.
  */
 function db_reports_add($link, $post_id) {
 	if (!mysqli_query($link, "call sp_reports_add($post_id)")) {
 		throw new CommonException(mysqli_error($link));
     }
+
 	db_cleanup_link($link);
 }
 /**
- *
+ * Delete report.
+ * @param MySQLi $link Link to database.
+ * @param int $post_id Post id.
  */
 function db_reports_delete($link, $post_id) {
 	if (!mysqli_query($link, "call sp_reports_delete($post_id)")) {
 		throw new CommonException(mysqli_error($link));
     }
+
 	db_cleanup_link($link);
 }
 /**

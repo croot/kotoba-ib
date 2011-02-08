@@ -32,6 +32,12 @@ Variables:
     $skipped - Count of skipped posts.
 *}
 {if $post.with_attachments}
+{if $attachments[0].deleted}
+                <br>
+                <a target="_blank" href="{$DIR_PATH}/img/deleted.png">
+                    <img src="{$DIR_PATH}/img/deleted.png" class="thumb" width="200" height="200">
+                </a>
+{else}
 {if $attachments[0].attachment_type == $ATTACHMENT_TYPE_FILE}
     <span class="filesize">Файл: <a target="_blank" href="{$attachments[0].file_link}">{$attachments[0].name}</a>-({$attachments[0].size} Байт)</span>
     <br>
@@ -55,6 +61,7 @@ Variables:
     <br>{$attachments[0].video_link}
 {else}
     <!-- Unknown attachment type :o -->
+{/if}
 {/if}
 {else}
     <!-- There is no attachments -->

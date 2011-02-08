@@ -26,7 +26,7 @@ Variables:
 
                 <span class="filetitle">{$post.subject}</span>
                 <span class="postername">{$post.name}</span>
-                {if $post.tripcode != null}<span class="postertrip">!{$post.tripcode}</span>{else}<!-- There is no tripcode -->{/if} {if $author_admin}<span class="admin">❀❀&nbsp;Админ&nbsp;❀❀</span>{else}<!-- Author is not admin -->{/if}
+                {if $post.tripcode != null}<span class="postertrip">!{$post.tripcode}</span>{else}<!-- There is no tripcode -->{/if} {if $author_admin}<span class="admin">❀❀&nbsp;Admin&nbsp;❀❀</span>{else}<!-- Author is not admin -->{/if}
 
                 {$post.date_time}
                 <span class="reflink">

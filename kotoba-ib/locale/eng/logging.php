@@ -109,7 +109,7 @@ Logging::$f['MOVE_THREAD_USE'] = function () {
 };
 
 Logging::$f['REPORTS_USE'] = function () {
-    Logging::write_msg('Использован скрипт работы с жалобами.');
+    Logging::write_msg('Reports handing script used.');
 };
 
 Logging::$f['UPDATE_MACROCHAN_USE'] = function () {

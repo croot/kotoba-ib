@@ -284,23 +284,17 @@ begin
     from acl order by `group`, board, thread, post;
 end|
 
--- --------------------------
---  Работа с блокировками. --
--- --------------------------
+-- ---------
+--  Bans. --
+-- ---------
 
--- Блокирует диапазон IP-адресов.
---
--- Аргументы:
--- _range_beg - Начало диапазона IP-адресов.
--- _range_end - Конец диапазона IP-адресов.
--- _reason - Причина блокировки.
--- _untill - Время истечения блокировки.
+-- Ban IP-address range.
 create procedure sp_bans_add
 (
-    _range_beg int,
-    _range_end int,
-    _reason text,
-    _untill datetime
+    _range_beg int,     -- Begin of banned IP-address range.
+    _range_end int,     -- End of banned IP-address range.
+    _reason text,       -- Ban reason.
+    _untill datetime    -- Expiration time.
 )
 begin
     call sp_bans_refresh();
@@ -1142,15 +1136,15 @@ begin
         join groups g on ug.`group` = g.id;
 end|
 
--- -------------------------------------
---  Работа с блокировками в фаерволе. --
--- -------------------------------------
+-- -------------
+-- Hard bans. --
+-- -------------
 
--- Блокирует диапазон IP-адресов в фаерволе.
+-- Ban IP-address range in firewall.
 create procedure sp_hard_ban_add
 (
-    _range_beg varchar(15), -- Начало диапазона IP-адресов.
-    _range_end varchar(15)  -- Конец диапазона IP-адресов.
+    _range_beg varchar(15), -- Begin of banned IP-address range.
+    _range_end varchar(15)  -- End of banned IP-address range.
 )
 begin
     insert into hard_ban (range_beg, range_end) values (_range_beg, _range_end);
@@ -1177,18 +1171,14 @@ begin
     insert into hidden_threads (user, thread) values (user_id, thread_id);
 end|
 
--- Отменяет скрытие нити.
---
--- Аргументы:
--- thread_id - Идентификатор нити.
--- user_id - Идентификатор пользователя.
+-- Unhide thread
 create procedure sp_hidden_threads_delete
 (
-	thread_id int,
-	user_id int
+    thread_id int,  -- Thread id.
+    user_id int     -- User id.
 )
 begin
-	delete from hidden_threads where user = user_id and thread = thread_id;
+    delete from hidden_threads where user = user_id and thread = thread_id;
 end|
 
 -- Select hidden threads.
@@ -1770,65 +1760,56 @@ begin
         from posts where id = post_id;
 end|
 
--- Удаляет сообщение с заданным идентификатором.
---
--- Аргументы:
--- _id - Идентификатор сообщения.
+-- Remove post.
 create procedure sp_posts_delete
 (
-	_id int
+    _id int -- Post id.
 )
 begin
-	declare thread_id int;
-	set thread_id = null;
-	-- Проверим, не является ли пост оригинальным. Если да, то удалим всю нить
-	-- целиком.
-	select p.thread into thread_id
-	from posts p
-	join threads t on t.id = p.thread and p.id = _id
-		and p.number = t.original_post;
-	if(thread_id is null) then
-		update posts set deleted = 1 where id = _id;
-	else
-		update threads set deleted = 1 where id = thread_id;
-		update posts set deleted = 1 where thread = thread_id;
-	end if;
+    declare thread_id int;
+    set thread_id = null;
+    -- If post is original remove all thread then.
+    select p.thread into thread_id
+        from posts p
+        join threads t on t.id = p.thread and p.id = _id
+            and p.number = t.original_post;
+    if(thread_id is null) then
+        update posts set deleted = 1 where id = _id;
+    else
+        update threads set deleted = 1 where id = thread_id;
+        update posts set deleted = 1 where thread = thread_id;
+    end if;
 end|
 
--- Удаляет сообщение с заданным идентификатором и все сообщения с ip адреса
--- отправителя, оставленные с заданного момента времени.
---
--- Аргументы:
--- _id - Идентификатор сообщения.
--- _date_time - Момент времени.
+-- Delete last posts.
 create procedure sp_posts_delete_last
 (
-	_id int,
-	_date_time datetime
+    _id int,            -- Post id.
+    _date_time datetime -- Date.
 )
 begin
-	declare _ip bigint;
-	declare done int default 0;
-	declare thread_id int;
-	declare `c` cursor for
-		select t.id
-		from posts p
-		join (select ip from posts where id = _id) q on q.ip = p.ip
-		join threads t on t.id = p.thread and p.`date_time` > _date_time
-			and p.`number` = t.original_post;
-	declare continue handler for not found set done = 1;
-	open `c`;
-	repeat
-	fetch `c` into thread_id;
-	if(not done) then
-		call sp_threads_edit_deleted(thread_id);
-	end if;
-	until done end repeat;
-	close `c`;
-	select ip into _ip from posts where id = _id;
-	if(_ip is not null) then
-		update posts set deleted = 1 where ip = _ip and `date_time` > _date_time;
-	end if;
+    declare _ip bigint;
+    declare done int default 0;
+    declare thread_id int;
+    declare `c` cursor for
+        select t.id
+            from posts p
+            join (select ip from posts where id = _id) q on q.ip = p.ip
+            join threads t on t.id = p.thread and p.`date_time` > _date_time
+                and p.`number` = t.original_post;
+    declare continue handler for not found set done = 1;
+    open `c`;
+    repeat
+        fetch `c` into thread_id;
+        if(not done) then
+            call sp_threads_edit_deleted(thread_id);
+        end if;
+    until done end repeat;
+    close `c`;
+    select ip into _ip from posts where id = _id;
+    if(_ip is not null) then
+        update posts set deleted = 1 where ip = _ip and `date_time` > _date_time;
+    end if;
 end|
 
 -- Удаляет сообщения, помеченные на удаление.
@@ -1969,10 +1950,10 @@ begin
 	where thread = thread_id;
 end|
 
--- Выбирает сообщения, на которые поступила жалоба, с заданных досок.
+-- Get reported posts.
 create procedure sp_posts_get_reported_by_board
 (
-    board_id int    -- Идентификатор доски.
+    board_id int    -- Board id.
 )
 begin
     select p.id, p.thread, t.original_post as thread_number, p.board,
@@ -1987,11 +1968,11 @@ begin
         order by p.date_time desc;
 end|
 
--- Выбирает заданное сообщение, доступное для просмотра заданному пользователю.
+-- Select visible post.
 create procedure sp_posts_get_visible_by_id
 (
-    post_id int,    -- Идентификатор сообщения.
-    user_id int     -- Идентификатор пользователя.
+    post_id int,    -- Post id.
+    user_id int     -- User id.
 )
 begin
     select p.id as post_id,
@@ -2246,12 +2227,12 @@ begin
         order by p.number asc;
 end|
 
--- Ищет в сообщениях доски заданную фразу.
+-- Search posts by keyword.
 create procedure sp_posts_search_visible_by_board
 (
-    board_id int,   -- Идентификатор нити.
-    keyword text,   -- Искомая фраза.
-    user_id int     -- Идентификатор пользователя.
+    board_id int,   -- Board id.
+    keyword text,   -- Keyword.
+    user_id int     -- User id.
 )
 begin
     set keyword = CONCAT('%', keyword, '%');
@@ -2351,10 +2332,10 @@ begin
         values (_post, _file, _deleted);
 end|
 
--- Удаляет связи заданного сообщения с вложенными файлами.
+-- Delete post attachemnts relations.
 create procedure sp_posts_files_delete_by_post
 (
-    post_id int -- Идентификатор сообщения.
+    post_id int -- Post id.
 )
 begin
     update posts_files set deleted = 1 where post = post_id;
@@ -2391,10 +2372,10 @@ begin
         values (_post, _image, _deleted);
 end|
 
--- Удаляет связи заданного сообщения с вложенными изображениями.
+-- Delete post images relations.
 create procedure sp_posts_images_delete_by_post
 (
-    post_id int -- Идентификатор сообщения.
+    post_id int -- Post id.
 )
 begin
     update posts_images set deleted = 1 where post = post_id;
@@ -2431,10 +2412,10 @@ begin
         values (_post, _link, _deleted);
 end|
 
--- Удаляет связи заданного сообщения с вложенными ссылками на изображения.
+-- Delete post links relations.
 create procedure sp_posts_links_delete_by_post
 (
-    post_id int -- Идентификатор сообщения.
+    post_id int -- Post id.
 )
 begin
     update posts_links set deleted = 1 where post = post_id;
@@ -2471,10 +2452,10 @@ begin
         values (_post, _video, _deleted);
 end|
 
--- Удаляет связи заданного сообщения с вложенными видео.
+-- Delete post videos relations.
 create procedure sp_posts_videos_delete_by_post
 (
-    post_id int -- Идентификатор сообщения.
+    post_id int -- Post id.
 )
 begin
     update posts_videos set deleted = 1 where post = post_id;
@@ -2495,14 +2476,14 @@ begin
     select post, video, deleted from posts_videos where post = post_id;
 end|
 
--- ----------------------
---  Работа с жалобами. --
--- ----------------------
+-- ------------
+--  Reports. --
+-- ------------
 
--- Добавляет жалобу.
+-- Add report.
 create procedure sp_reports_add
 (
-    _post int   -- Идентификатор сообщения.
+    _post int   -- Post id.
 )
 begin
     declare found int default 0;
@@ -2513,10 +2494,10 @@ begin
     end if;
 end|
 
--- Удаляет жалобу.
+-- Delete report.
 create procedure sp_reports_delete
 (
-    _post int   -- Идентификатор сообщения.
+    _post int   -- Post id.
 )
 begin
     delete from reports where post = _post;
