@@ -1189,19 +1189,11 @@ function db_files_get_by_post($link, $post_id) {
     return $files;
 }
 /**
- * Получает файлы, вложенные в нить.
- * @param MySQLi $link Связь с базой данных.
- * @param int|string $thread_id Идентификатор нити.
+ * Get thread files.
+ * @param MySQLi $link Link to database.
+ * @param int $thread_id Thread id.
  * @return array
- * Возвращает вложенные файлы:<br>
- * 'id' - Идентификатор.<br>
- * 'hash' - Хеш.<br>
- * 'name' - Имя.<br>
- * 'size' - Размер в байтах.<br>
- * 'thumbnail' - Уменьшенная копия.<br>
- * 'thumbnail_w' - Ширина уменьшенной копии.<br>
- * 'thumbnail_h' - Высота уменьшенной копии.<br>
- * 'attachment_type' - Тип вложения.
+ * files.
  */
 function db_files_get_by_thread($link, $thread_id) {
     $result = mysqli_query($link, "call sp_files_get_by_thread($thread_id)");
@@ -1211,7 +1203,7 @@ function db_files_get_by_thread($link, $thread_id) {
 
     $files = array();
     if (mysqli_affected_rows($link) > 0) {
-        while (($row = mysqli_fetch_assoc($result)) != null) {
+        while ( ($row = mysqli_fetch_assoc($result)) != null) {
             array_push($files,
                 array('id' => $row['id'],
                       'hash' => $row['hash'],
@@ -1674,24 +1666,13 @@ function db_images_get_by_post($link, $post_id) {
 	return $images;
 }
 /**
- * Получает изображения, вложенные в нить.
- * @param MySQLi $link Связь с базой данных.
- * @param int|string $thread_id Идентификатор нити.
+ * Get thread images.
+ * @param MySQLi $link Link to database.
+ * @param int $thread_id Thread id.
  * @return array
- * Возвращает вложенные изображения:<br>
- * 'id' - Идентификатор.<br>
- * 'hash' - Хеш.<br>
- * 'name' - Имя.<br>
- * 'widht' - Ширина.<br>
- * 'height' - Высота.<br>
- * 'size' - Размер в байтах.<br>
- * 'thumbnail' - Уменьшенная копия.<br>
- * 'thumbnail_w' - Ширина уменьшенной копии.<br>
- * 'thumbnail_h' - Высота уменьшенной копии.<br>
- * 'spoiler' - Флаг спойлера.<br>
- * 'attachment_type' - Тип вложения (изображение).
+ * images.
  */
-function db_images_get_by_thread($link, $thread_id) { // Java CC
+function db_images_get_by_thread($link, $thread_id) {
     $result = mysqli_query($link, "call sp_images_get_by_thread($thread_id)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
@@ -1955,22 +1936,13 @@ function db_links_get_by_post($link, $post_id) {
     return $links;
 }
 /**
- * Получает ссылки на изображения, вложенные в нить.
- * @param MySQLi $link Связь с базой данных.
- * @param int|string $thread_id Идентификатор нити.
+ * Get thread links.
+ * @param MySQLi $link Link to database.
+ * @param int $thread_id Thread id.
  * @return array
- * Возвращает ссылки на вложенные изображения:<br>
- * 'id' - Идентификатор.<br>
- * 'url' - URL.<br>
- * 'widht' - Ширина.<br>
- * 'height' - Высота.<br>
- * 'size' - Размер в байтах.<br>
- * 'thumbnail' - URL уменьшенной копии.<br>
- * 'thumbnail_w' - Ширина уменьшенной копии.<br>
- * 'thumbnail_h' - Высота уменьшенной копии.<br>
- * 'attachment_type'- Тип вложения.
+ * links.
  */
-function db_links_get_by_thread($link, $thread_id) { // Java CC
+function db_links_get_by_thread($link, $thread_id) {
     $result = mysqli_query($link, "call sp_links_get_by_thread($thread_id)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
@@ -2038,9 +2010,9 @@ function db_links_get_dangling($link) { // Java CC
     return $links;
 }
 
-/* ****************************
- * Работа с тегами макрочана. *
- ******************************/
+/* *****************
+ * Macrochan tags. *
+ *******************/
 
 /**
  * Добавляет тег макрочана.
@@ -2063,19 +2035,13 @@ function db_macrochan_tags_add($link, $name) { // Java CC
 	db_cleanup_link($link);
 }
 /**
- * Удаляет тег по заданному имени.
- * @param MySQLi $link Связь с базой данных.
- * @param string $name Имя.
+ * Delete tag.
+ * @param MySQLi $link Link to database.
+ * @param string $name Tag name.
  */
-function db_macrochan_tags_delete_by_name($link, $name) { // Java CC
-    if ($name == null) { // Пустая строка тоже null.
-        $name = 'null';
-    } else {
-        $name = '\'' . $name . '\'';
-    }
-
-    $result = mysqli_query($link,
-            'call sp_macrochan_tags_delete_by_name(' . $name . ')');
+function db_macrochan_tags_delete_by_name($link, $name) {
+    $name = $name == null ? 'null' : "'$name'";
+    $result = mysqli_query($link, "call sp_macrochan_tags_delete_by_name($name)");
 	if (!$result) {
 		throw new CommonException(mysqli_error($link));
     }
@@ -2107,37 +2073,31 @@ function db_macrochan_tags_get_all($link) {
     return $tags;
 }
 
-/* ***********************************
- * Работа с изображениями макрочана. *
- *************************************/
+/* *******************
+ * Macrochan images. *
+ *********************/
 
 /**
- * Добавляет изображение макрочана.
- * @param MySQLi $link Связь с базой данных.
- * @param string $name Имя.
- * @param string|int $width Ширина.
- * @param string|int $height Высота.
- * @param string|int $size Размер в байтах.
- * @param string $thumbnail Уменьшенная копия.
- * @param string|int $thumbnail_w Ширина уменьшенной копии.
- * @param string|int $thumbnail_h Высота уменьшенной копии.
+ * Add macrochan image.
+ * @param MySQLi $link Link to database.
+ * @param string $name Name.
+ * @param int $width Width.
+ * @param int $height Height.
+ * @param int $size Size in bytes.
+ * @param string $thumbnail Thumbnail.
+ * @param int $thumbnail_w Thumbnail width.
+ * @param int $thumbnail_h Thumbnail height.
  */
-function db_macrochan_images_add($link, $name, $width, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h) { // Java CC
-    if ($name == null) { // Пустая строка тоже null.
-        $name = 'null';
-    } else {
-        $name = '\'' . $name . '\'';
-    }
-    if ($thumbnail == null) { // Пустая строка тоже null.
-        $thumbnail = 'null';
-    } else {
-        $thumbnail = '\'' . $thumbnail . '\'';
-    }
-
-    $result = mysqli_query($link,
-            'call sp_macrochan_images_add(' . $name . ', ' . $width . ', '
-            . $height . ', ' . $size . ', ' . $thumbnail . ', ' . $thumbnail_w
-            . ', ' . $thumbnail_h . ')');
+function db_macrochan_images_add($link, $name, $width, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h) {
+    $name = $name == null ? 'null' : "'$name'";
+    $thumbnail = $thumbnail == null ? 'null' : "'$thumbnail'";
+    $result = mysqli_query($link, "call sp_macrochan_images_add($name,
+                                                                $width,
+                                                                $height,
+                                                                $size,
+                                                                $thumbnail,
+                                                                $thumbnail_w,
+                                                                $thumbnail_h)");
 	if (!$result) {
 		throw new CommonException(mysqli_error($link));
     }
@@ -2145,19 +2105,13 @@ function db_macrochan_images_add($link, $name, $width, $height, $size, $thumbnai
 	db_cleanup_link($link);
 }
 /**
- * Удаляет изображение по заданному имени.
- * @param MySQLi $link Связь с базой данных.
- * @param string $name Имя.
+ * Delete macrochan image.
+ * @param MySQLi $link Link to database.
+ * @param string $name Image name.
  */
-function db_macrochan_images_delete_by_name($link, $name) { // Java CC
-    if ($name == null) { // Пустая строка тоже null.
-        $name = 'null';
-    } else {
-        $name = '\'' . $name . '\'';
-    }
-
-    $result = mysqli_query($link,
-            'call sp_macrochan_images_delete_by_name(' . $name . ')');
+function db_macrochan_images_delete_by_name($link, $name) {
+    $name = $name == null ? 'null' : "'$name'";
+    $result = mysqli_query($link, "call sp_macrochan_images_delete_by_name($name)");
 	if (!$result) {
 		throw new CommonException(mysqli_error($link));
     }
@@ -2165,20 +2119,12 @@ function db_macrochan_images_delete_by_name($link, $name) { // Java CC
 	db_cleanup_link($link);
 }
 /**
- * Получает все изображения макрочана.
- * @param MySQLi $link Связь с базой данных.
+ * Get macrochan images.
+ * @param MySQLi $link Link to database.
  * @return array
- * Возвращает изображения макрочана:<p>
- * 'id' - Идентификатор.<br>
- * 'name' - Имя.<br>
- * 'width' - Ширина.<br>
- * 'height' - Высота.<br>
- * 'size' - Размер в байтах.<br>
- * 'thumbnail' - Уменьшенная копия.<br>
- * 'thumbnail_w' - Ширина уменьшенной копии.<br>
- * 'thumbnail_h' - Высота уменьшенной копии.</p>
+ * macrochan images.
  */
-function db_macrochan_images_get_all($link) { // Java CC
+function db_macrochan_images_get_all($link) {
     $result = mysqli_query($link, 'call sp_macrochan_images_get_all()');
     if (!$result) {
         throw new CommonException(mysqli_error($link));
@@ -2231,31 +2177,19 @@ function db_macrochan_images_get_random($link, $name) {
     return $images;
 }
 
-/* **************************************************
- * Работа со связями тегов и изображений макрочана. *
- ****************************************************/
+/* **********************************
+ * Macrochan tags images relations. *
+ ************************************/
 
 /**
- * Добавляет связь тега и изображения макрочана.
- * @param MySQLi $link Связь с базой данных.
- * @param string $tag_name Имя тега макрочана.
- * @param string $image_name Имя изображения макрочана.
+ * Add tag image relation.
+ * @param string $tag_name Macrochan tag name.
+ * @param string $image_name Macrochan image name.
  */
-function db_macrochan_tags_images_add($link, $tag_name, $image_name) { // Java CC
-    if ($tag_name == null) { // Пустая строка тоже null
-        $tag_name = 'null';
-    } else {
-        $tag_name = '\'' . $tag_name . '\'';
-    }
-    if ($image_name == null) { // Пустая строка тоже null
-        $image_name = 'null';
-    } else {
-        $image_name = '\'' . $image_name . '\'';
-    }
-
-    $result = mysqli_query($link,
-            'call sp_macrochan_tags_images_add(' . $tag_name . ', '
-            . $image_name . ')');
+function db_macrochan_tags_images_add($link, $tag_name, $image_name) {
+    $tag_name = $tag_name == null ? 'null' : "'$tag_name'";
+    $image_name = $image_name == null ? 'null' : "'$image_name'";
+    $result = mysqli_query($link, "call sp_macrochan_tags_images_add($tag_name, $image_name)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
@@ -2263,39 +2197,23 @@ function db_macrochan_tags_images_add($link, $tag_name, $image_name) { // Java C
     db_cleanup_link($link);
 }
 /**
- * Получает связь тега и изображением макрочана по заданному имени тега
- * и изображения.
- * @param MySQLi $link Связь с базой данных.
- * @param string $tag_name Имя тега макрочана.
- * @param string $image_name Имя изображения макрочана.
+ * Get tag image relation.
+ * @param MySQLi $link Link to database.
+ * @param string $tag_name Macrochan tag name.
+ * @param string $image_name Macrochan image name.
  * @return array|null
- * Возвращает связь тега и изображения макрочана:<p>
- * 'tag' - Идентификатор тега макрочана.<br>
- * 'image' - Идентификатор изображения макрочана.</p>
- * Или null, если связи не существует.
+ * tag image relation or NULL if it not exist.
  */
-function db_macrochan_tags_images_get($link, $tag_name, $image_name) { // Java CC
-    if ($tag_name == null) { // Пустая строка тоже null
-        $tag_name = 'null';
-    } else {
-        $tag_name = '\'' . $tag_name . '\'';
-    }
-    if ($image_name == null) { // Пустая строка тоже null
-        $image_name = 'null';
-    } else {
-        $image_name = '\'' . $image_name . '\'';
-    }
-
-    $result = mysqli_query($link,
-            'call sp_macrochan_tags_images_get(' . $tag_name . ', '
-            . $image_name . ')');
+function db_macrochan_tags_images_get($link, $tag_name, $image_name) {
+    $tag_name = $tag_name == null ? 'null' : "'$tag_name'";
+    $image_name = $image_name == null ? 'null' : "'$image_name'";
+    $result = mysqli_query($link, "call sp_macrochan_tags_images_get($tag_name, $image_name)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
 
     $tags_images = null;
-    if (mysqli_affected_rows($link) > 0
-            && ($row = mysqli_fetch_assoc($result)) !== null) {
+    if (mysqli_affected_rows($link) > 0 && ($row = mysqli_fetch_assoc($result)) != NULL) {
         $tags_images['tag'] = $row['tag'];
         $tags_images['image'] = $row['image'];
     }
@@ -2577,13 +2495,13 @@ function db_posts_get_all_numbers($link) { // Java CC
     return $posts;
 }
 /**
- * Получает сообщения с заданных досок.
- * @param MySQLi $link Связь с базой данных.
- * @param array $boards Доски.
+ * Get visible posts.
+ * @param MySQLi $link Link to database.
+ * @param array $boards Boards.
  * @return array
- * Возвращает сообщения с разверунтыми данными о доске и нити.
+ * posts.
  */
-function db_posts_get_by_boards($link, $boards) { // Java CC
+function db_posts_get_by_boards($link, $boards) {
     $posts = array();
     foreach ($boards as $b) {
         $result = mysqli_query($link, "call sp_posts_get_by_board({$b['id']})");
@@ -3677,40 +3595,29 @@ function db_threads_get_by_id($link, $id) {
     return $thread;
 }
 /**
- * Получает нить по номеру нити и идентификатору доски.
- * @param MySQLi $link Связь с базой данных.
- * @param string|int $board Идентификатор доски.
- * @param string|int $original_post Номер нити.
- * @return array|null
- * Возвращает нить:<br>
- * 'id' - Идентификатор.<br>
- * 'board' - Идентификатор доски.<br>
- * 'original_post' - Номер оригинального сообщения.<br>
- * 'bump_limit' - Специфичный для нити бамплимит.<br>
- * 'archived' - Флаг архивирования.<br>
- * 'sage' - Флаг поднятия нити.<br>
- * 'sticky' - Флаг закрепления.<br>
- * 'with_attachments' - Флаг вложений.<br>
- * Или null, если нить не найдена, помечена на удаленение или архивирование.
+ * Get thread.
+ * @param MySQLi $link Link to database.
+ * @param int $board Board id.
+ * @param int $original_post Thread number.
+ * @return array
+ * thread.
  */
-function db_threads_get_by_original_post($link, $board, $original_post) { // Java CC
+function db_threads_get_by_original_post($link, $board, $original_post) {
     $result = mysqli_query($link, "call sp_threads_get_by_original_post($board, $original_post)");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
 
     $thread = null;
-    if(mysqli_affected_rows($link) > 0) {
-		while(($row = mysqli_fetch_assoc($result)) != null) {
-			$thread = array('id' => $row['id'],
-                            'board' => $board,
-                            'original_post' => $row['original_post'],
-                            'bump_limit' => $row['bump_limit'],
-                            'sage' => $row['sage'],
-                            'sticky' => $row['sticky'],
-                            'with_attachments' => $row['with_attachments'],
-                            'archived' => $row['archived']);
-        }
+    if(mysqli_affected_rows($link) > 0 && ($row = mysqli_fetch_assoc($result)) != NULL) {
+        $thread = array('id' => $row['id'],
+                        'board' => $board,
+                        'original_post' => $row['original_post'],
+                        'bump_limit' => $row['bump_limit'],
+                        'sage' => $row['sage'],
+                        'sticky' => $row['sticky'],
+                        'with_attachments' => $row['with_attachments'],
+                        'archived' => $row['archived']);
     }
 
     mysqli_free_result($result);
@@ -4059,15 +3966,16 @@ function db_threads_get_visible_count($link, $user_id, $board_id) {
     }
 }
 /**
- * Перемещает нить.
- * @param MySQLi $link Связь с базой данных.
- * @param string|int $thread_id Идентификатор нити, которую нужно переместить.
- * @param string|int $board_id Идентификатор доски, на которую нужно переместить нить.
+ * Move thread.
+ * @param MySQLi $link Link to database.
+ * @param int $thread_id Thread id.
+ * @param int $board_id Board id.
  */
 function db_threads_move_thread($link, $thread_id, $board_id) {
     if (!mysqli_query($link, "call sp_threads_move_thread($thread_id, $board_id)")) {
         throw new CommonException(mysqli_error($link));
     }
+
     db_cleanup_link($link);
 }
 
@@ -4535,16 +4443,11 @@ function db_videos_get_by_post($link, $post_id) {
     return $videos;
 }
 /**
- * Получает видео, вложенные в нить.
- * @param MySQLi $link Связь с базой данных.
- * @param int|string $thread_id Идентификатор нити.
+ * Get thread vodeos.
+ * @param MySQLi $link Link to database.
+ * @param int $thread_id Thread id.
  * @return array
- * Возвращает вложенное видео:<br>
- * 'id' - Идентификатор.<br>
- * 'code' - HTML-код.<br>
- * 'widht' - Ширина.<br>
- * 'height' - Высота.<br>
- * 'attachment_type' - Тип вложения.
+ * vodeos.
  */
 function db_videos_get_by_thread($link, $thread_id) {
     $result = mysqli_query($link, "call sp_videos_get_by_thread($thread_id)");

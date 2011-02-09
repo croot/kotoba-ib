@@ -1,33 +1,32 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
 
-// Основной скрипт модератора.
+// Moderators main script.
 
 require '../config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/logging.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
 
 try {
+    // Initialization.
     kotoba_session_start();
+    if (Config::LANGUAGE != $_SESSION['language']) {
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/logging.php";
+    }
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup();
 
-    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+    // Check if client banned.
+    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
-    if (($ban = bans_check($ip)) !== false) {
+    if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
         session_destroy();
@@ -76,7 +75,7 @@ try {
             foreach ($boards as $board) {
                 if ($_POST['filter_board'] == $board['id']) {
                     array_push($filter_boards, $board);
-                    break;  // Пока выбрать можно только одну.
+                    break;  // Only one yet.
                 }
             }
         }
@@ -86,7 +85,7 @@ try {
             $filter_date_time = date_format(date_create($_POST['filter_date_time']), 'U');
 
             // Filters posts whose datetime equal or greater than defined value.
-            $fileter = function($filter_date_time, $attachments_only, $post) {
+            $fileter = function($post, $filter_date_time, $attachments_only) {
                 date_default_timezone_set(Config::DEFAULT_TIMEZONE);
                 if (date_format(date_create($post['date_time']), 'U') >= $filter_date_time) {
                     if (!$attachments_only || $attachments_only && $post['attachments_count'] > 0) {
@@ -229,6 +228,7 @@ try {
     $output .= $smarty->fetch('moderate_footer.tpl');
     echo $output;
 
+    // Cleanup.
     DataExchange::releaseResources();
     Logging::close_log();
 

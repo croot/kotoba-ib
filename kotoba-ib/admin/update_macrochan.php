@@ -1,35 +1,32 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
 
-// Скрипт обновления данных с макрочана.
+// Update macrochan data from database.
 
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require Config::ABS_PATH . '/lib/logging.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
 require Config::ABS_PATH . '/lib/db.php';
 require Config::ABS_PATH . '/lib/misc.php';
 
 try {
     // Initialization.
     kotoba_session_start();
+    if (Config::LANGUAGE != $_SESSION['language']) {
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/logging.php";
+    }
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup();
 
-    // Check if remote host was banned.
-    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+    // Check if client banned.
+    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
-    if (($ban = bans_check($ip)) !== false) {
+    if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
         session_destroy();
@@ -41,103 +38,76 @@ try {
     if (!is_admin()) {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
     }
-    Logging::write_msg(Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log',
-            Logging::$messages['ADMIN_FUNCTIONS_UPDATE_MACROCHAN'],
-            $_SESSION['user'], $_SERVER['REMOTE_ADDR']);
-    Logging::close_log();
+    call_user_func(Logging::$f['UPDATE_MACROCHAN_USE']);
 
-    // download data
-
+    // Download data.
     include Config::ABS_PATH . '/res/macrochan_data.php';
 
-    // Удалим теги, которых больше нет.
-    $tags = macrochan_tags_get_all();
+    // Remove tags what not exist anymore.
     $tags_removed = 0;
-    foreach ($tags as $tag) {
-        $found = false;
-        foreach ($MACROCHAN_TAGS as $t) {
-            if ($tag['name'] == $t[1]) {
-                $found = true;
-                break;
-            }
-        }
-        if (!$found) {
+    $tag_names = kotoba_array_column($MACROCHAN_TAGS, 1);
+    foreach (macrochan_tags_get_all() as $tag) {
+        if (!in_array($tag['name'], $tag_names)) {
             macrochan_tags_delete_by_name($tag['name']);
             $tags_removed++;
         }
     }
     echo "Tags removed: $tags_removed<br>\n";
 
-    // Добавим теги, которых нет у нас.
-    $tags = macrochan_tags_get_all();
+    // Add tags what we havent.
     $tags_added = 0;
-    foreach ($MACROCHAN_TAGS as $t) {
-        $found = false;
-        foreach ($tags as $tag) {
-            if ($tag['name'] == $t[1]) {
-                $found = true;
-                break;
-            }
-        }
-        if (!$found) {
-            macrochan_tags_add($t[1]);
+    $tag_names = kotoba_array_column(macrochan_tags_get_all(), 1);
+    foreach ($MACROCHAN_TAGS as $tag) {
+        if (!in_array($tag[1], $tag_names)) {
+            macrochan_tags_add($tag[1]);
             $tags_added++;
         }
     }
     echo "Tags added: $tags_added<br>\n";
 
-    // Удалим изображения, которых больше нет.
-    $images = macrochan_images_get_all();
+    // Remove images what not exist anymore.
     $images_removed = 0;
-    foreach ($images as $image) {
-        $found = false;
-        foreach ($MACROCHAN_IMAGES as $i) {
-            if ($image['name'] == $i[1]) {
-                $found = true;
-                break;
-            }
-        }
-        if (!$found) {
+    $image_names = kotoba_array_column($MACROCHAN_IMAGES, 1);
+    foreach (macrochan_images_get_all() as $image) {
+        if (!in_array($image['name'], $image_names)) {
             macrochan_images_delete_by_name($image['name']);
             $images_removed++;
         }
     }
     echo "Images removed: $images_removed<br>\n";
 
-    // Добавим изображения, которых у нас нет.
-    $images = macrochan_images_get_all();
+    // Add macrochan images what we havent.
     $images_added = 0;
-    foreach ($MACROCHAN_IMAGES as $i) {
-        $found = false;
-        foreach ($images as $image) {
-            if ($image['name'] == $i[1]) {
-                $found = true;
-                break;
-            }
-        }
-        if (!$found) {
-            macrochan_images_add($i[1], $i[2], $i[3], $i[4], $i[5], $i[6], $i[7]);
+    $image_names = kotoba_array_column(macrochan_images_get_all(), 1);
+    foreach ($MACROCHAN_IMAGES as $image) {
+        if (!in_array($image[1], $image_names)) {
+            macrochan_images_add($image[1],
+                                 $image[2],
+                                 $image[3],
+                                 $image[4],
+                                 $image[5],
+                                 $image[6],
+                                 $image[7]);
             $images_added++;
         }
     }
     echo "Images added: $images_added<br>\n";
 
-    // Добавим новые связи тегов с изображениями.
+    // Add new tags images relations.
     $relations_added = 0;
     foreach ($MACROCHAN_TAGS_IMAGES as $ti) {
 
-        // Найдём имя тега.
-        foreach ($MACROCHAN_TAGS as $t) {
-            if ($ti[0] == $t[0]) {
+        // Find tag name.
+        foreach ($MACROCHAN_TAGS as $tag) {
+            if ($ti[0] == $tag[0]) {
 
-                // Найдём имя изображения.
-                foreach ($MACROCHAN_IMAGES as $i) {
-                    if ($ti[1] == $i[0]) {
+                // Find image name.
+                foreach ($MACROCHAN_IMAGES as $image) {
+                    if ($ti[1] == $image[0]) {
 
-                        // Проверим, нет ли у нас уже связи этого тега с этим
-                        // изображением. Если нет, то добавим связь.
-                        if (macrochan_tags_images_get($t[1], $i[1]) === null) {
-                            macrochan_tags_images_add($t[1], $i[1]);
+                        // If we havent such relation add it.
+                        if (macrochan_tags_images_get($tag[1], $image[1]) === null) {
+                            macrochan_tags_images_add($tag[1], $image[1]);
                             $relations_added++;
                         }
                     }
@@ -147,7 +117,10 @@ try {
     }
     echo "Tag Image relations added: $relations_added<br>\n";
 
+    // Cleanup.
 	DataExchange::releaseResources();
+
+    exit(0);
 } catch (Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();

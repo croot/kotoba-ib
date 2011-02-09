@@ -105,7 +105,7 @@ Logging::$f['MODERATE_USE'] = function () {
 };
 
 Logging::$f['MOVE_THREAD_USE'] = function () {
-    Logging::write_msg('Использован перенос нити.');
+    Logging::write_msg('Move thread script used.');
 };
 
 Logging::$f['REPORTS_USE'] = function () {

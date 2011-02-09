@@ -21,6 +21,7 @@ Variables:
 
 {include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
 
+<div class="logo">{$ib_name}</div>
 <p>Version {$version}. Last modification: {$last_modification}.</p>
 <p>{$news_html}</p>
 {include file='footer.tpl'}

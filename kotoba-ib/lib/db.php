@@ -289,15 +289,12 @@ function attachments_get_by_posts($posts) {
     return $attachments;
 }
 /**
- * Получает вложения нити.
- * @param int|string $thread_id Идентификатор нити.
+ * Get thread attachments.
+ * @param int $thread_id Thread id.
  * @return array
- * Возвращает вложения:<br>
- * 'id' - Идентификатор.<br>
- * ... - Атрибуты, зависящие от конкретного типа вложения.<br>
- * 'attachment_type' - Тип вложения.
+ * attachments.
  */
-function attachments_get_by_thread($thread_id) { // Java CC
+function attachments_get_by_thread($thread_id) {
     $attachments = array();
     $tmp = null;
 
@@ -640,10 +637,10 @@ function boards_check_default_name($name) {
 	return $name;
 }
 /**
- * Проверяет корректность идентификатора доски.
- * @param mixed $id Идентификатор доски.
+ * Check board id.
+ * @param mixed $id Board id.
  * @return int
- * Возвращает безопасный для использования идентификатор доски.
+ * safe board id.
  */
 function boards_check_id($id) {
     return kotoba_intval($id);
@@ -1317,9 +1314,9 @@ function links_add($url,
                         $thumbnail_h);
 }
 
-/******************************
- * Работа с тегами макрочана. *
- ******************************/
+/* *****************
+ * Macrochan tags. *
+ *******************/
 
 /**
  * Добавляет тег макрочана.
@@ -1344,10 +1341,10 @@ function macrochan_tags_check($name) {
     throw new FormatException(FormatException::$messages['MACROCHAN_TAG_NAME']);
 }
 /**
- * Удаляет тег по заданному имени.
- * @param string $name Имя.
+ * Delete tag.
+ * @param string $name Tag name.
  */
-function macrochan_tags_delete_by_name($name) { // Java CC
+function macrochan_tags_delete_by_name($name) {
     db_macrochan_tags_delete_by_name(DataExchange::getDBLink(), $name);
 }
 /**
@@ -1359,46 +1356,48 @@ function macrochan_tags_get_all() {
     return db_macrochan_tags_get_all(DataExchange::getDBLink());
 }
 
-/*************************************
- * Работа с изображениями макрочана. *
- *************************************/
+/* *******************
+ * Macrochan images. *
+ *********************/
 
 /**
- * Добавляет изображение макрочана.
- * @param string $name Имя.
- * @param string|int $width Ширина.
- * @param string|int $height Высота.
- * @param string|int $size Размер в байтах.
- * @param string $thumbnail Уменьшенная копия.
- * @param string|int $thumbnail_w Ширина уменьшенной копии.
- * @param string|int $thumbnail_h Высота уменьшенной копии.
+ * Add macrochan image.
+ * @param string $name Name.
+ * @param int $width Width.
+ * @param int $height Height.
+ * @param int $size Size in bytes.
+ * @param string $thumbnail Thumbnail.
+ * @param int $thumbnail_w Thumbnail width.
+ * @param int $thumbnail_h Thumbnail height.
  */
-function macrochan_images_add($name, $width, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h) { // Java CC
-    db_macrochan_images_add(DataExchange::getDBLink(), $name, $width, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h);
+function macrochan_images_add($name, $width, $height, $size, $thumbnail, $thumbnail_w, $thumbnail_h) {
+    db_macrochan_images_add(DataExchange::getDBLink(),
+                            $name,
+                            $width,
+                            $height,
+                            $size,
+                            $thumbnail,
+                            $thumbnail_w,
+                            $thumbnail_h);
 }
 /**
- * Удаляет изображение по заданному имени.
- * @param string $name Имя.
+ * Delete macrochan image.
+ * @param string $name Image name.
  */
-function macrochan_images_delete_by_name($name) { // Java CC
+function macrochan_images_delete_by_name($name) {
     db_macrochan_images_delete_by_name(DataExchange::getDBLink(), $name);
 }
 /**
- * Получает все изображения макрочана.
+ * Get macrochan images.
  * @return array
- * Возвращает изображения макрочана:<p>
- * 'id' - Идентификатор.<br>
- * 'name' - Имя.<br>
- * 'width' - Ширина.<br>
- * 'height' - Высота.<br>
- * 'size' - Размер в байтах.<br>
- * 'thumbnail' - Уменьшенная копия.<br>
- * 'thumbnail_w' - Ширина уменьшенной копии.<br>
- * 'thumbnail_h' - Высота уменьшенной копии.</p>
+ * macrochan images.
  */
-function macrochan_images_get_all() { // Java CC
+function macrochan_images_get_all() {
     return db_macrochan_images_get_all(DataExchange::getDBLink());
 }
+/**
+ * 
+ */
 function macrochan_images_get_by_tag() {
     throw new CommonException('No Implemented yet.');
 }
@@ -1412,33 +1411,27 @@ function macrochan_images_get_random($name) {
     return db_macrochan_images_get_random(DataExchange::getDBLink(), $name);
 }
 
-/****************************************************
- * Работа со связями тегов и изображений макрочана. *
- ****************************************************/
+/* **********************************
+ * Macrochan tags images relations. *
+ ************************************/
 
 /**
- * Добавляет связь тега и изображения макрочана.
- * @param string $tag_name Имя тега макрочана.
- * @param string $image_name Имя изображения макрочана.
+ * Add tag image relation.
+ * @param string $tag_name Macrochan tag name.
+ * @param string $image_name Macrochan image name.
  */
-function macrochan_tags_images_add($tag_name, $image_name) { // Java CC
-    db_macrochan_tags_images_add(DataExchange::getDBLink(), $tag_name,
-            $image_name);
+function macrochan_tags_images_add($tag_name, $image_name) {
+    db_macrochan_tags_images_add(DataExchange::getDBLink(), $tag_name, $image_name);
 }
 /**
- * Получает связь тега и изображением макрочана по заданному имени тега
- * и изображения.
- * @param string $tag_name Имя тега макрочана.
- * @param string $image_name Имя изображения макрочана.
+ * Get tag image relation.
+ * @param string $tag_name Macrochan tag name.
+ * @param string $image_name Macrochan image name.
  * @return array|null
- * Возвращает связь тега и изображения макрочана:<p>
- * 'tag' - Идентификатор тега макрочана.<br>
- * 'image' - Идентификатор изображения макрочана.</p>
- * Или null, если связи не существует.
+ * tag image relation or NULL if it not exist.
  */
-function macrochan_tags_images_get($tag_name, $image_name) { // Java CC
-    return db_macrochan_tags_images_get(DataExchange::getDBLink(), $tag_name,
-            $image_name);
+function macrochan_tags_images_get($tag_name, $image_name) {
+    return db_macrochan_tags_images_get(DataExchange::getDBLink(), $tag_name, $image_name);
 }
 /**
  * Получает все связи тегов и изображениями макрочана.
@@ -1780,23 +1773,19 @@ function posts_get_by_thread($thread_id)
 	return db_posts_get_by_thread(DataExchange::getDBLink(), $thread_id);
 }
 /**
- * Получает отфильтрованные сообщения с заданных досок.
- * @param array $boards Доски.
- * @param Object $filter Фильтр (лямбда).
+ * Get visible posts and filter it.
+ * @param array $boards Boards.
+ * @param Object $filter Filter function. First argument is post.
  * @return array
- * Возвращает сообщения с разверунтыми данными о доске и нити.
+ * posts.
  */
-function posts_get_filtred_by_boards($boards, $filter) { // Java CC
+function posts_get_filtred_by_boards($boards, $filter) {
     $posts = db_posts_get_by_boards(DataExchange::getDBLink(), $boards);
     $filtred_posts = array();
-    $filter_args = array();
-    $filter_argn = 0;
-    $n = func_num_args();
-    for ($i = 2; $i < $n; $i++) {   // Пропустим первые два аргумента фукнции.
-        $filter_args[$filter_argn++] = func_get_arg($i);
-    }
+    $filter_args = array_slice(func_get_args(), 2 - 1, func_num_args());
+    $filter_args[0] = NULL;
     foreach ($posts as $post) {
-        $filter_args[$filter_argn] = $post;
+        $filter_args[0] = $post;
         if (call_user_func_array($filter, $filter_args)) {
             array_push($filtred_posts, $post);
         }
@@ -2188,20 +2177,11 @@ function threads_get_by_id($id) {
     return db_threads_get_by_id(DataExchange::getDBLink(), $id);
 }
 /**
- * Получает нить по номеру нити и идентификатору доски.
- * @param string|int $board Идентификатор доски.
- * @param string|int $original_post Номер нити.
+ * Get thread.
+ * @param int $board Board id.
+ * @param int $original_post Thread number.
  * @return array
- * Возвращает нить:<br>
- * 'id' - Идентификатор.<br>
- * 'board' - Идентификатор доски.<br>
- * 'original_post' - Номер оригинального сообщения.<br>
- * 'bump_limit' - Специфичный для нити бамплимит.<br>
- * 'archived' - Флаг архивирования.<br>
- * 'sage' - Флаг поднятия нити.<br>
- * 'sticky' - Флаг закрепления.<br>
- * 'with_attachments' - Флаг вложений.<br>
- * Или null, если нить не найдена, помечена на удаленение или архивирование.
+ * thread.
  */
 function threads_get_by_original_post($board, $original_post) {
     return db_threads_get_by_original_post(DataExchange::getDBLink(), $board, $original_post);
@@ -2325,9 +2305,9 @@ function threads_get_visible_count($user_id, $board_id) {
     return db_threads_get_visible_count(DataExchange::getDBLink(), $user_id, $board_id);
 }
 /**
- * Перемещает нить.
- * @param string|int $thread_id Идентификатор нити, которую нужно переместить.
- * @param string|int $board_id Идентификатор доски, на которую нужно переместить нить.
+ * Move thread.
+ * @param int $thread_id Thread id.
+ * @param int $board_id Board id.
  */
 function threads_move_thread($thread_id, $board_id) {
     db_threads_move_thread(DataExchange::getDBLink(), $thread_id, $board_id);
