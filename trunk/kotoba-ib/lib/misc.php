@@ -122,6 +122,18 @@ function locale_setup() {
  ***********/
 
 /**
+ * Get certain column of 2nd dimensinal array.
+ * @param array $src Source array.
+ * @param int $col Column index.
+ */
+function kotoba_array_column($src, $col) {
+    $result = array();
+    foreach ($src as $row) {
+        array_push($result, $row[$col]);
+    }
+    return $result;
+}
+/**
  * Load user settings.
  * @param string $keyword Keyword hash.
  */

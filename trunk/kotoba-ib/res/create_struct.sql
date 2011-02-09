@@ -354,24 +354,24 @@ create table macrochan_tags             -- Macrochan tags.
 )
 engine=InnoDB;
 
-create table macrochan_images           -- Изображения макрочана.
+create table macrochan_images           -- Macrochan images.
 (
-    id int not null auto_increment,     -- Идентификатор.
-    name varchar(256) not null,         -- Имя.
-    width int not null,                 -- Ширина.
-    height int not null,                -- Высота.
-    size int not null,                  -- Размер в байтах.
-    thumbnail varchar(256) not null,    -- Уменьшенная копия.
-    thumbnail_w int not null,           -- Ширина уменьшенной копии.
-    thumbnail_h int not null,           -- Высота уменьшенной копии.
+    id int not null auto_increment,     -- Id.
+    name varchar(256) not null,         -- Name.
+    width int not null,                 -- Width.
+    height int not null,                -- Height.
+    size int not null,                  -- Size in bytes.
+    thumbnail varchar(256) not null,    -- Thumbnail.
+    thumbnail_w int not null,           -- Thumbnail width.
+    thumbnail_h int not null,           -- Thumbnail height.
     unique key (id)
 )
 engine=InnoDB;
 
-create table macrochan_tags_images  -- Связь тегов и изображений макрочана.
+create table macrochan_tags_images  -- Macrochan tags images relations.
 (
-    tag int not null,               -- Идентификатор тега макрочана.
-    image int not null,             -- Идентификатор изображения макрочана.
+    tag int not null,               -- Macrochan tag id.
+    image int not null,             -- Macrochan image id.
     unique key (tag, image),
     constraint foreign key (tag) references macrochan_tags (id) on delete restrict on update restrict,
     constraint foreign key (image) references macrochan_images (id) on delete restrict on update restrict

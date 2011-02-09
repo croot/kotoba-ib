@@ -1004,10 +1004,10 @@ begin
         join files f on f.id = pf.file and pf.post = post_id;
 end|
 
--- Выбирает файлы, вложенные в нить.
+-- Get thread files.
 create procedure sp_files_get_by_thread
 (
-    thread_id int -- Идентификатор нити.
+    thread_id int -- Thread id.
 )
 begin
     select f.id, f.hash, f.name, f.size, f.thumbnail, f.thumbnail_w, f.thumbnail_h
@@ -1334,10 +1334,10 @@ begin
         join images i on i.id = pi.image and pi.post = post_id;
 end|
 
--- Выбирает изображения, вложенные в нить.
+-- Get thread mages.
 create procedure sp_images_get_by_thread
 (
-    thread_id int -- Идентификатор нити.
+    thread_id int -- Thread id.
 )
 begin
     select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail, i.thumbnail_w, i.thumbnail_h, i.spoiler
@@ -1501,10 +1501,10 @@ begin
         join links l on l.id = pl.link and pl.post = post_id;
 end|
 
--- Выбирает ссылки на изображения, вложенные в нить.
+-- Get thread links.
 create procedure sp_links_get_by_thread
 (
-    thread_id int -- Идентификатор нити.
+    thread_id int -- Thread id.
 )
 begin
     select l.id, l.url, l.widht, l.height, l.size, l.thumbnail, l.thumbnail_w,
@@ -1523,29 +1523,23 @@ begin
         where pl.post is null;
 end|
 
--- -----------------------------
--- Работа с тегами макрочана. --
--- -----------------------------
+-- ------------------
+-- Macrochan tags. --
+-- ------------------
 
--- Добавляет тег макрочана.
---
--- Аргументы:
--- _name - Имя.
+-- Add tag.
 create procedure sp_macrochan_tags_add
 (
-    _name varchar(256)
+    _name varchar(256)  -- Tag name.
 )
 begin
     insert into macrochan_tags (name) values (_name);
 end|
 
--- Удаляет тег по заданному имени.
---
--- Аргументы:
--- _name - Имя.
+-- Delete tag.
 create procedure sp_macrochan_tags_delete_by_name
 (
-    _name varchar(256)
+    _name varchar(256)  -- Tag name.
 )
 begin
     declare _id int default null;
@@ -1563,33 +1557,30 @@ begin
     select id, name from macrochan_tags;
 end|
 
--- -----------------------------
--- Работа с тегами макрочана. --
--- -----------------------------
+-- --------------------
+-- Macrochan images. --
+-- --------------------
 
--- Добавляет изображение макрочана.
+-- Add macrochan image.
 create procedure sp_macrochan_images_add
 (
-    _name varchar(256),         -- Имя.
-    _width int,                 -- Ширина.
-    _height int,                -- Высота.
-    _size int,                  -- Размер в байтах.
-    _thumbnail varchar(256),    -- Уменьшенная копия.
-    _thumbnail_w int,           -- Ширина уменьшенной копии.
-    _thumbnail_h int            -- Высота уменьшенной копии.
+    _name varchar(256),         -- Name.
+    _width int,                 -- Width.
+    _height int,                -- Height.
+    _size int,                  -- Size in bytes.
+    _thumbnail varchar(256),    -- Thumbnail.
+    _thumbnail_w int,           -- Thumbnail width.
+    _thumbnail_h int            -- Thumbnail height.
 )
 begin
     insert into macrochan_images (name, width, height, size, thumbnail, thumbnail_w, thumbnail_h)
         values (_name, _width, _height, _size, _thumbnail, _thumbnail_w, _thumbnail_h);
 end|
 
--- Удаляет изображение по заданному имени.
---
--- Аргументы:
--- _name - Имя.
+-- Delete macrochan image.
 create procedure sp_macrochan_images_delete_by_name
 (
-    _name varchar(256)
+    _name varchar(256)  -- Image name.
 )
 begin
     declare _id int default null;
@@ -1601,10 +1592,17 @@ begin
     end if;
 end|
 
--- Выбирает все изображения макрочана.
+-- Select macrochan images.
 create procedure sp_macrochan_images_get_all ()
 begin
-    select id, name, width, height, size, thumbnail, thumbnail_w, thumbnail_h
+    select id,
+           name,
+           width,
+           height,
+           size,
+           thumbnail,
+           thumbnail_w,
+           thumbnail_h
         from macrochan_images;
 end|
 
@@ -1629,15 +1627,15 @@ begin
         limit 1;
 end|
 
--- ---------------------------------------------------
--- Работа со связями тегов и изображений макрочана. --
--- ---------------------------------------------------
+-- -----------------------------------
+-- Macrochan tags images relations. --
+-- -----------------------------------
 
--- Добавляет связь тега и изображения макрочана.
+-- Add tag image relation.
 create procedure sp_macrochan_tags_images_add
 (
-    tag_name varchar(256),          -- Имя тега макрочана.
-    image_name varchar(256)         -- Имя изображения макрочана.
+    tag_name varchar(256),  -- Macrochan tag name.
+    image_name varchar(256) -- Macrochan image name.
 )
 begin
     declare tag_id int default null;
@@ -1651,18 +1649,17 @@ begin
     end if;
 end|
 
--- Выбирает связь тега и изображением макрочана по заданному имени тега
--- и изображения.
+-- Get tag image relation.
 create procedure sp_macrochan_tags_images_get
 (
-    tag_name varchar(256),          -- Имя тега макрочана.
-    image_name varchar(256)         -- Имя изображения макрочана.
+    tag_name varchar(256),  -- Macrochan tag name.
+    image_name varchar(256) -- Macrochan image name.
 )
 begin
     select ti.tag, ti.image
-    from macrochan_tags_images ti
-    join macrochan_tags t on ti.tag = t.id and t.name = tag_name
-    join macrochan_images i on ti.image = i.id and i.name = image_name;
+        from macrochan_tags_images ti
+        join macrochan_tags t on ti.tag = t.id and t.name = tag_name
+        join macrochan_images i on ti.image = i.id and i.name = image_name;
 end|
 
 -- Выбирает все связи тегов и изображениями макрочана.
@@ -1875,10 +1872,10 @@ begin
         order by p.`number`, t.`original_post`, b.`name` asc;
 end|
 
--- Выбирает сообщения с заданной доски.
+-- Get visible posts.
 create procedure sp_posts_get_by_board
 (
-    board_id int    -- Идентификатор доски.
+    board_id int    -- Board id.
 )
 begin
     select p.id as post_id,
@@ -2785,11 +2782,11 @@ begin
         where t.id = _id and t.deleted = 0 and t.archived = 0;
 end|
 
--- Выбирает нить по номеру нити и идентификатору доски.
+-- Get thread.
 create procedure sp_threads_get_by_original_post
 (
-    _board int,         -- Идентификатор доски.
-    _original_post int  -- Номер оригинального сообщения.
+    _board int,         -- Board id.
+    _original_post int  -- Thread number.
 )
 begin
     select id, original_post, bump_limit, sticky, archived, sage, with_attachments
@@ -3280,11 +3277,11 @@ begin
         group by t.id) q;
 end|
 
--- Перемещает нить.
+-- Move thread.
 create procedure sp_threads_move_thread
 (
-    _id int,    -- Идентификатор нити, которую нужно переместить.
-    _board int  -- Идентификатор доски, на которую нужно переместить нить.
+    _id int,    -- Thread id.
+    _board int  -- Board id.
 )
 begin
     declare _bump_limit int;
@@ -3926,10 +3923,10 @@ begin
         join videos v on v.id = pv.video and pv.post = post_id;
 end|
 
--- Выбирает видео, вложенные в нить.
+-- Get thread vodeos.
 create procedure sp_videos_get_by_thread
 (
-    thread_id int -- Идентификатор нити.
+    thread_id int -- Thread id.
 )
 begin
     select v.id, v.code, v.widht, v.height
