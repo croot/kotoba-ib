@@ -20,6 +20,7 @@ Variables:
 
 {include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
 
+<br>
 <form action="{$DIR_PATH}/admin/reports.php" method="post">
     <table border="1">
     <tr>
@@ -69,5 +70,6 @@ Variables:
     {/section}
     </table>
 </form>
-<br><br><a href="{$DIR_PATH}/">На главную</a>
+<br>
+<a href="{$DIR_PATH}/">На главную</a>
 {include file='footer.tpl'}

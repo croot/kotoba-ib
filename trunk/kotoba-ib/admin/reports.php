@@ -139,6 +139,8 @@ try {
         }
     }
 
+    $smarty->assign('show_control', is_admin() || is_mod());
+    $smarty->assign('is_admin', is_admin());
     $smarty->assign('reported_posts', $reported_posts);
     $smarty->display('reports.tpl');
 
