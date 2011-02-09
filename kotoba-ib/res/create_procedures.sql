@@ -1956,9 +1956,45 @@ create procedure sp_posts_get_reported_by_board
     board_id int    -- Board id.
 )
 begin
-    select p.id, p.thread, t.original_post as thread_number, p.board,
-            b.name as board_name, p.number, p.password, p.name, p.tripcode,
-            p.ip, p.subject, p.date_time, p.text, p.sage
+    select p.id as post_id,
+           p.number as post_number,
+           p.password as post_password,
+           p.name as post_name,
+           p.tripcode as post_tripcode,
+           p.ip as post_ip,
+           p.subject as post_subject,
+           p.date_time as post_date_time,
+           p.text as post_text,
+           p.sage as post_sage,
+           p.user as post_user,
+
+           b.id as board_id,
+           b.name as board_name,
+           b.title as board_title,
+           b.annotation as board_annotation,
+           b.bump_limit as board_bump_limit,
+           b.force_anonymous as board_force_anonymous,
+           b.default_name as board_default_name,
+           b.with_attachments as board_with_attachments,
+           b.enable_macro as board_enable_macro,
+           b.enable_youtube as board_enable_youtube,
+           b.enable_captcha as board_enable_captcha,
+           b.enable_translation as board_enable_translation,
+           b.enable_geoip as board_enable_geoip,
+           b.enable_shi as board_enable_shi,
+           b.enable_postid as board_enable_postid,
+           b.same_upload as board_same_upload,
+           b.popdown_handler as board_popdown_handler,
+           b.category as board_category,
+
+           t.id as thread_id,
+           t.board as thread_board,
+           t.original_post as thread_original_post,
+           t.bump_limit as thread_bump_limit,
+           t.sage as thread_sage,
+           t.sticky as thread_sticky,
+           t.with_attachments as thread_with_attachments
+
         from posts p
         join threads t on t.id = p.thread
         join boards b on b.id = p.board
