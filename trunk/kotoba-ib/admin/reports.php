@@ -43,7 +43,9 @@ try {
 
     $boards = boards_get_all();
     $reported_posts = array();
+    $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('boards', $boards);
+    $smarty->assign('is_admin', is_admin());
     $smarty->assign('ATTACHMENT_TYPE_FILE', Config::ATTACHMENT_TYPE_FILE);
     $smarty->assign('ATTACHMENT_TYPE_LINK', Config::ATTACHMENT_TYPE_LINK);
     $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
@@ -139,8 +141,6 @@ try {
         }
     }
 
-    $smarty->assign('show_control', is_admin() || is_mod());
-    $smarty->assign('is_admin', is_admin());
     $smarty->assign('reported_posts', $reported_posts);
     $smarty->display('reports.tpl');
 

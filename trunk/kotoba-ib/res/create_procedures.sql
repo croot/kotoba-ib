@@ -1118,7 +1118,7 @@ begin
     delete from groups where id = _id;
 end|
 
--- Выбирает все группы.
+-- Select groups.
 create procedure sp_groups_get_all ()
 begin
     select id, name from groups order by id;
@@ -3604,102 +3604,90 @@ begin
 	order by q1.last_post_num desc;
 end|
 
--- ----------------------------------------------
---  Работа с обработчиками загружаемых файлов. --
--- ----------------------------------------------
+-- --------------------
+--  Upload handlers. --
+-- --------------------
 
--- Добавляет обработчик загружаемых файлов.
---
--- Аргументы:
--- _name - Имя фукнции обработчика загружаемых файлов.
+-- Add upload handler.
 create procedure sp_upload_handlers_add
 (
-	_name varchar(50)
+    _name varchar(50)   -- Function name.
 )
 begin
-	insert into upload_handlers (name) values (_name);
+    insert into upload_handlers (name) values (_name);
 end|
 
--- Удаляет обработчик загружаемых файлов.
+-- Delete upload handelr.
 create procedure sp_upload_handlers_delete
 (
-	_id int
+    _id int -- Id.
 )
 begin
-	delete from upload_handlers where id = _id;
+    delete from upload_handlers where id = _id;
 end|
 
--- Выбирает все обработчики загружаемых файлов.
+-- Select upload handlers.
 create procedure sp_upload_handlers_get_all ()
 begin
-	select id, name from upload_handlers;
+    select id, name from upload_handlers;
 end|
 
--- ---------------------------------------
---  Работа с типами загружаемых файлов. --
--- ---------------------------------------
+-- -----------------
+--  Upload types. --
+-- -----------------
 
--- Добавляет тип загружаемых файлов.
---
--- Аргументы:
--- _extension - Расширение.
--- _store_extension - Сохраняемое расширение.
--- _is_image - Флаг изображения.
--- _upload_handler_id - Идентификатор обработчика загружаемых файлов.
--- _thumbnail_image - Имя файла уменьшенной копии.
+-- Add upload type.
 create procedure sp_upload_types_add
 (
-	_extension varchar(10),
-	_store_extension varchar(10),
-	_is_image bit,
-	_upload_handler_id int,
-	_thumbnail_image varchar(256)
+    _extension varchar(10),         -- Extension.
+    _store_extension varchar(10),   -- Stored extension.
+    _is_image bit,                  -- Image flag.
+    _upload_handler_id int,         -- Upload handler id.
+    _thumbnail_image varchar(256)   -- Thumbnail.
 )
 begin
-	insert into upload_types (extension, store_extension, is_image,
-		upload_handler, thumbnail_image)
-	values (_extension, _store_extension, _is_image, _upload_handler_id,
-		_thumbnail_image);
+    insert into upload_types (extension, store_extension, is_image,
+        upload_handler, thumbnail_image)
+    values (_extension, _store_extension, _is_image, _upload_handler_id,
+        _thumbnail_image);
 end|
 
--- Удаляет заданный тип загружаемых файлов.
+-- Delete upload type.
 create procedure sp_upload_types_delete
 (
-	_id int
+    _id int -- Id.
 )
 begin
-	delete from upload_types where id = _id;
+delete from upload_types where id = _id;
 end|
 
--- Редактирует заданный тип загружаемых файлов.
---
--- Аргументы:
--- _id - Идентификатор.
--- _store_extension - Сохраняемое расширение.
--- _is_image - Флаг изображения.
--- _upload_handler_id - Идентификатор обработчика загружаемых файлов.
--- _thumbnail_image - Имя файла уменьшенной копии.
+-- Edit upload type.
 create procedure sp_upload_types_edit
 (
-	_id int,
-	_store_extension varchar(10),
-	_is_image bit,
-	_upload_handler_id int,
-	_thumbnail_image varchar(256)
+    _id int,                        -- Id.
+    _store_extension varchar(10),   -- Stored extension.
+    _is_image bit,                  -- Image flag.
+    _upload_handler_id int,         -- Upload handler id.
+    _thumbnail_image varchar(256)   -- Thumbnail.
 )
 begin
-	update upload_types set store_extension = _store_extension,
-		is_image = _is_image, upload_handler = _upload_handler_id,
-		thumbnail_image = _thumbnail_image
-	where id = _id;
+    update upload_types set store_extension = _store_extension,
+           is_image = _is_image,
+           upload_handler = _upload_handler_id,
+           thumbnail_image = _thumbnail_image
+    where id = _id;
 end|
 
--- Выбирает все типы загружаемых файлов.
+-- Select upload types.
 create procedure sp_upload_types_get_all ()
 begin
-	select id, extension, store_extension, is_image, upload_handler,
-		thumbnail_image
-	from upload_types;
+    select id,
+           extension,
+           store_extension,
+           is_image,
+           upload_handler,
+           thumbnail_image
+        from upload_types;
 end|
 
 -- Select upload types on board.
@@ -3720,59 +3708,45 @@ begin
         join upload_handlers uh on uh.id = ut.upload_handler;
 end|
 
--- -----------------------------------------------
---  Работа со связями пользователей с группами. --
--- -----------------------------------------------
+-- --------------------------
+--  User groups relations. --
+-- --------------------------
 
--- Добавляет пользователя в группу.
---
--- Аргументы:
--- user_id - Идентификатор пользователя.
--- group_id - Идентификатор группы.
+-- Add user to group.
 create procedure sp_user_groups_add
 (
-	user_id int,
-	group_id int
+    user_id int,
+    group_id int
 )
 begin
-	insert into user_groups (user, `group`) values (user_id, group_id);
+    insert into user_groups (user, `group`) values (user_id, group_id);
 end|
 
--- Удаляет заданного пользователя из заданной группы.
---
--- Аргументы:
--- user_id - Идентификатор пользователя.
--- group_id - Идентификатор группы.
+-- Delete user from group.
 create procedure sp_user_groups_delete
 (
-	user_id int,
-	group_id int
+    user_id int,    -- User id.
+    group_id int    -- Group id.
 )
 begin
-	delete from user_groups where user = user_id and `group` = group_id;
+    delete from user_groups where user = user_id and `group` = group_id;
 end|
 
--- Переносит заданного пользователя из одной группы в другую.
---
--- Аргументы:
--- user_id - Идентификатор пользователя.
--- old_group_id - Идентификатор старой группы.
--- new_group_id - Идентификатор новой группы.
+-- Move user to new group.
 create procedure sp_user_groups_edit
 (
-	user_id int,
-	old_group_id int,
-	new_group_id int
+    user_id int,        -- User id.
+    old_group_id int,   -- Id of old group.
+    new_group_id int    -- Id of new group.
 )
 begin
-	update user_groups set `group` = new_group_id
-	where user = user_id and `group` = old_group_id;
+    update user_groups set `group` = new_group_id where user = user_id and `group` = old_group_id;
 end|
 
--- Выбирает все связи пользователей с группами.
+-- Select all user groups relations.
 create procedure sp_user_groups_get_all ()
 begin
-	select user, `group` from user_groups order by user, `group`;
+    select user, `group` from user_groups order by `group` desc;
 end|
 
 -- ----------
@@ -3829,10 +3803,10 @@ begin
     end if;
 end|
 
--- Выбирает всех пользователей.
+-- Select users.
 create procedure sp_users_get_all ()
 begin
-	select id from users;
+    select id from users;
 end|
 
 -- Select admin users.
@@ -3944,61 +3918,46 @@ begin
         where pv.post is null;
 end|
 
--- ---------------------------------
--- Добавление слова в вордфильтр. --
--- ---------------------------------
+-- ---------
+-- Words. --
+-- ---------
 
--- Добавляет слово и его замену в таблицу вордфильтра.
-
--- Аргументы:
--- word - Слово для замены.
--- replace - Слово-замена.
+-- Add word.
 create procedure sp_words_add
 (
-	_board_id int,
-    _word varchar(100),
-    _replace varchar(100)
+    _board_id int,          -- Board id.
+    _word varchar(100),     -- Word.
+    _replace varchar(100)   -- Replacement.
 )
 begin
     insert into words (board_id, word, `replace`)
         values (_board_id, _word, _replace);
 end|
 
--- Удаляет слово и его замену из таблицы вордфильтра.
-
--- Аргументы:
--- id - Идентификатор.
+-- Delete word.
 create procedure sp_words_delete
 (
-    _id int
+    _id int -- Id.
 )
 begin
-    delete from words
-    where id = _id;
+    delete from words where id = _id;
 end|
 
--- Изменяет слово и его замену.
-
--- Аргументы:
--- id - Идентификатор.
--- word - Слово для замены.
--- replace - Слово-замена.
+-- Edit word.
 create procedure sp_words_edit
 (
-    _id int,
-    _word varchar(100),
-    _replace varchar(100)
+    _id int,                -- Id.
+    _word varchar(100),     -- Word.
+    _replace varchar(100)   -- Replacement.
 )
 begin
-    update words set word = _word, `replace` = _replace
-        where id = _id;
+    update words set word = _word, `replace` = _replace where id = _id;
 end|
 
--- Выбирает все слова, их замени и идентификаторы из таблицы вордфильтра.
+-- Select words.
 create procedure sp_words_get_all ()
 begin
-    select id, board_id, word, `replace`
-    from words;
+    select id, board_id, word, `replace` from words;
 end|
 
 -- Select words.

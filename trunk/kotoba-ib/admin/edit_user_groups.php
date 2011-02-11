@@ -1,33 +1,32 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
 
-// Скрипт редактирования связей пользователей с группами.
+// Edit user groups script.
 
-require '../config.php';
-require Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
-require Config::ABS_PATH . '/lib/logging.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
-require Config::ABS_PATH . '/lib/db.php';
-require Config::ABS_PATH . '/lib/misc.php';
+require_once '../config.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
+require_once Config::ABS_PATH . '/lib/logging.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
 
 try {
+    // Initialization.
     kotoba_session_start();
+    if (Config::LANGUAGE != $_SESSION['language']) {
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/logging.php";
+    }
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup();
 
-    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+    // Check if client banned.
+    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
-    if (($ban = bans_check($ip)) !== false) {
+    if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
         session_destroy();
@@ -35,20 +34,18 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
+    // Check permission and write message to log file.
     if (!is_admin()) {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
     }
-    Logging::write_msg(Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log',
-            Logging::$messages['ADMIN_FUNCTIONS_EDIT_USER_GROUPS'],
-            $_SESSION['user'], $_SERVER['REMOTE_ADDR']);
-    Logging::close_log();
+    call_user_func(Logging::$f['EDIT_USER_GROUPS_USE']);
 
     $groups = groups_get_all();
     $users = users_get_all();
     $user_groups = user_groups_get_all();
-    $reload_user_groups = false;    // Были ли произведены изменения.
+    $reload_user_groups = false;
 
-    // Добавление нового закрепления. */
+    // Add new relation.
     if (isset($_POST['new_bind_user'])
             && isset($_POST['new_bind_group'])
             && $_POST['new_bind_user'] != ''
@@ -59,7 +56,7 @@ try {
         $reload_user_groups = true;
     }
 
-    // Перезакрепление пользователя.
+    // Change relation.
     foreach ($user_groups as $user_group) {
         if (isset($_POST["group_{$user_group['user']}_{$user_group['group']}"])
                 && $_POST["group_{$user_group['user']}_{$user_group['group']}"] != $user_group['group']) {
@@ -73,7 +70,7 @@ try {
         }
     }
 
-    // Удаление закреплений.
+    // Delete relation.
     foreach ($user_groups as $user_group) {
         if (isset($_POST["delete_{$user_group['user']}_{$user_group['group']}"])) {
             user_groups_delete($user_group['user'], $user_group['group']);
@@ -86,13 +83,20 @@ try {
         $users = users_get_all();
         $user_groups = user_groups_get_all();
     }
+
+    // Generate html code of edit user groups page and display it.
+    $smarty->assign('show_control', is_admin() || is_mod());
+    $smarty->assign('boards', boards_get_all());
     $smarty->assign('groups', $groups);
     $smarty->assign('users', $users);
     $smarty->assign('user_groups', $user_groups);
     $smarty->display('edit_user_groups.tpl');
 
+    // Cleanup.
     DataExchange::releaseResources();
-    exit;
+    Logging::close_log();
+
+    exit(0);
 } catch(Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();

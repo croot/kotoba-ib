@@ -1,9 +1,4 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
@@ -13,23 +8,25 @@
 
 require '../config.php';
 require Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require Config::ABS_PATH . '/lib/logging.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
 require Config::ABS_PATH . '/lib/db.php';
 require Config::ABS_PATH . '/lib/misc.php';
 
 try {
     // Initialization.
     kotoba_session_start();
+    if (Config::LANGUAGE != $_SESSION['language']) {
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/logging.php";
+    }
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup();
 
-    // Check if remote host was banned.
-    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+    // Check if client banned.
+    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
-    if (($ban = bans_check($ip)) !== false) {
+    if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
         session_destroy();
@@ -37,12 +34,7 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    /*
-     * Если пользователь является администратором, то он может редактировать все
-     * нити, если он является модератором или просто имеет права на модерирование
-     * некоторых нитей, то он может редактировать настройки нитей в соотвествии
-     * со своими правами.
-     */
+    // Check permission, get correspond data and write message to log file.
     if (is_admin()) {
         $threads = threads_get_all();
     } else {
@@ -51,73 +43,69 @@ try {
     if (count($threads) <= 0) {
         throw new NodataException(NodataException::$messages['THREADS_EDIT']);
     }
-    Logging::write_msg(Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log',
-            Logging::$messages['EDIT_THREADS'],
-            $_SESSION['user'], $_SERVER['REMOTE_ADDR']);
-    Logging::close_log();
+    call_user_func(Logging::$f['EDIT_THREADS_USE']);
 
     $boards = boards_get_all();
-    $reload_threads = false;    // Были ли произведены изменения.
+    $reload_threads = false;
 
-    // Изменение параметров существующих нитей.
+    // Change threads attributes.
     if (isset($_POST['submited'])) {
         foreach ($threads as $thread) {
 
-            // Был ли изменён специфичный для нити бампилимит?
+            // Is bumplimit changes?
             $param_name = "bump_limit_{$thread['id']}";
             $new_bump_limit = $thread['bump_limit'];
             if (isset($_POST[$param_name]) && $_POST[$param_name] != $thread['bump_limit']) {
                 if ($_POST[$param_name] == '') {
-                    $new_bump_limit = null;
+                    $new_bump_limit = NULL;
                 } else {
                     $new_bump_limit = threads_check_bump_limit($_POST[$param_name]);
                 }
             }
 
-            // Был ли измен флаг закрепления?
+            // Is sticky flag changes?
             $param_name = "sticky_{$thread['id']}";
             $new_sticky = $thread['sticky'];
             if (isset($_POST[$param_name]) && $_POST[$param_name] != $thread['sticky']) {
-                $new_sticky = '1';
+                $new_sticky = TRUE;
             }
             if (!isset($_POST[$param_name]) && $thread['sticky']) {
-                $new_sticky = '0';
+                $new_sticky = FALSE;
             }
 
-            // Был ли измен флаг поднятия нити при ответе?
+            // Is sage flag changes?
             $param_name = "sage_{$thread['id']}";
             $new_sage = $thread['sage'];
             if (isset($_POST[$param_name]) && $_POST[$param_name] != $thread['sage']) {
-                $new_sage = '1';
+                $new_sage = TRUE;
             }
             if (!isset($_POST[$param_name]) && $thread['sage']) {
-                $new_sage = '0';
+                $new_sage = FALSE;
             }
 
-            // Был ли изменен флаг загрузки файлов?
+            // Is attachments flag changes?
             $param_name = "with_attachments_{$thread['id']}";
-            $new_with_images = $thread['with_attachments'];
+            $new_with_attachments = $thread['with_attachments'];
             if(isset($_POST[$param_name]) && $_POST[$param_name] != $thread['with_attachments']) {
                 switch($_POST[$param_name]) {
                     case '':
-                        $new_with_images = null;
+                        $new_with_attachments = NULL;
                         break;
                     case '1':
                         foreach ($boards as $board) {
                             if ($board['id'] == $thread['board']) {
                                 if ($board['with_attachments']) {
                                     /*
-                                     * Загрузка файлов на доске разрешена,
-                                     * поэтому дополнительно разрешать её в этой
-                                     * нити не нужно.
+                                     * Attachments enabled on board so we dont
+                                     * need to additionally allow it on thread.
                                      */
-                                    $new_with_images = null;
+                                    $new_with_attachments = NULL;
                                 } else {
                                     /*
-                                     * Загрузка файлов на доске запрещена, а в
-                                     * этой нити будет разрешена.
+                                     * Attachments disabled on board but allow
+                                     * in this thread.
                                      */
-                                    $new_with_images = '1';
+                                    $new_with_attachments = TRUE;
                                 }
                                 break;
                             }
@@ -128,17 +116,17 @@ try {
                             if ($board['id'] == $thread['board']) {
                                 if ($board['with_attachments']) {
                                     /*
-                                     * Загрузка файлов на доске разрешена, а в
-                                     * этой нити будет запрещена.
+                                     * Attachments enabled on this board but
+                                     * disabled in this thread.
                                      */
-                                    $new_with_images = '0';
+                                    $new_with_attachments = FALSE;
                                 } else {
                                     /*
                                      * Загрузка файлов на доске запрещена,
                                      * поэтому дополнительно запрещать её в этой
                                      * нити не нужно.
                                      */
-                                    $new_with_images = null;
+                                    $new_with_attachments = NULL;
                                 }
                                 break;
                             }
@@ -147,20 +135,19 @@ try {
                 }
             }
 
-            // Были ли произведены какие-либо изменения?
+            // Any changes?
             if ($new_bump_limit != $thread['bump_limit']
                     || $new_sticky != $thread['sticky']
                     || $new_sage != $thread['sage']
-                    || $new_with_images != $thread['with_attachments']) {
+                    || $new_with_attachments != $thread['with_attachments']) {
 
                 threads_edit($thread['id'], $new_bump_limit, $new_sticky,
-                $new_sage, $new_with_images);
+                $new_sage, $new_with_attachments);
                 $reload_threads = true;
             }
         }
     }
 
-    // Вывод формы редактирования.
     if ($reload_threads) {
         if (is_admin ()) {
             $threads = threads_get_all();
@@ -171,11 +158,18 @@ try {
             throw new NodataException(NodataException::$messages['THREADS_EDIT']);
         }
     }
+
+    // Generate html code of edit threads page and display it.
+    $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('boards', $boards);
     $smarty->assign('threads', $threads);
     $smarty->display('edit_threads.tpl');
 
+    // Cleanup.
     DataExchange::releaseResources();
+    Logging::close_log();
+
+    exit(0);
 } catch(Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();

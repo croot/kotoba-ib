@@ -12,5 +12,6 @@ Variables:
 <ul>
 <li><a href="{$DIR_PATH}/admin/moderate.php">Main moderators script.</a></li>
 <li><a href="{$DIR_PATH}/admin/edit_bans.php">Bans.</a></li>
+<li><a href="{$DIR_PATH}/admin/hard_ban.php">Ban on firewall.</a></li>
 <li><a href="{$DIR_PATH}/admin/edit_threads.php">Threads.</a></li>
 </ul>

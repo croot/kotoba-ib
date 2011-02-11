@@ -1,42 +1,39 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
 
-/**
- * Скрипт бана по списку.
- * 
- * file - Файл, содержащий диапазоны блокируемых адресов. Каждый новый диапазон
- *        должен начинаться с новой строки (быть разделены символом \n).
+/*
+ * Mass ban script.
+ *
+ * Parameters:
+ * file - File what contains addresses ranges what need to be banned. Every range
+ * must ends with \n sign.
  */
 
 /***/
-require '../config.php';
+require_once '../config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/logging.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
 
 try {
-    // Инициализация.
+    // Initialization.
     kotoba_session_start();
+    if (Config::LANGUAGE != $_SESSION['language']) {
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/logging.php";
+    }
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'],
-                                    $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup();
 
-    // Проверка, не заблокирован ли клиент.
-    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+    // Check if client banned.
+    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
-    if (($ban = bans_check($ip)) !== false) {
+    if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
         session_destroy();
@@ -44,7 +41,7 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    // Проверка доступа и запись в лог.
+    // Check permission and write message to log file.
     if (!is_admin()) {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
     }
@@ -58,7 +55,7 @@ try {
             if ($range) {
                 list($range_beg, $range_end) = split(' ', $range);
 
-                // Бан на месяц.
+                // Ban for a month.
                 $reason = 'Mass ban utility';
                 $until = date(Config::DATETIME_FORMAT, time() + 60 * 60 * 24 * 30);
                 bans_add(ip2long($range_beg), ip2long($range_end), $reason, $until);
@@ -71,12 +68,12 @@ try {
         }
     }
 
-    // Формирование кода страницы и вывод.
+    // Generate html code of mass ban page and display it.
     $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('boards', boards_get_all());
     $smarty->display('mass_ban.tpl');
 
-    // Освобождение ресурсов и очиска.
+    // Cleanup.
     DataExchange::releaseResources();
     Logging::close_log();
 

@@ -13,6 +13,7 @@ Variables:
 <li><a href="{$DIR_PATH}/admin/moderate.php">Main moderators script.</a></li>
 <li><a href="{$DIR_PATH}/admin/reports.php">Reports.</a></li>
 <li><a href="{$DIR_PATH}/admin/edit_bans.php">Bans.</a></li>
+<li><a href="{$DIR_PATH}/admin/hard_ban.php">Ban on firewall.</a></li>
 <li><a href="{$DIR_PATH}/admin/mass_ban.php">Mass bans.</a></li>
 </ul>
 Boards:

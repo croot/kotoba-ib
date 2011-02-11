@@ -360,7 +360,7 @@ try {
 	if ($_SESSION['user'] != Config::GUEST_ID && $should_update_password) {
         users_set_password($_SESSION['user'], $password);
     }
-    if ($should_update_goto) {
+    if ($_SESSION['user'] != Config::GUEST_ID && $should_update_goto) {
         users_set_goto($_SESSION['user'], $goto);
     }
 

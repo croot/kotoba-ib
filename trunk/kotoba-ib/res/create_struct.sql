@@ -111,10 +111,10 @@ create table stylesheets            -- Stylesheets.
 )
 engine=InnoDB;
 
-create table upload_handlers        -- Обработчики загружаемых файлов.
+create table upload_handlers        -- Upload handlers.
 (
-    id int not null auto_increment,    -- Идентификатор.
-    name varchar(50) not null,        -- Имя фукнции.
+    id int not null auto_increment, -- Id.
+    name varchar(50) not null,      -- Function name.
     primary key (id)
 )
 engine=InnoDB;
@@ -182,27 +182,24 @@ create table users                      -- Users.
 )
 engine=InnoDB;
 
-create table user_groups    -- Связь пользователей с группами.
+create table user_groups    -- User groups relations.
 (
-    user int not null,      -- Идентификатор пользователя.
-    `group` int not null,   -- Идентификатор группы.
+    user int not null,      -- User id.
+    `group` int not null,   -- Group id.
     constraint foreign key (`group`) references groups (id) on delete cascade on update restrict,
     constraint foreign key (user) references users (id),
     unique key (user, `group`)
 )
 engine=InnoDB;
 
--- Заметки:
--- Имя файла уменьшенной копии типа загружаемых файлов является именем файла
--- изображения. См. заметки к таблице files, описание для поля thumbnail.
-create table upload_types                       -- Типы загружаемых файлов.
+create table upload_types                       -- Upload types.
 (
-    id int not null auto_increment,             -- Идентификатор.
-    extension varchar(10) not null,             -- Расширение.
-    store_extension varchar(10) default null,   -- Сохраняемое расширение.
-    is_image bit not null,                      -- Флаг изображения.
-    upload_handler int not null,                -- Идентификатор обработчика загружаемых файлов.
-    thumbnail_image varchar(256) default null,  -- Имя файла уменьшенной копии.
+    id int not null auto_increment,             -- Id.
+    extension varchar(10) not null,             -- Extension.
+    store_extension varchar(10) default null,   -- Stored extension.
+    is_image bit not null,                      -- Image flag.
+    upload_handler int not null,                -- Upload handler id.
+    thumbnail_image varchar(256) default null,  -- Thumbnail.
     primary key (id),
     constraint foreign key (upload_handler) references upload_handlers (id) on delete restrict on update restrict,
     unique key (extension)
@@ -336,12 +333,12 @@ create table posts_videos   -- Posts videos relations.
 )
 engine=InnoDB;
 
-create table words                      -- Таблица фильтра слов.
+create table words                      -- Wordfilter.
 (
-    id int not null auto_increment,     -- Идентификатор замены.
-    board_id int not null,              -- Идентификатор доски.
-    word varchar(100) not null,         -- Слово для замены.
-    `replace` varchar(100) not null,    -- Замена.
+    id int not null auto_increment,     -- Id.
+    board_id int not null,              -- Board id.
+    word varchar(100) not null,         -- Word.
+    `replace` varchar(100) not null,    -- Replacement.
     unique key (id)
 )
 engine=InnoDB;

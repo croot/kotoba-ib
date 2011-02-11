@@ -201,6 +201,27 @@ function post_report_generate_html($smarty,
 /**
  * 
  */
+function post_moderate_generate_html($smarty,
+                                     &$post,
+                                     $posts_attachments,
+                                     $attachments,
+                                     $author_admin) {
+
+    $post_attachments = wrappers_attachments_get_by_post($smarty,
+                                                         $post['board'],
+                                                         $post,
+                                                         $posts_attachments,
+                                                         $attachments);
+    $post['ip'] = long2ip($post['ip']);
+    $smarty->assign('post', $post);
+    $smarty->assign('author_admin', $author_admin);
+    $smarty->assign('attachments', $post_attachments);
+    $smarty->assign('enable_translation', is_translation_enabled($post['board']));
+    return $smarty->fetch('reports_post.tpl');
+}
+/**
+ * 
+ */
 function wrappers_attachments_get_by_post($smarty, $board, &$post, $posts_attachments, $attachments) {
     $desired_attachments = array();
 
