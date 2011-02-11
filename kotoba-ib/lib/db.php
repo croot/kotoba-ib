@@ -65,6 +65,16 @@ class DataExchange {
             mysqli_close(self::$link);
         }
     }
+
+    /**
+     * Escapes string to use in SQL statement.
+     * @param string $s String to escape.
+     * @return string
+     * escaped string
+     */
+    static function escapeString($s) {
+        return addcslashes(mysqli_real_escape_string(DataExchange::getDBLink(), $s), '%_');
+    }
 }
 /**
  * Create directories requied to new board.
@@ -389,10 +399,10 @@ function bans_check($ip) {
     return db_bans_check(DataExchange::getDBLink(), $ip);
 }
 /**
- * Проверяет корректность начала диапазона IP-адресов.
- * @param string $range_beg Начало диапазона IP-адресов.
- * @return string Возвращает безопасное для использования начало диапазона
- * IP-адресов.
+ * Check begining of IP-address range.
+ * @param string $range_beg Begining of IP-address range.
+ * @return string
+ * safe begining of IP-address range.
  */
 function bans_check_range_beg($range_beg) {
     if ( ($range_beg = ip2long($range_beg)) == false) {
@@ -401,10 +411,10 @@ function bans_check_range_beg($range_beg) {
     return $range_beg;
 }
 /**
- * Проверяет корректность конца диапазона IP-адресов.
- * @param string $range_end Конец диапазона IP-адресов.
- * @return string Возвращает безопасный для использования конец диапазона
- * IP-адресов.
+ * Check ending of IP-address range.
+ * @param string $range_beg Ending of IP-address range.
+ * @return string
+ * safe ending of IP-address range.
  */
 function bans_check_range_end($range_end) {
     if ( ($range_end = ip2long($range_end)) == false) {
@@ -519,47 +529,52 @@ function board_upload_types_get_all()
 	return db_board_upload_types_get_all(DataExchange::getDBLink());
 }
 
-/**************************
- * Работа с вордфильтром. *
- **************************/
+/* ********
+ * Words. *
+ **********/
 
 /**
- * Добавляет слово.
- * @param board_id int <p>Идентификатор доски.</p>
- * @param word mixed <p>Слово.</p>
- * @param replace string <p>Слово-замена.</p>
+ * Add word.
+ * @param int $board_id Board id.
+ * @param string $word Word.
+ * @param string $replace Replacement.
  */
-function words_add($board_id, $word, $replace)
-{
-	db_words_add(DataExchange::getDBLink(), $board_id, $word, $replace);
+function words_add($board_id, $word, $replace) {
+    db_words_add(DataExchange::getDBLink(), $board_id, $word, $replace);
 }
 /**
- * Удаляет заданное слово.
- * @param id mixed <p>Идентификатор доски.</p>
+ * Check word.
+ * @param string $word Word.
+ * @return string
+ * safe word.
  */
-function words_delete($id)
-{
-	db_words_delete(DataExchange::getDBLink(), $id);
+function words_check_word($word) {
+    $word = DataExchange::escapeString($word);
+    if (strlen($word) > 100) {
+        throw new LimitException(LimitException::$messages['WORD_TOO_LONG']);
+    }
+    return $word;
 }
 /**
- * Редактирует слово.
- * @param id int <p>Идентификатор.</p>
- * @param board_id int <p>Идентификатор доски.</p>
- * @param word mixed <p>Слово.</p>
- * @param replace string <p>Слово-замена.</p>
+ * Delete word.
+ * @param int $id Id.
  */
-function words_edit($id, $word, $replace)
-{
-	db_words_edit(DataExchange::getDBLink(), $id, $word, $replace);
+function words_delete($id) {
+    db_words_delete(DataExchange::getDBLink(), $id);
 }
 /**
- * Получает все слова.
+ * Edit word.
+ * @param int $id Id.
+ * @param string $word Word.
+ * @param string $replace Replacement.
+ */
+function words_edit($id, $word, $replace) {
+    db_words_edit(DataExchange::getDBLink(), $id, $word, $replace);
+}
+/**
+ * Get words.
  * @return array
- * Возвращает слова:<br>
- * 'id' - идентификатор.<br>
- * 'board_id' - Идентификатор доски.<br>
- * 'word' - слово для замены.<br>
- * 'replace' - замена.
+ * words.
  */
 function words_get_all() {
     return db_words_get_all(DataExchange::getDBLink());
@@ -989,25 +1004,13 @@ function groups_add($name)
 	db_groups_add(DataExchange::getDBLink(), $name);
 }
 /**
- * Проверяет корректность идентификатора группы.
- * @param id mixed <p>Идентификатор группы.</p>
- * @return string
- * Возвращает безопасный для использования идентификатор группы.
+ * Check group id.
+ * @param mixed $id Group id.
+ * @return int
+ * safe group id.
  */
-function groups_check_id($id)
-{
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['GROUP_ID']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['GROUP_ID']);
-	return $id;
+function groups_check_id($id) {
+    return kotoba_intval($id);
 }
 /**
  * Проверяет корректность имени группы.
@@ -1039,15 +1042,12 @@ function groups_delete($groups)
 	db_groups_delete(DataExchange::getDBLink(), $groups);
 }
 /**
- * Получает все группы.
+ * Get groups.
  * @return array
- * Возвращает группы:<p>
- * 'id' - Идентификатор.<br>
- * 'name' - Имя.</p>
+ * groups.
  */
-function groups_get_all()
-{
-	return db_groups_get_all(DataExchange::getDBLink());
+function groups_get_all() {
+    return db_groups_get_all(DataExchange::getDBLink());
 }
 /**
  * Получает группы, в которые входит пользователь.
@@ -1581,25 +1581,13 @@ function posts_check_name_size($name) {
     }
 }
 /**
- * Проверяет корректность номера сообщения.
- * @param number mixed <p>Номер сообщения.</p>
+ * Check post number.
+ * @param mixed $number Post number.
  * @return string
- * Возвращает безопасный для использования номер сообщения.
+ * safe post number.
  */
-function posts_check_number($number)
-{
-	$length = strlen($number);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$number = RawUrlEncode($number);
-		$length = strlen($number);
-		if($length > $max_int_length || (ctype_digit($number) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['POST_NUMBER']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['POST_NUMBER']);
-	return $number;
+function posts_check_number($number) {
+    return kotoba_intval($number);
 }
 /**
  * Check password.
@@ -1728,28 +1716,13 @@ function posts_get_all_numbers() { // Java CC
     return db_posts_get_all_numbers(DataExchange::getDBLink());
 }
 /**
- * Получает сообщения с заданных досок.
- * @param boards array <p>Доски.</p>
+ * Get posts.
+ * @param array $boards Boards.
  * @return array
- * Возвращает сообщения:<p>
- * 'id' - Идентификатор.<br>
- * 'board' - Идентификатор доски.<br>
- * 'board_name' - Имя доски.<br>
- * 'thread' - Идентификатор нити.<br>
- * 'thread_number' - Номер нити.<br>
- * 'number' - Номер.<br>
- * 'password' - Пароль.<br>
- * 'name' - Имя отправителя.<br>
- * 'tripcode' - Трипкод.<br>
- * 'ip' - IP-адрес отправителя.<br>
- * 'subject' - Тема.<br>
- * 'date_time' - Время сохранения.<br>
- * 'text' - Текст.<br>
- * 'sage' - Флаг поднятия нити.</p>
+ * posts.
  */
-function posts_get_by_boards($boards)
-{
-	return db_posts_get_by_boards(DataExchange::getDBLink(), $boards);
+function posts_get_by_boards($boards) {
+    return db_posts_get_by_boards(DataExchange::getDBLink(), $boards);
 }
 /**
  * Получает сообщения заданной нити.
@@ -2313,124 +2286,95 @@ function threads_move_thread($thread_id, $board_id) {
     db_threads_move_thread(DataExchange::getDBLink(), $thread_id, $board_id);
 }
 
-/**********************************************
- * Работа с обработчиками загружаемых файлов. *
- **********************************************/
+/* ******************
+ * Upload handlers. *
+ ********************/
 
 /**
- * Добавляет обработчик загружаемых файлов.
- * @param name string <p>Имя фукнции обработчика загружаемых файлов.</p>
+ * Add upload handler.
+ * @param string $name Function name.
  */
-function upload_handlers_add($name)
-{
-	db_upload_handlers_add(DataExchange::getDBLink(), $name);
+function upload_handlers_add($name) {
+    db_upload_handlers_add(DataExchange::getDBLink(), $name);
 }
 /**
- * Проверяет корректность идентификатора обработчика загружаемых файлов.
- * @param id mixed <p>Идентификатор обработчика загружаемых файлов.</p>
+ * Check upload handler id.
+ * @param mixed $id Id.
  * @return string
- * Возвращает безопасный для использования идентификатор обработчика загружаемых
- * файлов.
+ * safe upload handler id.
  */
-function upload_handlers_check_id($id)
-{
-	$length = strlen($id);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$id = RawUrlEncode($id);
-		$length = strlen($id);
-		if($length > $max_int_length || (ctype_digit($id) === false)
-			|| $length < 1)
-		{
-			throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_ID']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_ID']);
-	return $id;
+function upload_handlers_check_id($id) {
+    return kotoba_intval($id);
 }
 /**
- * Проверяет корректность имени фукнции обработчика загружаемых файлов.
- * @param name string <p>Имя фукнции обработчика загружаемых файлов.</p>
+ * Check upload handler function name.
+ * @param string $name Function name.
  * @return string
- * Возвращает безопасное для использования имя фукнции обработчика загружаемых
- * файлов.
+ * safe function name.
  */
-function upload_handlers_check_name($name)
-{
-	$length = strlen($name);
-	if($length <= 50 && $length >= 1)
-	{
-		$name = RawUrlEncode($name);
-		$length = strlen($name);
-		if($length > 50 || (strpos($name, '%') !== false)
-			|| $length < 1 || ctype_digit($name[0]))
-		{
-			throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_NAME']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_NAME']);
-	return $name;
+function upload_handlers_check_name($name) {
+    $length = strlen($name);
+    if ($length <= 50 && $length >= 1) {
+        $name = RawUrlEncode($name);
+        $length = strlen($name);
+        if ($length > 50 || (strpos($name, '%') !== false) || $length < 1 || ctype_digit($name[0])) {
+            throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_NAME']);
+        }
+    } else {
+        throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_NAME']);
+    }
+
+    return $name;
 }
 /**
- * Удаляет обработчик загружаемых файлов.
- * @param id mixed <p>Идентификатор обработчика загружаемых файлов.</p>
+ * Delete upload handlers.
+ * @param int $id Id.
  */
-function upload_handlers_delete($id)
-{
-	db_upload_handlers_delete(DataExchange::getDBLink(), $id);
+function upload_handlers_delete($id) {
+    db_upload_handlers_delete(DataExchange::getDBLink(), $id);
 }
 /**
- * Получает все обработчики загружаемых файлов.
+ * Get upload handlers.
  * @return array
- * Возвращает обработчики загружаемых файлов:<p>
- * 'id' - Идентификатор.<br>
- * 'name' - Имя фукнции.</p>
+ * upload handlers.
  */
-function upload_handlers_get_all()
-{
-	return db_upload_handlers_get_all(DataExchange::getDBLink());
+function upload_handlers_get_all() {
+    return db_upload_handlers_get_all(DataExchange::getDBLink());
 }
 
-/***************************************
- * Работа с типами загружаемых файлов. *
- ***************************************/
+/* ***************
+ * Upload types. *
+ *****************/
 
 /**
- * Добавляет тип загружаемых файлов.
- * @param extension string <p>Расширение.</p>
- * @param store_extension string <p>Сохраняемое расширение.</p>
- * @param is_image mixed <p>Флаг изображения.</p>
- * @param upload_handler_id mixed <p>Идентификатор обработчика загружаемого
- * файла.</p>
- * @param thumbnail_image string <p>Уменьшенная копия.</p>
+ * Add upload type.
+ * @param etring $extension Extension.
+ * @param string $store_extension Stored extension.
+ * @param boolean $is_image Image flag.
+ * @param int $upload_handler_id Upload handler id.
+ * @param string $thumbnail_image Thumbnail.
  */
-function upload_types_add($extension, $store_extension, $is_image,
-    $upload_handler_id, $thumbnail_image)
-{
-    db_upload_types_add(DataExchange::getDBLink(), $extension, $store_extension,
-        $is_image, $upload_handler_id, $thumbnail_image);
+function upload_types_add($extension, $store_extension, $is_image, $upload_handler_id, $thumbnail_image) {
+    db_upload_types_add(DataExchange::getDBLink(), $extension, $store_extension, $is_image, $upload_handler_id, $thumbnail_image);
 }
 /**
- * Проверяет корректность расширения загружаемого файла.
- * @param ext string <p>Расширение.</p>
+ * Check extension.
+ * @param string $ext Extension.
  * @return string
- * Возвращает безопасное для использования расширение загружаемого файла.
+ * safe extension.
  */
-function upload_types_check_extension($ext)
-{
+function upload_types_check_extension($ext) {
     $length = strlen($ext);
-    if($length <= 10 && $length >= 1)
-    {
+    if ($length <= 10 && $length >= 1) {
         $ext = RawUrlEncode($ext);
         $length = strlen($ext);
-        if($length > 10 || (strpos($ext, '%') !== false) || $length < 1)
+        if ($length > 10 || (strpos($ext, '%') !== false) || $length < 1) {
             throw new FormatException(FormatException::$messages['UPLOAD_TYPE_EXTENSION']);
-    }
-    else
+        }
+    } else {
         throw new FormatException(FormatException::$messages['UPLOAD_TYPE_EXTENSION']);
+    }
+
     return $ext;
 }
 /**
@@ -2458,35 +2402,32 @@ function upload_types_check_id($id)
     return $id;
 }
 /**
- * Проверяет корректность сохраняемого расширения загружаемого файла.
- * @param store_ext string <p>Сохраняемое расширение.</p>
+ * Check stored extension.
+ * @param string $store_ext Stored extension.
  * @return string
- * Возвращает безопасное для использования сохраняемое расширение загружаемого
- * файла.
+ * stored extension.
  */
-function upload_types_check_store_extension($store_ext)
-{
+function upload_types_check_store_extension($store_ext) {
     $length = strlen($store_ext);
-    if($length <= 10 && $length >= 1)
-    {
+    if ($length <= 10 && $length >= 1) {
         $store_ext = RawUrlEncode($store_ext);
         $length = strlen($store_ext);
-        if($length > 10 || (strpos($store_ext, '%') !== false) || $length < 1)
+        if ($length > 10 || (strpos($store_ext, '%') !== false) || $length < 1) {
             throw new FormatException(FormatException::$messages['UPLOAD_TYPE_STORE_EXTENSION']);
-    }
-    else
+        }
+    } else {
         throw new FormatException(FormatException::$messages['UPLOAD_TYPE_STORE_EXTENSION']);
+    }
+
     return $store_ext;
 }
 /**
- * Проверяет корректность имени файла уменьшенной копии типа загружаемых файлов.
- * Подробнее см. заметки к таблице upload_types.
- * @param string $thumbnail_image Имя файла уменьшенной копии.
+ * Check thumbnail.
+ * @param string $thumbnail_image thumbnail.
  * @return string
- * Возвращает безопасное для использования имя файла уменьшенной копии типа
- * загружаемых файлов.
+ * safe thumbnail.
  */
-function upload_types_check_thumbnail_image($thumbnail_image) { // Java CC
+function upload_types_check_thumbnail_image($thumbnail_image) {
     $length = strlen($thumbnail_image);
     if ($length <= 256 && $length >= 1) {
         $thumbnail_image = RawUrlEncode($thumbnail_image);
@@ -2498,44 +2439,33 @@ function upload_types_check_thumbnail_image($thumbnail_image) { // Java CC
     } else {
         throw new FormatException(FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE']);
     }
+
     return $thumbnail_image;
 }
 /**
- * Удаляет тип загружаемых файлов.
- * @param id mixed <p>Идентифаикатор.</p>
+ * Delete upload type.
+ * @param int $id Id.
  */
-function upload_types_delete($id)
-{
+function upload_types_delete($id) {
     db_upload_types_delete(DataExchange::getDBLink(), $id);
 }
 /**
- * Редактирует тип загружаемых файлов.
- * @param id mixed <p>Идентификатор.</p>
- * @param store_extension string <p>Сохраняемое расширение.</p>
- * @param is_image mixed <p>Флаг изображения.</p>
- * @param upload_handler_id mixed <p>Идентификатор обработчика загружаемых
- * файлов.</p>
- * @param thumbnail_image string <p>Имя файла уменьшенной копии.</p>
+ * Edit upload type.
+ * @param int $id Id.
+ * @param string $store_extension Stored extension.
+ * @param boolean $is_image Image flag.
+ * @param int $upload_handler_id Upload handler id.
+ * @param string $thumbnail_image Thumbnail.
  */
-function upload_types_edit($id, $store_extension, $is_image,
-    $upload_handler_id, $thumbnail_image)
-{
-    db_upload_types_edit(DataExchange::getDBLink(), $id, $store_extension,
-        $is_image, $upload_handler_id, $thumbnail_image);
+function upload_types_edit($id, $store_extension, $is_image, $upload_handler_id, $thumbnail_image) {
+    db_upload_types_edit(DataExchange::getDBLink(), $id, $store_extension, $is_image, $upload_handler_id, $thumbnail_image);
 }
 /**
- * Получает все типы загружаемых файлов.
+ * Get upload types.
  * @return array
- * Возвращает типы загружаемых файлов:<p>
- * 'id' - Идентификатор.<br>
- * 'extension' - Расширение.<br>
- * 'store_extension' - Сохраняемое расширение.<br>
- * 'is_image' - Флаг изображения.<br>
- * 'upload_handler' - Идентификатор обработчика загружаемых файлов.<br>
- * 'thumbnail_image' - Имя файла уменьшенной копии.</p>
+ * upload types.
  */
-function upload_types_get_all()
-{
+function upload_types_get_all() {
     return db_upload_types_get_all(DataExchange::getDBLink());
 }
 /**
@@ -2548,48 +2478,41 @@ function upload_types_get_by_board($board_id) {
     return db_upload_types_get_by_board(DataExchange::getDBLink(), $board_id);
 }
 
-/***********************************************
- * Работа со связями пользователей с группами. *
- ***********************************************/
+/* ************************
+ * User groups relations. *
+ **************************/
 
 /**
- * Добавляет пользователя в группу.
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @param group_id mixed <p>Идентификатор группы.</p>
+ * Add user to group.
+ * @param int $user_id User id.
+ * @param int $group_id Group id.
  */
-function user_groups_add($user_id, $group_id)
-{
+function user_groups_add($user_id, $group_id) {
     db_user_groups_add(DataExchange::getDBLink(), $user_id, $group_id);
 }
 /**
- * Удаляет заданного пользователя из заданной группы.
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @param group_id mixed <p>Идентификатор группы.</p>
+ * Delete user from group.
+ * @param int $user_id User id.
+ * @param int $group_id Group id.
  */
-function user_groups_delete($user_id, $group_id)
-{
+function user_groups_delete($user_id, $group_id) {
     db_user_groups_delete(DataExchange::getDBLink(), $user_id, $group_id);
 }
 /**
- * Переносит заданного пользователя из одной группы в другую.
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @param old_group_id mixed <p>Идентификатор старой группы.</p>
- * @param new_group_id mixed <p>Идентификатор новой группы.</p>
+ * Move user to new group.
+ * @param int $user_id User id.
+ * @param int $old_group_id Id of old group.
+ * @param int $new_group_id Id of new group.
  */
-function user_groups_edit($user_id, $old_group_id, $new_group_id)
-{
-    db_user_groups_edit(DataExchange::getDBLink(), $user_id, $old_group_id,
-        $new_group_id);
+function user_groups_edit($user_id, $old_group_id, $new_group_id) {
+    db_user_groups_edit(DataExchange::getDBLink(), $user_id, $old_group_id, $new_group_id);
 }
 /**
- * Получает все связи пользователей с группами.
+ * Get user groups relations.
  * @return array
- * Возвращает связи:<p>
- * 'user' - Идентификатор пользователя.<br>
- * 'group' - Идентификатор группы.</p>
+ * user groups relations.
  */
-function user_groups_get_all()
-{
+function user_groups_get_all() {
     return db_user_groups_get_all(DataExchange::getDBLink());
 }
 
@@ -2746,14 +2669,12 @@ function users_edit_by_keyword($keyword,
                              $goto);
 }
 /**
- * Получает всех пользователей.
+ * Get users.
  * @return array
- * Возвращает идентификаторы пользователей:<p>
- * 'id' - Идентификатор пользователя.</p>
+ * users.
  */
-function users_get_all()
-{
-	return db_users_get_all(DataExchange::getDBLink());
+function users_get_all() {
+    return db_users_get_all(DataExchange::getDBLink());
 }
 /**
  * Get admins.

@@ -41,7 +41,7 @@ CommonException::$messages['WORD_FOR_REPLACE'] = 'Введите слово дл
 NodataException::$messages['ACL_NOT_EXIST'] = 'В списке контроля доступа нет ни одного правила.';
 NodataException::$messages['BOARD_NOT_FOUND'] = 'Board not found.';
 NodataException::$messages['EMPTY_MESSAGE'] = 'No attachment and message is empty.';
-NodataException::$messages['GROUPS_NOT_EXIST'] = 'Не создана ни одна группа пользователей.';
+NodataException::$messages['GROUPS_NOT_EXIST'] = 'No one group exists.';
 // Параметры: идентификатор языка.
 NodataException::$messages['LANGUAGE_NOT_EXIST'] = 'Language id=%s not exist.';
 NodataException::$messages['LANGUAGES_NOT_EXIST'] = 'No languages.';
@@ -51,9 +51,9 @@ NodataException::$messages['SEARCH_KEYWORD'] = 'Search keyword not set or too sh
 NodataException::$messages['STYLESHEET_NOT_EXIST'] = 'Stylesheeit id=%s not exist.';
 NodataException::$messages['STYLESHEETS_NOT_EXIST'] = 'No stylesheets.';
 NodataException::$messages['THREAD_NOT_FOUND'] = 'Thread not found.';
-NodataException::$messages['THREADS_EDIT'] = 'Нет нитей для редактирования настроек';
+NodataException::$messages['THREADS_EDIT'] = 'No thread to edit.';
 NodataException::$messages['USER_WITHOUT_GROUP'] = 'User has no group.';
-NodataException::$messages['USERS_NOT_EXIST'] = 'Не создан ни один пользователь.';
+NodataException::$messages['USERS_NOT_EXIST'] = 'No one user exists.';
 
 /* *************************
  * Data format exceptions. *
@@ -63,8 +63,8 @@ FormatException::$messages['BOARD_NAME'] = 'Board name wrong format. Board name 
 FormatException::$messages['BOARD_BUMP_LIMIT'] = 'Bump limit must be digit greater than zero.';
 FormatException::$messages['BOARD_SAME_UPLOAD'] = 'Upload policy from same files wrong format. It must be string at 1 to 32 latin letters.';
 
-FormatException::$messages['BANS_RANGE_BEG'] = 'Начало диапазона IP-адресов имеет не верный формат.';
-FormatException::$messages['BANS_RANGE_END'] = 'Конец диапазона IP-адресов имеет не верный формат.';
+FormatException::$messages['BANS_RANGE_BEG'] = 'Begining of IP-address range has wrong format.';
+FormatException::$messages['BANS_RANGE_END'] = 'End of IP-address range has wrong format.';
 FormatException::$messages['BANS_REASON'] = 'Причина блокировки имеет не верный формат.';
 FormatException::$messages['BANS_UNTILL'] = 'Время истечения блокировки имеет не верный формат.';
 
@@ -101,11 +101,11 @@ FormatException::$messages['THREAD_ID'] = 'Идентификатор нити �
 FormatException::$messages['THREAD_NUMBER'] = 'Номер оригинального сообщения имеет не верный формат.';
 
 FormatException::$messages['UPLOAD_HANDLER_ID'] = 'Идентификатор обработчика загружаемых файлов имеет не верный формат.';
-FormatException::$messages['UPLOAD_HANDLER_NAME'] = 'Имя фукнции обработчика загружаемых файлов имеет не верный формат.';
+FormatException::$messages['UPLOAD_HANDLER_NAME'] = 'Upload handler function name has a wrong format.';
 
-FormatException::$messages['UPLOAD_TYPE_EXTENSION'] = 'Расширение загружаемого файла имеет не верный формат.';
+FormatException::$messages['UPLOAD_TYPE_EXTENSION'] = 'Extension has wrong format.';
 FormatException::$messages['UPLOAD_TYPE_ID'] = 'Идентификатор типа загружаемых файлов имеет не верный формат.';
-FormatException::$messages['UPLOAD_TYPE_STORE_EXTENSION'] = 'Сохраняемое расширение загружаемого файла имеет не верный формат.';
+FormatException::$messages['UPLOAD_TYPE_STORE_EXTENSION'] = 'Stored extension has wrong format.';
 
 FormatException::$messages['USER_GOTO'] = 'Redirection wrong format.';
 FormatException::$messages['USER_ID'] = 'Идентификатор пользователя имеет не верный формат.';
@@ -117,7 +117,7 @@ FormatException::$messages['USER_POSTS_PER_THREAD'] = 'Count of posts per thread
 // Параметры: минимальное число нитей, максимальное число нитей.
 FormatException::$messages['USER_THREADS_PER_PAGE'] = 'Count of threads per page must be in range %s-%s.';
 
-FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE'] = 'Имя картинки для файла, не являющегося изображением имеет не верный формат.';
+FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE'] = 'Thumbnail name for nonimage files has wrong format.';
 
 /* **************************************************************************
  * Registration, authorization, identification and access violation errors. *
@@ -167,4 +167,6 @@ LimitException::$messages['MAX_PAGE'] = 'Page not exists.';
 LimitException::$messages['MAX_SMALL_IMG_SIZE'] = 'So small image cannot have so many data.';
 LimitException::$messages['MIN_IMG_DIMENTIONS'] = 'Image dimensions too small.';
 LimitException::$messages['MIN_IMG_SIZE'] = 'Image too small.';
+
+LimitException::$messages['WORD_TOO_LONG'] = 'Word too long.'
 ?>

@@ -1,28 +1,23 @@
 {* Smarty *}
-{*************************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************
- *********************************
+{*********************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************}
 {*
-Код страницы бана по списку.
+Code of mass ban page.
 
-Описание переменных:
-    $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $STYLESHEET - стиль оформления (см. config.default).
-    $show_control - показывать ссылку на страницу административных фукнций и фукнций модераторов в панели администратора.
-    $boards - доски.
-    $MAX_FILE_SIZE - максимальный размер загружаемого файла (в байтах) (см. config.default).
+Variables:
+    $DIR_PATH - path from server document root to index.php directory (see config.default).
+    $STYLESHEET - stylesheet (see config.default).
+    $show_control - show link to manage page.
+    $boards - boards.
+    $MAX_FILE_SIZE - maximum size of uploaded file in bytes (see config.default).
 *}
 {include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title="Бан по списку"}
 
 <script type="text/javascript">var DIR_PATH = '{$DIR_PATH}';</script>
-<script src="{$DIR_PATH}/kotoba.js"></script>
 <script src="{$DIR_PATH}/protoaculous-compressed.js"></script>
+<script src="{$DIR_PATH}/kotoba.js"></script>
 
 {include file='adminbar.tpl' DIR_PATH=$DIR_PATH show_control=$show_control}
 
@@ -38,7 +33,8 @@
 <tbody>
     <tr valign="top">
         <td class="postblock">Список поциентов: </td>
-        <td><input type="file" name="file" size="54"> <input type="submit" value="Забанить"></td></tr>
+        <td><input type="file" name="file" size="54"> <input type="submit" value="Забанить"></td>
+    </tr>
 </tbody>
 </table>
 </form>

@@ -81,6 +81,10 @@ Logging::$f['EDIT_WORDFILTER_USE'] = function () {
     Logging::write_msg('Использовано редактирование фильтрации слов.');
 };
 
+Logging::$f['HARD_BAN_USE'] = function () {
+    Logging::write_msg('Использован бан в фаерволе.');
+};
+
 Logging::$f['LOG_VIEW_USE'] = function () {
     Logging::write_msg('Использован просмотр лога.');
 };

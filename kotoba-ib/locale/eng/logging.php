@@ -62,27 +62,31 @@ Logging::$f['EDIT_STYLESHEETS_USE'] = function () {
 };
 
 Logging::$f['EDIT_THREADS_USE'] = function () {
-    Logging::write_msg('Использовано редактирование настроек нитей.');
+    Logging::write_msg('Edit thread used.');
 };
 
 Logging::$f['EDIT_UPLOAD_HANDLERS_USE'] = function () {
-    Logging::write_msg('Использовано редактирование обработчиков загружаемых файлов.');
+    Logging::write_msg('Edit upload handlers used.');
 };
 
 Logging::$f['EDIT_UPLOAD_TYPES_USE'] = function () {
-    Logging::write_msg('Использовано редактирование типов загружаемых файлов.');
+    Logging::write_msg('Edit upload types used.');
 };
 
 Logging::$f['EDIT_USER_GROUPS_USE'] = function () {
-    Logging::write_msg('Использовано редактирование принадлежности пользователей группам.');
+    Logging::write_msg('Edit user groups used.');
 };
 
 Logging::$f['EDIT_WORDFILTER_USE'] = function () {
-    Logging::write_msg('Использовано редактирование фильтрации слов.');
+    Logging::write_msg('Edit word filter used.');
+};
+
+Logging::$f['HARD_BAN_USE'] = function () {
+    Logging::write_msg('Ban in firewall used.');
 };
 
 Logging::$f['LOG_VIEW_USE'] = function () {
-    Logging::write_msg('Использован просмотр лога.');
+    Logging::write_msg('Log view used.');
 };
 
 Logging::$f['MANAGE_USE'] = function () {
@@ -91,13 +95,13 @@ Logging::$f['MANAGE_USE'] = function () {
 
 Logging::$f['MASS_BAN_ADD'] = function ($range_beg, $range_end, $reason, $until) {
     if ($range_beg == $range_end) {
-        Logging::write_msg("Доступ с адреса $range_beg заблокирован по причине '$reason' до $until.");
+        Logging::write_msg("Access from address $range_beg blocked due to '$reason' until $until.");
     } else {
-        Logging::write_msg("Доступ с адресов [$range_beg, $range_end] заблокирован по причине '$reason' до $until.");
+        Logging::write_msg("Access from addresses [$range_beg, $range_end] blocked due to '$reason' until $until.");
     }
 };
 Logging::$f['MASS_BAN_USE'] = function () {
-    Logging::write_msg('Использован бан по списку.');
+    Logging::write_msg('Mass ban used.');
 };
 
 Logging::$f['MODERATE_USE'] = function () {

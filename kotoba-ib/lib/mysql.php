@@ -307,66 +307,59 @@ function db_board_upload_types_get_all($link)
 	return $board_upload_types;
 }
 
-/* ************************
- * Работа с вордфильтром. *
- **************************/
+/* ********
+ * Words. *
+ **********/
 
 /**
- * Добавляет слово.
- * @param word mixed <p>Слово.</p>
- * @param replace string <p>Слово-замена.</p>
+ * Add word.
+ * @param MySQLi $link Link to database.
+ * @param int $board_id Board id.
+ * @param string $word Word.
+ * @param string $replace Replacement.
  */
-function db_words_add($link, $board_id, $word, $replace)
-{
-	if($word === null)
-		$word = 'null';
-	if($replace === null)
-		$replace = 'null';
-
-	if(!mysqli_query($link, 'call sp_words_add(' . $board_id . ', \'' . $word . '\', \''
-		. $replace . '\')'))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
-}
-/**
- * Удаляет заданное слово.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param id mixed <p>Идентификатор доски.</p>
- */
-function db_words_delete($link, $id)
-{
-	if(!mysqli_query($link, "call sp_words_delete($id)"))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
-}
-/**
- * Редактирует слово.
- * @param word mixed <p>Слово.</p>
- * @param replace string <p>Слово-замена.</p>
- */
-function db_words_edit($link, $id, $word, $replace)
-{ // Java CC.
-	if ($word === null) {
-		$word = 'null';
-    }
-	if ($replace === null) {
-		$replace = 'null';
+function db_words_add($link, $board_id, $word, $replace) {
+    $word = $word == null ? 'null' : "'$word'";
+    $replace = $replace == null ? 'null' : "'$replace'";
+    if (!mysqli_query($link, "call sp_words_add($board_id, $word, $replace)")) {
+        throw new CommonException(mysqli_error($link));
     }
 
-	if (!mysqli_query($link, 'call sp_words_edit(' . $id . ', \'' . $word . '\', \''
-            . $replace . '\')')) {
-		throw new CommonException(mysqli_error($link));
-    }
-	db_cleanup_link($link);
+    db_cleanup_link($link);
 }
 /**
- * Получает все слова.
+ * Delete word.
+ * @param MySQLi $link Link to database.
+ * @param int $id Id.
+ */
+function db_words_delete($link, $id) {
+    if (!mysqli_query($link, "call sp_words_delete($id)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    db_cleanup_link($link);
+}
+/**
+ * Edit word.
+ * @param MySQLi $link Link to database.
+ * @param int $id Id.
+ * @param string $word Word.
+ * @param string $replace Replacement.
+ */
+function db_words_edit($link, $id, $word, $replace) {
+    $word = $word == null ? 'null' : "'$word'";
+    $replace = $replace == null ? 'null' : "'$replace'";
+    if (!mysqli_query($link, "call sp_words_edit($id, $word, $replace)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    db_cleanup_link($link);
+}
+/**
+ * Get words.
+ * @param MySQLi $link Link to database.
  * @return array
- * Возвращает слова:<br>
- * 'id' - Идентификатор.<br>
- * 'board_id' - Идентификатор доски.<br>
- * 'word' - Слово для замены.<br>
- * 'replace' - Замена.
+ * words.
  */
 function db_words_get_all($link) {
     $result = mysqli_query($link, 'call sp_words_get_all()');
@@ -376,12 +369,12 @@ function db_words_get_all($link) {
 
     $words = array();
     if (mysqli_affected_rows($link) > 0) {
-        while(($row = mysqli_fetch_assoc($result)) != null){
+        while( ($row = mysqli_fetch_assoc($result)) != NULL){
             array_push($words,
-                array('id' => $row['id'],
-                      'board_id' => $row['board_id'],
-                      'word' => $row['word'],
-                      'replace' => $row['replace']));
+                       array('id' => $row['id'],
+                             'board_id' => $row['board_id'],
+                             'word' => $row['word'],
+                             'replace' => $row['replace']));
         }
     }
 
@@ -1363,26 +1356,28 @@ function db_groups_delete($link, $group_ids)
 	}
 }
 /**
- * Получает все группы.
- * @param link MySQLi <p>Связь с базой данных.</p>
+ * Get groups.
+ * @param MySQLi $link Link to database.
  * @return array
- * Возвращает группы:<p>
- * 'id' - Идентификатор.<br>
- * 'name' - Имя.</p>
+ * groups.
  */
-function db_groups_get_all($link)
-{
-	if(($result = mysqli_query($link, 'call sp_groups_get_all()')) == false)
-		throw new CommonException(mysqli_error($link));
-	$groups = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) !== null)
-			array_push($groups, array('id' => $row['id'], 'name' => $row['name']));
-	else
-		throw new NodataException(NodataException::$messages['GROUPS_NOT_EXIST']);
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $groups;
+function db_groups_get_all($link) {
+    if ( ($result = mysqli_query($link, 'call sp_groups_get_all()')) == false) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $groups = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while (($row = mysqli_fetch_assoc($result)) != NULL) {
+            array_push($groups, array('id' => $row['id'], 'name' => $row['name']));
+        }
+    } else {
+        throw new NodataException(NodataException::$messages['GROUPS_NOT_EXIST']);
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $groups;
 }
 /**
  * Получает группы, в которые входит пользователь.
@@ -2495,7 +2490,7 @@ function db_posts_get_all_numbers($link) { // Java CC
     return $posts;
 }
 /**
- * Get visible posts.
+ * Get posts.
  * @param MySQLi $link Link to database.
  * @param array $boards Boards.
  * @return array
@@ -2510,7 +2505,7 @@ function db_posts_get_by_boards($link, $boards) {
         }
 
         if (mysqli_affected_rows($link) > 0) {
-            while (($row = mysqli_fetch_assoc($result)) != null) {
+            while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
                 if (!isset ($tmp_boards["{$row['post_board']}"])) {
                     $tmp_boards["{$row['post_board']}"] =
                         array('id' => $row['board_id'],
@@ -3979,52 +3974,57 @@ function db_threads_move_thread($link, $thread_id, $board_id) {
     db_cleanup_link($link);
 }
 
-/* ********************************************
- * Работа с обработчиками загружаемых файлов. *
- **********************************************/
+/* ******************
+ * Upload handlers. *
+ ********************/
 
 /**
- * Добавляет обработчик загружаемых файлов.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param name string <p>Имя фукнции обработчика загружаемых файлов.</p>
+ * Add upload handler.
+ * @param MySQLi $link Link to database.
+ * @param string $name Function name.
  */
-function db_upload_handlers_add($link, $name)
-{
-	if(!mysqli_query($link, 'call sp_upload_handlers_add(\'' . $name . '\')'))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+function db_upload_handlers_add($link, $name) {
+    if (!mysqli_query($link, "call sp_upload_handlers_add('$name')")) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    db_cleanup_link($link);
 }
 /**
- * Удаляет обработчик загружаемых файлов.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param id mixed <p>Идентификатор обработчика загружаемых файлов.</p>
+ * Delete upload handlers.
+ * @param MySQLi $link Link to database.
+ * @param int $id Id.
  */
-function db_upload_handlers_delete($link, $id)
-{
-	if(!mysqli_query($link, 'call sp_upload_handlers_delete(' . $id . ')'))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+function db_upload_handlers_delete($link, $id) {
+    if (!mysqli_query($link, "call sp_upload_handlers_delete($id)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    db_cleanup_link($link);
 }
 /**
- * Получает все обработчики загружаемых файлов.
- * @param link MySQLi <p>Связь с базой данных.</p>
+ * Get upload handlers.
+ * @param MySQLi $link Link to database.
  * @return array
- * Возвращает обработчики загружаемых файлов:<p>
- * 'id' - Идентификатор.<br>
- * 'name' - Имя фукнции.</p>
+ * upload handlers.
  */
-function db_upload_handlers_get_all($link)
-{
-	$result = mysqli_query($link, 'call sp_upload_handlers_get_all()');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$upload_handlers = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) !== null)
-			array_push($upload_handlers, array('id' => $row['id'],
-					'name' => $row['name']));
-	db_cleanup_link($link);
-	return $upload_handlers;
+function db_upload_handlers_get_all($link) {
+    $result = mysqli_query($link, 'call sp_upload_handlers_get_all()');
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $upload_handlers = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            array_push($upload_handlers, array('id' => $row['id'],
+                                               'name' => $row['name']));
+        }
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $upload_handlers;
 }
 
 /* *************************************
@@ -4032,87 +4032,78 @@ function db_upload_handlers_get_all($link)
  ***************************************/
 
 /**
- * Добавляет тип загружаемых файлов.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param extension string <p>Расширение.</p>
- * @param store_extension string <p>Сохраняемое расширение.</p>
- * @param is_image mixed <p>Флаг изображения.</p>
- * @param upload_handler_id mixed <p>Идентификатор обработчика загружаемого
- * файла.</p>
- * @param thumbnail_image string <p>Уменьшенная копия.</p>
+ * Add upload type.
+ * @param MySQLi $link Link to database.
+ * @param etring $extension Extension.
+ * @param string $store_extension Stored extension.
+ * @param boolean $is_image Image flag.
+ * @param int $upload_handler_id Upload handler id.
+ * @param string $thumbnail_image Thumbnail.
  */
-function db_upload_types_add($link, $extension, $store_extension, $is_image,
-	$upload_handler_id, $thumbnail_image)
-{
-	$thumbnail_image = ($thumbnail_image === null ? 'null' : '\'' . $thumbnail_image . '\'');
-	if(!mysqli_query($link, 'call sp_upload_types_add(\''
-		. $extension . '\', \'' . $store_extension . '\', ' . $is_image . ', '
-		. $upload_handler_id . ', ' . $thumbnail_image . ')'))
-	{
-		throw new CommonException(mysqli_error($link));
-	}
-	db_cleanup_link($link);
-}
-/**
- * Удаляет тип загружаемых файлов.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param id mixed <p>Идентифаикатор.</p>
- */
-function db_upload_types_delete($link, $id)
-{
-	if(!mysqli_query($link, 'call sp_upload_types_delete('. $id . ')'))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
-}
-/**
- * Редактирует тип загружаемых файлов.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param id mixed <p>Идентификатор.</p>
- * @param store_extension string <p>Сохраняемое расширение.</p>
- * @param is_image mixed <p>Флаг изображения.</p>
- * @param upload_handler_id mixed <p>Идентификатор обработчика загружаемых
- * файлов.</p>
- * @param thumbnail_image string <p>Имя файла уменьшенной копии.</p>
- */
-function db_upload_types_edit($link, $id, $store_extension, $is_image,
-    $upload_handler_id, $thumbnail_image)
-{
-    $thumbnail_image = ($thumbnail_image === null ? 'null' : '\'' . $thumbnail_image . '\'');
-    if(!mysqli_query($link, 'call sp_upload_types_edit(' . $id . ', \''
-        . $store_extension . '\', ' . $is_image . ', ' . $upload_handler_id
-        . ', ' . $thumbnail_image . ')'))
-    {
+function db_upload_types_add($link, $extension, $store_extension, $is_image, $upload_handler_id, $thumbnail_image) {
+	$thumbnail_image = $thumbnail_image == null ? 'null' : "'$thumbnail_image'";
+    $is_image = $is_image ? '1' : '0';
+    if(!mysqli_query($link, "call sp_upload_types_add('$extension', '$store_extension', $is_image, $upload_handler_id, $thumbnail_image)")) {
         throw new CommonException(mysqli_error($link));
     }
+
     db_cleanup_link($link);
 }
 /**
- * Получает все типы загружаемых файлов.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @return array
- * Возвращает типы загружаемых файлов:<p>
- * 'id' - Идентификатор.<br>
- * 'extension' - Расширение.<br>
- * 'store_extension' - Сохраняемое расширение.<br>
- * 'is_image' - Флаг изображения.<br>
- * 'upload_handler' - Идентификатор обработчика загружаемых файлов.<br>
- * 'thumbnail_image' - Имя файла уменьшенной копии.</p>
+ * Delete upload type.
+ * @param MySQLi $link Link to database.
+ * @param int $id Id.
  */
-function db_upload_types_get_all($link)
-{
-    $result = mysqli_query($link, 'call sp_upload_types_get_all()');
-    if(!$result)
+function db_upload_types_delete($link, $id) {
+    if (!mysqli_query($link, "call sp_upload_types_delete($id)")) {
         throw new CommonException(mysqli_error($link));
+    }
+
+    db_cleanup_link($link);
+}
+/**
+ * Edit upload type.
+ * @param MySQLi $link Link to database.
+ * @param int $id Id.
+ * @param string $store_extension Stored extension.
+ * @param boolean $is_image Image flag.
+ * @param int $upload_handler_id Upload handler id.
+ * @param string $thumbnail_image Thumbnail.
+ */
+function db_upload_types_edit($link, $id, $store_extension, $is_image, $upload_handler_id, $thumbnail_image) {
+    $thumbnail_image = $thumbnail_image == null ? 'null' : "'$thumbnail_image'";
+    $is_image = $is_image ? '1' : '0';
+    if(!mysqli_query($link, "call sp_upload_types_edit($id, '$store_extension', $is_image, $upload_handler_id, $thumbnail_image)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    db_cleanup_link($link);
+}
+/**
+ * Get upload types.
+ * @param MySQLi $link Link to database.
+ * @return array
+ * upload types.
+ */
+function db_upload_types_get_all($link) {
+    $result = mysqli_query($link, 'call sp_upload_types_get_all()');
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
     $upload_types = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) !== null)
+    if (mysqli_affected_rows($link) > 0) {
+        while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             array_push($upload_types,
-                array('id' => $row['id'],
-                      'extension' => $row['extension'],
-                      'store_extension' => $row['store_extension'],
-                      'is_image' => $row['is_image'],
-                      'upload_handler' => $row['upload_handler'],
-                      'thumbnail_image' => $row['thumbnail_image']));
+                       array('id' => $row['id'],
+                             'extension' => $row['extension'],
+                             'store_extension' => $row['store_extension'],
+                             'is_image' => $row['is_image'],
+                             'upload_handler' => $row['upload_handler'],
+                             'thumbnail_image' => $row['thumbnail_image']));
+        }
+    }
+
     mysqli_free_result($result);
     db_cleanup_link($link);
     return $upload_types;
@@ -4149,74 +4140,72 @@ function db_upload_types_get_by_board($link, $board_id) {
     return $upload_types;
 }
 
-/* ***************************************************
- * Работа с закреплениями пользователей за группами. *
- *****************************************************/
+/* ************************
+ * User groups relations. *
+ **************************/
 
 /**
- * Добавляет пользователя в группу.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @param group_id mixed <p>Идентификатор группы.</p>
+ * Add user to group.
+ * @param MySQLi $link Link to database.
+ * @param int $user_id User id.
+ * @param int $group_id Group id.
  */
-function db_user_groups_add($link, $user_id, $group_id)
-{
-    $result = mysqli_query($link,
-        'call sp_user_groups_add(' . $user_id . ', ' . $group_id . ')');
-    if(!$result)
+function db_user_groups_add($link, $user_id, $group_id) {
+    if (!mysqli_query($link, "call sp_user_groups_add($user_id, $group_id)")) {
         throw new CommonException(mysqli_error($link));
+    }
+    
     db_cleanup_link($link);
 }
 /**
- * Удаляет заданного пользователя из заданной группы.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @param group_id mixed <p>Идентификатор группы.</p>
+ * Delete user from group.
+ * @param MySQLi $link Link to database.
+ * @param int $user_id User id.
+ * @param int $group_id Group id.
  */
-function db_user_groups_delete($link, $user_id, $group_id)
-{
-    $result = mysqli_query($link,
-        'call sp_user_groups_delete(' . $user_id . ', ' . $group_id . ')');
-    if(!$result )
+function db_user_groups_delete($link, $user_id, $group_id) {
+    if (!mysqli_query($link, "call sp_user_groups_delete($user_id, $group_id)")) {
         throw new CommonException(mysqli_error($link));
+    }
+
     db_cleanup_link($link);
 }
 /**
- * Переносит заданного пользователя из одной группы в другую.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @param old_group_id mixed <p>Идентификатор старой группы.</p>
- * @param new_group_id mixed <p>Идентификатор новой группы.</p>
+ * Move user to new group.
+ * @param MySQLi $link Link to database.
+ * @param int $user_id User id.
+ * @param int $old_group_id Id of old group.
+ * @param int $new_group_id Id of new group.
  */
-function db_user_groups_edit($link, $user_id, $old_group_id, $new_group_id)
-{
-    $result = mysqli_query($link,
-        'call sp_user_groups_edit(' . $user_id . ', ' . $old_group_id . ', '
-        . $new_group_id . ')');
-    if(!$result)
+function db_user_groups_edit($link, $user_id, $old_group_id, $new_group_id) {
+    if (!mysqli_query($link, "call sp_user_groups_edit($user_id, $old_group_id, $new_group_id)")) {
         throw new CommonException(mysqli_error($link));
+    }
+
     db_cleanup_link($link);
 }
 /**
- * Получает все связи пользователей с группами.
- * @param link MySQLi <p>Связь с базой данных.</p>
+ * Get user groups relations.
+ * @param MySQLi $link Link to database.
  * @return array
- * Возвращает связи:<p>
- * 'user' - Идентификатор пользователя.<br>
- * 'group' - Идентификатор группы.</p>
+ * user groups relations.
  */
-function db_user_groups_get_all($link)
-{
+function db_user_groups_get_all($link) {
     $result = mysqli_query($link, 'call sp_user_groups_get_all()');
-    if(!$result)
+    if (!$result) {
         throw new CommonException(mysqli_error($link));
+    }
+
     $user_groups = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) !== null)
+    if (mysqli_affected_rows($link) > 0) {
+        while( ($row = mysqli_fetch_assoc($result)) != NULL) {
             array_push($user_groups, array('user' => $row['user'],
                                            'group' => $row['group']));
-    else
+        }
+    } else {
         throw new NodataException(NodataException::$messages['USER_GROUPS_NOT_EXIST']);
+    }
+
     mysqli_free_result($result);
     db_cleanup_link($link);
     return $user_groups;
@@ -4269,23 +4258,25 @@ function db_users_edit_by_keyword($link,
     db_cleanup_link($link);
 }
 /**
- * Получает всех пользователей.
- * @param link MySQLi <p>Связь с базой данных.</p>
+ * Get users.
+ * @param MySQLi $link Link to database.
  * @return array
- * Возвращает идентификаторы пользователей:<p>
- * 'id' - Идентификатор пользователя.</p>
+ * users.
  */
-function db_users_get_all($link)
-{
+function db_users_get_all($link) {
     $result = mysqli_query($link, 'call sp_users_get_all()');
-    if(!$result)
+    if (!$result) {
         throw new CommonException(mysqli_error($link));
+    }
+
     $users = array();
-    if(mysqli_affected_rows($link) > 0)
-        while(($row = mysqli_fetch_assoc($result)) !== null)
+    if (mysqli_affected_rows($link) > 0) {
+        while( ($row = mysqli_fetch_assoc($result)) != NULL)
             array_push($users, array('id' => $row['id']));
-    else
+    } else {
         throw new NodataException(NodataException::$messages['USERS_NOT_EXIST']);
+    }
+
     mysqli_free_result($result);
     db_cleanup_link($link);
     return $users;

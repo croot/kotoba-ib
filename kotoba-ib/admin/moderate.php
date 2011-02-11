@@ -6,11 +6,12 @@
 
 // Moderators main script.
 
-require '../config.php';
+require_once '../config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
 require_once Config::ABS_PATH . '/lib/logging.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/wrappers.php';
 
 try {
     // Initialization.
@@ -34,6 +35,7 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
+    // Check permission and write message to log file.
     $is_admin = false;
     if (is_admin()) {
         $is_admin = true;
@@ -44,14 +46,14 @@ try {
 
     $boards = ($is_admin == true) ? boards_get_all() : boards_get_moderatable($_SESSION['user']);
     $output = '';
+    $moderate_posts = array();
     $smarty->assign('show_control', is_admin() || is_mod());
-    $smarty->assign('is_admin', $is_admin);
     $smarty->assign('boards', $boards);
+    $smarty->assign('is_admin', $is_admin);
     $smarty->assign('ATTACHMENT_TYPE_FILE', Config::ATTACHMENT_TYPE_FILE);
     $smarty->assign('ATTACHMENT_TYPE_LINK', Config::ATTACHMENT_TYPE_LINK);
     $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
     $smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
-    $output .= $smarty->fetch('moderate_header.tpl');
     date_default_timezone_set(Config::DEFAULT_TIMEZONE);
 
     // Request posts. Apply defined filter to posts and show.
@@ -99,7 +101,7 @@ try {
             $filter_number = posts_check_number($_POST['filter_number']);
 
             // Filters posts whose number equal or greater than defined value.
-            $fileter = function($filter_number, $attachments_only, $post) {
+            $fileter = function($post, $filter_number, $attachments_only) {
                 if ($post['number'] >= $filter_number) {
                     if (!$attachments_only || $attachments_only && $post['attachments_count'] > 0) {
                         return true;
@@ -111,7 +113,7 @@ try {
         } elseif($_POST['filter_ip'] != '') {
 
             // Filters posts whose ip equal defined value.
-            $fileter = function($filter_ip, $post) {
+            $fileter = function($post, $filter_ip) {
                 if ($post['ip'] == $filter_ip) {
                     return true;
                 }
@@ -123,63 +125,24 @@ try {
         // Generate list of filtered posts.
         $posts_attachments = posts_attachments_get_by_posts($posts);
         $attachments = attachments_get_by_posts($posts);
+        $admins = users_get_admins();
+
         foreach ($posts as $post) {
 
-            // Debug
-            //var_dump($post['attachments_count']);
-
-            // By default post have no attachments. This is fake field.
-            $post['with_attachments'] = false;
-
-            $post_attachments = array();
-            foreach ($posts_attachments as $pa) {
-                if ($pa['post'] == $post['id']) {
-                    foreach ($attachments as $a) {
-                        if ($a['attachment_type'] == $pa['attachment_type']) {
-                            switch ($a['attachment_type']) {
-                                case Config::ATTACHMENT_TYPE_FILE:
-                                    if ($a['id'] == $pa['file']) {
-                                        $a['file_link'] = Config::DIR_PATH . "/{$filter_boards[0]['name']}/other/{$a['name']}";
-                                        $a['thumbnail_link'] = Config::DIR_PATH . "/img/{$a['thumbnail']}";
-                                        $post['with_attachments'] = true;
-                                        array_push($post_attachments, $a);
-                                    }
-                                    break;
-                                case Config::ATTACHMENT_TYPE_IMAGE:
-                                    if ($a['id'] == $pa['image']) {
-                                        $a['image_link'] = Config::DIR_PATH . "/{$filter_boards[0]['name']}/img/{$a['name']}";
-                                        $a['thumbnail_link'] = Config::DIR_PATH . "/{$filter_boards[0]['name']}/thumb/{$a['thumbnail']}";
-                                        $post['with_attachments'] = true;
-                                        array_push($post_attachments, $a);
-                                    }
-                                    break;
-                                case Config::ATTACHMENT_TYPE_LINK:
-                                    if ($a['id'] == $pa['link']) {
-                                        $post['with_attachments'] = true;
-                                        array_push($post_attachments, $a);
-                                    }
-                                    break;
-                                case Config::ATTACHMENT_TYPE_VIDEO:
-                                    if ($a['id'] == $pa['video']) {
-                                        $smarty->assign('code', $a['code']);
-                                        $a['video_link'] = $smarty->fetch('youtube.tpl');
-                                        $post['with_attachments'] = true;
-                                        array_push($post_attachments, $a);
-                                    }
-                                    break;
-                                default:
-                                    throw new CommonException('Not supported.');
-                                    break;
-                            }
-                        }
-                    }
+            // Find if author of this post is admin.
+            $author_admin = false;
+            foreach ($admins as $admin) {
+                if ($post['user'] == $admin['id']) {
+                    $author_admin = true;
+                    break;
                 }
             }
-            $post['ip'] = long2ip($post['ip']);
-            $smarty->assign('post', $post);
-            $smarty->assign('attachments', $post_attachments);
-            $smarty->assign('board', $filter_boards[0]);
-            $output .= $smarty->fetch('moderate_post.tpl');
+
+            array_push($moderate_posts, post_moderate_generate_html($smarty,
+                                                                    $post,
+                                                                    $posts_attachments,
+                                                                    $attachments,
+                                                                    $author_admin));
         }
     }
 
@@ -225,8 +188,8 @@ try {
         }
     }
 
-    $output .= $smarty->fetch('moderate_footer.tpl');
-    echo $output;
+    $smarty->assign('moderate_posts', $moderate_posts);
+    $smarty->display('moderate.tpl');
 
     // Cleanup.
     DataExchange::releaseResources();

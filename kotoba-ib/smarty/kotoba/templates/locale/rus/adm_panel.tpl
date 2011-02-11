@@ -13,6 +13,7 @@ Variables:
 <li><a href="{$DIR_PATH}/admin/moderate.php">Основной скрипт модератора.</a></li>
 <li><a href="{$DIR_PATH}/admin/reports.php">Жалобы.</a></li>
 <li><a href="{$DIR_PATH}/admin/edit_bans.php">Баны.</a></li>
+<li><a href="{$DIR_PATH}/admin/hard_ban.php">Бан в фаерволе.</a></li>
 <li><a href="{$DIR_PATH}/admin/mass_ban.php">Бан по списку.</a></li>
 </ul>
 Доски:

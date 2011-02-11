@@ -101,7 +101,9 @@ function kotoba_session_start() {
         $_SESSION['lines_per_post'] = Config::LINES_PER_POST;
         $_SESSION['stylesheet'] = Config::STYLESHEET;
         $_SESSION['language'] = Config::LANGUAGE;
-        $_SESSION['password'] = null;
+        if (!isset($_SESSION['user'])) {
+            $_SESSION['password'] = null;
+        }
         $_SESSION['goto'] = 'b';    // Redirection to board view.
         $_SESSION['name'] = null;
     }
