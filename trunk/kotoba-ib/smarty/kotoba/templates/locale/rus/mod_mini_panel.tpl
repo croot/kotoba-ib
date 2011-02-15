@@ -1,21 +1,16 @@
 {* Smarty *}
-{*************************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************
- *********************************
+{*********************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************}
 {*
-Код мини панели администратора и модератора.
+Administrators and Moderators mini panel.
 
-Описание переменных:
-    $DIR_PATH - путь от корня документов к директории, где хранится index.php (см. config.default).
-    $STYLESHEET - стиль оформления (см. config.default).
-    $post_id - идентификатор сообщения.
-    $ip - IP адрес автора сообщения.
+Variables:
+    $DIR_PATH - path from server document root to index.php directory (see config.default).
+    $STYLESHEET - stylesheet (see config.default).
+    $post_id - post id.
+    $ip - IP-address.
 *}
 <span class="postadmin">[<span class="posterip">{$ip}</span>
 <form action="{$DIR_PATH}/admin/edit_bans.php" method="post">
