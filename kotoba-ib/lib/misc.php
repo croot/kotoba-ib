@@ -335,21 +335,20 @@ function get_extension($name) {
     return $parts['extension'];
 }
 /**
- * Создает жесткую ссылку или копию файла, если жесткие ссылки не
- * поддерживаются.
- * @param source string <p>Файл источник.</p>
- * @param dest string <p>Файл назначения.</p>
+ * Create hard link or copy file if link() not availiable.
+ * @param string $source Source filename.
+ * @param string $dest Destination filename.
  */
-function link_file($source, $dest)
-{
-	if(function_exists('link'))
-	{
-		if(!link($source, $dest))
-			throw new CommonException(CommonException::$messages['LINK_FAILED']);
-	}
-	else
-		if(!copy($source, $dest))
-			throw new CommonException(CommonException::$messages['COPY_FAILED']);
+function link_file($source, $dest) {
+    if (function_exists('link')) {
+        if (!link($source, $dest)) {
+            throw new CommonException(CommonException::$messages['LINK_FAILED']);
+        }
+    } else {
+        if(!copy($source, $dest)) {
+            throw new CommonException(CommonException::$messages['COPY_FAILED']);
+        }
+    }
 }
 /**
  * Check if user is admin.
@@ -497,7 +496,7 @@ function create_thumbnail($source, $dest, $source_dimensions, $type, $resize_x, 
         }
         $result['x'] = $source_dimensions['x'];
         $result['y'] = $source_dimensions['y'];
-        link_file_new($source, $dest); // TODO oops I lost this function.
+        link_file($source, $dest); // TODO oops I lost this function.
         return $result;
     }
 

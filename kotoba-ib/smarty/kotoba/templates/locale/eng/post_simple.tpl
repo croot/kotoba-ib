@@ -36,12 +36,6 @@ Variables:
 
                 {if $enable_remove_post}<span><a href="{$DIR_PATH}/remove_post.php?post={$post.id}"><img src="{$DIR_PATH}/css/delete.png" alt="[Remove]" title="Remove post" border="0"/></a></span>{else}<!-- Link to remove post disabled -->{/if}
 
-                {if $enable_extrabtns}<span class="extrabtns">
-                    {if $post.with_attachments}<a href="{$DIR_PATH}/remove_upload.php?post={$post.id}"><img src="{$DIR_PATH}/css/delfile.png" alt="[Remove file]" title="Remove file" border="0"/></a>{else}<!-- There is no attachments -->{/if}
-
-                    <a href="{$DIR_PATH}/report.php?post={$post.id}"><img src="{$DIR_PATH}/css/report.png" alt="[Report]" title="Report" border="0"/></a>
-                </span>{else}<!-- Extrabuttons disabled -->{/if}
-
                 {if $enable_geoip}<span title="{$country.name}" class="country"><img src="http://410chan.ru/css/flags/{$country.code}.gif" alt="{$country.name}"></span>&nbsp;{else}<!-- GeoIP disabled -->{/if}
 
                 <span class="filetitle">{$post.subject}</span>
@@ -54,6 +48,12 @@ Variables:
                     {if $is_board_view}<a href="{$DIR_PATH}/threads.php?board={$post.board.name}&thread={$post.thread.original_post}&quote={$post.number}">{$post.number}</a>{else}<a href="#" onclick="insert('>>{$post.number}');">{$post.number}</a>{/if}
 
                 </span>
+                {if $enable_extrabtns}<span class="extrabtns">
+                    {if $post.with_attachments}<a href="{$DIR_PATH}/remove_upload.php?post={$post.id}"><img src="{$DIR_PATH}/css/delfile.png" alt="[Remove file]" title="Remove file" border="0"/></a>{else}<!-- There is no attachments -->{/if}
+
+                    <a href="{$DIR_PATH}/report.php?post={$post.id}"><img src="{$DIR_PATH}/css/report.png" alt="[Report]" title="Report" border="0"/></a>
+                </span>{else}<!-- Extrabuttons disabled -->{/if}
+
                 {if $enable_postid} ID:{$postid}{else}<!-- Post identification disabled -->{/if}
 
                 {if $is_admin}{include file='mod_mini_panel.tpl' post_id=$post.id ip=$post.ip board_name=$post.board.name post_num=$post.number}{else}<!-- Admin panel disabled -->{/if}
