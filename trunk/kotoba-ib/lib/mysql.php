@@ -48,107 +48,108 @@ function db_cleanup_link($link) {
  ***************************************/
 
 /**
- * Добавляет новое правило в список контроля доступа.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param group_id mixed <p>Группа.</p>
- * @param board_id mixed <p>Доска.</p>
- * @param thread_id mixed <p>Нить.</p>
- * @param post_id mixed <p>Сообщение.</p>
- * @param view mixed <p>Право на просмотр.</p>
- * @param change mixed <p>Право на изменение.</p>
- * @param moderate mixed <p>Право на модерирование.</p>
+ * Add rule to ACL.
+ * @param MySQLi $link Link to database.
+ * @param int|null $group_id Group id.
+ * @param int|null $board_id Board id.
+ * @param int|null $thread_id Thread id.
+ * @param int|null $post_id Post id.
+ * @param boolean $view View permission.
+ * @param boolean $change Change prmission.
+ * @param boolean $moderate Moderate permission.
  */
-function db_acl_add($link, $group_id, $board_id, $thread_id, $post_id, $view,
-	$change, $moderate)
-{
-	$group_id = ($group_id === null ? 'null' : $group_id);
-	$board_id = ($board_id === null ? 'null' : $board_id);
-	$thread_id = ($thread_id === null ? 'null' : $thread_id);
-	$post_id = ($post_id === null ? 'null' : $post_id);
-	$result = mysqli_query($link, 'call sp_acl_add(' . $group_id . ', '
-			. $board_id . ', ' . $thread_id . ', ' . $post_id . ', '
-			. $view . ', ' . $change . ', ' . $moderate . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+function db_acl_add($link, $group_id, $board_id, $thread_id, $post_id, $view, $change, $moderate) {
+    $group_id = ($group_id == null ? 'null' : $group_id);
+    $board_id = ($board_id == null ? 'null' : $board_id);
+    $thread_id = ($thread_id == null ? 'null' : $thread_id);
+    $post_id = ($post_id == null ? 'null' : $post_id);
+    $view = $view ? '1' : '0';
+    $change = $change ? '1' : '0';
+    $moderate = $moderate ? '1' : '0';
+    $query = "call sp_acl_add($group_id, $board_id, $thread_id, $post_id, $view, $change, $moderate)";
+    $result = mysqli_query($link, $query);
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    db_cleanup_link($link);
 }
 /**
- * Удаляет правило из списка контроля доступа.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param group_id mixed <p>Группа.</p>
- * @param board_id mixed <p>Доска.</p>
- * @param thread_id mixed <p>Нить.</p>
- * @param post_id mixed <p>Сообщение.</p>
+ * Delete rule from ACL.
+ * @param MySQLi $link Link to database.
+ * @param int|null $group_id Group id.
+ * @param int|null $board_id Board id.
+ * @param int|null $thread_id Thread id.
+ * @param int|null $post_id Post id.
  */
-function db_acl_delete($link, $group_id, $board_id, $thread_id, $post_id)
-{
-	$group_id = ($group_id === null ? 'null' : $group_id);
-	$board_id = ($board_id === null ? 'null' : $board_id);
-	$thread_id = ($thread_id === null ? 'null' : $thread_id);
-	$post_id = ($post_id === null ? 'null' : $post_id);
-	$result = mysqli_query($link, 'call sp_acl_delete(' . $group_id . ', '
-			. $board_id . ', ' . $thread_id . ', ' . $post_id . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+function db_acl_delete($link, $group_id, $board_id, $thread_id, $post_id) {
+    $group_id = ($group_id === null ? 'null' : $group_id);
+    $board_id = ($board_id === null ? 'null' : $board_id);
+    $thread_id = ($thread_id === null ? 'null' : $thread_id);
+    $post_id = ($post_id === null ? 'null' : $post_id);
+    $query = "call sp_acl_delete($group_id, $board_id, $thread_id, $post_id)";
+    $result = mysqli_query($link, $query);
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    db_cleanup_link($link);
 }
 /**
- * Редактирует правило в списке контроля доступа.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param group_id mixed <p>Группа.</p>
- * @param board_id mixed <p>Доска.</p>
- * @param thread_id mixed <p>Нить.</p>
- * @param post_id mixed <p>Сообщение.</p>
- * @param view mixed <p>Право на просмотр.</p>
- * @param change mixed <p>Право на изменение.</p>
- * @param moderate mixed <p>Право на модерирование.</p>
+ * Edit rule in ACL.
+ * @param MySQLi $link Link to database.
+ * @param int|null $group_id Group id.
+ * @param int|null $board_id Board id.
+ * @param int|null $thread_id Thread id.
+ * @param int|null $post_id Post id.
+ * @param boolean $view View permission.
+ * @param boolean $change Change prmission.
+ * @param boolean $moderate Moderate permission.
  */
-function db_acl_edit($link, $group_id, $board_id, $thread_id, $post_id, $view,
-	$change, $moderate)
-{
-	$group_id = ($group_id === null ? 'null' : $group_id);
-	$board_id = ($board_id === null ? 'null' : $board_id);
-	$thread_id = ($thread_id === null ? 'null' : $thread_id);
-	$post_id = ($post_id === null ? 'null' : $post_id);
-	$result = mysqli_query($link, 'call sp_acl_edit(' . $group_id . ', '
-			. $board_id . ', ' . $thread_id . ', ' . $post_id . ', '
-			. $view . ', ' . $change . ', ' . $moderate . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+function db_acl_edit($link, $group_id, $board_id, $thread_id, $post_id, $view, $change, $moderate) {
+    $group_id = ($group_id == null ? 'null' : $group_id);
+    $board_id = ($board_id == null ? 'null' : $board_id);
+    $thread_id = ($thread_id == null ? 'null' : $thread_id);
+    $post_id = ($post_id == null ? 'null' : $post_id);
+    $view = $view ? '1' : '0';
+    $change = $change ? '1' : '0';
+    $moderate = $moderate ? '1' : '0';
+    $query = "call sp_acl_edit($group_id, $board_id, $thread_id, $post_id, $view, $change, $moderate)";
+    $result = mysqli_query($link, $query);
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    db_cleanup_link($link);
 }
 /**
- * Получает список контроля доступа.
- * @param link MySQLi <p>Связь с базой данных.</p>
+ * Get ACL.
+ * @param MySQLi $link Link to database.
  * @return array
- * Возвращает список контроля доступа:<p>
- * 'group' - Группа.<br>
- * 'board' - Доска.<br>
- * 'thread' - Нить.<br>
- * 'post' - Сообщение.<br>
- * 'view' - Право на просмотр.<br>
- * 'change' - Право на изменение.<br>
- * 'moderate' - Право на модерирование.</p>
+ * ACL.
  */
-function db_acl_get_all($link)
-{
-	if(($result = mysqli_query($link, 'call sp_acl_get_all()')) == false)
-		throw new CommonException(mysqli_error($link));
-	$acl = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) != null)
-			array_push($acl, array(	'group' => $row['group'],
-									'board' => $row['board'],
-									'thread' => $row['thread'],
-									'post' => $row['post'],
-									'view' => $row['view'],
-									'change' => $row['change'],
-									'moderate' => $row['moderate']));
-	else
-		throw new NodataException(NodataException::$messages['ACL_NOT_EXIST']);
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $acl;
+function db_acl_get_all($link) {
+    if ( ($result = mysqli_query($link, 'call sp_acl_get_all()')) == FALSE) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $acl = array();
+    if (mysqli_affected_rows($link) > 0)
+        while ( ($row = mysqli_fetch_assoc($result)) != NULL)
+            array_push($acl, array(	'group' => $row['group'],
+                                    'board' => $row['board'],
+                                    'thread' => $row['thread'],
+                                    'post' => $row['post'],
+                                    'view' => $row['view'],
+                                    'change' => $row['change'],
+                                    'moderate' => $row['moderate']));
+    else {
+        throw new NodataException(NodataException::$messages['ACL_NOT_EXIST']);
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $acl;
 }
 
 /* *******
@@ -199,39 +200,34 @@ function db_bans_check($link, $ip) {
     return $row;
 }
 /**
- * Удаляет блокировку с заданным идентификатором.
- * @param MySQLi $link Связь с базой данных.
- * @param miexd $id Идентификатор блокировки.
+ * Delete ban.
+ * @param MySQLi $link Link to database.
+ * @param int $id Id.
  */
-function db_bans_delete_by_id($link, $id) { // Java CC
+function db_bans_delete_by_id($link, $id) {
     if (!mysqli_query($link, "call sp_bans_delete_by_id($id)")) {
         throw new CommonException(mysqli_error($link));
     }
     db_cleanup_link($link);
 }
 /**
- * Удаляет блокировки с заданным IP-адресом.
- * @param MySQLi $link Связь с базой данных.
- * @param int $ip IP-адрес.
+ * Delete certain ip bans.
+ * @param MySQLi $link Link to database.
+ * @param int $ip IP-address.
  */
-function db_bans_delete_by_ip($link, $ip) { // Java CC
+function db_bans_delete_by_ip($link, $ip) {
     if (!mysqli_query($link, "call sp_bans_delete_by_ip($ip)")) {
         throw new CommonException(mysqli_error($link));
     }
     db_cleanup_link($link);
 }
 /**
- * Получает все блокировки.
- * @param MySQLi $link Связь с базой данных.
+ * Get bans.
+ * @param MySQLi $link Link to database.
  * @return array
- * Возвращает блокировки:<br>
- * 'id' - Идентификатор.<br>
- * 'range_beg' - Начало диапазона IP-адресов.<br>
- * 'range_end' - Конец диапазона IP-адресов.<br>
- * 'reason' - Причина блокировки.<br>
- * 'untill' - Время истечения блокировки.
+ * bans.
  */
-function db_bans_get_all($link) { // Java CC
+function db_bans_get_all($link) {
     $result = mysqli_query($link, 'call sp_bans_get_all()');
     if (!$result) {
         throw new CommonException(mysqli_error($link));
@@ -239,13 +235,13 @@ function db_bans_get_all($link) { // Java CC
 
     $bans = array();
     if (mysqli_affected_rows($link) > 0) {
-        while (($row = mysqli_fetch_assoc($result)) != null) {
+        while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             array_push($bans,
-                    array('id' => $row['id'],
-                          'range_beg' => $row['range_beg'],
-                          'range_end' => $row['range_end'],
-                          'reason' => $row['reason'],
-                          'untill' => $row['untill']));
+                       array('id' => $row['id'],
+                             'range_beg' => $row['range_beg'],
+                             'range_end' => $row['range_end'],
+                             'reason' => $row['reason'],
+                             'untill' => $row['untill']));
         }
     }
 
@@ -254,57 +250,60 @@ function db_bans_get_all($link) { // Java CC
     return $bans;
 }
 
-/* *****************************************************
- * Работа со связями досок и типов загружаемых файлов. *
- *******************************************************/
+/* *********************
+ * Board upload types. *
+ ***********************/
 
 /**
- * Добавляет связь доски с типом загружаемых файлов.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param board mixed <p>Доска.</p>
- * @param upload_type mixed <p>Тип загружаемого файла.</p>
+ * Add board upload type relation.
+ * @param MySQLi $link Link to database.
+ * @param int $board Board id.
+ * @param int $upload_type Upload type id.
  */
-function db_board_upload_types_add($link, $board, $upload_type)
-{
-	if(!mysqli_query($link, 'call sp_board_upload_types_add(' . $board . ', '
-			. $upload_type . ')'))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+function db_board_upload_types_add($link, $board, $upload_type) {
+    if (!mysqli_query($link, "call sp_board_upload_types_add($board, $upload_type)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    db_cleanup_link($link);
 }
 /**
- * Удаляет связь доски с типом загружаемых файлов.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param board mixed <p>Доска.</p>
- * @param upload_type mixed <p>Тип загружаемого файла.</p>
+ * Delete board upload type relation.
+ * @param MySQLi $link Link to database.
+ * @param int $board Board id.
+ * @param int $upload_type Upload type id.
  */
-function db_board_upload_types_delete($link, $board, $upload_type)
-{
-	if(!mysqli_query($link, 'call sp_board_upload_types_delete(' . $board . ', '
-			. $upload_type . ')'))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+function db_board_upload_types_delete($link, $board, $upload_type) {
+    if (!mysqli_query($link, "call sp_board_upload_types_delete($board, $upload_type)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    db_cleanup_link($link);
 }
 /**
- * Получает все связи досок с типами загружаемых файлов.
- * @param link MySQLi <p>Связь с базой данных.</p>
+ * Get board upload types relations.
+ * @param MySQLi $link Link to database.
  * @return array
- * Возвращает связи:<p>
- * 'board' - Доска.<br>
- * 'upload_type' - Тип загружаемого файла.</p>
+ * board upload types relations.
  */
-function db_board_upload_types_get_all($link)
-{
-	$result = mysqli_query($link, 'call sp_board_upload_types_get_all()');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$board_upload_types = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) !== null)
-			array_push($board_upload_types, array('board' => $row['board'],
-					'upload_type' => $row['upload_type']));
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $board_upload_types;
+function db_board_upload_types_get_all($link) {
+    $result = mysqli_query($link, 'call sp_board_upload_types_get_all()');
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $board_upload_types = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            array_push($board_upload_types,
+                       array('board' => $row['board'],
+                             'upload_type' => $row['upload_type']));
+        }
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $board_upload_types;
 }
 
 /* ********
@@ -932,31 +931,33 @@ function db_boards_get_visible($link, $user_id) {
     return $boards;
 }
 
-/* ***********************
- * Работа с категориями. *
- *************************/
+/* *************
+ * Categories. *
+ ***************/
 
 /**
- * Добавляет новую категорию с заданным именем.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param name string <p>Имя.</p>
+ * Add category.
+ * @param MySQLi $link Link to database.
+ * @param string $name Name.
  */
-function db_categories_add($link, $name)
-{
-    if(!mysqli_query($link, 'call sp_categories_add(\'' . $name . '\')'))
+function db_categories_add($link, $name) {
+    if (!mysqli_query($link, "call sp_categories_add('$name')")) {
         throw new CommonException(mysqli_error($link));
+    }
+
     db_cleanup_link($link);
 }
 /**
- * Удаляет заданную категорию.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param id mixed <p>Идентификатор.</p>
+ * Delete category.
+ * @param MySQLi $link Link to database.
+ * @param int $id Id.
  */
-function db_categories_delete($link, $id)
-{
-	if(!mysqli_query($link, 'call sp_categories_delete(' . $id . ')'))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+function db_categories_delete($link, $id) {
+    if (!mysqli_query($link, "call sp_categories_delete($id)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    db_cleanup_link($link);
 }
 /**
  * Get categories.
@@ -1214,20 +1215,12 @@ function db_files_get_by_thread($link, $thread_id) {
     return $files;
 }
 /**
- * Получает висячие вложения.
- * @param MySQLi $link Связь с базой данных.
+ * Get dangling files.
+ * @param MySQLi $link Link to database.
  * @return array
- * Возвращает вложенные файлы:<br>
- * 'id' - Идентификатор.<br>
- * 'hash' - Хеш.<br>
- * 'name' - Имя.<br>
- * 'size' - Размер в байтах.<br>
- * 'thumbnail' - Уменьшенная копия.<br>
- * 'thumbnail_w' - Ширина уменьшенной копии.<br>
- * 'thumbnail_h' - Высота уменьшенной копии.<br>
- * 'attachment_type' - Тип вложения.
+ * files.
  */
-function db_files_get_dangling($link) { // Java CC
+function db_files_get_dangling($link) {
     $result = mysqli_query($link, 'call sp_files_get_dangling()');
     if (!$result) {
         throw new CommonException(mysqli_error($link));
@@ -1235,16 +1228,16 @@ function db_files_get_dangling($link) { // Java CC
 
     $files = array();
     if (mysqli_affected_rows($link) > 0) {
-        while (($row = mysqli_fetch_assoc($result)) != null) {
-            array_push($files,
-                array('id' => $row['id'],
-                      'hash' => $row['hash'],
-                      'name' => $row['name'],
-                      'size' => $row['size'],
-                      'thumbnail' => $row['thumbnail'],
-                      'thumbnail_w' => $row['thumbnail_w'],
-                      'thumbnail_h' => $row['thumbnail_h'],
-                      'attachment_type' => Config::ATTACHMENT_TYPE_FILE));
+        while ( ($row = mysqli_fetch_assoc($result)) != null) {
+            array_push( $files,
+                        array('id' => $row['id'],
+                              'hash' => $row['hash'],
+                              'name' => $row['name'],
+                              'size' => $row['size'],
+                              'thumbnail' => $row['thumbnail'],
+                              'thumbnail_w' => $row['thumbnail_w'],
+                              'thumbnail_h' => $row['thumbnail_h'],
+                              'attachment_type' => Config::ATTACHMENT_TYPE_FILE));
         }
     }
 
@@ -1313,25 +1306,25 @@ function db_files_get_dangling($link) { // Java CC
     return $files;
  }
 
-/* ********************
- * Работа с группами. *
- **********************/
+/* *********
+ * Groups. *
+ ***********/
 
 /**
- * Добавляет группу с заданным именем.
- * @param MySQLi $link Связь с базой данных.
- * @param string $name Имя группы.
- * @return string
- * Возвращает идентификатор добавленной группы.
+ * Add group.
+ * @param MySQLi $link Link to database.
+ * @param string $name Group name.
+ * @return int
+ * new group id.
  */
-function db_groups_add($link, $name) { // Java CC
+function db_groups_add($link, $name) {
     $result = mysqli_query($link, "call sp_groups_add('$name')");
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
 
     if(mysqli_affected_rows($link) <= 0
-            || ($row = mysqli_fetch_assoc($result)) == null) {
+            || ($row = mysqli_fetch_assoc($result)) == NULL) {
         throw new CommonException(CommonException::$messages['GROUPS_ADD']);
     }
 
@@ -1340,20 +1333,18 @@ function db_groups_add($link, $name) { // Java CC
     return $row['id'];
 }
 /**
- * Удаляет заданные группы, а так же всех пользователей, которые входят в эти
- * группы и все правила в ACL, распространяющиеся на эти группы.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param groups array <p>Группы.</p>
+ * Delete groups.
+ * @param MySQLi $link Link to database.
+ * @param array $groups Groups.
  */
-function db_groups_delete($link, $group_ids)
-{
-	foreach($group_ids as $id)
-	{
-		$result = mysqli_query($link, 'call sp_groups_delete(' . $id . ')');
-		if(!$result)
-			throw new CommonException(mysqli_error($link));
-		db_cleanup_link($link);
-	}
+function db_groups_delete($link, $groups) {
+    foreach ($groups as $id) {
+        if (!mysqli_query($link, "call sp_groups_delete($id)")) {
+            throw new CommonException(mysqli_error($link));
+        }
+
+        db_cleanup_link($link);
+    }
 }
 /**
  * Get groups.
@@ -1696,23 +1687,12 @@ function db_images_get_by_thread($link, $thread_id) {
     return $images;
 }
 /**
- * Получает висячие изображения.
- * @param MySQLi $link Связь с базой данных.
+ * Get dangling images.
+ * @param MySQLi $link Link to database.
  * @return array
- * Возвращает вложенные изображения:<br>
- * 'id' - Идентификатор.<br>
- * 'hash' - Хеш.<br>
- * 'name' - Имя.<br>
- * 'widht' - Ширина.<br>
- * 'height' - Высота.<br>
- * 'size' - Размер в байтах.<br>
- * 'thumbnail' - Уменьшенная копия.<br>
- * 'thumbnail_w' - Ширина уменьшенной копии.<br>
- * 'thumbnail_h' - Высота уменьшенной копии.<br>
- * 'spoiler' - Флаг спойлера.<br>
- * 'attachment_type' - Тип вложения (изображение).
+ * images.
  */
-function db_images_get_dangling($link) { // Java CC
+function db_images_get_dangling($link) {
     $result = mysqli_query($link, 'call sp_images_get_dangling()');
     if (!$result) {
         throw new CommonException(mysqli_error($link));
@@ -1721,18 +1701,18 @@ function db_images_get_dangling($link) { // Java CC
     $images = array();
     if (mysqli_affected_rows($link) > 0) {
         while (($row = mysqli_fetch_assoc($result)) != null) {
-            array_push($images,
-                array('id' => $row['id'],
-                      'hash' => $row['hash'],
-                      'name' => $row['name'],
-                      'widht' => $row['widht'],
-                      'height' => $row['height'],
-                      'size' => $row['size'],
-                      'thumbnail' => $row['thumbnail'],
-                      'thumbnail_w' => $row['thumbnail_w'],
-                      'thumbnail_h' => $row['thumbnail_h'],
-                      'spoiler' => $row['spoiler'],
-                      'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE));
+            array_push( $images,
+                        array('id' => $row['id'],
+                              'hash' => $row['hash'],
+                              'name' => $row['name'],
+                              'widht' => $row['widht'],
+                              'height' => $row['height'],
+                              'size' => $row['size'],
+                              'thumbnail' => $row['thumbnail'],
+                              'thumbnail_w' => $row['thumbnail_w'],
+                              'thumbnail_h' => $row['thumbnail_h'],
+                              'spoiler' => $row['spoiler'],
+                              'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE));
         }
     }
 
@@ -1804,33 +1784,35 @@ function db_images_get_same($link, $board_id, $user_id, $image_hash) {
     return $images;
 }
 
-/* *******************
- * Работа с языками. *
- *********************/
+/* ************
+ * Languages. *
+ **************/
 
 /**
- * Добавляет язык.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param code string <p>ISO_639-2 код языка.</p>
+ * Add language.
+ * @param MySQLi $link Link to database.
+ * @param string $code ISO_639-2 code.
  */
-function db_languages_add($link, $code)
-{
-	$result = mysqli_query($link, 'call sp_languages_add(\'' . $code . '\')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+function db_languages_add($link, $code) {
+    $result = mysqli_query($link, "call sp_languages_add('$code')");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    db_cleanup_link($link);
 }
 /**
- * Удаляет язык с заданным идентификатором.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param id mixed <p>Идентификатор языка.</p>
+ * Delete language.
+ * @param MySQLi $link Link to database.
+ * @param int $id Id.
  */
-function db_languages_delete($link, $id)
-{
-	$result = mysqli_query($link, 'call sp_languages_delete(' . $id . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+function db_languages_delete($link, $id) {
+    $result = mysqli_query($link, "call sp_languages_delete($id)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    db_cleanup_link($link);
 }
 /**
  * Get languages.
@@ -1964,21 +1946,12 @@ function db_links_get_by_thread($link, $thread_id) {
     return $links;
 }
 /**
- * Получает висячие ссылки на изображения.
- * @param MySQLi $link Связь с базой данных.
+ * Get dangling links.
+ * @param MySQLi $link Link to database.
  * @return array
- * Возвращает ссылки на изображения:<br>
- * 'id' - Идентификатор.<br>
- * 'url' - URL.<br>
- * 'widht' - Ширина.<br>
- * 'height' - Высота.<br>
- * 'size' - Размер в байтах.<br>
- * 'thumbnail' - URL уменьшенной копии.<br>
- * 'thumbnail_w' - Ширина уменьшенной копии.<br>
- * 'thumbnail_h' - Высота уменьшенной копии.<br>
- * 'attachment_type'- Тип вложения.
+ * links.
  */
-function db_links_get_dangling($link) { // Java CC
+function db_links_get_dangling($link) {
     $result = mysqli_query($link, 'call sp_links_get_dangling()');
     if (!$result) {
         throw new CommonException(mysqli_error($link));
@@ -1986,17 +1959,17 @@ function db_links_get_dangling($link) { // Java CC
 
     $links = array();
     if (mysqli_affected_rows($link) > 0) {
-        while (($row = mysqli_fetch_assoc($result)) !== null) {
-            array_push($links,
-                array('id' => $row['id'],
-                      'url' => $row['url'],
-                      'widht' => $row['widht'],
-                      'height' => $row['height'],
-                      'size' => $row['size'],
-                      'thumbnail' => $row['thumbnail'],
-                      'thumbnail_w' => $row['thumbnail_w'],
-                      'thumbnail_h' => $row['thumbnail_h'],
-                      'attachment_type' => Config::ATTACHMENT_TYPE_LINK));
+        while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            array_push( $links,
+                        array('id' => $row['id'],
+                              'url' => $row['url'],
+                              'widht' => $row['widht'],
+                              'height' => $row['height'],
+                              'size' => $row['size'],
+                              'thumbnail' => $row['thumbnail'],
+                              'thumbnail_w' => $row['thumbnail_w'],
+                              'thumbnail_h' => $row['thumbnail_h'],
+                              'attachment_type' => Config::ATTACHMENT_TYPE_LINK));
         }
     }
 
@@ -2243,33 +2216,33 @@ function db_macrochan_tags_images_get_all($link) { // Java CC
     return $tags_images;
 }
 
-/* ********************************************************
- * Работа с обработчиками автоматического удаления нитей. *
- **********************************************************/
+/* *******************
+ * Popdown handlers. *
+ *********************/
 
 /**
- * Добавляет обработчик автоматического удаления нитей.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param name string <p>Имя функции обработчика автоматического удаления
- * нитей.</p>
+ * Add popdown handeler.
+ * @param MySQLi $link Link to database.
+ * @param string $name Popdown handeler name.
  */
-function db_popdown_handlers_add($link, $name)
-{
-	if(!mysqli_query($link, 'call sp_popdown_handlers_add(\'' . $name . '\')'))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+function db_popdown_handlers_add($link, $name) {
+    if (!mysqli_query($link, "call sp_popdown_handlers_add('$name')")) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    db_cleanup_link($link);
 }
 /**
- * Удаляет обработчик автоматического удаления нитей.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param id mixed <p>Идентификатор обработчика автоматического удаления
- * нитей.</p>
+ * Delete popdown handeler.
+ * @param MySQLi $link Link to database.
+ * @param int $id Id.
  */
-function db_popdown_handlers_delete($link, $id)
-{
-	if(!mysqli_query($link, 'call sp_popdown_handlers_delete(' . $id . ')'))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+function db_popdown_handlers_delete($link, $id) {
+    if (!mysqli_query($link, "call sp_popdown_handlers_delete($id)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    db_cleanup_link($link);
 }
 /**
  * Get popdown hanglers.
@@ -2366,18 +2339,17 @@ function db_posts_add($link,
     return $post;
 }
 /**
- * Добавляет текст в конец текста заданного сообщения.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param id mixed <p>Идентификатор сообщения.</p>
- * @param text string <p>Текст.</p>
+ * Add text to the end of message.
+ * @param MySQLi $link Link to database.
+ * @param int $id Post id.
+ * @param string $text Text.
  */
 function db_posts_add_text_by_id($link, $id, $text) {
-	if(!mysqli_query($link, 'call sp_posts_edit_text_by_id(' . $id . ', \''
-			. $text . '\')'))
-	{
-		throw new CommonException(mysqli_error($link));
-	}
-	db_cleanup_link($link);
+    if (!mysqli_query($link, "call sp_posts_edit_text_by_id($id, '$text')")) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    db_cleanup_link($link);
 }
 /**
  * Remove post.
@@ -2405,12 +2377,14 @@ function db_posts_delete_last($link, $id, $date_time) {
     db_cleanup_link($link);
 }
 /**
- * Удаляет сообщения, помеченные на удаление.
+ * Delete marked posts.
+ * @param MySQLi $link Link to database.
  */
-function db_posts_delete_marked($link) { // Java CC
+function db_posts_delete_marked($link) {
     if (!mysqli_query($link, 'call sp_posts_delete_marked()')) {
         throw new CommonException(mysqli_error($link));
     }
+
     db_cleanup_link($link);
 }
 /**
@@ -2989,12 +2963,13 @@ function db_posts_files_delete_by_post($link, $post_id) {
     db_cleanup_link($link);
 }
 /**
- * Удаляет связи сообщений с вложенными файлами, помеченные на удаление.
+ * Delete marked posts files relations.
  */
-function db_posts_files_delete_marked($link) { // Java CC
+function db_posts_files_delete_marked($link) {
     if (!mysqli_query($link, 'call sp_posts_files_delete_marked()')) {
         throw new CommonException(mysqli_error($link));
     }
+
     db_cleanup_link($link);
 }
 /**
@@ -3056,12 +3031,13 @@ function db_posts_images_delete_by_post($link, $post_id) {
     db_cleanup_link($link);
 }
 /**
- * Удаляет связи сообщений с вложенными изображениями, помеченные на удаление.
+ * Delete marked posts images relations.
  */
-function db_posts_images_delete_marked($link) { // Java CC
+function db_posts_images_delete_marked($link) {
     if (!mysqli_query($link, 'call sp_posts_images_delete_marked()')) {
         throw new CommonException(mysqli_error($link));
     }
+
     db_cleanup_link($link);
 }
 /**
@@ -3123,12 +3099,13 @@ function db_posts_links_delete_by_post($link, $post_id) {
     db_cleanup_link($link);
 }
 /**
- * Удаляет связи сообщений с вложенными ссылками на изображения, помеченные на удаление.
+ * Delete marked posts links relations.
  */
-function db_posts_links_delete_marked($link) { // Java CC
+function db_posts_links_delete_marked($link) {
     if (!mysqli_query($link, 'call sp_posts_links_delete_marked()')) {
         throw new CommonException(mysqli_error($link));
     }
+
     db_cleanup_link($link);
 }
 /**
@@ -3190,12 +3167,13 @@ function db_posts_videos_delete_by_post($link, $post_id) {
     db_cleanup_link($link);
 }
 /**
- * Удаляет связи сообщений с вложенными видео, помеченные на удаление.
+ * Delete marked posts videos relations.
  */
-function db_posts_videos_delete_marked($link) { // Java CC
+function db_posts_videos_delete_marked($link) {
     if (!mysqli_query($link, 'call sp_posts_videos_delete_marked()')) {
         throw new CommonException(mysqli_error($link));
     }
+
     db_cleanup_link($link);
 }
 /**
@@ -3276,30 +3254,32 @@ function db_reports_get_all($link) {
     return $reports;
 }
 
-/* *************************
- * Работа со спамфильтром. *
- ***************************/
+/* *************
+ * Spamfilter. *
+ ***************/
 
 /**
- * Добавляет шаблон в спамфильтр.
- * @param MySQLi $link Связь с базой данных.
- * @param string $pattern Шаблон.
+ * Add pattern to spamfilter.
+ * @param MySQLi $link Link to database.
+ * @param string $pattern Pattern.
  */
-function db_spamfilter_add($link, $pattern) { // Java CC
-	if (!mysqli_query($link, "call sp_spamfilter_add('$pattern')")) {
-		throw new CommonException(mysqli_error($link));
+function db_spamfilter_add($link, $pattern) {
+    if (!mysqli_query($link, "call sp_spamfilter_add('$pattern')")) {
+        throw new CommonException(mysqli_error($link));
     }
-	db_cleanup_link($link);
+
+    db_cleanup_link($link);
 }
 /**
- * Удаляет шаблон из спамфильтра.
- * @param MySQLi $link Связь с базой данных.
- * @param int $id Идентификатор шаблона.
+ * Delete pattern from spamfilter.
+ * @param MySQLi $link Link to database.
+ * @param int $id id.
  */
-function db_spamfilter_delete($link, $id) { // Java CC
+function db_spamfilter_delete($link, $id) {
 	if (!mysqli_query($link, "call sp_spamfilter_delete($id)")) {
 		throw new CommonException(mysqli_error($link));
     }
+
 	db_cleanup_link($link);
 }
 /**
@@ -3328,31 +3308,33 @@ function db_spamfilter_get_all($link) {
     return $patterns;
 }
 
-/* ********************
- * Работа со стилями. *
- **********************/
+/* **************
+ * Stylesheets. *
+ ****************/
 
 /**
- * Добавляет стиль.
- * @param MySQLi $link Связь с базой данных.
- * @param string $name Имя файла стиля.
+ * Add stylesheet.
+ * @param MySQLi $link Link to database.
+ * @param string $name Stylesheet name.
  */
 function db_stylesheets_add($link, $name) {
-	if (!mysqli_query($link, "call sp_stylesheets_add('$name')")) {
-		throw new CommonException(mysqli_error($link));
+    if (!mysqli_query($link, "call sp_stylesheets_add('$name')")) {
+        throw new CommonException(mysqli_error($link));
     }
-	db_cleanup_link($link);
+
+    db_cleanup_link($link);
 }
 /**
- * Удаляет заданный стиль.
- * @param MySQLi $link Связь с базой данных.
- * @param id mixed <p>Идентификатор стиля.</p>
+ * Delete stylesheet.
+ * @param MySQLi $link Link to database.
+ * @param int $id Id.
  */
-function db_stylesheets_delete($link, $id)
-{
-	if(!mysqli_query($link, 'call sp_stylesheets_delete(' . $id . ')'))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
+function db_stylesheets_delete($link, $id) {
+    if (!mysqli_query($link, "call sp_stylesheets_delete($id)")) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    db_cleanup_link($link);
 }
 /**
  * Get stylesheets.
@@ -3438,12 +3420,13 @@ function db_threads_add($link, $board_id, $original_post, $bump_limit, $sage, $w
     return $thread;
 }
 /**
- * Удаляет нити, помеченные на удаление.
+ * Delete marked threads.
  */
-function db_threads_delete_marked($link) { // Java CC
+function db_threads_delete_marked($link) {
     if (!mysqli_query($link, 'call sp_threads_delete_marked()')) {
         throw new CommonException(mysqli_error($link));
     }
+
     db_cleanup_link($link);
 }
 /**
@@ -3668,36 +3651,32 @@ function db_threads_get_changeable_by_id($link, $thread_id, $user_id) {
 	return $thread;
 }
 /**
- * Получает нити, доступные для модерирования заданному пользователю.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * Get moderatable threads.
+ * @param MySQLi $link Link to database.
+ * @param int $user_id User id.
  * @return array
- * Возвращает нити:<p>
- * 'id' - Идентификатор.<br>
- * 'board' - Идентификатор доски.<br>
- * 'original_post' - Номер оригинального сообщения.<br>
- * 'bump_limit' - Специфичный для нити бамплимит.<br>
- * 'sage' - Флаг поднятия нити.<br>
- * 'sticky' - Флаг закрепления.<br>
- * 'with_attachments' - Флаг вложений.</p>
+ * threads.
  */
-function db_threads_get_moderatable($link, $user_id)
-{
-	$result = mysqli_query($link, 'call sp_threads_get_moderatable('
-		. $user_id . ')');
-	if(!$result)
+function db_threads_get_moderatable($link, $user_id) {
+	$result = mysqli_query($link, "call sp_threads_get_moderatable($user_id)");
+	if (!$result) {
 		throw new CommonException(mysqli_error($link));
+    }
+
 	$threads = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) != null)
+	if (mysqli_affected_rows($link) > 0) {
+		while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
 			array_push($threads,
-				array('id' => $row['id'],
-						'board' => $row['board'],
-						'original_post' => $row['original_post'],
-						'bump_limit' => $row['bump_limit'],
-						'sage' => $row['sage'],
-						'sticky' => $row['sticky'],
-						'with_attachments' => $row['with_attachments']));
+                       array('id' => $row['id'],
+                             'board' => $row['board'],
+                             'original_post' => $row['original_post'],
+                             'bump_limit' => $row['bump_limit'],
+                             'sage' => $row['sage'],
+                             'sticky' => $row['sticky'],
+                             'with_attachments' => $row['with_attachments']));
+        }
+    }
+
 	mysqli_free_result($result);
 	db_cleanup_link($link);
 	return $threads;
@@ -4457,17 +4436,12 @@ function db_videos_get_by_thread($link, $thread_id) {
     return $videos;
 }
 /**
- * Получает висячие видео.
- * @param MySQLi $link Связь с базой данных.
+ * Get dangling videos.
+ * @param MySQLi $link Link to database.
  * @return array
- * Возвращает вложенное видео:<br>
- * 'id' - Идентификатор.<br>
- * 'code' - HTML-код.<br>
- * 'widht' - Ширина.<br>
- * 'height' - Высота.<br>
- * 'attachment_type' - Тип вложения.
+ * videos.
  */
-function db_videos_get_dangling($link) { // Java CC
+function db_videos_get_dangling($link) {
     $result = mysqli_query($link, 'call sp_videos_get_dangling()');
     if(!$result) {
         throw new CommonException(mysqli_error($link));
@@ -4476,12 +4450,12 @@ function db_videos_get_dangling($link) { // Java CC
     $videos = array();
     if(mysqli_affected_rows($link) > 0) {
         while(($row = mysqli_fetch_assoc($result)) != null) {
-            array_push($videos,
-                array('id' => $row['id'],
-                      'code' => $row['code'],
-                      'widht' => $row['widht'],
-                      'height' => $row['height'],
-                      'attachment_type' => Config::ATTACHMENT_TYPE_VIDEO));
+            array_push( $videos,
+                        array('id' => $row['id'],
+                              'code' => $row['code'],
+                              'widht' => $row['widht'],
+                              'height' => $row['height'],
+                              'attachment_type' => Config::ATTACHMENT_TYPE_VIDEO));
         }
     }
 
@@ -4489,250 +4463,4 @@ function db_videos_get_dangling($link) { // Java CC
     db_cleanup_link($link);
     return $videos;
 }
-
-/* *************************************************
- * Работа с закреплениями загрузок за сообщениями. *
- ***************************************************/
-
-/**
- * Получает закрепления загрузок за заданными сообщениями.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param posts array <p>Сообщения.</p>
- * @return array
- * Возвращает закрепления:<p>
- * 'post' - идентификатор сообщения.<br>
- * 'upload' - идентификатор загрузки.</p>
- */
-/*function db_posts_uploads_get_by_posts($link, $posts)
-{
-	$posts_uploads = array();
-	foreach($posts as $p)
-	{
-		$result = mysqli_query($link,
-			"call sp_posts_uploads_get_by_post({$p['id']})");
-		if(!$result)
-			throw new CommonException(mysqli_error($link));
-		if(mysqli_affected_rows($link) > 0)
-			while(($row = mysqli_fetch_assoc($result)) != null)
-				array_push($posts_uploads,
-					array('post' => $row['post'],
-							'upload' => $row['upload']));
-		mysqli_free_result($result);
-		db_cleanup_link($link);
-	}
-	return $posts_uploads;
-}*/
-/**
- * Связывает сообщение с информацией о загрузке.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param post_id mixed <p>идентификатор сообщения.</p>
- * @param upload_id mixed <p>идентификатор записи с информацией о загрузке.</p>
- */
-/*function db_posts_uploads_add($link, $post_id, $upload_id)
-{
-	if(!mysqli_query($link, "call sp_posts_uploads_add($post_id, $upload_id)"))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
-}*/
-/**
- * Удаляет закрепления загрузок за заданным сообщением.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param post_id mixed <p>Идентификатор сообщения.</p>
- */
-/*function db_posts_uploads_delete_by_post($link, $post_id)
-{
-	if(!mysqli_query($link, "call sp_posts_uploads_delete_by_post($post_id)"))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
-}*/
-
-/* **********************
- * Работа с загрузками. *
- ************************/
-
-/**
- * Сохраняет загрузку.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param hash string <p>Хеш файла.</p>
- * @param is_image mixed <p>Флаг изображения.</p>
- * @param upload_type mixed <p>Тип загрузки.</p>
- * @param file string <p>Имя файла, URL, код видео.</p>
- * @param image_w mixed <p>Ширина изображения.</p>
- * @param image_h mixed <p>Высота изображения.</p>
- * @param size string <p>Размер файла в байтах.</p>
- * @param thumbnail string <p>Имя уменьшенной копии.</p>
- * @param thumbnail_w mixed <p>Ширина уменьшенной копии.</p>
- * @param thumbnail_h mixed <p>Высота уменьшенной копии.</p>
- * @return string
- * Возвращает идентификатор загрузки.
- */
-/*function db_uploads_add($link, $hash, $is_image, $upload_type, $file, $image_w,
-	$image_h, $size, $thumbnail, $thumbnail_w, $thumbnail_h)
-{
-	$is_image = $is_image ? '1' : '0';
-	$hash = $hash ? "'$hash'" : 'null';
-	$image_w = $image_w ? $image_w : 'null';
-	$image_h = $image_h ? $image_h : 'null';
-	$thumbnail = $thumbnail ? "'$thumbnail'" : 'null';
-	$thumbnail_w = $thumbnail_w ? $thumbnail_w : 'null';
-	$thumbnail_h = $thumbnail_h ? $thumbnail_h : 'null';
-	$result = mysqli_query($link, "call sp_uploads_add($hash, $is_image,
-		$upload_type, '$file', $image_w, $image_h, $size, $thumbnail,
-		$thumbnail_w, $thumbnail_h)");
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$row = mysqli_fetch_assoc($result);
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $row['id'];
-}*/
-/**
- * Удаляет заданную загрузку.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param id string <p>Идентификатор загрузки.</p>
- */
-/*function db_uploads_delete_by_id($link, $id)
-{
-	if(!mysqli_query($link, "call sp_uploads_delete_by_id($id)"))
-		throw new CommonException(mysqli_error($link));
-	db_cleanup_link($link);
-}*/
-/**
- * Получает загрузки для заданных сообщений.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param posts array <p>Массив сообщений.</p>
- * @return array
- * Возвращает загрузки:<p>
- * 'id' - идентификатор.<br>
- * 'hash' - хеш файла.<br>
- * 'is_image' - флаг картинки.<br>
- * 'upload_type' - тип загрузки.<br>
- * 'file' - имя файла, URL, код видео.<br>
- * 'image_w' - ширина изображения.<br>
- * 'image_h' - высота изображения.<br>
- * 'size' - размер файла в байтах.<br>
- * 'thumbnail' - имя уменьшенной копии.<br>
- * 'thumbnail_w' - ширина уменьшенной копии.<br>
- * 'thumbnail_h' - высота уменьшенной копии.</p>
- */
-/*function db_uploads_get_by_posts($link, $posts)
-{
-	$uploads = array();
-	foreach($posts as $p)
-	{
-		$result = mysqli_query($link, "call sp_uploads_get_by_post({$p['id']})");
-		if(!$result)
-			throw new CommonException(mysqli_error($link));
-		if(mysqli_affected_rows($link) > 0)
-			while(($row = mysqli_fetch_assoc($result)) != null)
-				array_push($uploads,
-					array('id' => $row['id'],
-							'hash' => $row['hash'],
-							'is_image' => $row['is_image'],
-							'upload_type' => $row['upload_type'],
-							'file' => $row['file'],
-							'image_w' => $row['image_w'],
-							'image_h' => $row['image_h'],
-							'size' => $row['size'],
-							'thumbnail' => $row['thumbnail'],
-							'thumbnail_w' => $row['thumbnail_w'],
-							'thumbnail_h' => $row['thumbnail_h']));
-		mysqli_free_result($result);
-		db_cleanup_link($link);
-	}
-	return $uploads;
-}*/
-/**
- * Получает информацию о висячих загрузках (не связанных с сообщениями).
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @return array
- * Возвращает информация о висячих загрузках:<p>
- * 'id' - идентификатор.<br>
- * 'hash' - хеш файла.<br>
- * 'is_image' - флаг картинки.<br>
- * 'upload_type' - тип загрузки.<br>
- * 'file' - имя файла, ссылка или код видео.<br>
- * 'image_w' - ширина изображения.<br>
- * 'image_h' - высота изображения.<br>
- * 'size' - размер файла в байтах.<br>
- * 'thumbnail' - имя уменьшенной копии.<br>
- * 'thumbnail_w' - ширина уменьшенной копии.<br>
- * 'thumbnail_h' - высота уменьшенной копии.</p>
- */
-/*function db_uploads_get_dangling($link)
-{
-	$result = mysqli_query($link, 'call sp_uploads_get_dangling()');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$uploads = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) !== null)
-			array_push($uploads,
-				array('id' => $row['id'],
-						'hash' => $row['hash'],
-						'is_image' => $row['is_image'],
-						'upload_type' => $row['link_type'],
-						'link' => $row['file'],
-						'image_w' => $row['file_w'],
-						'image_h' => $row['file_h'],
-						'size' => $row['size'],
-						'thumbnail' => $row['thumbnail'],
-						'thumbnail_w' => $row['thumbnail_w'],
-						'thumbnail_h' => $row['thumbnail_h']));
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $uploads;
-}*/
-/**
- * Получает одинаковые загрузки для заданной доски.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param hash string <p>Хеш файла.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @return array
- * Возвращает загрузки:<p>
- * 'id' - идентификатор.<br>
- * 'hash' - хеш файла.<br>
- * 'is_image' - флаг картинки.<br>
- * 'upload_type' - тип загрузки.<br>
- * 'file' - имя файла, URL, код видео.<br>
- * 'image_w' - ширина изображения.<br>
- * 'image_h' - высота изображения.<br>
- * 'size' - размер файла в байтах.<br>
- * 'thumbnail' - имя уменьшенной копии.<br>
- * 'thumbnail_w' - ширина уменьшенной копии.<br>
- * 'thumbnail_h' - высота уменьшенной копии.</p>
- * 'post_number' - номер сообщения, за которым закреплена загрузка.<br>
- * 'thread_number' - номер нити с сообщением, за которым закреплена
- *		загрузка.<br>
- * 'view' - видно ли сообщение пользователю.</p>
- */
-/*function db_uploads_get_same($link, $board_id, $hash, $user_id)
-{
-	$result = mysqli_query($link,
-		"call sp_uploads_get_same($board_id, '$hash', $user_id)");
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$uploads = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) !== null)
-			array_push($uploads,
-				array('id' => $row['id'],
-						'hash' => $row['hash'],
-						'is_image' => $row['is_image'],
-						'upload_type' => $row['upload_type'],
-						'file' => $row['file'],
-						'image_w' => $row['image_w'],
-						'image_h' => $row['image_h'],
-						'size' => $row['size'],
-						'thumbnail' => $row['thumbnail'],
-						'thumbnail_w' => $row['thumbnail_w'],
-						'thumbnail_h' => $row['thumbnail_h'],
-						'post_number' => $row['number'],
-						'thread_number' => $row['original_post'],
-						'view' => $row['view']));
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $uploads;
-}*/
 ?>

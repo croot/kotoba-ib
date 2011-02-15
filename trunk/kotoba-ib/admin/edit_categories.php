@@ -1,35 +1,32 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
 
-// Скрипт редактирования категорий досок.
+// Edit categories script.
 
-require '../config.php';
+require_once '../config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/logging.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
 
 try {
     // Initialization.
     kotoba_session_start();
+    if (Config::LANGUAGE != $_SESSION['language']) {
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/logging.php";
+    }
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup();
 
-    // Check if remote host was banned.
-    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+    // Check if client banned.
+    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
-    if (($ban = bans_check($ip)) !== false) {
+    if ( ($ban = bans_check($ip)) !== FALSE) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
         session_destroy();
@@ -45,15 +42,15 @@ try {
 
 
     $categories = categories_get_all();
-    $reload_categories = false; // Были ли произведены изменения.
+    $reload_categories = false;
 
-    // Добавление категории досок.
+    // Add category.
     if (isset($_POST['new_category']) && $_POST['new_category'] !== '') {
         categories_add(categories_check_name($_POST['new_category']));
         $reload_categories = true;
     }
 
-    // Удаление категорий.
+    // Delete categories.
     foreach ($categories as $category) {
         if (isset($_POST['delete_' . $category['id']])) {
             categories_delete($category['id']);
@@ -61,13 +58,17 @@ try {
         }
     }
 
-    // Вывод формы редактирования.
     if ($reload_categories) {
         $categories = categories_get_all();
     }
+
+    // Generate html code of edit categories page and display it.
+    $smarty->assign('show_control', is_admin() || is_mod());
+    $smarty->assign('boards', boards_get_visible($_SESSION['user']));
     $smarty->assign('categories', $categories);
     $smarty->display('edit_categories.tpl');
 
+    // Cleanup.
     DataExchange::releaseResources();
     Logging::close_log();
 

@@ -1,47 +1,64 @@
 {* Smarty *}
-{*************************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************
- *********************************
+{*********************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************}
 {*
-Code of remove dangling attachments page.
+Code of delete dangling attachments page.
 
 Variables:
-    $DIR_PATH - path from server document root to kotoba directory what contains index.php (see config.default).
+    $DIR_PATH - path from server document root to index.php directory (see config.default).
     $STYLESHEET - stylesheet (see config.default).
+    $show_control - show link to manage page.
+    $boards - boards.
     $attachments - attachments.
-    $delete_count - deleted attachments count.
+    $delete_count - deleted attahcments count.
 *}
-{include file='header.tpl' page_title='Удаление висячих файлов' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET}
+{include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title='Delete dangling attachments'}
+
+{include file='adminbar.tpl' DIR_PATH=$DIR_PATH show_control=$show_control}
+
+{include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
+
+<div class="logo">Delete dangling attachments</div>
+<hr>
 {if isset($delete_count)}
-	Было удалено {$delete_count} висячих файлов.
+    {$delete_count} dangling attachments was deleted.
 {else}
-	<form action="{$DIR_PATH}/admin/delete_dangling_files.php" method="post" enctype="text/html">
-	<table border="1">
-	<tbody>
-	<tr>
-	<td><input type="submit" name="submit" id="submit" value="Удалить"></td>
-	<td><input type="checkbox" name="delete_all" id="delete_all" value="1">Все</td>
-	</tr>
-	{section name=i loop=$uploads}
-		{if isset($uploads[i].flag)}
-			<tr>
-			<td><input type="checkbox" name="delete_{$uploads[i].id}" id="delete_{$uploads[i].id}" value="1"></td>
-			{if isset($uploads[i].is_embed)}
-				<td>{$uploads[i].link}</td>
-			{else}
-				<td><a target="_blank" href="{$uploads[i].link}"><img src="{$uploads[i].thumbnail}" class="thumb" width="{$uploads[i].thumbnail_w}" height="{$uploads[i].thumbnail_h}"></a></td>
-			{/if}
-			</tr>
-		{/if}
-	{/section}
-	</tbody>
-	</table>
-	</form>
+    <form action="{$DIR_PATH}/admin/delete_dangling_attachments.php" method="post" enctype="text/html">
+    <table border="1">
+    <tbody>
+    <tr>
+    <td><input type="submit" name="submit" id="submit" value="Delete"></td>
+    <td><input type="checkbox" name="delete_all" id="delete_all" value="1">All</td>
+    </tr>
+    {section name=i loop=$attachments}
+        {if isset($attachments[i].flag)}
+            {if $attachments[i].attachment_type == $ATTACHMENT_TYPE_FILE}
+                <tr>
+                <td><input type="checkbox" name="delete_file_{$attachments[i].id}" id="delete_file_{$attachments[i].id}" value="1"></td>
+                <td><a target="_blank" href="{$attachments[i].link}"><img src="{$attachments[i].thumbnail}" class="thumb" width="{$attachments[i].thumbnail_w}" height="{$attachments[i].thumbnail_h}"></a></td>
+                </tr>
+            {elseif $attachments[i].attachment_type == $ATTACHMENT_TYPE_IMAGE}
+                <tr>
+                <td><input type="checkbox" name="delete_image_{$attachments[i].id}" id="delete_image_{$attachments[i].id}" value="1"></td>
+                <td><a target="_blank" href="{$attachments[i].link}"><img src="{$attachments[i].thumbnail}" class="thumb" width="{$attachments[i].thumbnail_w}" height="{$attachments[i].thumbnail_h}"></a></td>
+                </tr>
+            {elseif $attachments[i].attachment_type == $ATTACHMENT_TYPE_LINK}
+                <tr>
+                <td><input type="checkbox" name="delete_link_{$attachments[i].id}" id="delete_link_{$attachments[i].id}" value="1"></td>
+                <td><a target="_blank" href="{$attachments[i].link}"><img src="{$attachments[i].thumbnail}" class="thumb" width="{$attachments[i].thumbnail_w}" height="{$attachments[i].thumbnail_h}"></a></td>
+                </tr>
+            {elseif $attachments[i].attachment_type == $ATTACHMENT_TYPE_VIDEO}
+                <tr>
+                <td><input type="checkbox" name="delete_video_{$attachments[i].id}" id="delete_video_{$attachments[i].id}" value="1"></td>
+                <td>{$attachments[i].link}</td>
+                </tr>
+            {/if}
+        {/if}
+    {/section}
+    </tbody>
+    </table>
+    </form>
 {/if}
 {include file='footer.tpl'}

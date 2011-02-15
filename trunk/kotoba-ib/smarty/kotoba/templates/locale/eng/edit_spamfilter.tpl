@@ -13,24 +13,22 @@ Variables:
     $boards - boards.
     $patterns - patterns.
 *}
-{include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title="Редактирование спамфильтра"}
+{include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title="Edit spamfilter"}
 
 {include file='adminbar.tpl' DIR_PATH=$DIR_PATH show_control=$show_control}
 
 {include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
 
-<div class="logo">Редактирование спамфильтра</div>
+<div class="logo">Edit spamfilter</div>
 <hr>
 <form action="{$DIR_PATH}/admin/edit_spamfilter.php" method="post">
 <table border="1">
 <tr>
-    <td colspan="2">Введите новый шаблон и нажмите Сохранить, чтобы добавить
-    новый шаблон. Пометьте шаблоны и нажмите Сохранить, чтобы удалить помеченные
-    шаблоны.</td>
+    <td colspan="2">Input new pattern to add. Mark patterns to delete.</td>
 </tr>
 <tr>
-    <td>Шаблон</td>
-    <td>Удалить шаблон</td>
+    <td>Pattern</td>
+    <td>Delete pattern</td>
 </tr>
 {section name=i loop=$patterns}
 <tr>
@@ -43,6 +41,6 @@ Variables:
 </tr>
 </table><br>
 <input type="hidden" name="submited" value="1">
-<input type="reset" value="Сброс"> <input type="submit" value="Сохранить">
+<input type="reset" value="Reset"> <input type="submit" value="Save">
 </form>
 {include file='footer.tpl'}

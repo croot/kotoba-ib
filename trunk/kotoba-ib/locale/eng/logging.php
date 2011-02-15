@@ -10,15 +10,15 @@
  */
 
 Logging::$f['ARCHIVE_USE'] = function () {
-    Logging::write_msg('Использовано архивирование нитей.');
+    Logging::write_msg('Archive used.');
 };
 
 Logging::$f['DELETE_DANGLING_ATTACHMENTS_USE'] = function () {
-    Logging::write_msg('Использовано удаление висячих файлов.');
+    Logging::write_msg('Delete dangling attachments used.');
 };
 
 Logging::$f['DELETE_MARKED_POSTS_USE'] = function () {
-    Logging::write_msg('Использовано удаление отмеченных на удаление сообщений.');
+    Logging::write_msg('Delete marked posts, threads, attachments used.');
 };
 
 Logging::$f['EDIT_ACL_USE'] = function () {
@@ -26,7 +26,7 @@ Logging::$f['EDIT_ACL_USE'] = function () {
 };
 
 Logging::$f['EDIT_BANS_USE'] = function () {
-    Logging::write_msg('Использовано редактирование банов.');
+    Logging::write_msg('Edit bans used.');
 };
 
 Logging::$f['EDIT_BOARD_UPLOAD_TYPES_USE'] = function () {
@@ -38,27 +38,27 @@ Logging::$f['EDIT_BOARDS_USE'] = function () {
 };
 
 Logging::$f['EDIT_CATEGORIES_USE'] = function () {
-    Logging::write_msg('Использовано редактирование категорий досок.');
+    Logging::write_msg('Edit categories used.');
 };
 
 Logging::$f['EDIT_GROUPS_USE'] = function () {
-    Logging::write_msg('Использовано редактирование групп пользователей.');
+    Logging::write_msg('Edit groups used.');
 };
 
 Logging::$f['EDIT_LANGUAGES_USE'] = function () {
-    Logging::write_msg('Использовано редактирование языков.');
+    Logging::write_msg('Edit languages used.');
 };
 
 Logging::$f['EDIT_POPDOWN_HANDLERS_USE'] = function () {
-    Logging::write_msg('Использовано редактирование обработчиков удаления нитей.');
+    Logging::write_msg('Edit popdown handlers used.');
 };
 
 Logging::$f['EDIT_SPAMFILTER_USE'] = function () {
-    Logging::write_msg('Использовано редактирование спамфильтра.');
+    Logging::write_msg('Edit spamfilter used.');
 };
 
 Logging::$f['EDIT_STYLESHEETS_USE'] = function () {
-    Logging::write_msg('Использовано редактирование стилей оформления.');
+    Logging::write_msg('Edit stylesheets used.');
 };
 
 Logging::$f['EDIT_THREADS_USE'] = function () {
