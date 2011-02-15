@@ -3447,26 +3447,24 @@ function db_threads_delete_marked($link) { // Java CC
     db_cleanup_link($link);
 }
 /**
- * Редактирует заданную нить.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param thread_id mixed <p>Идентификатор нити.</p>
- * @param bump_limit mixed <p>Специфичный для нити бамплимит.</p>
- * @param sage mixed <p>Флаг поднятия нити.</p>
- * @param sticky mixed <p>Флаг закрепления.</p>
- * @param with_attachments mixed <p>Флаг вложений.</p>
+ * Edit thread.
+ * @param MySQLi $link Link to database.
+ * @param int $thread_id Thread id.
+ * @param int $bump_limit Thread specific bumplimit.
+ * @param boolean $sage Sage flag.
+ * @param boolean $sticky Sticky flag.
+ * @param boolean $with_attachments Attachments flag.
  */
-function db_threads_edit($link, $thread_id, $bump_limit, $sticky, $sage,
-	$with_attachments)
-{
-	$bump_limit = ($bump_limit === null ? 'null' : $bump_limit);
-	$with_attachments = ($with_attachments === null ? 'null' : $with_attachments);
-	if(!mysqli_query($link, 'call sp_threads_edit(' . $thread_id . ', '
-		. $bump_limit . ', ' . $sticky . ', ' . $sage . ', '
-		. $with_attachments . ')'))
-	{
-		throw new CommonException(mysqli_error($link));
-	}
-	db_cleanup_link($link);
+function db_threads_edit($link, $thread_id, $bump_limit, $sticky, $sage, $with_attachments) {
+    $bump_limit = $bump_limit == null ? 'null' : $bump_limit;
+    $sticky = $sticky ? '1' : '0';
+    $sage = $sage ? '1' : '0';
+    $with_attachments = $with_attachments === null ? 'null' : ($with_attachments ? '1' : '0');
+    $query = "call sp_threads_edit($thread_id, $bump_limit, $sticky, $sage, $with_attachments)";
+    if (!mysqli_query($link, $query)) {
+        throw new CommonException(mysqli_error($link));
+    }
+    db_cleanup_link($link);
 }
 /**
  * Редактирует номер оригинального сообщения нити.
@@ -3482,37 +3480,33 @@ function db_threads_edit_original_post($link, $id, $original_post) {
     db_cleanup_link($link);
 }
 /**
- * Получает все нити.
- * @param link MySQLi <p>Связь с базой данных.</p>
+ * Get threads.
  * @return array
- * Возвращает нити:<p>
- * 'id' - Идентификатор.<br>
- * 'board' - Идентификатор доски.<br>
- * 'original_post' - Номер оригинального сообщения.<br>
- * 'bump_limit' - Специфичный для нити бамплимит.<br>
- * 'sage' - Флаг поднятия нити.<br>
- * 'sticky' - Флаг закрепления.<br>
- * 'with_attachments' - Флаг вложений.</p>
+ * threads.
  */
-function db_threads_get_all($link)
-{
-	$result = mysqli_query($link, 'call sp_threads_get_all()');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$threads = array();
-	if(mysqli_affected_rows($link) > 0)
-		while(($row = mysqli_fetch_assoc($result)) !== null)
-			array_push($threads,
-				array('id' => $row['id'],
-						'board' => $row['board'],
-						'original_post' => $row['original_post'],
-						'bump_limit' => $row['bump_limit'],
-						'sage' => $row['sage'],
-						'sticky' => $row['sticky'],
-						'with_attachments' => $row['with_attachments']));
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $threads;
+function db_threads_get_all($link) {
+    $result = mysqli_query($link, 'call sp_threads_get_all()');
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $threads = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            array_push($threads,
+                       array('id' => $row['id'],
+                             'board' => $row['board'],
+                             'original_post' => $row['original_post'],
+                             'bump_limit' => $row['bump_limit'],
+                             'sage' => $row['sage'],
+                             'sticky' => $row['sticky'],
+                             'with_attachments' => $row['with_attachments']));
+        }
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $threads;
 }
 /**
  * Получает нити, помеченные для архивирования.

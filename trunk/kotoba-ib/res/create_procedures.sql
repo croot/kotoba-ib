@@ -2639,26 +2639,21 @@ begin
     delete from threads where deleted = 1;
 end|
 
--- Редактирует заданную нить.
---
--- Аргументы:
--- _id - Идентификатор нити.
--- _bump_limit - Специфичный для нити бамплимит.
--- _sage - Флаг поднятия нити.
--- _sticky - Флаг закрепления.
--- _with_attachments - Флаг вложений.
+-- Edit thread.
 create procedure sp_threads_edit
 (
-	_id int,
-	_bump_limit int,
-	_sticky bit,
-	_sage bit,
-	_with_attachments bit
+    _id int,                -- Thread id.
+    _bump_limit int,        -- Thread specific bumplimit.
+    _sticky bit,            -- Sage flag.
+    _sage bit,              -- Sticky flag.
+    _with_attachments bit   -- Attachments flag.
 )
 begin
-	update threads set bump_limit = _bump_limit, sticky = _sticky, sage = _sage,
-		with_attachments = _with_attachments
-	where id = _id;
+    update threads set bump_limit = _bump_limit,
+                       sticky = _sticky,
+                       sage = _sage,
+                       with_attachments = _with_attachments
+    where id = _id;
 end|
 
 -- Оставляет не помеченными на архивирование нити заданной доски, суммарное
@@ -2733,13 +2728,19 @@ begin
     update threads set original_post = _original_post where id = _id;
 end|
 
--- Выбирает все нити.
+-- Get threads.
 create procedure sp_threads_get_all ()
 begin
-	select id, board, original_post, bump_limit, sage, sticky, with_attachments
-	from threads
-	where deleted = 0 and archived = 0
-	order by id desc;
+	select id,
+               board,
+               original_post,
+               bump_limit,
+               sage,
+               sticky,
+               with_attachments
+            from threads
+            where deleted = 0 and archived = 0
+            order by id desc;
 end|
 
 -- Выбирает нити, помеченные для архивирования.
