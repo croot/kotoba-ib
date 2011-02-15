@@ -13,13 +13,13 @@
  * Common *
  **********/
 
-CommonException::$messages['ACL_RULE_EXCESS'] = 'Получена избыточная информация. Доска, нить и сообщение определяются однозначно своими идентификаторами.';
-CommonException::$messages['ACL_RULE_CONFLICT'] = 'Конфликт разрешений для правила.';
+CommonException::$messages['ACL_RULE_EXCESS'] = 'Board, Thread or Post is unique.';
+CommonException::$messages['ACL_RULE_CONFLICT'] = 'Permission conflict.';
 CommonException::$messages['CAPTCHA'] = 'Код подтверждения не верен.';
 CommonException::$messages['CONVERT_PNG'] = 'Не удалось преобразовать изображение в формат png.';
 CommonException::$messages['COPY_FAILED'] = 'Не удалось скопировать файл.';
 CommonException::$messages['GD_WRONG_FILETYPE'] = 'GD не поддерживает этот тип файла.';
-CommonException::$messages['GROUPS_ADD'] = 'Идентификатор новой группы не был получен.';
+CommonException::$messages['GROUPS_ADD'] = 'New group was not added.';
 CommonException::$messages['IMAGEMAGICK_FORMAT'] = 'Imagemagick doesn\'t support this file format.';
 CommonException::$messages['LOG_FILE'] = 'Не удалось открыть или создать файл лога.';
 CommonException::$messages['LINK_FAILED'] = 'Не удалось создать жесткую ссылку.';
@@ -38,7 +38,7 @@ CommonException::$messages['WORD_FOR_REPLACE'] = 'Введите слово дл
  * No data exceptions. *
  ***********************/
 
-NodataException::$messages['ACL_NOT_EXIST'] = 'В списке контроля доступа нет ни одного правила.';
+NodataException::$messages['ACL_NOT_EXIST'] = 'No one rule in ACL.';
 NodataException::$messages['BOARD_NOT_FOUND'] = 'Board not found.';
 NodataException::$messages['EMPTY_MESSAGE'] = 'No attachment and message is empty.';
 NodataException::$messages['GROUPS_NOT_EXIST'] = 'No one group exists.';
@@ -65,36 +65,36 @@ FormatException::$messages['BOARD_SAME_UPLOAD'] = 'Upload policy from same files
 
 FormatException::$messages['BANS_RANGE_BEG'] = 'Begining of IP-address range has wrong format.';
 FormatException::$messages['BANS_RANGE_END'] = 'End of IP-address range has wrong format.';
-FormatException::$messages['BANS_REASON'] = 'Причина блокировки имеет не верный формат.';
+FormatException::$messages['BANS_REASON'] = 'Ban reason has wrong format.';
 FormatException::$messages['BANS_UNTILL'] = 'Время истечения блокировки имеет не верный формат.';
 
 FormatException::$messages['CATEGORY_ID'] = 'Идентификатор категории имеет не верный формат.';
-FormatException::$messages['CATEGORY_NAME'] = 'Имя категории имеет не верный формат.';
+FormatException::$messages['CATEGORY_NAME'] = 'Category name wrong format.';
 
 FormatException::$messages['GROUP_ID'] = 'Идентификатор группы имеет не верный формат.';
-FormatException::$messages['GROUP_NAME'] = 'Имя группы имеет не верный формат.';
+FormatException::$messages['GROUP_NAME'] = 'Group name wrong format.';
 
 FormatException::$messages['KOTOBA_INTVAL'] = 'Object cannot be cast to intger. See description to intval() function.';
 FormatException::$messages['KOTOBA_STRVAL'] = 'Arrays and Objects what not implements __toString() method, cannot be cast to string. See description to strval() function.';
 
 FormatException::$messages['LANGUAGE_ID'] = 'Идентификатор языка имеет не верный формат.';
-FormatException::$messages['LANGUAGE_CODE'] = 'ISO_639-2 код языка имеет не верный формат.';
+FormatException::$messages['LANGUAGE_CODE'] = 'ISO_639-2 code wrong format.';
 
 FormatException::$messages['MACROCHAN_TAG_NAME'] = 'Macrochan tag name wrong format or not exist.';
 
 FormatException::$messages['PAGE'] = 'Номер страницы имеет не верный формат.';
 
 FormatException::$messages['POPDOWN_HANDLER_ID'] = 'Идентификатор обработчика автоматического удаления нитей имеет не верный формат.';
-FormatException::$messages['POPDOWN_HANDLER_NAME'] = 'Имя обработчика удаления нитей имеет не верный формат.';
+FormatException::$messages['POPDOWN_HANDLER_NAME'] = 'Popdown handler name wrong format.';
 
 FormatException::$messages['POST_ID'] = 'Идентификатор сообщения имеет не верный формат.';
 FormatException::$messages['POST_NUMBER'] = 'Номер сообщения имеет не верный формат.';
 FormatException::$messages['POST_PASSWORD'] = 'Password wrong format. Password must be at 1 to 12 symbols length. Valid symbold is digits and latin letters.';
 
-FormatException::$messages['SPAMFILTER_PATTERN'] = 'Шаблон спамфильтра имеет не верный формат.';
+FormatException::$messages['SPAMFILTER_PATTERN'] = 'Wrong spamfilter pattern.';
 
 FormatException::$messages['STYLESHEET_ID'] = 'Stylesheet id wrong format.';
-FormatException::$messages['STYLESHEET_NAME'] = 'Имя файла стиля имеет не верный формат.';
+FormatException::$messages['STYLESHEET_NAME'] = 'Stylesheet name wrong format.';
 
 FormatException::$messages['THREAD_BUMP_LIMIT'] = 'Специфичный для нити бамплимит имеет не верный формат.';
 FormatException::$messages['THREAD_ID'] = 'Идентификатор нити имеет не верный формат.';

@@ -1,33 +1,32 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
 
-// Скрипт редактирования связей загружаемых типов файлов с досками.
+// Edit board upload types relations script.
 
-require '../config.php';
+require_once '../config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/logging.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
 
 try {
+    // Initialization.
     kotoba_session_start();
+    if (Config::LANGUAGE != $_SESSION['language']) {
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/logging.php";
+    }
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup();
 
-    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+    // Check if client banned.
+    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
-    if (($ban = bans_check($ip)) !== false) {
+    if ( ($ban = bans_check($ip)) !== FALSE) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
         session_destroy();
@@ -35,6 +34,7 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
+    // Check permission and write message to log file.
     if (!is_admin()) {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
     }
@@ -43,22 +43,22 @@ try {
     $upload_types = upload_types_get_all();
     $boards = boards_get_all();
     $board_upload_types = board_upload_types_get_all();
-    $reload_board_upload_types = false; // Были ли произведены изменения.
+    $reload_board_upload_types = false;
 
     if (isset($_POST['submited'])) {
 
-        // Новая привязка типа загружаемого файла к доске.
+        // Add new relation.
         if (isset($_POST['new_bind_board'])
                 && isset($_POST['new_bind_upload_type'])
                 && $_POST['new_bind_board'] !== ''
                 && $_POST['new_bind_upload_type'] !== '') {
 
             board_upload_types_add(boards_check_id($_POST['new_bind_board']),
-            upload_types_check_id($_POST['new_bind_upload_type']));
+                                   upload_types_check_id($_POST['new_bind_upload_type']));
             $reload_board_upload_types = true;
         }
 
-        // Удаление привязок типов загружаемых файлов к доскам.
+        // Delete relations.
         foreach ($board_upload_types as $board_upload_type) {
             if (isset($_POST["delete_{$board_upload_type['board']}_{$board_upload_type['upload_type']}"])) {
                 board_upload_types_delete($board_upload_type['board'],
@@ -68,15 +68,16 @@ try {
         }
     }
 
-    // Вывод формы редактирования.
-    if ($reload_board_upload_types) {
-        $board_upload_types = board_upload_types_get_all();
-    }
-    $smarty->assign('upload_types', $upload_types);
+    $reload_board_upload_types && ($board_upload_types = board_upload_types_get_all());
+
+    // Generate html code of edit board upload types relations page and display it.
+    $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('boards', $boards);
+    $smarty->assign('upload_types', $upload_types);
     $smarty->assign('board_upload_types', $board_upload_types);
     $smarty->display('edit_board_upload_types.tpl');
 
+    // Cleanup.
     DataExchange::releaseResources();
     Logging::close_log();
 

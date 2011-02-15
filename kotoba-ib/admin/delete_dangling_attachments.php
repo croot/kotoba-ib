@@ -1,9 +1,4 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
@@ -11,25 +6,27 @@
 
 // Removes dangling attachments.
 
-require '../config.php';
+require_once '../config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/logging.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
 
 try {
     // Initialization.
     kotoba_session_start();
+    if (Config::LANGUAGE != $_SESSION['language']) {
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/logging.php";
+    }
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup();
 
-    // Check if remote host was banned.
-    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+    // Check if client banned.
+    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
-    if (($ban = bans_check($ip)) !== false) {
+    if ( ($ban = bans_check($ip)) !== FALSE) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
         session_destroy();
@@ -56,13 +53,13 @@ try {
                         if($a['hash'] === null || $a['hash'] == calculate_file_hash($full_path)) {
                             if(isset($_POST['submit']) && (isset($_POST["delete_file_{$a['id']}"]) || isset($_POST['delete_all']))) {
 
-                                // Удаление.
+                                // Actually delete.
                                 //unlink($full_path);
                                 //files_delete($a['id']);
                                 $delete_count++;
                             } elseif(!isset($_POST['submit'])) {
 
-                                // Для вывода списка висячих вложений.
+                                // For show list of dangling attachments.
                                 $a['flag'] = true;
                                 $a['link'] = Config::DIR_PATH . "/{$b['name']}/other/{$a['name']}";
                                 $a['thumbnail'] = Config::DIR_PATH . "/img/{$a['thumbnail']}";
@@ -78,13 +75,13 @@ try {
                         if($a['hash'] === null || $a['hash'] == calculate_file_hash($full_path)) {
                             if(isset($_POST['submit']) && (isset($_POST["delete_image_{$a['id']}"]) || isset($_POST['delete_all']))) {
 
-                                // Удаление.
+                                // Actually delete.
                                 //unlink($full_path);
                                 //images_delete($a['id']);
                                 $delete_count++;
                             } elseif(!isset($_POST['submit'])) {
 
-                                // Для вывода списка висячих вложений.
+                                // For show list of dangling attachments.
                                 $a['flag'] = true;
                                 $a['link'] = Config::DIR_PATH . "/{$b['name']}/img/{$a['name']}";
                                 $a['thumbnail'] = Config::DIR_PATH . "/{$b['name']}/thumb/{$a['thumbnail']}";
@@ -115,6 +112,9 @@ try {
         }
     }
 
+    // Generate code of page and display it.
+    $smarty->assign('show_control', is_admin() || is_mod());
+    $smarty->assign('boards', $boards);
     $smarty->assign('attachments', $attachments);
     $smarty->assign('ATTACHMENT_TYPE_FILE', Config::ATTACHMENT_TYPE_FILE);
     $smarty->assign('ATTACHMENT_TYPE_LINK', Config::ATTACHMENT_TYPE_LINK);
@@ -125,6 +125,7 @@ try {
     }
     $smarty->display('delete_dangling_files.tpl');
 
+    // Cleanup.
     DataExchange::releaseResources();
     Logging::close_log();
 

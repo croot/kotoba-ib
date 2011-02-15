@@ -198,90 +198,73 @@ drop procedure if exists sp_uploads_add|
 drop procedure if exists sp_uploads_get_dangling|
 drop procedure if exists sp_uploads_delete_by_id|*/
 
--- ---------------------------------------
---  Работа со списком контроля доступа. --
--- ---------------------------------------
+-- --------
+--  ACL. --
+-- --------
 
--- Добавляет правило.
---
--- Аргументы:
--- group_id - Идентификатор группы.
--- board_id - Идентификатор доски.
--- thread_id - Идентификатор нити.
--- post_id - Идентификатор сообщения.
--- _view - Право на просмотр.
--- _change - Право на изменение.
--- _moderate - Право на модерирование.
+-- Add rule to ACL.
 create procedure sp_acl_add
 (
-    group_id int,
-    board_id int,
-    thread_id int,
-    post_id int,
-    _view bit,
-    _change bit,
-    _moderate bit
+    group_id int,   -- Group id.
+    board_id int,   -- Board id.
+    thread_id int,  -- Thread id.
+    post_id int,    -- Post id.
+    _view bit,      -- View permission.
+    _change bit,    -- Change permission.
+    _moderate bit   -- Moderate permission.
 )
 begin
     insert into acl (`group`, board, thread, post, `view`, `change`, moderate)
     values (group_id, board_id, thread_id, post_id, _view, _change, _moderate);
 end|
 
--- Удаляет правило.
---
--- Аргументы:
--- group_id - Идентификатор группы.
--- board_id - Идентификатор доски.
--- thread_id - Идентификатор нити.
--- post_id - Идентификатор сообщения.
+-- Delete rule.
 create procedure sp_acl_delete
 (
-    group_id int,
-    board_id int,
-    thread_id int,
-    post_id int
+    group_id int,   -- Group id.
+    board_id int,   -- Board id.
+    thread_id int,  -- Thread id.
+    post_id int     -- Post id.
 )
 begin
     delete from acl
-    where ((`group` = group_id) or (coalesce(`group`, group_id) is null))
-        and ((board = board_id) or (coalesce(board, board_id) is null))
-        and ((thread = thread_id) or (coalesce(thread, thread_id) is null))
-        and ((post = post_id) or (coalesce(post, post_id) is null));
+        where ((`group` = group_id) or (coalesce(`group`, group_id) is null))
+            and ((board = board_id) or (coalesce(board, board_id) is null))
+            and ((thread = thread_id) or (coalesce(thread, thread_id) is null))
+            and ((post = post_id) or (coalesce(post, post_id) is null));
 end|
 
--- Редактирует правило.
---
--- Аргументы:
--- group_id - Идентификатор группы.
--- board_id - Идентификатор доски.
--- thread_id - Идентификатор нити.
--- post_id - Идентификатор сообщения.
--- _view - Право на просмотр.
--- _change - Право на изменение.
--- _moderate - Право на модерирование.
+-- Edit ACL rule.
 create procedure sp_acl_edit
 (
-    group_id int,
-    board_id int,
-    thread_id int,
-    post_id int,
-    _view bit,
-    _change bit,
-    _moderate bit
+    group_id int,   -- Group id.
+    board_id int,   -- Board id.
+    thread_id int,  -- Thread id.
+    post_id int,    -- Post id.
+    _view bit,      -- View permission.
+    _change bit,    -- Change permission.
+    _moderate bit   -- Moderate permission.
 )
 begin
     update acl set `view` = _view, `change` = _change, moderate = _moderate
-    where ((`group` = group_id) or (coalesce(`group`, group_id) is null))
-        and ((board = board_id) or (coalesce(board, board_id) is null))
-        and ((thread = thread_id) or (coalesce(thread, thread_id) is null))
-        and ((post = post_id) or (coalesce(post, post_id) is null));
+        where ((`group` = group_id) or (coalesce(`group`, group_id) is null))
+            and ((board = board_id) or (coalesce(board, board_id) is null))
+            and ((thread = thread_id) or (coalesce(thread, thread_id) is null))
+            and ((post = post_id) or (coalesce(post, post_id) is null));
 end|
 
--- Выбирает все правила.
+-- Select rules.
 create procedure sp_acl_get_all ()
 begin
-    select `group`, board, thread, post, `view`, `change`, moderate
-    from acl order by `group`, board, thread, post;
+    select `group`,
+           board,
+           thread,
+           post,
+           `view`,
+           `change`,
+           moderate
+        from acl
+        order by `group`, board, thread, post;
 end|
 
 -- ---------
@@ -316,31 +299,25 @@ begin
         order by range_end desc limit 1;
 end|
 
--- Удаляет блокировку с заданным идентификатором.
---
--- Аргументы:
--- _id - Идентификатор блокировки.
+-- Delete ban.
 create procedure sp_bans_delete_by_id
 (
-    _id int
+    _id int -- Id.
 )
 begin
     delete from bans where id = _id;
 end|
 
--- Удаляет блокировки с заданным IP-адресом.
---
--- Аргументы:
--- ip - IP-адрес.
+-- Delete certain ip bans.
 create procedure sp_bans_delete_by_ip
 (
-    ip int
+    ip int  -- IP-address.
 )
 begin
     delete from bans where range_beg <= ip and range_end >= ip;
 end|
 
--- Выбирает все блокировки.
+-- Select bans.
 create procedure sp_bans_get_all ()
 begin
     select id, range_beg, range_end, reason, untill from bans;
@@ -352,41 +329,33 @@ begin
     delete from bans where untill <= now();
 end|
 
--- --------------------------------------------------------
---  Работа со связями досок с типами загружаемых файлов. --
--- --------------------------------------------------------
+-- -----------------------
+--  Board upload types. --
+-- -----------------------
 
--- Добавляет связь доски с типом загружаемых файлов.
---
--- Аргументы:
--- board_id - Идентификатор доски.
--- upload_type_id - Идентификатор типа загружаемых файлов.
+-- Add new board upload type relation.
 create procedure sp_board_upload_types_add
 (
-    board_id int,
-    upload_type_id int
+    board_id int,       -- Board id.
+    upload_type_id int  -- Upload type id.
 )
 begin
     insert into board_upload_types (board, upload_type)
         values (board_id, upload_type_id);
 end|
 
--- Удаляет связь доски с типом загружаемых файлов.
---
--- Аргументы:
--- _board - Идентификатор доски.
--- _upload_type - Идентификатор типа загружаемых файлов.
+-- Delete board upload type relation.
 create procedure sp_board_upload_types_delete
 (
-    _board int,
-    _upload_type int
+    board int,       -- Board id.
+    upload_type int  -- Upload type id.
 )
 begin
     delete from board_upload_types
         where board = _board and upload_type = _upload_type;
 end|
 
--- Выбирает все связи досок с типами загружаемых файлов.
+-- Select board upload types relations.
 create procedure sp_board_upload_types_get_all ()
 begin
     select board, upload_type from board_upload_types;
@@ -787,32 +756,26 @@ begin
         order by b.category, b.name;
 end|
 
--- -------------------------
---  Работа с категориями. --
--- -------------------------
+-- ----------------
+--  Categories.. --
+-- ----------------
 
--- Добавляет категорию.
---
--- Аргументы:
--- _name - Имя категории.
+-- Add category.
 create procedure sp_categories_add
 (
-	_name varchar(50)
+    _name varchar(50)   -- Name.
 )
 begin
-	insert into categories (name) values (_name);
+    insert into categories (name) values (_name);
 end|
 
--- Удаляет заданную категорию.
---
--- Аргументы:
--- _id - Идентификатор.
+-- Delete category.
 create procedure sp_categories_delete
 (
-	_id int
+    _id int -- Id.
 )
 begin
-	delete from categories where id = _id;
+    delete from categories where id = _id;
 end|
 
 -- Select categories.
@@ -1016,10 +979,16 @@ begin
         join posts p on p.id = pf.post and p.thread = thread_id;
 end|
 
--- Выбирает висячие файлы.
+-- Get dangling files.
 create procedure sp_files_get_dangling ()
 begin
-    select f.id, f.hash, f.name, f.size, f.thumbnail, f.thumbnail_w, f.thumbnail_h
+    select f.id,
+           f.hash,
+           f.name,
+           f.size,
+           f.thumbnail,
+           f.thumbnail_w,
+           f.thumbnail_h
         from files f
         left join posts_files pf on pf.file = f.id
         where pf.post is null;
@@ -1095,24 +1064,24 @@ begin
         group by f.id, p.id;
 end|
 
--- ----------------------
---  Работа с группами. --
--- ----------------------
+-- -----------
+--  Groups. --
+-- -----------
 
--- Добавляет группу.
+-- Add group.
 create procedure sp_groups_add
 (
-    _name varchar(50)   -- Имя группы.
+    _name varchar(50)   -- Group name.
 )
 begin
     insert into groups (name) values (_name);
     select id from groups where name = _name;
 end|
 
--- Удаляет заданную группу.
+-- Delete group.
 create procedure sp_groups_delete
 (
-    _id int -- Идентификатор группы.
+    _id int -- Id.
 )
 begin
     delete from groups where id = _id;
@@ -1346,10 +1315,19 @@ begin
         join posts p on p.id = pi.post and p.thread = thread_id;
 end|
 
--- Выбирает висячие изображения.
+-- Select dangling images.
 create procedure sp_images_get_dangling ()
 begin
-    select i.id, i.hash, i.name, i.widht, i.height, i.size, i.thumbnail, i.thumbnail_w, i.thumbnail_h, i.spoiler
+    select i.id,
+           i.hash,
+           i.name,
+           i.widht,
+           i.height,
+           i.size,
+           i.thumbnail,
+           i.thumbnail_w,
+           i.thumbnail_h,
+           i.spoiler
         from images i
         left join posts_images pi on pi.image = i.id
         where pi.post is null;
@@ -1428,32 +1406,26 @@ begin
         group by i.id, p.id;
 end|
 
--- ---------------------
---  Работа с языками. --
--- ---------------------
+-- --------------
+--  Languages. --
+-- --------------
 
--- Добавляет язык.
---
--- Аргументы:
--- _code - ISO_639-2 код языка.
+-- Add languages.
 create procedure sp_languages_add
 (
-	_code char(3)
+    _code char(3)   -- ISO_639-2 code.
 )
 begin
-	insert into languages (code) values (_code);
+    insert into languages (code) values (_code);
 end|
 
--- Удаляет язык с заданным идентификатором.
---
--- Аргументы:
--- _id - Идентификатор языка.
+-- Delete language.
 create procedure sp_languages_delete
 (
-	_id int
+    _id int -- Id.
 )
 begin
-	delete from languages where id = _id;
+    delete from languages where id = _id;
 end|
 
 -- Select languages.
@@ -1514,10 +1486,17 @@ begin
         join posts p on p.id = pl.post and p.thread = thread_id;
 end|
 
--- Выбирает висячие ссылки на изображения.
+-- Select dangling links.
 create procedure sp_links_get_dangling ()
 begin
-    select l.id, l.url, l.widht, l.height, l.size, l.thumbnail, l.thumbnail_w, l.thumbnail_h
+    select l.id,
+           l.url,
+           l.widht,
+           l.height,
+           l.size,
+           l.thumbnail,
+           l.thumbnail_w,
+           l.thumbnail_h
         from links l
         left join posts_links pl on pl.link = l.id
         where pl.post is null;
@@ -1668,32 +1647,26 @@ begin
     select tag, image from macrochan_tags_images;
 end|
 
--- ----------------------------------------------------------
---  Работа с обработчиками автоматического удаления нитей. --
--- ----------------------------------------------------------
+-- ---------------------
+--  Popdown handlers. --
+-- ---------------------
 
--- Добавляет обработчик автоматического удаления нитей.
---
--- Аргументы:
--- _name - Имя функции обработчика автоматического удаления нитей.
+-- Add popdown handler.
 create procedure sp_popdown_handlers_add
 (
-	_name varchar(50)
+    _name varchar(50)   -- Function name.
 )
 begin
-	insert into popdown_handlers (name) values (_name);
+    insert into popdown_handlers (name) values (_name);
 end|
 
--- Удаляет обработчик автоматического удаления нитей.
---
--- Аргументы:
--- _id - Идентификатор обработчика автоматического удаления нитей.
+-- Delete popdown handeler.
 create procedure sp_popdown_handlers_delete
 (
-	_id int
+    _id int -- Id.
 )
 begin
-	delete from popdown_handlers where id = _id;
+    delete from popdown_handlers where id = _id;
 end|
 
 -- Select popdown hanglers.
@@ -1809,7 +1782,7 @@ begin
     end if;
 end|
 
--- Удаляет сообщения, помеченные на удаление.
+-- Delete marked posts.
 create procedure sp_posts_delete_marked ()
 begin
     update posts p join threads t on t.id = p.thread and t.deleted = 1 set p.deleted = 1;
@@ -1833,19 +1806,14 @@ begin
     delete from threads where deleted = 1;*/
 end|
 
--- Редактирует текст заданного сообщения, добавляя в конец его текста заданный
--- текст.
---
--- Аргументы:
--- _id - Идентификатор сообщения.
--- _text - Текст.
+-- Add text to the end of message.
 create procedure sp_posts_edit_text_by_id
 (
-	_id int,
-	_text text
+    _id int,    -- Post id.
+    _text text  -- Text.
 )
 begin
-	update posts set text = concat(text, _text) where id = _id;
+    update posts set text = concat(text, _text) where id = _id;
 end|
 
 -- Выбирает все сообщения.
@@ -2374,7 +2342,7 @@ begin
     update posts_files set deleted = 1 where post = post_id;
 end|
 
--- Удаляет помеченные на удаление связи заданного сообщения с вложенными файлами.
+-- Delete marked posts files relations.
 create procedure sp_posts_files_delete_marked ()
 begin
     delete from posts_files where deleted = 1;
@@ -2414,7 +2382,7 @@ begin
     update posts_images set deleted = 1 where post = post_id;
 end|
 
--- Удаляет помеченные на удаление связи заданного сообщения с вложенными изображениями.
+-- Delete marked posts images relations.
 create procedure sp_posts_images_delete_marked ()
 begin
     delete from posts_images where deleted = 1;
@@ -2454,7 +2422,7 @@ begin
     update posts_links set deleted = 1 where post = post_id;
 end|
 
--- Удаляет связи заданного сообщения с вложенными ссылками на изображения.
+-- Delete marked posts links relations.
 create procedure sp_posts_links_delete_marked ()
 begin
     delete from posts_links where deleted = 1;
@@ -2494,7 +2462,7 @@ begin
     update posts_videos set deleted = 1 where post = post_id;
 end|
 
--- Удаляет связи заданного сообщения с вложенными видео.
+-- Delete marked posts videos relations.
 create procedure sp_posts_videos_delete_marked ()
 begin
     delete from posts_videos where deleted = 1;
@@ -2542,23 +2510,23 @@ begin
     select post from reports;
 end|
 
--- ---------------------------
---  Работа со спамфильтром. --
--- ---------------------------
+-- ---------------
+--  Spamfilter. --
+-- ---------------
 
--- Добавляет шаблон в спамфильтр.
+-- Add pattern to spamfilter.
 create procedure sp_spamfilter_add
 (
-    _pattern varchar(256)   -- Шаблон.
+    _pattern varchar(256)   -- Pattern.
 )
 begin
     insert into spamfilter (pattern) values (_pattern);
 end|
 
--- Удаляет шаблон из спамфильтра.
+-- Delete pattern from spamfilter.
 create procedure sp_spamfilter_delete
 (
-    _id int -- Идентификатор шаблона.
+    _id int -- Id.
 )
 begin
     delete from spamfilter where id = _id;
@@ -2570,38 +2538,32 @@ begin
     select id, pattern from spamfilter;
 end|
 
--- ----------------------
---  Работа со стилями. --
--- ----------------------
+-- ----------------
+--  Stylesheets. --
+-- ----------------
 
--- Добавляет стиль.
---
--- Аргументы:
--- _name - Имя файла стиля.
+-- Add style.
 create procedure sp_stylesheets_add
 (
-    _name varchar(50)
+    _name varchar(50)   -- Stylesheet name.
 )
 begin
     insert into stylesheets (name) values (_name);
 end|
 
--- Удаляет заданный стиль.
---
--- Аргументы:
--- _id - Идентификатор стиля.
+-- Delete stylesheet.
 create procedure sp_stylesheets_delete
 (
-	_id int
+    _id int -- Id.
 )
 begin
-	delete from stylesheets where id = _id;
+    delete from stylesheets where id = _id;
 end|
 
 -- Select stylesheets.
 create procedure sp_stylesheets_get_all ()
 begin
-	select id, name from stylesheets;
+    select id, name from stylesheets;
 end|
 
 -- --------------------
@@ -2629,7 +2591,7 @@ begin
         from threads where id = thread_id;
 end|
 
--- Удаляет нити, помеченные на удаление.
+-- Delete marked threads.
 create procedure sp_threads_delete_marked ()
 begin
     delete ht from hidden_threads ht join threads t on t.id = ht.thread where t.deleted = 1;
@@ -2872,65 +2834,67 @@ begin
         group by t.id;
 end|
 
--- Выбирает нити, доступные для модерирования заданному пользователю.
---
--- Аргументы:
--- user_id - Идентификатор пользователя.
+-- Select moderatable threads.
 create procedure sp_threads_get_moderatable
 (
-	user_id int
+    user_id int -- User id.
 )
 begin
-	select t.id, t.board, t.original_post, t.bump_limit, t.sage, t.sticky,
-		t.with_attachments
-	from threads t
-	join user_groups ug on ug.user = user_id
-	left join hidden_threads ht on t.id = ht.thread and ug.user = ht.user
-	-- Правила для конкретной группы и нити.
-	left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
-	-- Правило для всех групп и конкретной нити.
-	left join acl a2 on a2.`group` is null and a2.thread = t.id
-	-- Правила для конкретной группы и доски.
-	left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
-	-- Правило для всех групп и конкретной доски.
-	left join acl a4 on a4.`group` is null and a4.board = t.board
-	-- Правило для конкретной групы.
-	left join acl a5 on a5.`group` = ug.`group` and a5.board is null
-		and a5.thread is null and a5.post is null
-	where t.deleted = 0
-		and t.archived = 0
-		and ht.thread is null
-		-- Нить должна быть доступна для просмотра.
-			-- Просмотр нити не запрещен конкретной группе и
-		and ((a1.`view` = 1 or a1.`view` is null)
-			-- просмотр нити не запрещен всем группам и
-			and (a2.`view` = 1 or a2.`view` is null)
-			-- просмотр доски не запрещен конкретной группе и
-			and (a3.`view` = 1 or a3.`view` is null)
-			-- просмотр доски не запрещен всем группам и
-			and (a4.`view` = 1 or a4.`view` is null)
-			-- просмотр разрешен конкретной группе.
-			and a5.`view` = 1)
-		-- Нить должна быть доступна для редактирования.
-			-- Редактирование нити разрешено конкретной группе или
-		and (a1.change = 1
-			-- редактирование нити не запрещено конкретной группе и разрешено
-			-- всем группам или
-			or (a1.change is null and a2.change = 1)
-			-- редактирование нити не запрещено ни конкретной группе ни всем, и
-			-- конкретной группе редактирование разрешено.
-			or (a1.change is null and a2.change is null and a5.change = 1))
-		-- Нить должна быть доступна для модерирования
-			-- Модерирование нити разрешено конкретной группе или
-		and (a1.moderate = 1
-			-- модерирование нити не запрещено конкретной группе и разрешено
-			-- всем группам или
-			or (a1.moderate is null and a2.moderate = 1)
-			-- модерирование нити не запрещено ни конкретной группе ни всем, и
-			-- конкретной группе модерирование разрешено.
-			or (a1.moderate is null and a2.moderate is null and a5.moderate = 1))
-	group by t.id
-	order by t.id desc;
+    select t.id,
+           t.board,
+           t.original_post,
+           t.bump_limit,
+           t.sage,
+           t.sticky,
+           t.with_attachments
+        from threads t
+        join user_groups ug on ug.user = user_id
+        left join hidden_threads ht on t.id = ht.thread and ug.user = ht.user
+        -- Правила для конкретной группы и нити.
+        left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+        -- Правило для всех групп и конкретной нити.
+        left join acl a2 on a2.`group` is null and a2.thread = t.id
+        -- Правила для конкретной группы и доски.
+        left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
+        -- Правило для всех групп и конкретной доски.
+        left join acl a4 on a4.`group` is null and a4.board = t.board
+        -- Правило для конкретной групы.
+        left join acl a5 on a5.`group` = ug.`group` and a5.board is null
+            and a5.thread is null and a5.post is null
+        where t.deleted = 0
+            and t.archived = 0
+            and ht.thread is null
+            -- Нить должна быть доступна для просмотра.
+                -- Просмотр нити не запрещен конкретной группе и
+            and ((a1.`view` = 1 or a1.`view` is null)
+                -- просмотр нити не запрещен всем группам и
+                and (a2.`view` = 1 or a2.`view` is null)
+                -- просмотр доски не запрещен конкретной группе и
+                and (a3.`view` = 1 or a3.`view` is null)
+                -- просмотр доски не запрещен всем группам и
+                and (a4.`view` = 1 or a4.`view` is null)
+                -- просмотр разрешен конкретной группе.
+                and a5.`view` = 1)
+            -- Нить должна быть доступна для редактирования.
+                -- Редактирование нити разрешено конкретной группе или
+            and (a1.change = 1
+                -- редактирование нити не запрещено конкретной группе и разрешено
+                -- всем группам или
+                or (a1.change is null and a2.change = 1)
+                -- редактирование нити не запрещено ни конкретной группе ни всем, и
+                -- конкретной группе редактирование разрешено.
+                or (a1.change is null and a2.change is null and a5.change = 1))
+            -- Нить должна быть доступна для модерирования
+                -- Модерирование нити разрешено конкретной группе или
+            and (a1.moderate = 1
+                -- модерирование нити не запрещено конкретной группе и разрешено
+                -- всем группам или
+                or (a1.moderate is null and a2.moderate = 1)
+                -- модерирование нити не запрещено ни конкретной группе ни всем, и
+                -- конкретной группе модерирование разрешено.
+                or (a1.moderate is null and a2.moderate is null and a5.moderate = 1))
+        group by t.id
+        order by t.id desc;
 end|
 
 -- Select moderatable thread.
@@ -3910,10 +3874,13 @@ begin
         join posts p on p.id = pv.post and p.thread = thread_id;
 end|
 
--- Выбирает висячие видео.
+-- Select dangling videos.
 create procedure sp_videos_get_dangling ()
 begin
-    select v.id, v.code, v.widht, v.height
+    select v.id,
+           v.code,
+           v.widht,
+           v.height
         from videos v
         left join posts_videos pv on pv.video = v.id
         where pv.post is null;

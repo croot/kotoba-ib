@@ -1,19 +1,10 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
 
-/*
- * Скрипт архивирования нитей.
- *
- * 
- */
+// Archive thread script.
 
 require_once '../config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
@@ -22,16 +13,20 @@ require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
 
 try {
-    // Инициализация.
+    // Initialization.
     kotoba_session_start();
+    if (Config::LANGUAGE != $_SESSION['language']) {
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/logging.php";
+    }
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup();
 
-    // Проверка, не заблокирован ли клиент.
-    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+    // Check if client banned.
+    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
-    if (($ban = bans_check($ip)) !== false) {
+    if ( ($ban = bans_check($ip)) !== FALSE) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
         session_destroy();
@@ -39,7 +34,7 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    // Проверка уровня доступа и запись сообщения в лог.
+    // Check permission and write message to log file.
     if (!is_admin()) {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
     }
@@ -64,9 +59,9 @@ try {
         $view_html = $smarty->fetch('header.tpl');
         $view_thread_html = '';
         $view_posts_html = '';
-        $original_post = null;              // Оригинальное сообщение с допольнительными полями.
-        $original_attachments = array();    // Массив файлов, прикрепленных к оригинальному сообщению.
-        $simple_attachments = array();      // Массив файлов, прикрепленных к сообщению.
+        $original_post = null;              // Original message with additional fields.
+        $original_attachments = array();    // Attachments of original message.
+        $simple_attachments = array();      // Attachments of replies.
 
         foreach ($posts as $p) {
 
@@ -194,10 +189,12 @@ try {
         fclose($file);
 
         // Remove data from database.
+        // Now skipped due debug.
 
         echo "Thread {$thread['original_post']} saved.<br>";
     }
 
+    // Cleanup.
     DataExchange::releaseResources();
     Logging::close_log();
 

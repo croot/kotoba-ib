@@ -271,16 +271,15 @@ create table posts                      -- Posts.
 )
 engine=InnoDB;
 
--- Описание экземпляров сущности: Правила (мн.ч.), Правило (ед.ч.).
-create table acl                -- Список контроля доступа.
+create table acl                -- Access Control List
 (
-    `group` int default null,   -- Идентификатор группы.
-    board int default null,     -- Идентификатор доски.
-    thread int default null,    -- Идентификатор нити.
-    post int default null,      -- Идентификатор сообщения.
-    `view` bit not null,        -- Право на просмотр.
-    `change` bit not null,      -- Право на изменение.
-    moderate bit not null,      -- Право на модерирование.
+    `group` int default null,   -- Group id.
+    board int default null,     -- Board id.
+    thread int default null,    -- Thread id.
+    post int default null,      -- Post id.
+    `view` bit not null,        -- View permission.
+    `change` bit not null,      -- Change permission.
+    moderate bit not null,      -- Moderate permission.
     unique key (`group`, board, thread, post),
     constraint foreign key (`group`) references groups (id)  on delete cascade on update restrict,
     constraint foreign key (board) references boards (id) on delete restrict on update restrict,
@@ -395,13 +394,10 @@ create table reports    -- Жалобы.
 )
 engine=InnoDB;
 
--- Заметки:
--- Спамфильтр осуществляет фильтрацию текста сообщений от спама. Спам ищется
--- в тексте сообщений по Шаблонам.
-create table spamfilter             -- Спамфильтр.
+create table spamfilter             -- Spam filter.
 (
-    id int not null auto_increment, -- Идентификатор.
-    pattern varchar(256) not null,  -- Шаблон.
+    id int not null auto_increment, -- Id.
+    pattern varchar(256) not null,  -- Pattern.
     primary key (id)
 )
 engine=InnoDB;

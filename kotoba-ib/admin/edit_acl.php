@@ -1,35 +1,32 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
 
-// Скрипт редактирования списка контроля доступа.
+// Edit ACL script.
 
-require '../config.php';
+require_once '../config.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
 require_once Config::ABS_PATH . '/lib/logging.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
 
 try {
     // Initialization.
     kotoba_session_start();
+    if (Config::LANGUAGE != $_SESSION['language']) {
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/logging.php";
+    }
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup();
 
-    // Check if remote host was banned.
-    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+    // Check if client banned.
+    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
-    if (($ban = bans_check($ip)) !== false) {
+    if ( ($ban = bans_check($ip)) !== FALSE) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
         session_destroy();
@@ -46,11 +43,11 @@ try {
     $groups = groups_get_all();
     $boards = boards_get_all();
     $acl = acl_get_all();
-    $reload_acl = false;    // Были ли произведены изменения.
+    $reload_acl = false;
 
     if (isset($_POST['submited'])) {
 
-        // Добавление записи.
+        // Add rule.
         if ((isset($_POST['new_group']) && isset($_POST['new_board'])
                 && isset($_POST['new_thread']) && isset($_POST['new_post']))
                 && ( $_POST['new_group'] !== '' || $_POST['new_board'] !== ''
@@ -65,8 +62,8 @@ try {
             $new_moderate = (isset($_POST['new_moderate'])) ? 1 : 0;
 
             /*
-             * Идентификатор доски, нити или сообщения в правилах однозначно
-             * определяют доску, нить и сообщение соотвественно.
+             * Board, Thread or Post id is unique. If we know one we dont need
+             * know more.
              */
             if ($new_board !== null && ($new_thread !== null || $new_post !== null)) {
                 throw new CommonException(CommonException::$messages['ACL_RULE_EXCESS']);
@@ -79,9 +76,8 @@ try {
             }
 
             /*
-             * Если запрещен просмотр, то редактирование и модерирование не
-             * имеют смысла. Если запрещено редактирование, то модерирование не
-             * имеет смысла.
+             * If view denied then change and moderate has no sense. If change
+             * denyed then moderate has no sense.
              */
             if ($new_view == 0 && ($new_change != 0 || $new_moderate != 0)) {
                 throw new CommonException(CommonException::$messages['ACL_RULE_CONFLICT']);
@@ -89,156 +85,201 @@ try {
                 throw new CommonException(CommonException::$messages['ACL_RULE_CONFLICT']);
             }
 
-            /*
-             * Поищем, нет ли уже такого правила. Если есть, то надо только
-             * изменить существующее.
-             */
+            // Take a look if we already have that rule.
             $found = false;
             foreach ($acl as $record) {
-                if (	(($record['group'] === null && $new_group === null) || ($record['group'] == $new_group)) &&
-                        (($record['board'] === null && $new_board === null) || ($record['board'] == $new_board)) &&
-                        (($record['thread'] === null && $new_thread === null) || ($record['thread'] == $new_thread)) &&
-                        (($record['post'] === null && $new_post === null) || ($record['post'] == $new_post))) {
+                if ((($record['group'] === null && $new_group === null) || ($record['group'] == $new_group))
+                    && (($record['board'] === null && $new_board === null) || ($record['board'] == $new_board))
+                    && (($record['thread'] === null && $new_thread === null) || ($record['thread'] == $new_thread))
+                    && (($record['post'] === null && $new_post === null) || ($record['post'] == $new_post))) {
 
-                    acl_edit($new_group, $new_board, $new_thread, $new_post,
-                    $new_view, $new_change, $new_moderate);
+                    acl_edit($new_group,
+                             $new_board,
+                             $new_thread,
+                             $new_post,
+                             $new_view,
+                             $new_change,
+                             $new_moderate);
                     $reload_acl = true;
                     $found = true;
                 }
             }
             if (!$found) {
-                acl_add($new_group, $new_board, $new_thread, $new_post,
-                $new_view, $new_change, $new_moderate);
+                acl_add($new_group,
+                        $new_board,
+                        $new_thread,
+                        $new_post,
+                        $new_view,
+                        $new_change,
+                        $new_moderate);
                 $reload_acl = true;
             }
-        }// Добавление записи.
+        }
 
-        // Изменение записей.
+        // Change rule.
         foreach($acl as $record) {
 
-            // Изменили право просмотра.
+            // View permission changed.
             if ($record['view'] == 1 && !isset($_POST["view_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}"])) {
 
-                // Сняли право просмотра.
-                acl_edit($record['group'], $record['board'], $record['thread'],
-                $record['post'], 0, 0, 0);
+                // View permission removed.
+                acl_edit($record['group'],
+                         $record['board'],
+                         $record['thread'],
+                         $record['post'],
+                         0,
+                         0,
+                         0);
                 $reload_acl = true;
                 continue;
             }
             if ($record['view'] == 0 && isset($_POST["view_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}"])) {
 
-                /*
-                 * Добавили право просмотра. Проверим, не было ли добавлено
-                 * других прав.
-                 */
+                // View permission added. Check for anoter permissions.
                 if ($record['change'] == 0 && isset($_POST["change_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}"])) {
 
-                    /*
-                     * Добавили право редактирования. Проверим, не было ли
-                     * добавлено права модерирования.
-                     */
+                    // Change permission added. Check for anoter permissions.
                     if ($record['moderate'] == 0 && isset($_POST["moderate_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}"])) {
 
-                        // Добавили право модерирования.
-                        acl_edit($record['group'], $record['board'],
-                        $record['thread'], $record['post'], 1, 1, 1);
+                        // Moderation permission added.
+                        acl_edit($record['group'],
+                                 $record['board'],
+                                 $record['thread'],
+                                 $record['post'],
+                                 1,
+                                 1,
+                                 1);
                         $reload_acl = true;
                         continue;
                     } else {
-                        acl_edit($record['group'], $record['board'],
-                        $record['thread'], $record['post'], 1, 1, 0);
+                        acl_edit($record['group'],
+                                 $record['board'],
+                                 $record['thread'],
+                                 $record['post'],
+                                 1,
+                                 1,
+                                 0);
                         $reload_acl = true;
                         continue;
                     }
                 } else {
 
-                    /*
-                     * Поскольку без права редактирования право модерирования не
-                     * имеет смысла, то и проверять, добавили его или нет, не
-                     * нужно.
-                     */
-                    acl_edit($record['group'], $record['board'],
-                    $record['thread'], $record['post'], 1, 0, 0);
+                    // Mod. permission without Change permission has no sense.
+                    acl_edit($record['group'],
+                             $record['board'],
+                             $record['thread'],
+                             $record['post'],
+                             1,
+                             0,
+                             0);
                     $reload_acl = true;
                     continue;
                 }
-            }// Добавили право просмотра.
+            }
 
-            // Право просмотра не меняли.
+            // View permission unchanged.
             if ($record['change'] == 1 && !isset($_POST["change_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}"])) {
 
-                // Сняли право редактирования.
-                acl_edit($record['group'], $record['board'], $record['thread'],
-                $record['post'], $record['view'], 0, 0);
+                // Change permission removed.
+                acl_edit($record['group'],
+                         $record['board'],
+                         $record['thread'],
+                         $record['post'],
+                         $record['view'],
+                         0,
+                         0);
                 $reload_acl = true;
                 continue;
             }
             if ($record['change'] == 0 && isset($_POST["change_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}"])) {
-                // Добавили право редактирования.
+
+                // Change permission added.
                 if ($record['view'] == 0) {
 
-                    /*
-                     * Если права просмотра не было, то игнориуем добавление
-                     * права просмотра и переходим к следующей записи.
-                     */
+                    // If we have no view permission ignore chages.
                     continue;
                 } else {
 
-                    // Проверим, не было ли добавлено права модерирования.
+                    // Check if Mod. permission added.
                     if ($record['moderate'] == 0 && isset($_POST["moderate_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}"])) {
 
-                        // Добавили  право модерирования.
-                        acl_edit($record['group'], $record['board'],
-                        $record['thread'], $record['post'], 1, 1, 1);
+                        // Mod. permission added.
+                        acl_edit($record['group'],
+                                 $record['board'],
+                                 $record['thread'],
+                                 $record['post'],
+                                 1,
+                                 1,
+                                 1);
                         $reload_acl = true;
                         continue;
                     } else {
-                        acl_edit($record['group'], $record['board'],
-                        $record['thread'], $record['post'], 1, 1, 0);
+                        acl_edit($record['group'],
+                                 $record['board'],
+                                 $record['thread'],
+                                 $record['post'],
+                                 1,
+                                 1,
+                                 0);
                         $reload_acl = true;
                         continue;
                     }
                 }
-            }// Добавили право редактирования.
+            }
 
-            // Право просмотра и редактирования не меняли.
+            // View and Change permission wasn't changed.
             if ($record['moderate'] == 1 && !isset($_POST["moderate_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}"])) {
 
-                // Сняли право модерирования.
-                acl_edit($record['group'], $record['board'], $record['thread'],
-                $record['post'], $record['view'], $record['change'], 0);
+                // Mod. permission removed.
+                acl_edit($record['group'],
+                         $record['board'],
+                         $record['thread'],
+                         $record['post'],
+                         $record['view'],
+                         $record['change'],
+                         0);
                 $reload_acl = true;
                 continue;
             }
             if ($record['moderate'] == 0 && isset($_POST["moderate_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}"])) {
 
-                // Добавили право модерирования.
-                acl_edit($record['group'], $record['board'], $record['thread'],
-                $record['post'], $record['view'], $record['change'], 1);
+                // Mod. permission added.
+                acl_edit($record['group'],
+                         $record['board'],
+                         $record['thread'],
+                         $record['post'],
+                         $record['view'],
+                         $record['change'],
+                         1);
                 $reload_acl = true;
                 continue;
             }
-        }// Изменение записей.
+        }
 
-        // Удаление записей из списка контроля доступа.
+        // Remove rules from ACL.
         foreach ($acl as $record) {
             if (isset($_POST["delete_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}"])) {
-                acl_delete($record['group'], $record['board'],
-                $record['thread'], $record['post']);
+                acl_delete($record['group'],
+                           $record['board'],
+                           $record['thread'],
+                           $record['post']);
                 $reload_acl = true;
             }
         }
     }
 
-    // Вывод формы редактирования.
     if ($reload_acl) {
         $acl = acl_get_all();
     }
-    $smarty->assign('groups', $groups);
+
+    // Generate html and display.
+    $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('boards', $boards);
+    $smarty->assign('groups', $groups);
     $smarty->assign('acl', $acl);
     $smarty->display('edit_acl.tpl');
 
+    // Cleanup.
     DataExchange::releaseResources();
     Logging::close_log();
 

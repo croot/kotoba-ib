@@ -101,10 +101,10 @@ function create_directories($name) {
     return true;
 }
 /**
- * Создаёт необходимые директории при добавлении нового языка.
- * @param string $code ISO_639-2 код языка.
+ * Create necessary directories when new language adds.
+ * @param string $code ISO_639-2 code.
  */
-function create_language_directories($code) { // Java CC
+function create_language_directories($code) {
     $dir = Config::ABS_PATH . "/smarty/kotoba/templates/locale/$code";
     @mkdir($dir); // Hide warning when directory exists.
     chmod($dir, 0777);
@@ -158,69 +158,60 @@ function favorites_mark_readed($user, $thread = NULL) {
     db_favorites_mark_readed(DataExchange::getDBLink(), $user, $thread);
 }
 
-/***************************************
- * Работа со списком контроля доступа. *
- ***************************************/
+/* ******
+ * ACL. *
+ ********/
 
 /**
- * Добавляет новое правило в список контроля доступа.
- * @param group_id mixed <p>Группа.</p>
- * @param board_id mixed <p>Доска.</p>
- * @param thread_id mixed <p>Нить.</p>
- * @param post_id mixed <p>Сообщение.</p>
- * @param view mixed <p>Право на просмотр.</p>
- * @param change mixed <p>Право на изменение.</p>
- * @param moderate mixed <p>Право на модерирование.</p>
+ * Add rule to ACL.
+ * @param int|null $group_id Group id.
+ * @param int|null $board_id Board id.
+ * @param int|null $thread_id Thread id.
+ * @param int|null $post_id Post id.
+ * @param boolean $view View permission.
+ * @param boolean $change Change prmission.
+ * @param boolean $moderate Moderate permission.
  */
-function acl_add($group_id, $board_id, $thread_id, $post_id, $view, $change,
-		$moderate)
-{
-	db_acl_add(DataExchange::getDBLink(), $group_id, $board_id, $thread_id,
-		$post_id, $view, $change, $moderate);
+function acl_add($group_id, $board_id, $thread_id, $post_id, $view, $change, $moderate) {
+    db_acl_add(DataExchange::getDBLink(), $group_id, $board_id, $thread_id, $post_id, $view, $change, $moderate);
 }
 /**
- * Удаляет правило из списка контроля доступа.
- * @param group_id mixed <p>Группа.</p>
- * @param board_id mixed <p>Доска.</p>
- * @param thread_id mixed <p>Нить.</p>
- * @param post_id mixed <p>Сообщение.</p>
+ * Delete rule from ACL.
+ * @param int|null $group_id Group id.
+ * @param int|null $board_id Board id.
+ * @param int|null $thread_id Thread id.
+ * @param int|null $post_id Post id.
  */
-function acl_delete($group_id, $board_id, $thread_id, $post_id)
-{
-	db_acl_delete(DataExchange::getDBLink(), $group_id, $board_id, $thread_id,
-		$post_id);
+function acl_delete($group_id, $board_id, $thread_id, $post_id) {
+    db_acl_delete(DataExchange::getDBLink(), $group_id, $board_id, $thread_id, $post_id);
 }
 /**
- * Редактирует правило в списке контроля доступа.
- * @param group_id mixed <p>Группа.</p>
- * @param board_id mixed <p>Доска.</p>
- * @param thread_id mixed <p>Нить.</p>
- * @param post_id mixed <p>Сообщение.</p>
- * @param view mixed <p>Право на просмотр.</p>
- * @param change mixed <p>Право на изменение.</p>
- * @param moderate mixed <p>Право на модерирование.</p>
+ * Edit rule in ACL.
+ * @param int|null $group_id Group id.
+ * @param int|null $board_id Board id.
+ * @param int|null $thread_id Thread id.
+ * @param int|null $post_id Post id.
+ * @param boolean $view View permission.
+ * @param boolean $change Change prmission.
+ * @param boolean $moderate Moderate permission.
  */
-function acl_edit($group_id, $board_id, $thread_id, $post_id, $view, $change,
-	$moderate)
-{
-	db_acl_edit(DataExchange::getDBLink(), $group_id, $board_id, $thread_id,
-		$post_id, $view, $change, $moderate);
+function acl_edit($group_id, $board_id, $thread_id, $post_id, $view, $change, $moderate) {
+    db_acl_edit(DataExchange::getDBLink(),
+                $group_id,
+                $board_id,
+                $thread_id,
+                $post_id,
+                $view,
+                $change,
+                $moderate);
 }
 /**
- * Получает список контроля доступа.
+ * Get ACL.
  * @return array
- * Возвращает список контроля доступа:<p>
- * 'group' - Группа.<br>
- * 'board' - Доска.<br>
- * 'thread' - Нить.<br>
- * 'post' - Сообщение.<br>
- * 'view' - Право на просмотр.<br>
- * 'change' - Право на изменение.<br>
- * 'moderate' - Право на модерирование.</p>
+ * ACL.
  */
-function acl_get_all()
-{
-	return db_acl_get_all(DataExchange::getDBLink());
+function acl_get_all() {
+    return db_acl_get_all(DataExchange::getDBLink());
 }
 
 /* ****************************************************
@@ -238,9 +229,9 @@ function posts_attachments_delete_by_post($post_id) {
     db_posts_videos_delete_by_post(DataExchange::getDBLink(), $post_id);
 }
 /**
- * Удаляет связи сообщений с вложениями, помеченные на удаление.
+ * Delete marked posts attachemtns relations.
  */
-function posts_attachments_delete_marked() { // Java CC
+function posts_attachments_delete_marked() {
     db_posts_files_delete_marked(DataExchange::getDBLink());
     db_posts_images_delete_marked(DataExchange::getDBLink());
     db_posts_links_delete_marked(DataExchange::getDBLink());
@@ -328,12 +319,9 @@ function attachments_get_by_thread($thread_id) {
     return $attachments;
 }
 /**
- * Получает висячие вложения.
+ * Get dangling attachments.
  * @return array
- * Возвращает вложения:<br>
- * 'id' - Идентификатор.<br>
- * ... - Атрибуты, зависящие от конкретного типа вложения.<br>
- * 'attachment_type' - Тип вложения.
+ * attachments.
  */
 function attachments_get_dangling() {
     $attachments = array();
@@ -423,110 +411,83 @@ function bans_check_range_end($range_end) {
     return $range_end;
 }
 /**
- * Проверяет корректность причины блокировки.
- * @param reason string <p>Причина бана.</p>
+ * Check ban reason.
+ * @param string $reason Ban reason.
  * @return string
- * Возвращает безопасную для использования причину блокировки.
+ * safe reason.
  */
-function bans_check_reason($reason)
-{
-	$length = strlen($reason);
-	if($length <= 10000 && $length >= 1)
-	{
-		$reason = htmlentities($reason, ENT_QUOTES, Config::MB_ENCODING);
-		$length = strlen($reason);
-		if($length > 10000 || $length < 1)
-			throw new FormatException(FormatException::$messages['BANS_REASON']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['BANS_REASON']);
-	return $reason;
+function bans_check_reason($reason) {
+    $length = strlen($reason);
+    if ($length <= 10000 && $length >= 1) {
+        $reason = htmlentities($reason, ENT_QUOTES, Config::MB_ENCODING);
+        $length = strlen($reason);
+        if ($length > 10000 || $length < 1) {
+            throw new FormatException(FormatException::$messages['BANS_REASON']);
+        }
+    } else {
+        throw new FormatException(FormatException::$messages['BANS_REASON']);
+    }
+    return $reason;
 }
 /**
- * Проверяет корректность времени истечения блокировки.
- * @param untill string <p>Время истечения блокировки.</p>
+ * Check ban expiration time.
+ * @param mixed $untill Ban expiration.
  * @return string
- * Возвращает безопасное для использования время истечения блокировки.
+ * safe ban expiration time.
  */
-function bans_check_untill($untill)
-{
-	$length = strlen($untill);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$untill = RawUrlEncode($untill);
-		$length = strlen($untill);
-		if($length > $max_int_length || (ctype_digit($untill) === false) || $length < 1)
-			throw new FormatException(FormatException::$messages['BANS_UNTILL']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['BANS_UNTILL']);
-	return $untill;
+function bans_check_untill($untill) {
+    return kotoba_intval($untill);
 }
 /**
- * Удаляет блокировку с заданным идентификатором.
- * @param id miexd <p>Идентификатор блокировки.</p>
+ * Delete ban.
+ * @param int $id Id.
  */
-function bans_delete_by_id($id)
-{
-	db_bans_delete_by_id(DataExchange::getDBLink(), $id);
+function bans_delete_by_id($id) {
+    db_bans_delete_by_id(DataExchange::getDBLink(), $id);
 }
 /**
- * Удаляет блокировки с заданным IP-адресом.
- * @param ip int <p>IP-адрес.</p>
+ * Delete certain ip bans.
+ * @param int $ip IP-address.
  */
-function bans_delete_by_ip($ip)
-{
-	db_bans_delete_by_ip(DataExchange::getDBLink(), $ip);
+function bans_delete_by_ip($ip) {
+    db_bans_delete_by_ip(DataExchange::getDBLink(), $ip);
 }
 /**
- * Получает все блокировки.
+ * Get bans.
  * @return array
- * Возвращает блокировки:<p>
- * 'id' - Идентификатор.<br>
- * 'range_beg' - Начало диапазона IP-адресов.<br>
- * 'range_end' - Конец диапазона IP-адресов.<br>
- * 'reason' - Причина блокировки.<br>
- * 'untill' - Время истечения блокировки.</p>
+ * bans.
  */
-function bans_get_all()
-{
-	return db_bans_get_all(DataExchange::getDBLink());
+function bans_get_all() {
+    return db_bans_get_all(DataExchange::getDBLink());
 }
 
-/*******************************************************
- * Работа со связями досок и типов загружаемых файлов. *
- *******************************************************/
+/* *********************
+ * Board upload types. *
+ ***********************/
 
 /**
- * Добавляет связь доски с типом загружаемых файлов.
- * @param board mixed <p>Доска.</p>
- * @param upload_type mixed <p>Тип загружаемого файла.</p>
+ * Add board upload type relation.
+ * @param int $board Board id.
+ * @param int $upload_type Upload type id.
  */
-function board_upload_types_add($board, $upload_type)
-{
-	db_board_upload_types_add(DataExchange::getDBLink(), $board, $upload_type);
+function board_upload_types_add($board, $upload_type) {
+    db_board_upload_types_add(DataExchange::getDBLink(), $board, $upload_type);
 }
 /**
- * Удаляет связь доски с типом загружаемых файлов.
- * @param board mixed <p>Доска.</p>
- * @param upload_type mixed <p>Тип загружаемого файла.</p>
+ * Delete board upload type relation.
+ * @param int $board Board id.
+ * @param int $upload_type Upload type id.
  */
-function board_upload_types_delete($board, $upload_type)
-{
-	db_board_upload_types_delete(DataExchange::getDBLink(), $board,
-			$upload_type);
+function board_upload_types_delete($board, $upload_type) {
+    db_board_upload_types_delete(DataExchange::getDBLink(), $board, $upload_type);
 }
 /**
- * Получает все связи досок с типами загружаемых файлов.
+ * Get board upload types relations.
  * @return array
- * Возвращает связи:<p>
- * 'board' - Доска.<br>
- * 'upload_type' - Тип загружаемого файла.</p>
+ * board upload types relations.
  */
-function board_upload_types_get_all()
-{
-	return db_board_upload_types_get_all(DataExchange::getDBLink());
+function board_upload_types_get_all() {
+    return db_board_upload_types_get_all(DataExchange::getDBLink());
 }
 
 /* ********
@@ -906,17 +867,16 @@ function boards_get_visible_filtred($user_id, $filter) { // Java CC
     return $filtred_boards;
 }
 
-/*************************
- * Работа с категориями. *
- *************************/
+/* *************
+ * Categories. *
+ ***************/
 
 /**
- * Добавляет новую категорию с заданным именем.
- * @param name string <p>Имя.</p>
+ * Add category.
+ * @param string $name Name.
  */
-function categories_add($name)
-{
-	db_categories_add(DataExchange::getDBLink(), $name);
+function categories_add($name) {
+    db_categories_add(DataExchange::getDBLink(), $name);
 }
 /**
  * Check category id.
@@ -928,32 +888,30 @@ function categories_check_id($id) {
     return kotoba_intval($id);
 }
 /**
- * Проверяет корректность имени категории.
- * @param name string <p>Имя.</p>
+ * Check category name.
+ * @param mixed $name Name.
  * @return string
- * Возвращает безопасное для использования имя категории.
+ * safe name.
  */
-function categories_check_name($name)
-{
-	$length = strlen($name);
-	if($length <= 50 && $length >= 1)
-	{
-		$name = RawUrlEncode($name);
-		$length = strlen($name);
-		if($length > 50 || (strpos($name, '%') !== false) || $length < 1)
-			throw new FormatException(FormatException::$messages['CATEGORY_NAME']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['CATEGORY_NAME']);
-	return $name;
+function categories_check_name($name) {
+    $length = strlen($name);
+    if ($length <= 50 && $length >= 1) {
+        $name = RawUrlEncode($name);
+        $length = strlen($name);
+        if($length > 50 || (strpos($name, '%') !== false) || $length < 1)
+        throw new FormatException(FormatException::$messages['CATEGORY_NAME']);
+    } else {
+        throw new FormatException(FormatException::$messages['CATEGORY_NAME']);
+    }
+
+    return $name;
 }
 /**
- * Удаляет заданную категорию.
- * @param id mixed <p>Идентификатор.</p>
+ * Delete category.
+ * @param int $id Id.
  */
-function categories_delete($id)
-{
-	db_categories_delete(DataExchange::getDBLink(), $id);
+function categories_delete($id) {
+    db_categories_delete(DataExchange::getDBLink(), $id);
 }
 /**
  * Get categories.
@@ -989,19 +947,18 @@ function files_add($hash, $name, $size, $thumbnail, $thumbnail_w, $thumbnail_h) 
                         $thumbnail_h);
 }
 
-/**********************
- * Работа с группами. *
- **********************/
+/* *********
+ * Groups. *
+ ***********/
 
 /**
- * Добавляет группу с заданным именем.
- * @param name string <p>Имя группы.</p>
- * @return string
- * Возвращает идентификатор добавленной группы.
+ * Add group.
+ * @param string $name Group name.
+ * @return int
+ * new group id.
  */
-function groups_add($name)
-{
-	db_groups_add(DataExchange::getDBLink(), $name);
+function groups_add($name) {
+    db_groups_add(DataExchange::getDBLink(), $name);
 }
 /**
  * Check group id.
@@ -1013,33 +970,31 @@ function groups_check_id($id) {
     return kotoba_intval($id);
 }
 /**
- * Проверяет корректность имени группы.
- * @param name string <p>Имя группы.</p>
- * Возвращает безопасное для использования имя группы.
+ * Check group name.
+ * @param mixed $name Group name.
  * @return string
+ * safe group name.
  */
-function groups_check_name($name)
-{
-	$length = strlen($name);
-	if($length <= 50 && $length >= 1)
-	{
-		$name = RawUrlEncode($name);
-		$length = strlen($name);
-		if($length > 50 || (strpos($name, '%') !== false) || $length < 1)
-			throw new FormatException(FormatException::$messages['GROUP_NAME']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['GROUP_NAME']);
-	return $name;
+function groups_check_name($name) {
+    $length = strlen($name);
+    if ($length <= 50 && $length >= 1) {
+        $name = RawUrlEncode($name);
+        $length = strlen($name);
+        if ($length > 50 || (strpos($name, '%') !== false) || $length < 1) {
+            throw new FormatException(FormatException::$messages['GROUP_NAME']);
+        }
+    } else {
+        throw new FormatException(FormatException::$messages['GROUP_NAME']);
+    }
+
+    return $name;
 }
 /**
- * Удаляет заданные группы, а так же всех пользователей, которые входят в эти
- * группы и все правила в ACL, распространяющиеся на эти группы.
- * @param groups array <p>Группы.</p>
+ * Delete groups.
+ * @param array $groups Groups.
  */
-function groups_delete($groups)
-{
-	db_groups_delete(DataExchange::getDBLink(), $groups);
+function groups_delete($groups) {
+    db_groups_delete(DataExchange::getDBLink(), $groups);
 }
 /**
  * Get groups.
@@ -1222,37 +1177,36 @@ function images_get_same($board_id, $image_hash, $user_id) { // Java CC
         $user_id);
 }
 
-/*********************
- * Работа с языками. *
- *********************/
+/* ************
+ * Languages. *
+ **************/
 
 /**
- * Добавляет язык.
- * @param code string <p>ISO_639-2 код языка.</p>
+ * Add language.
+ * @param string $code ISO_639-2 code.
  */
-function languages_add($code)
-{
-	db_languages_add(DataExchange::getDBLink(), $code);
+function languages_add($code) {
+    db_languages_add(DataExchange::getDBLink(), $code);
 }
 /**
- * Проверяет корректность ISO_639-2 кода языка.
- * @param code string <p>ISO_639-2 код языка.</p>
+ * Check language ISO_639-2 code.
+ * @param mixed $code ISO_639-2 code.
  * @return string
- * Возвращает безопасный для использования ISO_639-2 код языка.
+ * safe ISO_639-2 code.
  */
-function languages_check_code($code)
-{
-	$length = strlen($code);
-	if($length == 3)
-	{
-		$code = RawUrlEncode($code);
-		$length = strlen($code);
-		if($length != 3 || (strpos($code, '%') !== false))
-			throw new FormatException(FormatException::$messages['LANGUAGE_CODE']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['LANGUAGE_CODE']);
-	return $code;
+function languages_check_code($code) {
+    $length = strlen($code);
+    if ($length == 3) {
+        $code = RawUrlEncode($code);
+        $length = strlen($code);
+        if ($length != 3 || (strpos($code, '%') !== FALSE)) {
+            throw new FormatException(FormatException::$messages['LANGUAGE_CODE']);
+        }
+    } else {
+        throw new FormatException(FormatException::$messages['LANGUAGE_CODE']);
+    }
+
+    return $code;
 }
 /**
  * Check language id.
@@ -1264,12 +1218,11 @@ function languages_check_id($id) {
     return kotoba_intval($id);
 }
 /**
- * Удаляет язык с заданным идентификатором.
- * @param id mixed <p>Идентификатор языка.</p>
+ * Delete language.
+ * @param int $id Id.
  */
-function languages_delete($id)
-{
-	db_languages_delete(DataExchange::getDBLink(), $id);
+function languages_delete($id) {
+    db_languages_delete(DataExchange::getDBLink(), $id);
 }
 /**
  * Get languages.
@@ -1444,18 +1397,16 @@ function macrochan_tags_images_get_all() { // Java CC
     return db_macrochan_tags_images_get_all(DataExchange::getDBLink());
 }
 
-/**********************************************************
- * Работа с обработчиками автоматического удаления нитей. *
- **********************************************************/
+/* *******************
+ * Popdown handlers. *
+ *********************/
 
 /**
- * Добавляет обработчик автоматического удаления нитей.
- * @param name string <p>Имя функции обработчика автоматического удаления
- * нитей.</p>
+ * Add popdown handeler.
+ * @param string $name Popdown handeler name.
  */
-function popdown_handlers_add($name)
-{
-	db_popdown_handlers_add(DataExchange::getDBLink(), $name);
+function popdown_handlers_add($name) {
+    db_popdown_handlers_add(DataExchange::getDBLink(), $name);
 }
 /**
  * Check popdown handler id.
@@ -1467,38 +1418,30 @@ function popdown_handlers_check_id($id) {
     return kotoba_intval($id);
 }
 /**
- * Проверяет корректность имени функции обработчика автоматического удаления
- * нитей.
- * @param name string <p>Имя функции обработчика автоматического удаления
- * нитей.</p>
- * Возвращает безопасное для использования имя функции обработчика
- * автоматического удаления нитей.
+ * Check popdown handler name.
+ * @param mixed $name Popdown handler name.
+ * safe popdown handler name.
  */
-function popdown_handlers_check_name($name)
-{
-	$length = strlen($name);
-	if($length <= 50 && $length >= 1)
-	{
-		$name = RawUrlEncode($name);
-		$length = strlen($name);
-		if($length > 50 || (strpos($name, '%') !== false)
-			|| $length < 1 || ctype_digit($name[0]))
-		{
-			throw new FormatException(FormatException::$messages['POPDOWN_HANDLER_NAME']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['POPDOWN_HANDLER_NAME']);
-	return $name;
+function popdown_handlers_check_name($name) {
+    $length = strlen($name);
+    if ($length <= 50 && $length >= 1) {
+        $name = RawUrlEncode($name);
+        $length = strlen($name);
+        if($length > 50 || (strpos($name, '%') !== false) || $length < 1 || ctype_digit($name[0])) {
+            throw new FormatException(FormatException::$messages['POPDOWN_HANDLER_NAME']);
+        }
+    } else {
+        throw new FormatException(FormatException::$messages['POPDOWN_HANDLER_NAME']);
+    }
+
+    return $name;
 }
 /**
- * Удаляет обработчик автоматического удаления нитей.
- * @param id mixed <p>Идентификатор обработчика автоматического удаления
- * нитей.</p>
+ * Delete popdown handeler.
+ * @param int $id Id.
  */
-function popdown_handlers_delete($id)
-{
-	db_popdown_handlers_delete(DataExchange::getDBLink(), $id);
+function popdown_handlers_delete($id) {
+    db_popdown_handlers_delete(DataExchange::getDBLink(), $id);
 }
 /**
  * Get popdown hanglers.
@@ -1555,12 +1498,12 @@ function posts_add($board_id,
                         $sage);
 }
 /**
- * Добавляет текст в конец текста заданного сообщения.
- * @param id mixed <p>Идентификатор сообщения.</p>
- * @param text string <p>Текст.</p>
+ * Add text to the end of message.
+ * @param int $id Post id.
+ * @param string $text Text.
  */
 function posts_add_text_by_id($id, $text) {
-	db_posts_add_text_by_id(DataExchange::getDBLink(), $id, $text);
+    db_posts_add_text_by_id(DataExchange::getDBLink(), $id, $text);
 }
 /**
  * Check post id.
@@ -1676,9 +1619,9 @@ function posts_delete_last($id, $date_time) {
     db_posts_delete_last(DataExchange::getDBLink(), $id, $date_time);
 }
 /**
- * Удаляет сообщения, помеченные на удаление.
+ * Delete marked posts.
  */
-function posts_delete_marked() { // Java CC
+function posts_delete_marked() {
     db_posts_delete_marked(DataExchange::getDBLink());
 }
 /**
@@ -1916,33 +1859,37 @@ function reports_get_all() {
     return db_reports_get_all(DataExchange::getDBLink());
 }
 
-/* *************************
- * Работа со спамфильтром. *
- ***************************/
+/* *************
+ * Spamfilter. *
+ ***************/
 
 /**
- * Добавляет шаблон в спамфильтр.
- * @param string $pattern Шаблон.
+ * Add pattern to spamfilter.
+ * @param string $pattern Pattern.
  */
-function spamfilter_add($pattern) { // Java CC
-	db_spamfilter_add(DataExchange::getDBLink(), $pattern);
+function spamfilter_add($pattern) {
+    db_spamfilter_add(DataExchange::getDBLink(), $pattern);
 }
 /**
- * Проверяет корректность шаблона спамфильтра.
- * @return string Возвращает безопасный для использования шаблон спамфильтра.
+ * Check spamfilter pattern.
+ * @param mixed $pattern Pattern.
+ * @return string
+ * safe pattern.
  */
 function spamfilter_check_pattern($pattern) {
+    $pattern = DataExchange::escapeString($pattern);
     if (strlen($pattern) > 256) {
         throw new FormatException(FormatException::$messages['SPAMFILTER_PATTERN']);
     }
+
     return $pattern;
 }
 /**
- * Удаляет шаблон из спамфильтра.
- * @param int $id Идентификатор шаблона.
+ * Delete pattern from spamfilter.
+ * @param int $id id.
  */
-function spamfilter_delete($id) { // Java CC
-	db_spamfilter_delete(DataExchange::getDBLink(), $id);
+function spamfilter_delete($id) {
+    db_spamfilter_delete(DataExchange::getDBLink(), $id);
 }
 /**
  * Get spamfilter records.
@@ -1953,17 +1900,16 @@ function spamfilter_get_all() {
     return db_spamfilter_get_all(DataExchange::getDBLink());
 }
 
-/* ********************
- * Работа со стилями. *
- **********************/
+/* **************
+ * Stylesheets. *
+ ****************/
 
 /**
- * Добавляет стиль.
- * @param name string <p>Имя файла стиля.</p>
+ * Add stylesheet.
+ * @param string $name Stylesheet name.
  */
-function stylesheets_add($name)
-{
-	db_stylesheets_add(DataExchange::getDBLink(), $name);
+function stylesheets_add($name) {
+    db_stylesheets_add(DataExchange::getDBLink(), $name);
 }
 /**
  * Check stylesheet id.
@@ -1975,32 +1921,31 @@ function stylesheets_check_id($id) {
     return kotoba_intval($id);
 }
 /**
- * Проверяет корректность имени файла стиля.
- * @param name string <p>Имя файла стиля.</p>
+ * Check stylesheet name.
+ * @param mixed $name Stylesheet name.
  * @return string
- * Возвращает безопасное для использования имя файла стиля.
+ * safe stylesheet name.
  */
-function stylesheets_check_name($name)
-{
-	$length = strlen($name);
-	if($length <= 50 && $length >= 1)
-	{
-		$name = RawUrlEncode($name);
-		$length = strlen($name);
-		if($length > 50 || (strpos($name, '%') !== false) || $length < 1)
-			throw new FormatException(FormatException::$messages['STYLESHEET_NAME']);
-	}
-	else
-		throw new FormatException(FormatException::$messages['STYLESHEET_NAME']);
-	return $name;
+function stylesheets_check_name($name) {
+    $length = strlen($name);
+    if ($length <= 50 && $length >= 1) {
+        $name = RawUrlEncode($name);
+        $length = strlen($name);
+        if ($length > 50 || (strpos($name, '%') !== false) || $length < 1) {
+            throw new FormatException(FormatException::$messages['STYLESHEET_NAME']);
+        }
+    } else {
+        throw new FormatException(FormatException::$messages['STYLESHEET_NAME']);
+    }
+
+    return $name;
 }
 /**
- * Удаляет заданный стиль.
- * @param id mixed <p>Идентификатор стиля.</p>
+ * Delete stylesheet.
+ * @param int $id Id.
  */
-function stylesheets_delete($id)
-{
-	db_stylesheets_delete(DataExchange::getDBLink(), $id);
+function stylesheets_delete($id) {
+    db_stylesheets_delete(DataExchange::getDBLink(), $id);
 }
 /**
  * Get stylesheets.
@@ -2065,9 +2010,9 @@ function threads_check_original_post($original_post) {
     return kotoba_intval($original_post);
 }
 /**
- * Удаляет нити, помеченные на удаление.
+ * Delete marked threads.
  */
-function threads_delete_marked() { // Java CC
+function threads_delete_marked() {
     db_threads_delete_marked(DataExchange::getDBLink());
 }
 /**
@@ -2146,21 +2091,13 @@ function threads_get_changeable_by_id($thread_id, $user_id) {
                                            $user_id);
 }
 /**
- * Получает нити, доступные для модерирования заданному пользователю.
- * @param user_id mixed <p>Идентификатор пользователя.</p>
+ * Get moderatable threads.
+ * @param int $user_id User id.
  * @return array
- * Возвращает нити:<p>
- * 'id' - Идентификатор.<br>
- * 'board' - Идентификатор доски.<br>
- * 'original_post' - Номер оригинального сообщения.<br>
- * 'bump_limit' - Специфичный для нити бамплимит.<br>
- * 'sage' - Флаг поднятия нити.<br>
- * 'sticky' - Флаг закрепления.<br>
- * 'with_attachments' - Флаг вложений.</p>
+ * threads.
  */
-function threads_get_moderatable($user_id)
-{
-	return db_threads_get_moderatable(DataExchange::getDBLink(), $user_id);
+function threads_get_moderatable($user_id) {
+    return db_threads_get_moderatable(DataExchange::getDBLink(), $user_id);
 }
 /**
  * Get moderatable thread.
@@ -2352,28 +2289,13 @@ function upload_types_check_extension($ext) {
     return $ext;
 }
 /**
- * Проверяет корректность идентификатора типа загружаемых файлов.
- * @param id mixed <p>Идентификатор.</p>
- * @return string
- * Возвращает безопасный для использования идентификатор типа загружаемых файлов.
+ * Check upload type id.
+ * @param mixed $id Id.
+ * @return int
+ * safe id.
  */
-function upload_types_check_id($id)
-{
-    $length = strlen($id);
-    $max_int_length = strlen('' . PHP_INT_MAX);
-    if($length <= $max_int_length && $length >= 1)
-    {
-        $id = RawUrlEncode($id);
-        $length = strlen($id);
-        if($length > $max_int_length || (ctype_digit($id) === false)
-            || $length < 1)
-        {
-            throw new FormatException(FormatException::$messages['UPLOAD_TYPE_ID']);
-        }
-    }
-    else
-        throw new FormatException(FormatException::$messages['UPLOAD_TYPE_ID']);
-    return $id;
+function upload_types_check_id($id) {
+    return kotoba_intval($id);
 }
 /**
  * Check stored extension.

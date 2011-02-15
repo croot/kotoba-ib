@@ -1,33 +1,32 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
 
-// Скрипт редактирования групп.
+// Edit groups script.
 
-require '../config.php';
-require Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
-require Config::ABS_PATH . '/lib/logging.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/logging.php';
-require Config::ABS_PATH . '/lib/db.php';
-require Config::ABS_PATH . '/lib/misc.php';
+require_once '../config.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
+require_once Config::ABS_PATH . '/lib/logging.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
 
 try {
+    // Initialization.
     kotoba_session_start();
+    if (Config::LANGUAGE != $_SESSION['language']) {
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/logging.php";
+    }
     locale_setup();
-    $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
+    $smarty = new SmartyKotobaSetup();
 
-    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+    // Check if client banned.
+    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
-    if (($ban = bans_check($ip)) !== false) {
+    if ( ($ban = bans_check($ip)) !== FALSE) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
         session_destroy();
@@ -35,25 +34,24 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
+    // Check permission and write message to log file.
     if (!is_admin()) {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
     }
-    Logging::write_msg(Config::ABS_PATH . '/log/' . basename(__FILE__) . '.log',
-            Logging::$messages['ADMIN_FUNCTIONS_EDIT_GROUPS'],
-            $_SESSION['user'], $_SERVER['REMOTE_ADDR']);
-    Logging::close_log();
+    call_user_func(Logging::$f['EDIT_GROUPS_USE']);
 
     $groups = groups_get_all();
-    $delete_list = array(); // Массив идентификаторов групп для удаления.
-    $reload_groups = false; // Были ли произведены изменения в группах.
+    $delete_list = array();
+    $reload_groups = false;
 
-    // Если создаётся новая группа.
+    // Add new group.
     if (isset($_POST['new_group']) && $_POST['new_group'] !== '') {
         $new_group = groups_check_name($_POST['new_group']);
         groups_add($new_group);
         $reload_groups = true;
     }
-    // Удаление группы.
+
+    // Delete group.
     foreach($groups as $group) {
         if (isset($_POST['delete_' . $group['id']])) {
             array_push($delete_list, $group['id']);
@@ -67,11 +65,18 @@ try {
     if ($reload_groups) {
         $groups = groups_get_all();
     }
+
+    // Generate html code of edit groups page and display it.
+    $smarty->assign('show_control', is_admin() || is_mod());
+    $smarty->assign('boards', boards_get_visible($_SESSION['user']));
     $smarty->assign('groups', $groups);
     $smarty->display('edit_groups.tpl');
 
+    // Cleanup.
     DataExchange::releaseResources();
-    exit;
+    Logging::close_log();
+
+    exit(0);
 } catch(Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();
