@@ -122,9 +122,8 @@ try {
                                     $new_with_attachments = FALSE;
                                 } else {
                                     /*
-                                     * Загрузка файлов на доске запрещена,
-                                     * поэтому дополнительно запрещать её в этой
-                                     * нити не нужно.
+                                     * Attachments allow on this board so we
+                                     * dont need to allow it in this thread.
                                      */
                                     $new_with_attachments = NULL;
                                 }
@@ -141,8 +140,11 @@ try {
                     || $new_sage != $thread['sage']
                     || $new_with_attachments != $thread['with_attachments']) {
 
-                threads_edit($thread['id'], $new_bump_limit, $new_sticky,
-                $new_sage, $new_with_attachments);
+                threads_edit($thread['id'],
+                             $new_bump_limit,
+                             $new_sticky,
+                             $new_sage,
+                             $new_with_attachments);
                 $reload_threads = true;
             }
         }

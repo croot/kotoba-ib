@@ -2038,28 +2038,13 @@ function threads_add($board_id, $original_post, $bump_limit, $sage, $with_attach
     return db_threads_add(DataExchange::getDBLink(), $board_id, $original_post, $bump_limit, $sage, $with_attachments);
 }
 /**
- * Проверяет корректность специфичного для нити бамплимита.
- * @param bump_limit mixed <p>Специфичный для нити бамплимит.</p>
- * @return string
- * Возвращает безопасный для использования специфичный для нити бамплимит.
+ * Check thread specific bumplimit.
+ * @param mixed $bump_limit Thread specific bumplimit.
+ * @return int
+ * safe thread specific bumplimit.
  */
-function threads_check_bump_limit($bump_limit)
-{
-	$length = strlen($bump_limit);
-	$max_int_length = strlen('' . PHP_INT_MAX);
-	if($length <= $max_int_length && $length >= 1)
-	{
-		$bump_limit = RawUrlEncode($bump_limit);
-		$length = strlen($bump_limit);
-		if($length > $max_int_length || (ctype_digit($bump_limit) === false)
-			|| $length < 1)
-		{
-			throw new FormatException(FormatException::$messages['THREAD_BUMP_LIMIT']);
-		}
-	}
-	else
-		throw new FormatException(FormatException::$messages['THREAD_BUMP_LIMIT']);
-	return $bump_limit;
+function threads_check_bump_limit($bump_limit) {
+    return kotoba_intval($bump_limit);
 }
 /**
  * Check thread id.
@@ -2086,18 +2071,15 @@ function threads_delete_marked() { // Java CC
     db_threads_delete_marked(DataExchange::getDBLink());
 }
 /**
- * Редактирует заданную нить.
- * @param thread_id mixed <p>Идентификатор нити.</p>
- * @param bump_limit mixed <p>Специфичный для нити бамплимит.</p>
- * @param sage mixed <p>Флаг поднятия нити.</p>
- * @param sticky mixed <p>Флаг закрепления.</p>
- * @param with_attachments mixed <p>Флаг вложений.</p>
+ * Edit thread.
+ * @param int $thread_id Thread id.
+ * @param int $bump_limit Thread specific bumplimit.
+ * @param boolean $sage Sage flag.
+ * @param boolean $sticky Sticky flag.
+ * @param boolean $with_attachments Attachments flag.
  */
-function threads_edit($thread_id, $bump_limit, $sticky, $sage,
-		$with_attachments)
-{
-	db_threads_edit(DataExchange::getDBLink(), $thread_id, $bump_limit, $sticky,
-		$sage, $with_attachments);
+function threads_edit($thread_id, $bump_limit, $sticky, $sage, $with_attachments) {
+    db_threads_edit(DataExchange::getDBLink(), $thread_id, $bump_limit, $sticky, $sage, $with_attachments);
 }
 /**
  * Редактирует номер оригинального сообщения нити.
@@ -2109,20 +2091,12 @@ function threads_edit_original_post($id, $original_post) { // Java CC
         $original_post);
 }
 /**
- * Получает все нити.
+ * Get threads.
  * @return array
- * Возвращает нити:<p>
- * 'id' - Идентификатор.<br>
- * 'board' - Идентификатор доски.<br>
- * 'original_post' - Номер оригинального сообщения.<br>
- * 'bump_limit' - Специфичный для нити бамплимит.<br>
- * 'sage' - Флаг поднятия нити.<br>
- * 'sticky' - Флаг закрепления.<br>
- * 'with_attachments' - Флаг вложений.</p>
+ * threads.
  */
-function threads_get_all()
-{
-	return db_threads_get_all(DataExchange::getDBLink());
+function threads_get_all() {
+    return db_threads_get_all(DataExchange::getDBLink());
 }
 /**
  * Получает нити, помеченные для архивирования.
