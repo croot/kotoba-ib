@@ -68,7 +68,7 @@ Variables:
 {/if}
     {if $enable_anchor}<a name="{$post.number}"></a>{else}<!-- Anchor disabled -->{/if}
 
-    {if $enable_remove_post}<a href="{$DIR_PATH}/remove_post.php?post={$post.id}"><img src="{$DIR_PATH}/css/delete.png" alt="[Удалить]" title="Удалить нить" border="0"/></a>{else}<!-- Link to remove post disabled -->{/if}
+    {if $enable_remove_post}<a href="{$DIR_PATH}/remove_post.php?post={$post.id}"><img src="{$DIR_PATH}/css/{$STYLESHEET}/delete.png" alt="[Удалить]" title="Удалить нить" border="0" width="16" height="16"/></a>{else}<!-- Link to remove post disabled -->{/if}
 
     {if $enable_geoip}<span title="{$country.name}" class="country"><img src="http://410chan.ru/css/flags/{$country.code}.gif" alt="{$country.name}"></span>&nbsp;{else}<!-- GeoIP disabled -->{/if}
 
@@ -83,11 +83,11 @@ Variables:
 
     </span>
     {if $enable_extrabtns}<span class="extrabtns">
-        <a href="{$DIR_PATH}/report.php?post={$post.id}"><img src="{$DIR_PATH}/css/report.png" alt="[Пожаловаться]" title="Пожаловаться на сообщение" border="0"/></a>
-        <a href="{$DIR_PATH}/hide_thread.php?thread={$post.thread.id}"><img src="{$DIR_PATH}/css/hide.png" alt="[Скрыть]" title="Скрыть нить" border="0"/></a>
-        {if $post.with_attachments}<a href="{$DIR_PATH}/remove_upload.php?post={$post.id}"><img src="{$DIR_PATH}/css/delfile.png" alt="[Удалить файл]" title="Удалить файл" border="0"/></a>{/if}
+        <a href="{$DIR_PATH}/report.php?post={$post.id}"><img src="{$DIR_PATH}/css/{$STYLESHEET}/report.png" alt="[Пожаловаться]" title="Пожаловаться на сообщение" border="0" width="16" height="16"/></a>
+        <a href="{$DIR_PATH}/hide_thread.php?thread={$post.thread.id}"><img src="{$DIR_PATH}/css/{$STYLESHEET}/hide.png" alt="[Скрыть]" title="Скрыть нить" border="0" width="16" height="16"/></a>
+        {if $post.with_attachments}<a href="{$DIR_PATH}/remove_upload.php?post={$post.id}"><img src="{$DIR_PATH}/css/{$STYLESHEET}/delfile.png" alt="[Удалить файл]" title="Удалить файл" border="0" width="16" height="16"/></a>{/if}
 
-        {if $show_favorites}<a href="{$DIR_PATH}/favorites.php?action=add&thread={$post.thread.id}"><img src="{$DIR_PATH}/css/favorites.png" alt="[В Избранное]" title="Добавить нить в избранное" border="0"/></a>{/if}
+        {if $show_favorites}<a href="{$DIR_PATH}/favorites.php?action=add&thread={$post.thread.id}"><img src="{$DIR_PATH}/css/{$STYLESHEET}/favorites.png" alt="[В Избранное]" title="Добавить нить в избранное" border="0" width="16" height="16"/></a>{/if}
 
     </span>{else}<!-- Extrabuttons disabled -->{/if}
 
