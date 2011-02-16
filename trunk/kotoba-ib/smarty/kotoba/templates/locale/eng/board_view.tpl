@@ -33,36 +33,47 @@ Variables:
 *}
 {include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title="`$ib_name` — /`$board.name`/ `$board.title`. Board view, page $page"}
 
-{if $enable_translation}<script type="text/javascript" src="http://www.google.com/jsapi"></script>{/if}
 
+{if $enable_translation}
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+{literal}<script type="text/javascript">
+<!--
+google.load("language", "1");
+//-->
+</script>{/literal}
+{else}
+<!-- Translation disabled -->
+{/if}
 <script type="text/javascript">var DIR_PATH = '{$DIR_PATH}';</script>
-<script src="{$DIR_PATH}/kotoba.js"></script>
 <script src="{$DIR_PATH}/protoaculous-compressed.js"></script>
-
+<script src="{$DIR_PATH}/kotoba.js"></script>
 {include file='adminbar.tpl' DIR_PATH=$DIR_PATH show_control=$show_control}
 
 {include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
+
 
 {if isset($banner)}
 <div class="logo"><img src="{$DIR_PATH}/misc/img/{$banner.name}" alt="{$banner.name}" width="{$banner.widht}" height="{$banner.height}"></div>
 {/if}
 <div class="logo">{$ib_name} — /{$board.name}/ {$board.title}</div>
-
 {include file='pages_list.tpl' board_name=$board.name pages=$pages page=$page}
+
 
 <hr>
 <div class="postarea">
 <form name="postform" id="postform" action="{$DIR_PATH}/create_thread.php" method="post" enctype="multipart/form-data">
 <input type="hidden" name="MAX_FILE_SIZE" value="{$MAX_FILE_SIZE}">
-<table align="center" border="0">
+<table class="postform">
 <tbody>
 {if !$board.force_anonymous}
-    <tr valign="top"><td class="postblock">Name: </td><td><input type="text" name="name" size="30" value="{$name}"></td></tr>
+    <tr valign="top"><td class="postblock">Name: </td><td><input type="text" name="name" size="28" maxlength="64" accesskey="n" value="{$name}"></td></tr>
 {/if}
-    <tr valign="top"><td class="postblock">Subject: </td><td><input type="text" name="subject" size="48"> <input type="submit" value="Create thread"></td></tr>
-    <tr valign="top"><td class="postblock">Message: </td><td><textarea name="text" rows="7" cols="50"></textarea><img id="resizer" src="{$DIR_PATH}/flower.png" title="Drag to resize text area."></td></tr>
+    {if $enable_captcha}<tr valign="top"><td class="postblock"><a href="#" onclick="document.getElementById('captcha').src = '{$DIR_PATH}/captcha/image.php?' + Math.random(); return false"><img border="0" id="captcha" src="{$DIR_PATH}/captcha/image.php" alt="Kotoba capcha v0.4" align="middle" /></a></td><td><input type="text" name="captcha_code" size="28" maxlength="64" accesskey="f"></td></tr>{else}<!-- Captcha disabled -->{/if}
+
+    <tr valign="top"><td class="postblock">Subject: </td><td><input type="text" name="subject" size="35" maxlength="75" accesskey="s"> <input type="submit" value="Create thread"></td></tr>
+    <tr valign="top"><td class="postblock">Message: </td><td><textarea name="text" cols="48" rows="4" accesskey="m"></textarea><img id="resizer" src="{$DIR_PATH}/flower.png" title="Drag to resize text area."></td></tr>
 {if $board.with_attachments}
-    <tr valign="top"><td class="postblock">File: </td><td><input type="file" name="file" size="54"> Spoiler: <input type="checkbox" name="spoiler" value="1" /></td></tr>
+    <tr valign="top"><td class="postblock">File: </td><td><input type="file" name="file" size="35" accesskey="f"> Spoiler: <input type="checkbox" name="spoiler" value="1" /></td></tr>
     {if isset($oekaki)}<tr valign="top"><td class="postblock">My art: </td><td><a href="{$DIR_PATH}/shi/{$oekaki.file}"><img border="0" src="{$DIR_PATH}/shi/{$oekaki.thumbnail}" align="middle" /></a> Use instead: <input type="checkbox" name="use_oekaki" value="1"></td></tr>{else}<!-- Oekaki disabled -->{/if}
 
     {if $enable_macro}<tr valign="top"><td class="postblock">Macro: </td>
@@ -81,9 +92,7 @@ Variables:
     <!-- Attachments disabled -->
 {/if}
 
-    {if $enable_captcha}<tr valign="top"><td class="postblock">Captcha: </td><td><a href="#" onclick="document.getElementById('captcha').src = '{$DIR_PATH}/captcha/image.php?' + Math.random(); return false"><img border="0" id="captcha" src="{$DIR_PATH}/captcha/image.php" alt="Kotoba capcha v0.4" align="middle" /></a> <input type="text" name="captcha_code" size="10" maxlength="6" /></tr>{else}<!-- Captcha disabled -->{/if}
-
-    <tr valign="top"><td class="postblock">Password: </td><td><input type="password" name="password" size="30" value="{$password}"></td></tr>
+    <tr valign="top"><td class="postblock">Password: </td><td><input type="password" name="password" size="8" accesskey="p" value="{$password}"></td></tr>
     <tr valign="top"><td class="postblock">Redirection: </td><td>(thread: <input type="radio" name="goto" value="t"{if $goto == 't'} checked{/if}>) (board: <input type="radio" name="goto" value="b"{if $goto == 'b'} checked{/if}>)</td></tr>
     <tr valign="top"><td colspan = "2" class="rules">
         <ul class="infolist">
@@ -137,10 +146,10 @@ Hidden threads:
 {section name=i loop=$hidden_threads}
 <a href="{$DIR_PATH}/unhide_thread.php?thread={$hidden_threads[i].thread}" title="Refer to unhide thread.">{$hidden_threads[i].thread_number}</a>
 {/section}
-{/if}<br>
+{/if}
 {include file='pages_list.tpl' board_name=$board.name pages=$pages page=$page}
 <br>
 {include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
-
-<div class="footer" style="clear: both;">- Kotoba 1.1 -</div>
+<br>
+<div class="footer" style="clear: both;">- <a href="http://code.google.com/p/kotoba-ib/" target="_top">Kotoba 1.2</a> -</div>
 {include file='footer.tpl'}

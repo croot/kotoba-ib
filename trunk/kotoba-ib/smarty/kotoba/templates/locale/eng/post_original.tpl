@@ -68,7 +68,7 @@ Variables:
 {/if}
     {if $enable_anchor}<a name="{$post.number}"></a>{else}<!-- Anchor disabled -->{/if}
 
-    {if $enable_remove_post}<a href="{$DIR_PATH}/remove_post.php?post={$post.id}"><img src="{$DIR_PATH}/css/delete.png" alt="[Remove]" title="Remove thread" border="0"/></a>{else}<!-- Link to remove post disabled -->{/if}
+    {if $enable_remove_post}<a href="{$DIR_PATH}/remove_post.php?post={$post.id}"><img src="{$DIR_PATH}/css/{$STYLESHEET}/delete.png" alt="[Remove]" title="Remove thread" border="0" width="16" height="16"/></a>{else}<!-- Link to remove post disabled -->{/if}
 
     {if $enable_geoip}<span title="{$country.name}" class="country"><img src="http://410chan.ru/css/flags/{$country.code}.gif" alt="{$country.name}"></span>&nbsp;{else}<!-- GeoIP disabled -->{/if}
 
@@ -83,11 +83,11 @@ Variables:
 
     </span>
     {if $enable_extrabtns}<span class="extrabtns">
-        <a href="{$DIR_PATH}/report.php?post={$post.id}"><img src="{$DIR_PATH}/css/report.png" alt="[Report]" title="Report" border="0"/></a>
-        <a href="{$DIR_PATH}/hide_thread.php?thread={$post.thread.id}"><img src="{$DIR_PATH}/css/hide.png" alt="[Hide]" title="Hide thread" border="0"/></a>
-        {if $post.with_attachments}<a href="{$DIR_PATH}/remove_upload.php?post={$post.id}"><img src="{$DIR_PATH}/css/delfile.png" alt="[Remove file]" title="Remove file" border="0"/></a>{/if}
+        <a href="{$DIR_PATH}/report.php?post={$post.id}"><img src="{$DIR_PATH}/css/{$STYLESHEET}/report.png" alt="[Report]" title="Report" border="0" width="16" height="16"/></a>
+        <a href="{$DIR_PATH}/hide_thread.php?thread={$post.thread.id}"><img src="{$DIR_PATH}/css/{$STYLESHEET}/hide.png" alt="[Hide]" title="Hide thread" border="0" width="16" height="16"/></a>
+        {if $post.with_attachments}<a href="{$DIR_PATH}/remove_upload.php?post={$post.id}"><img src="{$DIR_PATH}/css/{$STYLESHEET}/delfile.png" alt="[Remove file]" title="Remove file" border="0" width="16" height="16"/></a>{/if}
 
-        {if $show_favorites}<a href="{$DIR_PATH}/favorites.php?action=add&thread={$post.thread.id}"><img src="{$DIR_PATH}/css/favorites.png" alt="[Favorites]" title="Add to favorites" border="0"/></a>{/if}
+        {if $show_favorites}<a href="{$DIR_PATH}/favorites.php?action=add&thread={$post.thread.id}"><img src="{$DIR_PATH}/css/{$STYLESHEET}/favorites.png" alt="[Favorites]" title="Add to favorites" border="0" width="16" height="16"/></a>{/if}
 
     </span>{else}<!-- Extrabuttons disabled -->{/if}
 

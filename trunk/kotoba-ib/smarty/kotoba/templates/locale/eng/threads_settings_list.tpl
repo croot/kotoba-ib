@@ -26,17 +26,17 @@ Variables:
 {section name=i loop=$threads}
 <tr>
     <td>{$threads[i].id}</td>
-    <td>{section name=j loop=$boards}{if $threads[i].board == $boards[j].id}{$boards[j].name}{/if}{/section}</td>
+    <td>{$threads[i].board.name}</td>
     <td>{$threads[i].original_post}</td>
     <td><input type="text" name="bump_limit_{$threads[i].id}" value="{$threads[i].bump_limit}"></td>
     <td><input type="checkbox" name="sticky_{$threads[i].id}" value="1"{if $threads[i].sticky} checked{/if}></td>
     <td><input type="checkbox" name="sage_{$threads[i].id}" value="1"{if $threads[i].sage} checked{/if}></td>
     <td>
         <select name="with_attachments_{$threads[i].id}">
-{section name=k loop=$boards}{if $threads[i].board == $boards[k].id}
-        <option value=""{if $threads[i].with_attachments === null} selected{/if}>Inherit</option>
-        <option value="1"{if $threads[i].with_attachments == '1'} selected{/if}>Up</option>
-        <option value="0"{if $threads[i].with_attachments == '0'} selected{/if}>Down</option>{/if}{/section}</select>
+            <option value=""{if $threads[i].with_attachments === null} selected{/if}>Inherit</option>
+            <option value="1"{if $threads[i].with_attachments == '1'} selected{/if}>Up</option>
+            <option value="0"{if $threads[i].with_attachments == '0'} selected{/if}>Down</option>
+        </select>
     </td>
 </tr>
 {/section}

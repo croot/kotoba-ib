@@ -1668,25 +1668,13 @@ function posts_get_by_boards($boards) {
     return db_posts_get_by_boards(DataExchange::getDBLink(), $boards);
 }
 /**
- * Получает сообщения заданной нити.
- * @param thread_id array <p>Идентификатор нити.</p>
+ * Get posts.
+ * @param int $thread_id Thread id.
  * @return array
- * Возвращает сообщения:<p>
- * 'id' - Идентификатор.<br>
- * 'thread' - Идентификатор нити.<br>
- * 'number' - Номер.<br>
- * 'password' - Пароль.<br>
- * 'name' - Имя отправителя.<br>
- * 'tripcode' - Трипкод.<br>
- * 'ip' - IP-адрес отправителя.<br>
- * 'subject' - Тема.<br>
- * 'date_time' - Время сохранения.<br>
- * 'text' - Текст.<br>
- * 'sage' - Флаг поднятия нити.</p>
+ * posts.
  */
-function posts_get_by_thread($thread_id)
-{
-	return db_posts_get_by_thread(DataExchange::getDBLink(), $thread_id);
+function posts_get_by_thread($thread_id) {
+    return db_posts_get_by_thread(DataExchange::getDBLink(), $thread_id);
 }
 /**
  * Get visible posts and filter it.

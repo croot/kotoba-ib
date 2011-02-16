@@ -201,3 +201,23 @@ function translate(id) {
         }
     });
 }
+
+function expandimg(post, url, thumb_url, w, h, thumb_w, thumb_h) {
+    OFFSET = 70;
+    thumb = document.getElementById("thumb" + post);
+    if (typeof expandimg.expanded == 'undefined' || !expandimg.expanded) {
+        if ( (scale = (window.innerWidth - OFFSET) / w) < 1) {
+            w = w * scale;
+            h *= scale;
+        }
+        if ( (scale = (window.innerHeight - OFFSET) / h) < 1) {
+            w *= scale;
+            h = h * scale;
+        }
+        thumb.innerHTML = '<img src="' + url + '" class="thumb" width="' + w + '" height="' + h + '">';
+        expandimg.expanded = true;
+    } else {
+        thumb.innerHTML = '<img src="' + thumb_url + '" class="thumb" width="' + thumb_w + '" height="' + thumb_h + '">';
+        expandimg.expanded = false;
+    }
+}

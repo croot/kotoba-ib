@@ -7,14 +7,13 @@
 // Session removal script.
 
 require_once 'config.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
 
+kotoba_session_start();
 if (isset($_COOKIE[session_name()])) {
     setcookie(session_name(), '', time() - Config::SESSION_LIFETIME, '/');
 }
-
-if (isset($_SESSION['user'])) {
-    unset($_SESSION['user']);
-}
-
 session_destroy();
+header('Location: ' . Config::DIR_PATH . '/');
 ?>
