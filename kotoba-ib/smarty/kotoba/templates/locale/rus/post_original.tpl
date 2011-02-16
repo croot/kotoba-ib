@@ -45,10 +45,11 @@ Variables:
         <img src="{$attachments[0].thumbnail_link}" class="thumb" width="{$attachments[0].thumbnail_w}" height="{$attachments[0].thumbnail_h}">
     </a>
 {elseif $attachments[0].attachment_type == $ATTACHMENT_TYPE_IMAGE}
-    <span class="filesize">Файл: <a target="_blank" href="{$attachments[0].image_link}">{$attachments[0].name}</a>-({$attachments[0].size} Байт, {$attachments[0].widht}x{$attachments[0].height})</span>
+    <span class="filesize">Файл: <a href="{$attachments[0].image_link}" onclick="javascript:expandimg('{$post.number}', '{$attachments[0].image_link}', '{$attachments[0].thumbnail_link}', '{$attachments[0].widht}', '{$attachments[0].height}', '{$attachments[0].thumbnail_w}', '{$attachments[0].thumbnail_h}'); return false;">{$attachments[0].name}</a>-({$attachments[0].size} Байт, {$attachments[0].widht}x{$attachments[0].height})</span>
     <br>
     <a target="_blank" href="{$attachments[0].image_link}">
-        <img src="{if $attachments[0].spoiler}{$DIR_PATH}/img/spoiler.png{else}{$attachments[0].thumbnail_link}{/if}" class="thumb"{if !$attachments[0].spoiler} width="{$attachments[0].thumbnail_w}" height="{$attachments[0].thumbnail_h}{/if}">
+        {if $attachments[0].spoiler}<img src="{$DIR_PATH}/img/spoiler.png" class="thumb">{else}<span id="thumb{$post.number}"><img src="{$attachments[0].thumbnail_link}" class="thumb" width="{$attachments[0].thumbnail_w}" height="{$attachments[0].thumbnail_h}"></span>{/if}
+        
     </a>
 {elseif $attachments[0].attachment_type == $ATTACHMENT_TYPE_LINK}
     <span class="filesize">Файл: <a target="_blank" href="{$attachments[0].url}">{$attachments[0].url}</a>-({$attachments[0].size} Байт, {$attachments[0].widht}x{$attachments[0].height})</span>

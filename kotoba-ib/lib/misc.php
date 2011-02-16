@@ -126,7 +126,7 @@ function locale_setup() {
 /**
  * Get certain column of 2nd dimensinal array.
  * @param array $src Source array.
- * @param int $col Column index.
+ * @param mixed $col Column index or name.
  */
 function kotoba_array_column($src, $col) {
     $result = array();

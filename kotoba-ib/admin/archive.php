@@ -45,6 +45,11 @@ try {
     $smarty->assign('ATTACHMENT_TYPE_LINK', Config::ATTACHMENT_TYPE_LINK);
     $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
     $smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
+    $smarty->assign('ib_name', Config::IB_NAME);
+
+    $admins = users_get_admins();
+    $admins_id = kotoba_array_column($admins, 'id');
+
     foreach ($threads as $thread) {
 
         // Receive data for curent thread.
@@ -56,12 +61,10 @@ try {
         // Generate output.
         $smarty->assign('board', $board);
         $smarty->assign('thread', array($thread));
-        $view_html = $smarty->fetch('header.tpl');
-        $view_thread_html = '';
-        $view_posts_html = '';
-        $original_post = null;              // Original message with additional fields.
-        $original_attachments = array();    // Attachments of original message.
-        $simple_attachments = array();      // Attachments of replies.
+        $view_html = '';
+
+        $replies_html = '';
+        $original_post_html = '';
 
         foreach ($posts as $p) {
 
@@ -70,116 +73,38 @@ try {
                 $p['name'] = $board['default_name'];
             }
 
-            // Original post.
+            $author_admin = in_array($p['user'], $admins_id);
+
+            // Original post or reply.
             if ($thread['original_post'] == $p['number']) {
+                $original_attachments = archive_get_attachments($smarty,
+                                                                $board,
+                                                                $p,
+                                                                $posts_attachments,
+                                                                $attachments);
 
-                // By default post have no attachments. This is fake field.
-                $p['with_attachments'] = false;
-
-                foreach ($posts_attachments as $pa) {
-                    if ($p['id'] == $pa['post']) {
-                        foreach ($attachments as $a) {
-                            if ($a['attachment_type'] == $pa['attachment_type']) {
-                                switch ($a['attachment_type']) {
-                                    case Config::ATTACHMENT_TYPE_FILE:
-                                        if ($a['id'] == $pa['file']) {
-                                            $a['file_link'] = Config::DIR_PATH . "/{$board['name']}/other/{$a['name']}";
-                                            $a['thumbnail_link'] = Config::DIR_PATH . "/img/{$a['thumbnail']}";
-                                            $p['with_attachments'] = true;
-                                            array_push($original_attachments, $a);
-                                        }
-                                        break;
-                                    case Config::ATTACHMENT_TYPE_IMAGE:
-                                        if ($a['id'] == $pa['image']) {
-                                            $a['image_link'] = Config::DIR_PATH . "/{$board['name']}/img/{$a['name']}";
-                                            $a['thumbnail_link'] = Config::DIR_PATH . "/{$board['name']}/thumb/{$a['thumbnail']}";
-                                            $p['with_attachments'] = true;
-                                            array_push($original_attachments, $a);
-                                        }
-                                        break;
-                                    case Config::ATTACHMENT_TYPE_LINK:
-                                        if ($a['id'] == $pa['link']) {
-                                            $p['with_attachments'] = true;
-                                            array_push($original_attachments, $a);
-                                        }
-                                        break;
-                                    case Config::ATTACHMENT_TYPE_VIDEO:
-                                        if ($a['id'] == $pa['video']) {
-                                            $smarty->assign('code', $a['code']);
-                                            $a['video_link'] = $smarty->fetch('youtube.tpl');
-                                            $p['with_attachments'] = true;
-                                            array_push($original_attachments, $a);
-                                        }
-                                        break;
-                                    default:
-                                        throw new CommonException('Not supported.');
-                                        break;
-                                }
-                            }
-                        }
-                    }
-                }
                 $p['ip'] = long2ip($p['ip']);
-                $smarty->assign('original_post', $p);
-                $smarty->assign('original_attachments', $original_attachments);
-                $view_thread_html = $smarty->fetch('post_original.tpl');
+                $smarty->assign('post', $p);
+                $smarty->assign('attachments', $original_attachments);
+                $smarty->assign('author_admin', $author_admin);
+                $original_post_html = $smarty->fetch('post_original_archive.tpl');
             } else {
-                
-                // By default post have no attachments. This is fake field.
-                $p['with_attachments'] = false;
+                $simple_attachments = archive_get_attachments($smarty,
+                                                              $board,
+                                                              $p,
+                                                              $posts_attachments,
+                                                              $attachments);
 
-                foreach ($posts_attachments as $pa) {
-                    if ($p['id'] == $pa['post']) {
-                        foreach ($attachments as $a) {
-                            if ($a['attachment_type'] == $pa['attachment_type']) {
-                                switch ($a['attachment_type']) {
-                                    case Config::ATTACHMENT_TYPE_FILE:
-                                        if ($a['id'] == $pa['file']) {
-                                            $a['file_link'] = Config::DIR_PATH . "/{$board['name']}/other/{$a['name']}";
-                                            $a['thumbnail_link'] = Config::DIR_PATH . "/img/{$a['thumbnail']}";
-                                            $p['with_attachments'] = true;
-                                            array_push($simple_attachments, $a);
-                                        }
-                                        break;
-                                    case Config::ATTACHMENT_TYPE_IMAGE:
-                                        if ($a['id'] == $pa['image']) {
-                                            $a['image_link'] = Config::DIR_PATH . "/{$board['name']}/img/{$a['name']}";
-                                            $a['thumbnail_link'] = Config::DIR_PATH . "/{$board['name']}/thumb/{$a['thumbnail']}";
-                                            $p['with_attachments'] = true;
-                                            array_push($simple_attachments, $a);
-                                        }
-                                        break;
-                                    case Config::ATTACHMENT_TYPE_LINK:
-                                        if ($a['id'] == $pa['link']) {
-                                            $p['with_attachments'] = true;
-                                            array_push($simple_attachments, $a);
-                                        }
-                                        break;
-                                    case Config::ATTACHMENT_TYPE_VIDEO:
-                                        if ($a['id'] == $pa['video']) {
-                                            $smarty->assign('code', $a['code']);
-                                            $a['video_link'] = $smarty->fetch('youtube.tpl');
-                                            $p['with_attachments'] = true;
-                                            array_push($simple_attachments, $a);
-                                        }
-                                        break;
-                                    default:
-                                        throw new CommonException('Not supported.');
-                                        break;
-                                }
-                            }
-                        }
-                    }
-                }
                 $p['ip'] = long2ip($p['ip']);
-                $smarty->assign('simple_post', $p);
-                $smarty->assign('simple_attachments', $simple_attachments);
-                $view_posts_html .= $smarty->fetch('post_simple.tpl');
-                $simple_attachments = array();
+                $smarty->assign('post', $p);
+                $smarty->assign('author_admin', $author_admin);
+                $smarty->assign('attachments', $simple_attachments);
+                $replies_html .= $smarty->fetch('post_simple_archive.tpl');
             }
         }
-        $view_html .= $view_thread_html . $view_posts_html;
-        $view_html .= $smarty->fetch('threads_footer.tpl');
+        $smarty->assign('original_post_html', $original_post_html);
+        $smarty->assign('simple_posts_html', $replies_html);
+        $view_html .= $smarty->fetch('thread_archive.tpl');
 
         // Write output to file.
         $file = fopen(Config::ABS_PATH . "/{$board['name']}/arch/" . "{$thread['original_post']}.html", 'w');
@@ -203,5 +128,59 @@ try {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();
     die($smarty->fetch('error.tpl'));
+}
+
+/**
+ * Wrapper for get attachments of certain post.
+ */
+function archive_get_attachments($smarty, $board, &$post, $posts_attachments, $attachments) {
+    $post_attachments = array();
+    $post['with_attachments'] = false;
+
+    foreach ($posts_attachments as $pa) {
+        if ($post['id'] == $pa['post']) {
+            foreach ($attachments as $a) {
+                if ($a['attachment_type'] == $pa['attachment_type']) {
+                    switch ($a['attachment_type']) {
+                        case Config::ATTACHMENT_TYPE_FILE:
+                            if ($a['id'] == $pa['file']) {
+                                $a['file_link'] = Config::DIR_PATH . "/{$board['name']}/other/{$a['name']}";
+                                $a['thumbnail_link'] = Config::DIR_PATH . "/img/{$a['thumbnail']}";
+                                $post['with_attachments'] = true;
+                                array_push($post_attachments, $a);
+                            }
+                            break;
+                        case Config::ATTACHMENT_TYPE_IMAGE:
+                            if ($a['id'] == $pa['image']) {
+                                $a['image_link'] = Config::DIR_PATH . "/{$board['name']}/img/{$a['name']}";
+                                $a['thumbnail_link'] = Config::DIR_PATH . "/{$board['name']}/thumb/{$a['thumbnail']}";
+                                $post['with_attachments'] = true;
+                                array_push($post_attachments, $a);
+                            }
+                            break;
+                        case Config::ATTACHMENT_TYPE_LINK:
+                            if ($a['id'] == $pa['link']) {
+                                $post['with_attachments'] = true;
+                                array_push($post_attachments, $a);
+                            }
+                            break;
+                        case Config::ATTACHMENT_TYPE_VIDEO:
+                            if ($a['id'] == $pa['video']) {
+                                $smarty->assign('code', $a['code']);
+                                $a['video_link'] = $smarty->fetch('youtube.tpl');
+                                $post['with_attachments'] = true;
+                                array_push($post_attachments, $a);
+                            }
+                            break;
+                        default:
+                            throw new CommonException('Not supported.');
+                            break;
+                    }
+                }
+            }
+        }
+    }
+
+    return $post_attachments;
 }
 ?>

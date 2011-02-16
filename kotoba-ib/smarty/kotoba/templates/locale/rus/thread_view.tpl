@@ -93,7 +93,7 @@ google.load("language", "1");
     {if $enable_youtube}<tr valign="top"><td class="postblock">Youtube: </td><td><input type="text" name="youtube_video_code" size="30"></td></tr>{else}<!-- Youtube video posting disabled -->{/if}
 
 {/if}
-    <tr valign="top"><td class="postblock">Пароль: </td><td><input type="password" name="password" size="30" value="{$password}"></td></tr>
+    <tr valign="top"><td class="postblock">Пароль: </td><td><input type="password" name="password" size="8" accesskey="p" value="{$password}"></td></tr>
     <tr valign="top"><td class="postblock">Перейти: </td><td>(нить: <input type="radio" name="goto" value="t"{if $goto == 't'} checked{/if}>) (доска: <input type="radio" name="goto" value="b"{if $goto == 'b'} checked{/if}>)</td></tr>
     <tr valign="top"><td class="postblock">Sage: </td><td><input type="checkbox" name="sage" value="sage"></td></tr>
     <tr valign="top"><td colspan = "2" class="rules">
@@ -158,5 +158,5 @@ else {
 {/if}<br>
 {include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
 
-<div class="footer" style="clear: both;">- Kotoba 1.1 -</div>
+<div class="footer" style="clear: both;">- <a href="http://code.google.com/p/kotoba-ib/" target="_top">Kotoba 1.2</a> -</div>
 {include file='footer.tpl'}
