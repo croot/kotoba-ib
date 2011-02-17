@@ -2646,13 +2646,15 @@ create procedure sp_threads_edit
     _bump_limit int,        -- Thread specific bumplimit.
     _sticky bit,            -- Sage flag.
     _sage bit,              -- Sticky flag.
-    _with_attachments bit   -- Attachments flag.
+    _with_attachments bit,  -- Attachments flag.
+    _closed bit             -- Thread closed flag.
 )
 begin
     update threads set bump_limit = _bump_limit,
                        sticky = _sticky,
                        sage = _sage,
-                       with_attachments = _with_attachments
+                       with_attachments = _with_attachments,
+                       closed = _closed
     where id = _id;
 end|
 
@@ -2737,6 +2739,7 @@ begin
            t.sage as thread_sage,
            t.sticky as thread_sticky,
            t.with_attachments as thread_with_attachments,
+           t.closed as thread_closed,
 
            b.id as board_id,
            b.name as board_name,
@@ -2831,6 +2834,7 @@ begin
            t.archived as thread_archived,
            t.sage as thread_sage,
            t.with_attachments as thread_with_attachments,
+           t.closed as thread_closed,
 
            b.id as board_id,
            b.name as board_name,
@@ -2904,6 +2908,7 @@ begin
            t.sage as thread_sage,
            t.sticky as thread_sticky,
            t.with_attachments as thread_with_attachments,
+           t.closed as thread_closed,
 
            b.id as board_id,
            b.name as board_name,
@@ -3042,6 +3047,7 @@ begin
            q1.thread_sticky,
            q1.thread_sage,
            q1.thread_with_attachments,
+           q1.thread_closed,
            q1.thread_posts_count,
            q1.thread_last_post_num,
 
@@ -3072,6 +3078,7 @@ begin
                    q.thread_sticky,
                    q.thread_sage,
                    q.thread_with_attachments,
+                   q.thread_closed,
                    q.thread_posts_count,
                    max(p.number) as thread_last_post_num,
 
@@ -3103,6 +3110,7 @@ begin
                            t.sticky as thread_sticky,
                            t.sage as thread_sage,
                            t.with_attachments as thread_with_attachments,
+                           t.closed as thread_closed,
                            count(distinct p.id) as thread_posts_count,
 
                            b.id as board_id,
@@ -3202,6 +3210,7 @@ begin
                t.archived as thread_archived,
                t.sage as thread_sage,
                t.with_attachments as thread_with_attachments,
+               t.closed as thread_closed,
 
                b.id as board_id,
                b.name as board_name,

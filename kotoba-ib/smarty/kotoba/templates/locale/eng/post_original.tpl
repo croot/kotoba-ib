@@ -91,9 +91,11 @@ Variables:
 
     </span>{else}<!-- Extrabuttons disabled -->{/if}
 
+    {if isset($thread.closed) && $thread.closed}Closed{/if}
+
     {if $enable_postid}ID:{$postid}{else}<!-- Post identification disabled -->{/if}
 
-    {if $show_reply}[<a href="{$DIR_PATH}/{$post.board.name}/{$post.thread.original_post}">Reply</a>]{else}<!-- Show reply link disabled -->{/if}
+    {if $show_reply}[<a href="{$DIR_PATH}/{$post.board.name}/{$post.thread.original_post}">{if isset($thread.closed) && $thread.closed}View{else}Reply{/if}</a>]{else}<!-- Show reply link disabled -->{/if}
 
     {if $sticky}Sticky.{else}<!-- Thread not sticky -->{/if}
 

@@ -31,6 +31,7 @@ CommonException::$messages['SETLOCALE'] = 'Неудача при установ�
 CommonException::$messages['SPAM_DETECTED'] = 'Спам.';
 CommonException::$messages['TEXT_UNICODE'] = 'В тексте обнаружены не юникод символы.';
 CommonException::$messages['THREAD_ARCHIVED'] = 'Нить заархивирована.';
+CommonException::$messages['THREAD_CLOSED'] = 'Нить закрыта.';
 CommonException::$messages['TOO_LONG'] = 'Одно из слов имеет длину более 100 символов.';
 CommonException::$messages['WORD_FOR_REPLACE'] = 'Введите слово для замены.';
 

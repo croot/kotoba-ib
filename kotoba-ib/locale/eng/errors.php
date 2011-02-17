@@ -31,6 +31,7 @@ CommonException::$messages['SETLOCALE'] = 'Locale setup failed.';
 CommonException::$messages['SPAM_DETECTED'] = 'Spam.';
 CommonException::$messages['TEXT_UNICODE'] = 'Invlid unicode characters deteced.';
 CommonException::$messages['THREAD_ARCHIVED'] = 'Thread was archived.';
+CommonException::$messages['THREAD_CLOSED'] = 'Thread closed.';
 CommonException::$messages['TOO_LONG'] = 'Одно из слов имеет длину более 100 символов.';
 CommonException::$messages['WORD_FOR_REPLACE'] = 'Введите слово для замены.';
 

@@ -13,7 +13,7 @@ Variables:
 *}
 <form action="{$DIR_PATH}/admin/edit_threads.php" method="post">
 <table border="1">
-<tr><td colspan="7">Измените параметры и сохраните изменения.</td></tr>
+<tr><td colspan="8">Измените параметры и сохраните изменения.</td></tr>
 <tr>
     <td>Идентификатор</td>
     <td>Доска</td>
@@ -22,6 +22,7 @@ Variables:
     <td>Флаг закрепления</td>
     <td>Флаг поднятия нити при ответе</td>
     <td>Флаг загрузки изображений</td>
+    <td>Нить закрыта</td>
 </tr>
 {section name=i loop=$threads}
 <tr>
@@ -33,9 +34,15 @@ Variables:
     <td><input type="checkbox" name="sage_{$threads[i].id}" value="1"{if $threads[i].sage} checked{/if}></td>
     <td>
         <select name="with_attachments_{$threads[i].id}">
-            <option value=""{if $threads[i].with_attachments === null} selected{/if}>Inherit</option>
-            <option value="1"{if $threads[i].with_attachments == '1'} selected{/if}>Up</option>
-            <option value="0"{if $threads[i].with_attachments == '0'} selected{/if}>Down</option>
+            <option value=""{if $threads[i].with_attachments === null} selected{/if}>Унаследовано</option>
+            <option value="1"{if $threads[i].with_attachments == '1'} selected{/if}>Включено</option>
+            <option value="0"{if $threads[i].with_attachments == '0'} selected{/if}>Выключено</option>
+        </select>
+    </td>
+    <td>
+        <select name="closed_{$threads[i].id}">
+            <option value="1"{if $threads[i].closed == '1'} selected{/if}>Закрыта</option>
+            <option value="0"{if $threads[i].closed == '0'} selected{/if}>Открыта</option>
         </select>
     </td>
 </tr>

@@ -13,7 +13,7 @@ Variables:
 *}
 <form action="{$DIR_PATH}/admin/edit_threads.php" method="post">
 <table border="1">
-<tr><td colspan="7">Change settings and save.</td></tr>
+<tr><td colspan="8">Change settings and save.</td></tr>
 <tr>
     <td>Id</td>
     <td>Board</td>
@@ -22,6 +22,7 @@ Variables:
     <td>Sticky</td>
     <td>Sage</td>
     <td>With attachments</td>
+    <td>Closed</td>
 </tr>
 {section name=i loop=$threads}
 <tr>
@@ -36,6 +37,12 @@ Variables:
             <option value=""{if $threads[i].with_attachments === null} selected{/if}>Inherit</option>
             <option value="1"{if $threads[i].with_attachments == '1'} selected{/if}>Up</option>
             <option value="0"{if $threads[i].with_attachments == '0'} selected{/if}>Down</option>
+        </select>
+    </td>
+    <td>
+        <select name="closed_{$threads[i].id}">
+            <option value="1"{if $threads[i].closed == '1'} selected{/if}>Closed</option>
+            <option value="0"{if $threads[i].closed == '0'} selected{/if}>Open</option>
         </select>
     </td>
 </tr>
