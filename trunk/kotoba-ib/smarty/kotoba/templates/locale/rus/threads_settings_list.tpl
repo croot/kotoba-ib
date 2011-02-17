@@ -50,5 +50,5 @@ Variables:
 </table>
 <br>
 <input type="hidden" name="submited" value="1">
-<input type="reset" value="Reset"> <input type="submit" value="Save">
+<input type="reset" value="Сброс"> <input type="submit" value="Сохранить">
 </form>
