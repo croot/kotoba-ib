@@ -2010,9 +2010,10 @@ function threads_delete_marked() {
  * @param boolean $sage Sage flag.
  * @param boolean $sticky Sticky flag.
  * @param boolean $with_attachments Attachments flag.
+ * @param boolean $closed Thread closed flag.
  */
-function threads_edit($thread_id, $bump_limit, $sticky, $sage, $with_attachments) {
-    db_threads_edit(DataExchange::getDBLink(), $thread_id, $bump_limit, $sticky, $sage, $with_attachments);
+function threads_edit($thread_id, $bump_limit, $sticky, $sage, $with_attachments, $closed) {
+    db_threads_edit(DataExchange::getDBLink(), $thread_id, $bump_limit, $sticky, $sage, $with_attachments, $closed);
 }
 /**
  * Редактирует номер оригинального сообщения нити.

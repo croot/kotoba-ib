@@ -3460,13 +3460,15 @@ function db_threads_delete_marked($link) {
  * @param boolean $sage Sage flag.
  * @param boolean $sticky Sticky flag.
  * @param boolean $with_attachments Attachments flag.
+ * @param boolean $closed Thread closed flag.
  */
-function db_threads_edit($link, $thread_id, $bump_limit, $sticky, $sage, $with_attachments) {
+function db_threads_edit($link, $thread_id, $bump_limit, $sticky, $sage, $with_attachments, $closed) {
     $bump_limit = $bump_limit == null ? 'null' : $bump_limit;
     $sticky = $sticky ? '1' : '0';
     $sage = $sage ? '1' : '0';
     $with_attachments = $with_attachments === null ? 'null' : ($with_attachments ? '1' : '0');
-    $query = "call sp_threads_edit($thread_id, $bump_limit, $sticky, $sage, $with_attachments)";
+    $closed = $closed ? '1' : '0';
+    $query = "call sp_threads_edit($thread_id, $bump_limit, $sticky, $sage, $with_attachments, $closed)";
     if (!mysqli_query($link, $query)) {
         throw new CommonException(mysqli_error($link));
     }
@@ -3526,7 +3528,8 @@ function db_threads_get_all($link) {
                              'bump_limit' => $row['thread_bump_limit'],
                              'sage' => $row['thread_sage'],
                              'sticky' => $row['thread_sticky'],
-                             'with_attachments' => $row['thread_with_attachments']));
+                             'with_attachments' => $row['thread_with_attachments'],
+                             'closed' => $row['thread_closed']));
         }
     }
 
@@ -3683,6 +3686,7 @@ function db_threads_get_changeable_by_id($link, $thread_id, $user_id) {
 			$thread['archived'] = $row['thread_archived'];
 			$thread['sage'] = $row['thread_sage'];
 			$thread['with_attachments'] = $row['thread_with_attachments'];
+			$thread['closed'] = $row['thread_closed'];
 		}
 	} else {
         // TODO It happens if thread not exist also.
@@ -3736,7 +3740,8 @@ function db_threads_get_moderatable($link, $user_id) {
                              'bump_limit' => $row['thread_bump_limit'],
                              'sage' => $row['thread_sage'],
                              'sticky' => $row['thread_sticky'],
-                             'with_attachments' => $row['thread_with_attachments']));
+                             'with_attachments' => $row['thread_with_attachments'],
+                             'closed' => $row['thread_closed']));
         }
     }
 
@@ -3817,6 +3822,7 @@ function db_threads_get_visible_by_board($link, $board_id, $user_id) {
                              'sticky' => $row['thread_sticky'],
                              'sage' => $row['thread_sage'],
                              'with_attachments' => $row['thread_with_attachments'],
+                             'closed' => $row['thread_closed'],
                              'posts_count' => $row['thread_posts_count']));
         }
     }
@@ -3963,6 +3969,7 @@ function db_threads_get_visible_by_original_post($link, $board, $original_post, 
                     'sage' => $row['thread_sage'],
                     'sticky' => $row['thread_sticky'],
                     'with_attachments' => $row['thread_with_attachments'],
+                    'closed' => $row['thread_closed'],
                     'archived' => $row['thread_archived'],
                     'posts_count' => $row['visible_posts_count']);
 

@@ -232,6 +232,7 @@ create table threads                    -- Threads.
     sticky bit not null default 0,      -- Sticky flag.
     -- Если этот флаг null, то берётся родительский with_attachments доски.
     with_attachments bit default null,  -- Attachments flag.
+    closed bit not null default 0,      -- Thread closed flag.
     primary key (id),
     constraint foreign key (board) references boards (id) on delete restrict on update restrict
 )
@@ -413,9 +414,9 @@ CREATE TABLE favorites          -- Favorites.
 )
 engine=InnoDB;
 
--- --------------------------------------
--- Заполнение базы начальными данными. --
--- --------------------------------------
+-- ----------------
+-- Initial data. --
+-- ----------------
 
 insert into languages (`id`, `code`) values (1, 'rus');
 insert into languages (`code`) values ('eng');
@@ -444,8 +445,13 @@ insert into acl (`group`, `view`, `change`, moderate) values (2, 1, 1, 0);
 insert into acl (`group`, `view`, `change`, moderate) values (3, 1, 1, 1);
 insert into acl (`group`, `view`, `change`, moderate) values (4, 1, 1, 1);
 
+-- Everybody can read news and see banners.
 insert into acl (board, `view`, `change`, moderate) values (1, 1, 0, 0);
 insert into acl (board, `view`, `change`, moderate) values (2, 1, 0, 0);
 
--- Текущая версия БД.
-insert into db_version (version) values (9);
+-- Admins can post news and banners.
+insert into acl (`group`, board, `view`, `change`, moderate) values (4, 1, 1, 1, 1);
+insert into acl (`group`, board, `view`, `change`, moderate) values (4, 2, 1, 1, 1);
+
+-- Current database version.
+insert into db_version (version) values (10);

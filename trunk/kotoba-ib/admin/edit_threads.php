@@ -134,17 +134,33 @@ try {
                 }
             }
 
+            // Is thread closed flag changes?
+            $param_name = "closed_{$thread['id']}";
+            $new_closed = $thread['closed'];
+            if(isset($_POST[$param_name]) && $_POST[$param_name] != $thread['closed']) {
+                switch($_POST[$param_name]) {
+                    case '1':
+                        $new_closed = TRUE;
+                        break;
+                    case '0':
+                        $new_closed = FALSE;
+                        break;
+                }
+            }
+
             // Any changes?
             if ($new_bump_limit != $thread['bump_limit']
                     || $new_sticky != $thread['sticky']
                     || $new_sage != $thread['sage']
-                    || $new_with_attachments != $thread['with_attachments']) {
+                    || $new_with_attachments != $thread['with_attachments']
+                    || $new_closed != $thread['closed']) {
 
                 threads_edit($thread['id'],
                              $new_bump_limit,
                              $new_sticky,
                              $new_sage,
-                             $new_with_attachments);
+                             $new_with_attachments,
+                             $new_closed);
                 $reload_threads = true;
             }
         }

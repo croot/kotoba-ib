@@ -58,6 +58,9 @@ try {
     if ($thread['archived']) {
         throw new CommonException(CommonException::$messages['THREAD_ARCHIVED']);
     }
+    if ($thread['closed']) {
+        throw new CommonException(CommonException::$messages['THREAD_CLOSED']);
+    }
 
     $board = $thread['board'];
 

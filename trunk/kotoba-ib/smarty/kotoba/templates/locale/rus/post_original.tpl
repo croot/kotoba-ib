@@ -92,9 +92,11 @@ Variables:
 
     </span>{else}<!-- Extrabuttons disabled -->{/if}
 
+    {if isset($thread.closed) && $thread.closed}Нить закрыта{/if}
+
     {if $enable_postid}ID:{$postid}{else}<!-- Post identification disabled -->{/if}
 
-    {if $show_reply}[<a href="{$DIR_PATH}/{$post.board.name}/{$post.thread.original_post}">Ответить</a>]{else}<!-- Show reply link disabled -->{/if}
+    {if $show_reply}[<a href="{$DIR_PATH}/{$post.board.name}/{$post.thread.original_post}">{if isset($thread.closed) && $thread.closed}Просмотр{else}Ответить{/if}</a>]{else}<!-- Show reply link disabled -->{/if}
 
     {if $sticky}Нить закреплена.{else}<!-- Thread not sticky -->{/if}
 
