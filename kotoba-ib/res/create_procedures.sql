@@ -347,8 +347,8 @@ end|
 -- Delete board upload type relation.
 create procedure sp_board_upload_types_delete
 (
-    board int,       -- Board id.
-    upload_type int  -- Upload type id.
+    _board int,       -- Board id.
+    _upload_type int  -- Upload type id.
 )
 begin
     delete from board_upload_types

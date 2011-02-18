@@ -7,7 +7,6 @@
 .adminbar {
     text-align:right;
     clear:both;
-    background:inherit;
     float:right;
 }
 .catalogmode {
@@ -24,7 +23,6 @@
 .delbuttons {
     text-align:center;
     padding-bottom:4px;
-
 }
 .dellist {
     font-weight:bold;
@@ -53,6 +51,7 @@
     background:#F0E0D6;
     color:#800000;
     border:2px dashed #EEAA88;
+    width:100%;
 }
 .logo {
     clear:both;
@@ -126,6 +125,13 @@
     color:#CC1105;
     font-weight:800;
 }
+.reportabuse {
+    float:right;
+    margin:0.5em 1.0em;
+    font-size:0.7em;
+    color:#D40000;
+    cursor:pointer;
+}
 .row1 {
     background:#EEEECC;
     color:#800000;
@@ -135,14 +141,17 @@
     color:#800000;
 }
 .rules {
-    /*font-size:0.7em;*/
-    width:468px;
-    font-size:10px;
-    font-family:sans-serif;
+    font-size:0.7em;
 }
 .rules li {
     margin-left:1em;
-    /*text-indent:0em;*/
+}
+.theader {
+    background:#E04000;
+    text-align:center;
+    padding:2px;
+    color:#FFFFFF;
+    width:100%;
 }
 .thumbnailmsg {
     font-size:small;
