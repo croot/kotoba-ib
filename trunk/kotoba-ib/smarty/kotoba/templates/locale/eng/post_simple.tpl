@@ -96,7 +96,7 @@ Variables:
 {/if}
                 <blockquote id="post{$post.number}">
 {$post.text}
-                    {if $post.text_cutted == 1}<div class="abbrev">Refer "Reply" to view entire message.</div>{else}<!-- Text not cutted -->{/if}
+                    {if $post.text_cutted == 1}<div class="abbrev">Refer <a href="{$DIR_PATH}/{$post.board.name}/{$post.thread.original_post}#{$post.number}">Reply</a> to view entire message.</div>{else}<!-- Text not cutted -->{/if}
 
                 </blockquote>
                 {if $enable_translation && $post.text}<blockquote id="translation{$post.number}"></blockquote><a href="#" onclick="javascript:translate('{$post.number}'); return false;">Lolšto?</a>{else}<!-- Translation disabled or empty message -->{/if}

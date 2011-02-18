@@ -41,20 +41,20 @@ Variables:
 {section name=k loop=$attachments}
 {if $attachments[k].attachment_type == $ATTACHMENT_TYPE_FILE}
 {if $posts[i].id == $posts_attachments[j].post && $posts_attachments[j].file == $attachments[k].id}
-    <tr><td rowspan="3"><img src="{$DIR_PATH}/img/{$attachments[k].thumbnail}" class="thumb" width="80"></td></tr>
+    <tr><td rowspan="3"><img src="{if !$posts_attachments[j].deleted}{$DIR_PATH}/img/{$attachments[k].thumbnail}{else}{$DIR_PATH}/img/deleted.png{/if}" class="thumb" width="80"></td></tr>
 {/if}
 {elseif $attachments[k].attachment_type == $ATTACHMENT_TYPE_IMAGE}
 {if $posts[i].id == $posts_attachments[j].post && $posts_attachments[j].image == $attachments[k].id}
-    <tr><td rowspan="3"><img src="{$DIR_PATH}/{$board.name}/thumb/{$attachments[k].thumbnail}" class="thumb" width="80"></td></tr>
+    <tr><td rowspan="3"><img src="{if !$posts_attachments[j].deleted}{$DIR_PATH}/{$board.name}/thumb/{$attachments[k].thumbnail}{else}{$DIR_PATH}/img/deleted.png{/if}" class="thumb" width="80"></td></tr>
 {/if}
 {elseif $attachments[k].attachment_type == $ATTACHMENT_TYPE_LINK}
 {if $posts[i].id == $posts_attachments[j].post && $posts_attachments[j].link == $attachments[k].id}
-    <tr><td rowspan="3"><img src="{$attachments[k].thumbnail}" class="thumb" width="80"></td></tr>
+    <tr><td rowspan="3"><img src="{if !$posts_attachments[j].deleted}{$attachments[k].thumbnail}{else}{$DIR_PATH}/img/deleted.png{/if}" class="thumb" width="80"></td></tr>
 {/if}
 {elseif $attachments[k].attachment_type == $ATTACHMENT_TYPE_VIDEO}
 {if $posts[i].id == $posts_attachments[j].post && $posts_attachments[j].video == $attachments[k].id}
     <tr><td rowspan="3"><br><br>
-    {*include file='youtube.tpl' code=$attachments[k].code*}
+    {if !$posts_attachments[j].deleted}{*include file='youtube.tpl' code=$attachments[k].code*}{else}{$DIR_PATH}/img/deleted.png{/if}
     </td></tr>
 {/if}
 {/if}
