@@ -220,7 +220,14 @@ function post_moderate_generate_html($smarty,
     return $smarty->fetch('reports_post.tpl');
 }
 /**
- * 
+ * Get attachments of post.
+ * @param SmartyKotobaSetup $smarty Template engine.
+ * @param array $board Board.
+ * @param array $post Post.
+ * @param array $posts_attachments Posts attachemnts relations.
+ * @param array $attachments Attachemnts.
+ * @return array
+ * attachments.
  */
 function wrappers_attachments_get_by_post($smarty, $board, &$post, $posts_attachments, $attachments) {
     $desired_attachments = array();

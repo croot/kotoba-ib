@@ -13,6 +13,7 @@ require_once Config::ABS_PATH . '/lib/misc.php';
 require_once Config::ABS_PATH . '/lib/wrappers.php';
 require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
 require_once Config::ABS_PATH . '/lib/events.php';
+require_once Config::ABS_PATH . '/lib/wrappers.php';
 
 try {
     // Initialization.
@@ -81,20 +82,34 @@ try {
     };
     $posts = posts_get_visible_filtred_by_threads($threads, $_SESSION['user'], $pfilter);
 
+    $posts_attachments = array();
+    $attachments = array();
     if ($board['with_attachments']) {
-        $smarty->assign('posts_attachments', posts_attachments_get_by_posts($posts));
-        $smarty->assign('attachments', attachments_get_by_posts($posts));
+        $posts_attachments = posts_attachments_get_by_posts($posts);
+        $attachments = attachments_get_by_posts($posts);
     }
 
     // Generate html code of page and display it.
-    $smarty->assign('show_control', is_admin() || is_mod());
-    $smarty->assign('boards', $boards);
-    $smarty->assign('board', $board);
     $smarty->assign('ATTACHMENT_TYPE_FILE', Config::ATTACHMENT_TYPE_FILE);
     $smarty->assign('ATTACHMENT_TYPE_LINK', Config::ATTACHMENT_TYPE_LINK);
     $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
     $smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
-    $smarty->assign('posts', $posts);
+    $smarty->assign('show_control', is_admin() || is_mod());
+    $smarty->assign('boards', $boards);
+
+    $threads_html = '';
+    foreach ($posts as $post) {
+        $post_attachments = wrappers_attachments_get_by_post($smarty,
+                                                             $post['board'],
+                                                             $post,
+                                                             $posts_attachments,
+                                                             $attachments);
+        $smarty->assign('post', $post);
+        $smarty->assign('attachments', $post_attachments);
+        $threads_html .= $smarty->fetch('catalog_thread.tpl');
+    }
+
+    $smarty->assign('threads_html', $threads_html);
     $smarty->display('catalog.tpl');
 
     // Cleanup.
