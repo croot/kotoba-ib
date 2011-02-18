@@ -91,19 +91,19 @@ Variables:
 
     </span>{else}<!-- Extrabuttons disabled -->{/if}
 
-    {if isset($thread.closed) && $thread.closed}Closed{/if}
-
     {if $enable_postid}ID:{$postid}{else}<!-- Post identification disabled -->{/if}
 
-    {if $show_reply}[<a href="{$DIR_PATH}/{$post.board.name}/{$post.thread.original_post}">{if isset($thread.closed) && $thread.closed}View{else}Reply{/if}</a>]{else}<!-- Show reply link disabled -->{/if}
+    {if isset($thread.closed) && $thread.closed}<img src="{$DIR_PATH}/css/{$STYLESHEET}/closed.png" alt="Closed" title="Closed">{/if}
 
-    {if $sticky}Sticky.{else}<!-- Thread not sticky -->{/if}
+    {if $sticky}<img src="{$DIR_PATH}/css/{$STYLESHEET}/sticky.png" alt="Sticky" title="Sticky">{else}<!-- Thread not sticky -->{/if}
+
+    {if $show_reply}[<a href="{$DIR_PATH}/{$post.board.name}/{$post.thread.original_post}">{if isset($thread.closed) && $thread.closed}View{else}Reply{/if}</a>]{else}<!-- Show reply link disabled -->{/if}
 
     {if $is_admin}{include file='mod_mini_panel.tpl' post_id=$post.id ip=$post.ip board_name=$post.board.name post_num=$post.number}{else}<!-- Admin panel disabled -->{/if}
 
     <blockquote id="post{$post.thread.original_post}">
 {$post.text}
-        {if $post.text_cutted}<div class="abbrev">Refer "Reply" to view entire message.</div>{else}<!-- Text not cutted -->{/if}
+        {if $post.text_cutted}<div class="abbrev">Refer <a href="{$DIR_PATH}/{$post.board.name}/{$post.thread.original_post}#{$post.number}">Reply</a> to view entire message.</div>{else}<!-- Text not cutted -->{/if}
 
     </blockquote>
     {if $enable_translation && $post.text}<blockquote id="translation{$post.thread.original_post}"></blockquote><a href="#" onclick="javascript:translate('{$post.thread.original_post}'); return false;">Lolšto?</a>{else}<!-- Translation disabled or empty message -->{/if}

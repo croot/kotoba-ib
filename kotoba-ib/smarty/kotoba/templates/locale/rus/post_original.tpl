@@ -92,19 +92,19 @@ Variables:
 
     </span>{else}<!-- Extrabuttons disabled -->{/if}
 
-    {if isset($thread.closed) && $thread.closed}Нить закрыта{/if}
-
     {if $enable_postid}ID:{$postid}{else}<!-- Post identification disabled -->{/if}
 
-    {if $show_reply}[<a href="{$DIR_PATH}/{$post.board.name}/{$post.thread.original_post}">{if isset($thread.closed) && $thread.closed}Просмотр{else}Ответить{/if}</a>]{else}<!-- Show reply link disabled -->{/if}
+    {if isset($thread.closed) && $thread.closed}<img src="{$DIR_PATH}/css/{$STYLESHEET}/closed.png" alt="Нить закрыта" title="Нить закрыта">{/if}
 
-    {if $sticky}Нить закреплена.{else}<!-- Thread not sticky -->{/if}
+    {if $sticky}<img src="{$DIR_PATH}/css/{$STYLESHEET}/sticky.png" alt="Нить закреплена" title="Нить закреплена">{else}<!-- Thread not sticky -->{/if}
+
+    {if $show_reply}[<a href="{$DIR_PATH}/{$post.board.name}/{$post.thread.original_post}">{if isset($thread.closed) && $thread.closed}Просмотр{else}Ответить{/if}</a>]{else}<!-- Show reply link disabled -->{/if}
 
     {if $is_admin}{include file='mod_mini_panel.tpl' post_id=$post.id ip=$post.ip board_name=$post.board.name post_num=$post.number}{else}<!-- Admin panel disabled -->{/if}
 
     <blockquote id="post{$post.thread.original_post}">
 {$post.text}
-        {if $post.text_cutted}<div class="abbrev">Нажмите "Ответ" для просмотра сообщения целиком.</div>{else}<!-- Text not cutted -->{/if}
+        {if $post.text_cutted}<div class="abbrev">Нажмите <a href="{$DIR_PATH}/{$post.board.name}/{$post.thread.original_post}#{$post.number}">Ответ</a> для просмотра сообщения целиком.</div>{else}<!-- Text not cutted -->{/if}
 
     </blockquote>
     {if $enable_translation && $post.text}<blockquote id="translation{$post.thread.original_post}"></blockquote><a href="#" onclick="javascript:translate('{$post.thread.original_post}'); return false;">Lolšto?</a>{else}<!-- Translation disabled or empty message -->{/if}
