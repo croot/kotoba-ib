@@ -3991,9 +3991,7 @@ function db_threads_get_visible_count($link, $user_id, $board_id) {
         throw new CommonException(mysqli_error($link));
     }
 
-    if (mysqli_affected_rows($link) > 0
-            && ($row = mysqli_fetch_assoc($result)) != null) {
-
+    if (mysqli_affected_rows($link) > 0 && ($row = mysqli_fetch_assoc($result)) != NULL) {
         mysqli_free_result($result);
         db_cleanup_link($link);
         return $row['threads_count'];

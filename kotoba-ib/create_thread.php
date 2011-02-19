@@ -146,7 +146,7 @@ try {
     // Attachment type.
     $attachment_type = null;
     if ($board['with_attachments']) {
-        if ($_FILES['file']['error'] != UPLOAD_ERR_NO_FILE || use_oekaki()) {
+        if ((isset($_FILES['file']) && $_FILES['file']['error'] != UPLOAD_ERR_NO_FILE) || use_oekaki()) {
             if (!use_oekaki()) {
                 check_upload_error($_FILES['file']['error']);
                 $uploaded_file_path = $_FILES['file']['tmp_name'];
@@ -233,7 +233,9 @@ try {
                     break;
 
                 case 'yes':
+                    break;
                 default:
+                    throw new Exception('Unknown same uploads behaviour.');
                     break;
             }
             if (!$file_exists) {
@@ -376,6 +378,8 @@ try {
     } else {
         header('Location: ' . Config::DIR_PATH . "/{$board['name']}/");
     }
+
+    echo "{$thread['id']}";
 
     // Cleanup.
     DataExchange::releaseResources();

@@ -48,7 +48,7 @@ try {
         DataExchange::releaseResources();
         exit(1);
     }
-    $password = isset($REQUEST['password']) ? posts_check_password($REQUEST['password']) : $_SESSION['password'];
+    $password = isset($REQUEST['password']) ? posts_check_password($REQUEST['password']) : (isset($_SESSION['password']) ? $_SESSION['password'] : NULL);
 
     // Remove post.
     if (is_admin() || ($post['password'] !== null && $post['password'] === $password)) {
