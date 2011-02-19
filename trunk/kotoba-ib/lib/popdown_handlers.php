@@ -22,6 +22,7 @@
  * @param string|int $board_id Идентификатор доски.
  */
 function popdown_default_handler($board_id) {
+    return;
 	$link = DataExchange::getDBLink();
 	if (!mysqli_query($link, "call sp_threads_edit_archived_postlimit($board_id, 10)")) {
 		throw new CommonException(mysqli_error($link));

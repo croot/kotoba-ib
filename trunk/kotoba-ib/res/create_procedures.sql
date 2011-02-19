@@ -1402,7 +1402,7 @@ begin
         -- Правило для конкретной групы.
         left join acl a7 on a7.`group` = ug.`group` and a7.board is null
             and a7.thread is null and a7.post is null
-        where i.hash = image_hash and pi.deleted is null
+        where i.hash = image_hash and pi.deleted = 0
         group by i.id, p.id;
 end|
 
