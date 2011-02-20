@@ -1002,6 +1002,45 @@ create procedure sp_files_get_same
     file_hash varchar(32)   -- File hash.
 )
 begin
+    declare _file_id int;
+    declare _post_id int;
+    declare _visible bit;
+
+    select id into _file_id
+        from files
+        where hash = file_hash
+        limit 1;
+
+    select pf.post, max(case when a1.`view` = 0 then 0
+                             when a2.`view` = 0 then 0
+                             when a3.`view` = 0 then 0
+                             when a4.`view` = 0 then 0
+                             when a5.`view` = 0 then 0
+                             when a6.`view` = 0 then 0
+                             when a7.`view` = 0 then 0
+                             else 1 end) into _post_id, _visible
+        from posts_files pf
+        join posts p on p.id = pf.post and p.board = board_id
+        join user_groups ug on ug.`user` = user_id
+        -- Правило для конкретной группы и сообщения.
+        left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+        -- Правило для всех групп и конкретного сообщения.
+        left join acl a2 on a2.`group` is null and a2.post = p.id
+        -- Правила для конкретной группы и нити.
+        left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+        -- Правило для всех групп и конкретной нити.
+        left join acl a4 on a4.`group` is null and a4.thread = p.thread
+        -- Правила для конкретной группы и доски.
+        left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+        -- Правило для всех групп и конкретной доски.
+        left join acl a6 on a6.`group` is null and a6.board = p.board
+        -- Правило для конкретной групы.
+        left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+            and a7.thread is null and a7.post is null
+        where pf.file = _file_id and pf.deleted = 0
+        group by p.id
+        limit 1;
+
     select f.id as file_id,
            f.hash as file_hash,
            f.name as file_name,
@@ -1032,36 +1071,11 @@ begin
            t.sticky as thread_sticky,
            t.with_attachments as thread_with_attachments,
 
-           max(case when a1.`view` = 0 then 0
-                    when a2.`view` = 0 then 0
-                    when a3.`view` = 0 then 0
-                    when a4.`view` = 0 then 0
-                    when a5.`view` = 0 then 0
-                    when a6.`view` = 0 then 0
-                    when a7.`view` = 0 then 0
-                    else 1 end) as `view`
-        from posts_files pf
-        join files f on f.id = pf.file
-        join posts p on p.id = pf.post and p.board = board_id
+           _visible as `view`
+        from files f
+        join posts p on p.id = _post_id
         join threads t on t.id = p.thread
-        join user_groups ug on ug.user = user_id
-        -- Правило для конкретной группы и сообщения.
-        left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
-        -- Правило для всех групп и конкретного сообщения.
-        left join acl a2 on a2.`group` is null and a2.post = p.id
-        -- Правила для конкретной группы и нити.
-        left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
-        -- Правило для всех групп и конкретной нити.
-        left join acl a4 on a4.`group` is null and a4.thread = p.thread
-        -- Правила для конкретной группы и доски.
-        left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
-        -- Правило для всех групп и конкретной доски.
-        left join acl a6 on a6.`group` is null and a6.board = p.board
-        -- Правило для конкретной групы.
-        left join acl a7 on a7.`group` = ug.`group` and a7.board is null
-            and a7.thread is null and a7.post is null
-        where f.`hash` = file_hash and pf.deleted is null
-        group by f.id, p.id;
+        where f.id = _file_id;
 end|
 
 -- -----------
@@ -1341,6 +1355,45 @@ create procedure sp_images_get_same
     image_hash varchar(32)  -- Image file hash.
 )
 begin
+    declare _image_id int;
+    declare _post_id int;
+    declare _visible bit;
+
+    select id into _image_id
+        from images
+        where hash = image_hash
+        limit 1;
+
+    select pi.post, max(case when a1.`view` = 0 then 0
+                             when a2.`view` = 0 then 0
+                             when a3.`view` = 0 then 0
+                             when a4.`view` = 0 then 0
+                             when a5.`view` = 0 then 0
+                             when a6.`view` = 0 then 0
+                             when a7.`view` = 0 then 0
+                             else 1 end) into _post_id, _visible
+        from posts_images pi
+        join posts p on p.id = pi.post and p.board = board_id
+        join user_groups ug on ug.`user` = user_id
+        -- Правило для конкретной группы и сообщения.
+        left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+        -- Правило для всех групп и конкретного сообщения.
+        left join acl a2 on a2.`group` is null and a2.post = p.id
+        -- Правила для конкретной группы и нити.
+        left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+        -- Правило для всех групп и конкретной нити.
+        left join acl a4 on a4.`group` is null and a4.thread = p.thread
+        -- Правила для конкретной группы и доски.
+        left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+        -- Правило для всех групп и конкретной доски.
+        left join acl a6 on a6.`group` is null and a6.board = p.board
+        -- Правило для конкретной групы.
+        left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+            and a7.thread is null and a7.post is null
+        where pi.image = _image_id and pi.deleted = 0
+        group by p.id
+        limit 1;
+
     select i.id as image_id,
            i.hash as image_hash,
            i.name as image_name,
@@ -1374,36 +1427,11 @@ begin
            t.sticky as thread_sticky,
            t.with_attachments as thread_with_attachments,
 
-           max(case when a1.`view` = 0 then 0
-                    when a2.`view` = 0 then 0
-                    when a3.`view` = 0 then 0
-                    when a4.`view` = 0 then 0
-                    when a5.`view` = 0 then 0
-                    when a6.`view` = 0 then 0
-                    when a7.`view` = 0 then 0
-                    else 1 end) as `view`
+           _visible as `view`
         from images i
-        join posts_images pi on pi.image = i.id
-        join posts p on p.id = pi.post and p.board = board_id
+        join posts p on p.id = _post_id
         join threads t on t.id = p.thread
-        join user_groups ug on ug.`user` = user_id
-        -- Правило для конкретной группы и сообщения.
-        left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
-        -- Правило для всех групп и конкретного сообщения.
-        left join acl a2 on a2.`group` is null and a2.post = p.id
-        -- Правила для конкретной группы и нити.
-        left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
-        -- Правило для всех групп и конкретной нити.
-        left join acl a4 on a4.`group` is null and a4.thread = p.thread
-        -- Правила для конкретной группы и доски.
-        left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
-        -- Правило для всех групп и конкретной доски.
-        left join acl a6 on a6.`group` is null and a6.board = p.board
-        -- Правило для конкретной групы.
-        left join acl a7 on a7.`group` = ug.`group` and a7.board is null
-            and a7.thread is null and a7.post is null
-        where i.hash = image_hash and pi.deleted = 0
-        group by i.id, p.id;
+        where i.id = _image_id;
 end|
 
 -- --------------
