@@ -1359,21 +1359,38 @@ begin
     declare _post_id int;
     declare _visible bit;
 
+    create temporary table _post (id int not null,
+                                  board int not null,
+                                  thread int not null,
+                                  primary key (id));
+
     select id into _image_id
         from images
         where hash = image_hash
         limit 1;
 
-    select pi.post, max(case when a1.`view` = 0 then 0
-                             when a2.`view` = 0 then 0
-                             when a3.`view` = 0 then 0
-                             when a4.`view` = 0 then 0
-                             when a5.`view` = 0 then 0
-                             when a6.`view` = 0 then 0
-                             when a7.`view` = 0 then 0
-                             else 1 end) into _post_id, _visible
-        from posts_images pi
-        join posts p on p.id = pi.post and p.board = board_id
+    -- If image visible somewhere it visible everywhere. If not not. So we
+    -- dont care where this post from.
+    select post into _post_id
+        from posts_images
+        where image = _image_id and deleted = 0
+        limit 1;
+
+    insert into _post (id, board, thread)
+        select id, board, thread
+        from posts
+        where id = _post_id
+        limit 1;
+
+    select max(case when a1.`view` = 0 then 0
+                    when a2.`view` = 0 then 0
+                    when a3.`view` = 0 then 0
+                    when a4.`view` = 0 then 0
+                    when a5.`view` = 0 then 0
+                    when a6.`view` = 0 then 0
+                    when a7.`view` = 0 then 0
+                    else 1 end) into _visible
+        from _post p
         join user_groups ug on ug.`user` = user_id
         -- Правило для конкретной группы и сообщения.
         left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
@@ -1390,7 +1407,6 @@ begin
         -- Правило для конкретной групы.
         left join acl a7 on a7.`group` = ug.`group` and a7.board is null
             and a7.thread is null and a7.post is null
-        where pi.image = _image_id and pi.deleted = 0
         group by p.id
         limit 1;
 
@@ -1432,6 +1448,8 @@ begin
         join posts p on p.id = _post_id
         join threads t on t.id = p.thread
         where i.id = _image_id;
+
+    drop temporary table _post;
 end|
 
 -- --------------
