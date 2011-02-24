@@ -74,8 +74,14 @@ class Config
     // Включение постинга видео с ютуба.
     const ENABLE_YOUTUBE = false;
 
-    // Включение капчи.
-    const ENABLE_CAPTCHA = true;
+	// Captcha enable.
+	const ENABLE_CAPTCHA = true;
+
+    // Availiable captcha.
+    static $CAPTCHAS = array('captcha', 'animaptcha');
+
+    // Used captcha. Copy from $CAPTCHAS array.
+    const CAPTCHA = 'captcha';
 
     // Включение поиска.
     const ENABLE_SEARCH = true;

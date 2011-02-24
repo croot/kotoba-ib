@@ -24,6 +24,7 @@ Variables:
     $macrochan_tags - macrochan tags.
     $enable_youtube - loutube video posting flag (see config.default).
     $enable_captcha - laptcha flag (see config.default).
+    $captcha - used captcha (see config.default).
     $password - password.
     $goto - redirection.
     $upload_types - upload types on this board.
@@ -68,7 +69,10 @@ google.load("language", "1");
 {if !$board.force_anonymous}
     <tr valign="top"><td class="postblock">Имя: </td><td><input type="text" name="name" size="28" maxlength="64" accesskey="n" value="{$name}"></td></tr>
 {/if}
-    {if $enable_captcha}<tr valign="top"><td class="postblock"><a href="#" onclick="document.getElementById('captcha').src = '{$DIR_PATH}/captcha/image.php?' + Math.random(); return false"><img border="0" id="captcha" src="{$DIR_PATH}/captcha/image.php" alt="Kotoba capcha v0.4" align="middle" /></a></td><td><input type="text" name="captcha_code" size="28" maxlength="64" accesskey="f"></td></tr>{else}<!-- Captcha disabled -->{/if}
+{if $enable_captcha}
+{if $captcha == 'captcha'}    <tr valign="top"><td class="postblock"><a href="#" onclick="document.getElementById('captcha').src = '{$DIR_PATH}/captcha/image.php?' + Math.random(); return false"><img border="0" id="captcha" src="{$DIR_PATH}/captcha/image.php" alt="Kotoba capcha v0.4" align="middle" /></a></td><td><input type="text" name="captcha_code" size="28" maxlength="64" accesskey="f"></td></tr>{/if}
+{if $captcha == 'animaptcha'}    <tr valign="top"><td class="postblock"><a href="#" onclick="document.getElementById('captcha').src = '{$DIR_PATH}/animaptcha/animaptcha.php?' + Math.random(); return false"><img border="0" id="captcha" src="{$DIR_PATH}/animaptcha/animaptcha.php" alt="Kotoba animapcha v0.1" align="middle" /></a></td><td><input type="text" name="animaptcha_code" size="28" maxlength="64" accesskey="f"></td></tr>{/if}
+{else}    <!-- Captcha disabled -->{/if}
 
     <tr valign="top"><td class="postblock">Тема: </td><td><input type="text" name="subject" size="35" maxlength="75" accesskey="s"> <input type="submit" value="Создать нить"></td></tr>
     <tr valign="top"><td class="postblock">Сообщение: </td><td><textarea name="text" cols="48" rows="4" accesskey="m"></textarea><img id="resizer" src="{$DIR_PATH}/flower.png"></td></tr>

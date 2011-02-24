@@ -95,6 +95,7 @@ kotoba_session_start();
 if (Config::LANGUAGE != $_SESSION['language']) {
     require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
 }
+locale_setup();
 
 $im = imagecreate(100, 30);
 

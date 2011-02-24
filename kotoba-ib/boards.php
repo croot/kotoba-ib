@@ -198,7 +198,8 @@ try {
     $smarty->assign('enable_macro', $board['enable_macro'] === null ? Config::ENABLE_MACRO : $board['enable_macro']);
     $smarty->assign('enable_youtube', $board['enable_youtube'] === null ? Config::ENABLE_YOUTUBE : $board['enable_youtube']);
     $smarty->assign('enable_search', Config::ENABLE_SEARCH);
-    $smarty->assign('enable_captcha', !is_admin() && (($board['enable_captcha'] === null && Config::ENABLE_CAPTCHA) || $board['enable_captcha']));
+    $smarty->assign('enable_captcha', is_captcha_enabled($board));
+    $smarty->assign('captcha', Config::CAPTCHA);
     $smarty->assign('enable_translation', ($board['enable_translation'] === null) ? Config::ENABLE_TRANSLATION : $board['enable_translation']);
     $enable_geoip = $board['enable_geoip'] === null ? Config::ENABLE_GEOIP : $board['enable_geoip'];
     $smarty->assign('enable_geoip', $enable_geoip);

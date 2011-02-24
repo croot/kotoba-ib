@@ -18,6 +18,7 @@
  * macrochan_tag (optional) - macrochan tag name.
  * youtube_video_code (optional) - code of youtube video.
  * captcha_code (optional) - captcha code.
+ * animaptcha_code (optional) - animaptcha word.
  * password - password.
  * goto - redirection.
  * sage - sage flag.
@@ -58,14 +59,35 @@ try {
     $board = boards_get_changeable_by_id(boards_check_id($_POST['board']), $_SESSION['user']);
 
     // Captcha.
-    if (!is_admin() && (($board['enable_captcha'] === null && Config::ENABLE_CAPTCHA) || $board['enable_captcha'])) {
-        if (!isset($_POST['captcha_code'])
-                || !isset($_SESSION['captcha_code'])
-                || mb_strtolower($_POST['captcha_code'], Config::MB_ENCODING) != $_SESSION['captcha_code']) {
+    if (is_captcha_enabled($board)) {
+        switch (Config::CAPTCHA) {
+            case 'captcha':
+                if (isset($_POST['captcha_code'])
+                        && isset($_SESSION['captcha_code'])
+                        && mb_strtolower($_POST['captcha_code'], Config::MB_ENCODING) === $_SESSION['captcha_code']) {
 
-            var_dump(mb_strtolower($_POST['captcha_code'], Config::MB_ENCODING));
-            var_dump($_SESSION['captcha_code']);
-            throw new CommonException(CommonException::$messages['CAPTCHA']);
+                    // pass!
+                } else {
+                    var_dump(mb_strtolower($_POST['captcha_code'], Config::MB_ENCODING));
+                    var_dump($_SESSION['captcha_code']);
+                    throw new CommonException(CommonException::$messages['CAPTCHA']);
+                }
+                break;
+            case 'animaptcha':
+                if (isset($_POST['animaptcha_code'])
+                        && isset($_SESSION['animaptcha_code'])
+                        && in_array(mb_strtolower($_POST['animaptcha_code'], Config::MB_ENCODING), $_SESSION['animaptcha_code'], TRUE)) {
+
+                    // pass!
+                } else {
+                    var_dump(mb_strtolower($_POST['animaptcha_code'], Config::MB_ENCODING));
+                    var_dump($_SESSION['animaptcha_code']);
+                    throw new CommonException(CommonException::$messages['CAPTCHA']);
+                }
+                break;
+            default:
+                throw new CommonException(CommonException::$messages['CAPTCHA']);
+                break;
         }
     }
 
