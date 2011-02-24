@@ -3088,9 +3088,11 @@ create procedure sp_threads_get_visible_by_board
 )
 begin
     create temporary table _threads_posts_count (thread int not null,
-                                                 posts_count int not null);
+                                                 posts_count int not null,
+                                                 primary key(thread));
     create temporary table _threads_last_post (thread int not null,
-                                               last_post int not null);
+                                               last_post int not null,
+                                               primary key(thread));
 
     insert into _threads_posts_count (thread, posts_count)
         select t.id, count(distinct p.id)
@@ -3187,6 +3189,152 @@ begin
 
     drop temporary table _threads_last_post;
     drop temporary table _threads_posts_count;
+
+    /*select q1.thread_id,
+           q1.thread_original_post,
+           q1.thread_bump_limit,
+           q1.thread_sticky,
+           q1.thread_sage,
+           q1.thread_with_attachments,
+           q1.thread_closed,
+           q1.thread_posts_count,
+           q1.thread_last_post_num,
+    
+           q1.board_id,
+           q1.board_name,
+           q1.board_title,
+           q1.board_annotation,
+           q1.board_bump_limit,
+           q1.board_force_anonymous,
+           q1.board_default_name,
+           q1.board_with_attachments,
+           q1.board_enable_macro,
+           q1.board_enable_youtube,
+           q1.board_enable_captcha,
+           q1.board_enable_translation,
+           q1.board_enable_geoip,
+           q1.board_enable_shi,
+           q1.board_enable_postid,
+           q1.board_same_upload,
+           q1.board_popdown_handler,
+           q1.board_category
+
+        from (
+            -- Find number of last post in the thread except "sage" posts.
+            select q.thread_id,
+                   q.thread_original_post,
+                   q.thread_bump_limit,
+                   q.thread_sticky,
+                   q.thread_sage,
+                   q.thread_with_attachments,
+                   q.thread_closed,
+                   q.thread_posts_count,
+                   max(p.number) as thread_last_post_num,
+
+                   q.board_id,
+                   q.board_name,
+                   q.board_title,
+                   q.board_annotation,
+                   q.board_bump_limit,
+                   q.board_force_anonymous,
+                   q.board_default_name,
+                   q.board_with_attachments,
+                   q.board_enable_macro,
+                   q.board_enable_youtube,
+                   q.board_enable_captcha,
+                   q.board_enable_translation,
+                   q.board_enable_geoip,
+                   q.board_enable_shi,
+                   q.board_enable_postid,
+                   q.board_same_upload,
+                   q.board_popdown_handler,
+                   q.board_category
+
+                from posts p
+                join (
+                    -- Select visible thread and calculate count of visible posts within.
+                    select t.id as thread_id,
+                           t.original_post as thread_original_post,
+                           t.bump_limit as thread_bump_limit,
+                           t.sticky as thread_sticky,
+                           t.sage as thread_sage,
+                           t.with_attachments as thread_with_attachments,
+                           t.closed as thread_closed,
+                           count(distinct p.id) as thread_posts_count,
+
+                           b.id as board_id,
+                           b.name as board_name,
+                           b.title as board_title,
+                           b.annotation as board_annotation,
+                           b.bump_limit as board_bump_limit,
+                           b.force_anonymous as board_force_anonymous,
+                           b.default_name as board_default_name,
+                           b.with_attachments as board_with_attachments,
+                           b.enable_macro as board_enable_macro,
+                           b.enable_youtube as board_enable_youtube,
+                           b.enable_captcha as board_enable_captcha,
+                           b.enable_translation as board_enable_translation,
+                           b.enable_geoip as board_enable_geoip,
+                           b.enable_shi as board_enable_shi,
+                           b.enable_postid as board_enable_postid,
+                           b.same_upload as board_same_upload,
+                           b.popdown_handler as board_popdown_handler,
+                           b.category as board_category
+
+                        from posts p
+                        join threads t on t.id = p.thread and t.board = board_id
+                        join boards b on b.id = t.board
+                        join user_groups ug on ug.`user` = user_id
+                        left join hidden_threads ht on ht.thread = t.id
+                            and ht.user = ug.user
+                        -- Правило для конкретной группы и сообщения.
+                        left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+                        -- Правило для всех групп и конкретного сообщения.
+                        left join acl a2 on a2.`group` is null and a2.post = p.id
+                        -- Правила для конкретной группы и нити.
+                        left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+                        -- Правило для всех групп и конкретной нити.
+                        left join acl a4 on a4.`group` is null and a4.thread = p.thread
+                        -- Правила для конкретной группы и доски.
+                        left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+                        -- Правило для всех групп и конкретной доски.
+                        left join acl a6 on a6.`group` is null and a6.board = p.board
+                        -- Правило для конкретной групы.
+                        left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+                            and a7.thread is null and a7.post is null
+                        where t.deleted = 0 and t.archived = 0 and ht.thread is null
+                            and p.deleted = 0
+                            -- Нить должна быть доступна для просмотра.
+                                -- Просмотр нити не запрещен конкретной группе и
+                            and ((a3.`view` = 1 or a3.`view` is null)
+                                -- просмотр нити не запрещен всем группам и
+                                and (a4.`view` = 1 or a4.`view` is null)
+                                -- просмотр доски не запрещен конкретной группе и
+                                and (a5.`view` = 1 or a5.`view` is null)
+                                -- просмотр доски не запрещен всем группам и
+                                and (a6.`view` = 1 or a6.`view` is null)
+                                -- просмотр разрешен конкретной группе.
+                                and a7.`view` = 1)
+                            -- Сообщение должно быть доступно для просмотра, чтобы правильно
+                            -- подсчитать их количество в нити.
+                                -- Просмотр сообщения не запрещен конкретной группе и
+                            and ((a1.`view` = 1 or a1.`view` is null)
+                                -- просмотр сообщения не запрещен всем группам и
+                                and (a2.`view` = 1 or a2.`view` is null)
+                                -- просмотр нити не запрещен конкретной группе и
+                                and (a3.`view` = 1 or a3.`view` is null)
+                                -- просмотр нити не запрещен всем группам и
+                                and (a4.`view` = 1 or a4.`view` is null)
+                                -- просмотр доски не запрещен конкретной группе и
+                                and (a5.`view` = 1 or a5.`view` is null)
+                                -- просмотр доски не запрещен всем группам и
+                                and (a6.`view` = 1 or a6.`view` is null)
+                                -- просмотр разрешен конкретной группе.
+                                and a7.`view` = 1)
+                group by t.id) q on q.thread_id = p.thread
+                    and (p.sage = 0 or p.sage is null) and p.deleted = 0
+            group by q.thread_id) q1
+        order by q1.thread_last_post_num desc;*/
 end|
 
 -- Select visible threads.
