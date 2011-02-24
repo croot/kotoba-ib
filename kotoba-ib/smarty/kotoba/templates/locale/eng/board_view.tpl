@@ -67,20 +67,20 @@ google.load("language", "1");
 <table class="postform">
 <tbody>
 {if !$board.force_anonymous}
-    <tr valign="top"><td class="postblock">Name: </td><td><input type="text" name="name" size="28" maxlength="64" accesskey="n" value="{$name}"></td></tr>
+    <tr><td class="postblock">Name: </td><td><input type="text" name="name" size="28" maxlength="64" accesskey="n" value="{$name}"></td></tr>
 {/if}
 {if $enable_captcha}
-{if $captcha == 'captcha'}    <tr valign="top"><td class="postblock"><a href="#" onclick="document.getElementById('captcha').src = '{$DIR_PATH}/captcha/image.php?' + Math.random(); return false"><img border="0" id="captcha" src="{$DIR_PATH}/captcha/image.php" alt="Kotoba capcha v0.4" align="middle" /></a></td><td><input type="text" name="captcha_code" size="28" maxlength="64" accesskey="f"></td></tr>{/if}
-{if $captcha == 'animaptcha'}    <tr valign="top"><td class="postblock"><a href="#" onclick="document.getElementById('captcha').src = '{$DIR_PATH}/animaptcha/animaptcha.php?' + Math.random(); return false"><img border="0" id="captcha" src="{$DIR_PATH}/animaptcha/animaptcha.php" alt="Kotoba animapcha v0.1" align="middle" /></a></td><td><input type="text" name="animaptcha_code" size="28" maxlength="64" accesskey="f"></td></tr>{/if}
+{if $captcha == 'captcha'}    <tr><td class="postblock"><a href="#" onclick="document.getElementById('captcha').src = '{$DIR_PATH}/captcha/image.php?' + Math.random(); return false"><img border="0" id="captcha" src="{$DIR_PATH}/captcha/image.php" alt="Kotoba capcha v0.4" align="middle" /></a></td><td><input type="text" name="captcha_code" size="28" maxlength="64" accesskey="f"></td></tr>{/if}
+{if $captcha == 'animaptcha'}    <tr><td class="postblock"><a href="#" onclick="document.getElementById('captcha').src = '{$DIR_PATH}/animaptcha/animaptcha.php?' + Math.random(); return false"><img border="0" id="captcha" src="{$DIR_PATH}/animaptcha/animaptcha.php" alt="Kotoba animapcha v0.1" align="middle" /></a></td><td><input type="text" name="animaptcha_code" size="28" maxlength="64" accesskey="f"></td></tr>{/if}
 {else}    <!-- Captcha disabled -->{/if}
 
-    <tr valign="top"><td class="postblock">Subject: </td><td><input type="text" name="subject" size="35" maxlength="75" accesskey="s"> <input type="submit" value="Create thread"></td></tr>
-    <tr valign="top"><td class="postblock">Message: </td><td><textarea name="text" cols="48" rows="4" accesskey="m"></textarea><img id="resizer" src="{$DIR_PATH}/flower.png" title="Drag to resize text area."></td></tr>
+    <tr><td class="postblock">Subject: </td><td><input type="text" name="subject" size="35" maxlength="75" accesskey="s"> <input type="submit" value="Create thread"></td></tr>
+    <tr><td class="postblock">Message: </td><td><textarea name="text" cols="48" rows="4" accesskey="m"></textarea><img id="resizer" src="{$DIR_PATH}/flower.png" title="Drag to resize text area."></td></tr>
 {if $board.with_attachments}
-    <tr valign="top"><td class="postblock">File: </td><td><input type="file" name="file" size="35" accesskey="f"> Spoiler: <input type="checkbox" name="spoiler" value="1" /></td></tr>
-    {if isset($oekaki)}<tr valign="top"><td class="postblock">My art: </td><td><a href="{$DIR_PATH}/shi/{$oekaki.file}"><img border="0" src="{$DIR_PATH}/shi/{$oekaki.thumbnail}" align="middle" /></a> Use instead: <input type="checkbox" name="use_oekaki" value="1"></td></tr>{else}<!-- Oekaki disabled -->{/if}
+    <tr><td class="postblock">File: </td><td><input type="file" name="file" size="35" accesskey="f"> Spoiler: <input type="checkbox" name="spoiler" value="1" /></td></tr>
+    {if isset($oekaki)}<tr><td class="postblock">My art: </td><td><a href="{$DIR_PATH}/shi/{$oekaki.file}"><img border="0" src="{$DIR_PATH}/shi/{$oekaki.thumbnail}" align="middle" /></a> Use instead: <input type="checkbox" name="use_oekaki" value="1"></td></tr>{else}<!-- Oekaki disabled -->{/if}
 
-    {if $enable_macro}<tr valign="top"><td class="postblock">Macro: </td>
+    {if $enable_macro}<tr><td class="postblock">Macro: </td>
     <td>
         <select name="macrochan_tag">
         <option value="" selected></option>
@@ -91,14 +91,14 @@ google.load("language", "1");
     </td>
     </tr>{else}<!-- Macrochan integration disabled -->{/if}
 
-    {if $enable_youtube}<tr valign="top"><td class="postblock">Youtube: </td><td><input type="text" name="youtube_video_code" size="30"></td></tr>{else}<!-- YouTube video posting disabled -->{/if}
+    {if $enable_youtube}<tr><td class="postblock">Youtube: </td><td><input type="text" name="youtube_video_code" size="30"></td></tr>{else}<!-- YouTube video posting disabled -->{/if}
 {else}
     <!-- Attachments disabled -->
 {/if}
 
-    <tr valign="top"><td class="postblock">Password: </td><td><input type="password" name="password" size="8" accesskey="p" value="{$password}"></td></tr>
-    <tr valign="top"><td class="postblock">Redirection: </td><td>(thread: <input type="radio" name="goto" value="t"{if $goto == 't'} checked{/if}>) (board: <input type="radio" name="goto" value="b"{if $goto == 'b'} checked{/if}>)</td></tr>
-    <tr valign="top"><td colspan = "2" class="rules">
+    <tr><td class="postblock">Password: </td><td><input type="password" name="password" size="8" accesskey="p" value="{$password}"></td></tr>
+    <tr><td class="postblock">Redirection: </td><td>(thread: <input type="radio" name="goto" value="t"{if $goto == 't'} checked{/if}>) (board: <input type="radio" name="goto" value="b"{if $goto == 'b'} checked{/if}>)</td></tr>
+    <tr><td colspan = "2" class="rules">
         <ul class="infolist">
             <li>File types: {section name=i loop=$upload_types} {$upload_types[i].extension}{/section}</li>
             <li>Board bumplimit: {$board.bump_limit}</li>
