@@ -152,7 +152,8 @@ try {
         $smarty->assign('macrochan_tags', $macrochan_tags);
     }
     $smarty->assign('enable_youtube', $board['enable_youtube'] === null ? Config::ENABLE_YOUTUBE : $board['enable_youtube']);
-    $smarty->assign('enable_captcha', !is_admin() && (($board['enable_captcha'] === null && Config::ENABLE_CAPTCHA) || $board['enable_captcha']));
+    $smarty->assign('enable_captcha', is_captcha_enabled($board));
+    $smarty->assign('captcha', Config::CAPTCHA);
     $smarty->assign('password', $password);
     $smarty->assign('goto', $_SESSION['goto']);
     $smarty->assign('upload_types', $upload_types);

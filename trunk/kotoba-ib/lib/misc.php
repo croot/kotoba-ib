@@ -437,6 +437,15 @@ function is_postid_enabled($board) {
 function is_translation_enabled($board) {
     return $board['enable_translation'] === null ? Config::ENABLE_TRANSLATION : $board['enable_translation'];
 }
+/**
+ * Check if captcha enabled.
+ * @param array $board Board.
+ * @return
+ * TRUE if captcha enabled or FALSE otherwise.
+ */
+function is_captcha_enabled($board) {
+    return !is_admin() && (($board['enable_captcha'] === null && Config::ENABLE_CAPTCHA) || $board['enable_captcha']);
+}
 
 /* *********
  * Images. *
