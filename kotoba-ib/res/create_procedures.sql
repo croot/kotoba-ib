@@ -105,6 +105,8 @@ drop procedure if exists sp_posts_get_visible_by_number|
 drop procedure if exists sp_posts_get_visible_by_thread|
 drop procedure if exists sp_posts_search_visible_by_board|
 
+drop function if exists udf_is_post_visible|
+
 drop procedure if exists sp_posts_files_add|
 drop procedure if exists sp_posts_files_delete_by_post|
 drop procedure if exists sp_posts_files_delete_marked|
@@ -2401,6 +2403,46 @@ begin
         order by p.number asc;
 end|
 
+-- Returns 1 if posts visible and 0 otherwise.
+create function udf_is_post_visible
+(
+    _post_id int,
+    _thread_id int,
+    _board_id int,
+    _user_id int
+)
+returns int
+not deterministic
+sql security definer
+comment ''
+begin
+
+declare _group_access, _common_access int;
+
+select max(q.group_view) into _group_access
+from (select ifnull(min(`view`), 1) as group_view
+          from user_groups ug
+          left join acl on acl.`group` = ug.`group`
+          where ug.`user` = _user_id
+              and ifnull(acl.post, _post_id) = _post_id
+              and ifnull(acl.thread, _thread_id) = _thread_id
+              and ifnull(acl.board, _board_id) = _board_id
+          group by acl.`group`) q;
+
+select ifnull(min(`view`), 1) into _common_access
+    from acl
+    where `group` is null
+        and ifnull(post, _post_id) = _post_id
+        and ifnull(thread, _thread_id) = _thread_id
+        and ifnull(board, _board_id) = _board_id;
+
+if _group_access = 1 and _common_access = 1 then
+    return 1;
+end if;
+
+return 0;
+end|
+
 -- -------------------------
 -- Posts files relations. --
 -- -------------------------
@@ -3098,6 +3140,17 @@ begin
         select t.id, count(distinct p.id)
             from posts p
             join threads t on t.id = p.thread and t.board = board_id
+            left join hidden_threads ht on ht.thread = t.id and ht.user = user_id
+            where t.deleted = 0
+                  and t.archived = 0
+                  and ht.thread is null
+                  and p.deleted = 0
+                  and udf_is_post_visible(p.id, p.thread, p.board, user_id) = 1;
+
+    /*insert into _threads_posts_count (thread, posts_count)
+        select t.id, count(distinct p.id)
+            from posts p
+            join threads t on t.id = p.thread and t.board = board_id
             join user_groups ug on ug.`user` = user_id
             left join hidden_threads ht on ht.thread = t.id and ht.user = ug.user
             -- Правило для конкретной группы и сообщения.
@@ -3143,7 +3196,7 @@ begin
                     and (a6.`view` = 1 or a6.`view` is null)
                     -- просмотр разрешен конкретной группе.
                     and a7.`view` = 1)
-            group by t.id;
+            group by t.id;*/
 
     insert into _threads_last_post (thread, last_post)
         select t.thread, max(p.number)
