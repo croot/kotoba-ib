@@ -82,7 +82,12 @@ try {
         throw new LimitException(LimitException::$messages['MAX_PAGE']);
     }
 
-    $tfilter = function($thread, $page, $threads_per_page) {
+    $threads = threads_get_visible_by_page($_SESSION['user'],
+                                           $board['id'],
+                                           $page,
+                                           $_SESSION['threads_per_page']);
+
+    /*$tfilter = function($thread, $page, $threads_per_page) {
         // Количество нитей, которое нужно пропустить.
         $skip = $threads_per_page * ($page - 1);
 
@@ -124,9 +129,14 @@ try {
             array_push($other_threads, $thread);
         }
     }
-    $threads = array_merge($sticky_threads, $other_threads);
+    $threads = array_merge($sticky_threads, $other_threads);*/
 
-    $pfilter = function($posts_per_thread, $thread, $post) {
+    $posts = posts_get_visible_by_threads_preview($board['id'],
+                                                  $threads,
+                                                  $_SESSION['user'],
+                                                  $_SESSION['posts_per_thread']);
+
+    /*$pfilter = function($posts_per_thread, $thread, $post) {
         static $recived = 0;
         static $prev_thread = null;
 
@@ -147,7 +157,7 @@ try {
     $posts = posts_get_visible_filtred_by_threads($threads,
                                                   $_SESSION['user'],
                                                   $pfilter,
-                                                  $_SESSION['posts_per_thread']);
+                                                  $_SESSION['posts_per_thread']);*/
 
     // TODO: What if attachments disabled on this board?
     $posts_attachments = posts_attachments_get_by_posts($posts);
