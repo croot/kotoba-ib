@@ -8,6 +8,7 @@ blockquote blockquote {
 }
 form {
     margin-bottom:0px;
+    display:inline;
 }
 form .trap {
     display:none;

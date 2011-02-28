@@ -103,6 +103,7 @@ drop procedure if exists sp_posts_get_reported_by_board|
 drop procedure if exists sp_posts_get_visible_by_id|
 drop procedure if exists sp_posts_get_visible_by_number|
 drop procedure if exists sp_posts_get_visible_by_thread|
+drop procedure if exists sp_posts_get_visible_by_thread_preview|
 drop procedure if exists sp_posts_search_visible_by_board|
 
 drop function if exists udf_is_post_visible|
@@ -154,6 +155,7 @@ drop procedure if exists sp_threads_get_moderatable|
 drop procedure if exists sp_threads_get_moderatable_by_id|
 drop procedure if exists sp_threads_get_visible_by_board|
 drop procedure if exists sp_threads_get_visible_by_original_post|
+drop procedure if exists sp_threads_get_visible_by_page|
 drop procedure if exists sp_threads_get_visible_count|
 drop procedure if exists sp_threads_move_thread|
 drop procedure if exists sp_threads_search_visible_by_board|
@@ -2314,6 +2316,95 @@ begin
         order by p.number asc;
 end|
 
+-- Select specified count of visible posts.
+create procedure sp_posts_get_visible_by_thread_preview
+(
+    board_id int,           -- Board id.
+    thread_id int,          -- Thread id.
+    user_id int,            -- User id.
+    posts_per_thread int    -- Count of posts per thread.
+)
+begin
+    declare original_post_number int;
+    declare original_post_id int;
+    set @posts_per_thread = posts_per_thread;
+
+    select original_post into original_post_number
+        from threads where id = thread_id;
+    select id into original_post_id
+        from posts where thread = thread_id and number = original_post_number;
+
+    create temporary table ttable1 (id int not null, primary key(id));
+    create temporary table ttable2 (id int not null, primary key(id));
+
+    -- Not deleted posts of thread except original post.
+    insert into ttable2 (id)
+        select id
+            from posts
+            where thread = thread_id and deleted = 0 and id != original_post_id;
+
+    -- Visible posts of thread except original too.
+    insert into ttable1 (id)
+        select tt2.id
+            from ttable2 tt2
+            join user_groups ug on ug.user = user_id
+            left join acl a1 on a1.`group` = ug.`group` and a1.post = tt2.id
+            left join acl a2 on a2.`group` is null and a2.post = tt2.id
+            left join acl a3 on a3.`group` = ug.`group` and a3.thread = thread_id
+            left join acl a4 on a4.`group` is null and a4.thread = thread_id
+            left join acl a5 on a5.`group` = ug.`group` and a5.board = board_id
+            left join acl a6 on a6.`group` is null and a6.board = board_id
+            left join acl a7 on a7.`group` = ug.`group`
+                                and a7.board is null
+                                and a7.thread is null
+                                and a7.post is null
+            where ((a1.`view` = 1 or a1.`view` is null)
+                    and (a2.`view` = 1 or a2.`view` is null)
+                    and (a3.`view` = 1 or a3.`view` is null)
+                    and (a4.`view` = 1 or a4.`view` is null)
+                    and (a5.`view` = 1 or a5.`view` is null)
+                    and (a6.`view` = 1 or a6.`view` is null)
+                    and a7.`view` = 1)
+            group by tt2.id;
+
+    -- Count of posts in the thread.
+    select count(id) + 1 as visible_posts_count from ttable1;
+
+    -- Board data.
+    select * from boards where id = board_id;
+
+    -- Thread data.
+    select * from threads where id = thread_id;
+
+    -- Replies.
+    prepare stmt1 from 'select p.id,
+                               p.board,
+                               p.thread,
+                               p.number,
+                               p.user,
+                               p.password,
+                               p.name,
+                               p.tripcode,
+                               p.ip,
+                               p.subject,
+                               p.date_time,
+                               p.text,
+                               p.sage
+                            from ttable1 tt1
+                            join posts p on p.id = tt1.id
+                            order by p.number desc
+                            limit ?';
+
+    execute stmt1 using @posts_per_thread;
+
+    -- Original post.
+    select * from posts where id = original_post_id;
+
+    deallocate prepare stmt1;
+    drop temporary table ttable2;
+    drop temporary table ttable1;
+end|
+
 -- Search posts by keyword.
 create procedure sp_posts_search_visible_by_board
 (
@@ -3136,7 +3227,7 @@ begin
                                                last_post int not null,
                                                primary key(thread));
 
-    insert into _threads_posts_count (thread, posts_count)
+    /*insert into _threads_posts_count (thread, posts_count)
         select t.id, count(distinct p.id)
             from posts p
             join threads t on t.id = p.thread and t.board = board_id
@@ -3145,9 +3236,10 @@ begin
                   and t.archived = 0
                   and ht.thread is null
                   and p.deleted = 0
-                  and udf_is_post_visible(p.id, p.thread, p.board, user_id) = 1;
+                  and udf_is_post_visible(p.id, p.thread, p.board, user_id) = 1
+            group by t.id;*/
 
-    /*insert into _threads_posts_count (thread, posts_count)
+    insert into _threads_posts_count (thread, posts_count)
         select t.id, count(distinct p.id)
             from posts p
             join threads t on t.id = p.thread and t.board = board_id
@@ -3196,7 +3288,7 @@ begin
                     and (a6.`view` = 1 or a6.`view` is null)
                     -- просмотр разрешен конкретной группе.
                     and a7.`view` = 1)
-            group by t.id;*/
+            group by t.id;
 
     insert into _threads_last_post (thread, last_post)
         select t.thread, max(p.number)
@@ -3488,6 +3580,142 @@ begin
                     and a7.`view` = 1)
             group by t.id;
     end if;
+end|
+
+-- Select visible threads on page.
+create procedure sp_threads_get_visible_by_page
+(
+    user_id int,            -- User id.
+    board_id int,           -- Board id.
+    page int,               -- Page number.
+    threads_per_page int    -- Count of threads per page.
+)
+begin
+    set @offset = (page - 1) * threads_per_page;
+    set @threads_per_page = threads_per_page;
+
+    create temporary table ttable1 (id int not null,
+                                    last_post int not null,
+                                    primary key(id));
+    create temporary table ttable2 (id int not null, primary key(id));
+    create temporary table ttable3 (id int not null, primary key(id));
+
+    -- We need to select visible sticky threads if first page.
+    if page = 1 then
+
+        -- Sticky threads.
+        insert into ttable2 (id)
+            select id from threads where board = board_id
+                                         and sticky = 1
+                                         and deleted = 0
+                                         and archived = 0;
+
+        -- Visible unhidden sticky threads.
+        insert into ttable3 (id)
+            select t.id
+                from ttable2 t
+                join user_groups ug on ug.user = user_id
+                left join hidden_threads ht on ht.thread = t.id and ht.user = ug.user
+                left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+                left join acl a2 on a2.`group` is null and a2.thread = t.id
+                left join acl a3 on a3.`group` = ug.`group` and a3.board = board_id
+                left join acl a4 on a4.`group` is null and a4.board = board_id
+                left join acl a5 on a5.`group` = ug.`group`
+                                    and a5.board is null
+                                    and a5.thread is null
+                                    and a5.post is null
+                where ht.thread is null
+                      and ((a1.`view` = 1 or a1.`view` is null)
+                           and (a2.`view` = 1 or a2.`view` is null)
+                           and (a3.`view` = 1 or a3.`view` is null)
+                           and (a4.`view` = 1 or a4.`view` is null)
+                           and a5.`view` = 1)
+                group by t.id;
+        delete from ttable2;
+
+        -- Finally select sticky threads.
+        insert into ttable1 (id, last_post)
+            select p.thread, max(p.number) as last_post
+                from posts p
+                join ttable3 t on t.id = p.thread
+                where (p.sage = 0 or p.sage is null)
+                      and p.deleted = 0
+                group by p.thread
+                order by last_post desc;
+        delete from ttable3;
+
+        -- Sticky threads.
+        select t.id,
+               t.board,
+               t.original_post,
+               t.bump_limit,
+               t.sage,
+               t.sticky,
+               t.with_attachments,
+               t.closed
+            from ttable1 tt1
+            join threads t on t.id = tt1.id
+            order by tt1.last_post desc;
+        delete from ttable1;
+    end if;
+
+    insert into ttable2 (id)
+        select id from threads where board = board_id
+                                     and sticky = 0
+                                     and deleted = 0
+                                     and archived = 0;
+    insert into ttable3 (id)
+        select t.id
+            from ttable2 t
+            join user_groups ug on ug.user = user_id
+            left join hidden_threads ht on ht.thread = t.id and ht.user = ug.user
+            left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+            left join acl a2 on a2.`group` is null and a2.thread = t.id
+            left join acl a3 on a3.`group` = ug.`group` and a3.board = board_id
+            left join acl a4 on a4.`group` is null and a4.board = board_id
+            left join acl a5 on a5.`group` = ug.`group`
+                                and a5.board is null
+                                and a5.thread is null
+                                and a5.post is null
+            where ht.thread is null
+                  and ((a1.`view` = 1 or a1.`view` is null)
+                       and (a2.`view` = 1 or a2.`view` is null)
+                       and (a3.`view` = 1 or a3.`view` is null)
+                       and (a4.`view` = 1 or a4.`view` is null)
+                       and a5.`view` = 1)
+            group by t.id;
+
+    -- Board data.
+    select * from boards where id = board_id;
+
+    prepare stmt1 from 'insert into ttable1 (id, last_post)
+                            select p.thread, max(p.number) as last_post
+                                from posts p
+                                join ttable3 t on t.id = p.thread
+                                where (p.sage = 0 or p.sage is null)
+                                       and p.deleted = 0
+                                group by p.thread
+                                order by last_post desc
+                                limit ?,?';
+    execute stmt1 using @offset, @threads_per_page;
+
+    -- Threads.
+    select t.id,
+           t.board,
+           t.original_post,
+           t.bump_limit,
+           t.sage,
+           t.sticky,
+           t.with_attachments,
+           t.closed
+        from ttable1 tt1
+        join threads t on t.id = tt1.id
+        order by tt1.last_post desc;
+
+    deallocate prepare stmt1;
+    drop temporary table ttable3;
+    drop temporary table ttable2;
+    drop temporary table ttable1;
 end|
 
 -- Calculate count of visible threads.

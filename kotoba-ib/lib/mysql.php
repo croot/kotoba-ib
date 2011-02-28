@@ -2883,6 +2883,116 @@ function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id, $fil
     return $posts;
 }
 /**
+ * Get specified count of visible posts.
+ * @param MySQLi $link Link to database.
+ * @param int $board_id Boards.
+ * @param int $thread_id Thread id.
+ * @param int $user_id User id.
+ * @param int $posts_per_thread Count of posts per thread.
+ * @return array
+ * posts.
+ */
+function db_posts_get_visible_by_thread_preview($link, $board_id, $thread_id, $user_id, $posts_per_thread) {
+    $query = "call sp_posts_get_visible_by_thread_preview($board_id, $thread_id, $user_id, $posts_per_thread)";
+    if (mysqli_multi_query($link, $query) == FALSE) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $posts_count = -1;
+
+    // Save posts count.
+    if ( ($result = mysqli_store_result($link)) == false) {
+        throw new CommonException(mysqli_error($link));
+    }
+    $board_data = NULL;
+    if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+        $posts_count = $row['visible_posts_count'];
+    }
+    mysqli_free_result($result);
+
+    // Save board data.
+    if (!mysqli_next_result($link)) {
+        throw new CommonException('Not all expected data received.');
+    }
+    if ( ($result = mysqli_store_result($link)) == false) {
+        throw new CommonException(mysqli_error($link));
+    }
+    $board_data = NULL;
+    if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+        $board_data = $row;
+    }
+    mysqli_free_result($result);
+
+    // Save thread data.
+    if (!mysqli_next_result($link)) {
+        throw new CommonException('Not all expected data received.');
+    }
+    if ( ($result = mysqli_store_result($link)) == FALSE) {
+        throw new CommonException(mysqli_error($link));
+    }
+    $thread_data = array();
+    if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+        $thread_data = $row;
+        $thread_data['posts_count'] = $posts_count;
+    }
+    mysqli_free_result($result);
+
+    // Save replies.
+    if (!mysqli_next_result($link)) {
+        throw new CommonException('Not all expected data received.');
+    }
+    if ( ($result = mysqli_store_result($link)) == FALSE) {
+        throw new CommonException(mysqli_error($link));
+    }
+    $posts = array();
+    while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+        array_push($posts, array('id' => $row['id'],
+                                 'board' => &$board_data,
+                                 'thread' => &$thread_data,
+                                 'number' => $row['number'],
+                                 'user' => $row['user'],
+                                 'password' => $row['password'],
+                                 'name' => $row['name'],
+                                 'tripcode' => $row['tripcode'],
+                                 'ip' => $row['ip'],
+                                 'subject' => $row['subject'],
+                                 'date_time' => $row['date_time'],
+                                 'text' => $row['text'],
+                                 'sage' => $row['sage']));
+    }
+    mysqli_free_result($result);
+
+    // Save original post.
+    if (!mysqli_next_result($link)) {
+        throw new CommonException('Not all expected data received.');
+    }
+    if ( ($result = mysqli_store_result($link)) == FALSE) {
+        throw new CommonException(mysqli_error($link));
+    }
+    if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+        array_push($posts, array('id' => $row['id'],
+                                 'board' => &$board_data,
+                                 'thread' => &$thread_data,
+                                 'number' => $row['number'],
+                                 'user' => $row['user'],
+                                 'password' => $row['password'],
+                                 'name' => $row['name'],
+                                 'tripcode' => $row['tripcode'],
+                                 'ip' => $row['ip'],
+                                 'subject' => $row['subject'],
+                                 'date_time' => $row['date_time'],
+                                 'text' => $row['text'],
+                                 'sage' => $row['sage']));
+    }
+    mysqli_free_result($result);
+
+    $posts = array_reverse($posts);
+
+    // Cleanup.
+    db_cleanup_link($link);
+    return $posts;
+}
+/**
  * Search posts by keyword.
  * @param MySQLi $link Link to database.
  * @param array $boards Boards.
@@ -3976,6 +4086,85 @@ function db_threads_get_visible_by_original_post($link, $board, $original_post, 
     mysqli_free_result($result);
     db_cleanup_link($link);
     return $thread;
+}
+/**
+ * Calculate count of visible threads.
+ * @param MySQLi $link Link to database.
+ * @param int $user_id User id.
+ * @param int $board_id Board id.
+ * @param int $page Page number.
+ * @param int $threads_per_page Count of threads per page.
+ * @return array
+ * threads.
+ */
+function db_threads_get_visible_by_page($link, $user_id, $board_id, $page, $threads_per_page) {
+    $query = "call sp_threads_get_visible_by_page($user_id, $board_id, $page, $threads_per_page)";
+    if (mysqli_multi_query($link, $query) == FALSE) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    // If page is 1 first sticky threads comes.
+    $sticky_threads = array();
+    if ($page == 1) {
+        if ( ($result = mysqli_store_result($link)) == FALSE) {
+            throw new CommonException(mysqli_error($link));
+        }
+        while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            array_push($sticky_threads, array('id' => $row['id'],
+                                              'board' => NULL,
+                                              'original_post' => $row['original_post'],
+                                              'bump_limit' => $row['bump_limit'],
+                                              'sage' => $row['sage'],
+                                              'sticky' => $row['sticky'],
+                                              'with_attachments' => $row['with_attachments'],
+                                              'closed' => $row['closed']));
+        }
+        mysqli_free_result($result);
+
+        if (!mysqli_next_result($link)) {
+            throw new CommonException('Not all expected data received.');
+        }
+    }
+
+    // Save boards data.
+    if ( ($result = mysqli_store_result($link)) == false) {
+        throw new CommonException(mysqli_error($link));
+    }
+    $board_data = NULL;
+    if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+        $board_data = $row;
+    }
+    mysqli_free_result($result);
+
+    foreach ($sticky_threads as &$thread) {
+        $thread['board'] = &$board_data;
+    }
+
+    // Save threads.
+    if (!mysqli_next_result($link)) {
+        throw new CommonException('Not all expected data received.');
+    }
+    if ( ($result = mysqli_store_result($link)) == FALSE) {
+        throw new CommonException(mysqli_error($link));
+    }
+    $threads = array();
+    while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+        array_push($threads, array('id' => $row['id'],
+                                   'board' => &$board_data,
+                                   'original_post' => $row['original_post'],
+                                   'bump_limit' => $row['bump_limit'],
+                                   'sage' => $row['sage'],
+                                   'sticky' => $row['sticky'],
+                                   'with_attachments' => $row['with_attachments'],
+                                   'closed' => $row['closed']));
+    }
+    mysqli_free_result($result);
+
+    $threads = array_merge($sticky_threads, $threads);
+
+    // Cleanup.
+    db_cleanup_link($link);
+    return $threads;
 }
 /**
  * Calculate count of visible threads.

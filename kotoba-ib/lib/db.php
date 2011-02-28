@@ -1755,6 +1755,33 @@ function posts_prepare_text(&$text, $board) {
     $text = preg_replace('/\n/', '<br>', $text);
 }
 /**
+ * Get specifed count of visible posts.
+ * @param int $board_id Boards.
+ * @param array $threads Threads.
+ * @param int $user_id User id.
+ * @param int $posts_per_thread Count of posts per thread.
+ * @return array
+ * posts.
+ */
+function posts_get_visible_by_threads_preview($board_id, &$threads, $user_id, $posts_per_thread) {
+    $posts = array();
+
+    foreach ($threads as &$thread) {
+        $tmp = db_posts_get_visible_by_thread_preview(DataExchange::getDBLink(),
+                                                      $board_id,
+                                                      $thread['id'],
+                                                      $user_id,
+                                                      $posts_per_thread);
+        $thread['posts_count'] = $tmp[0]['thread']['posts_count'];
+
+        foreach ($tmp as $post) {
+            array_push($posts, $post);
+        }
+    }
+
+    return $posts;
+}
+/**
  * Search posts by keyword.
  * @param array $boards Boards.
  * @param string $keyword Keyword.
@@ -2166,6 +2193,22 @@ function threads_get_visible_by_original_post($board, $original_post, $user_id) 
                                                    $board,
                                                    $original_post,
                                                    $user_id);
+}
+/**
+ * Calculate count of visible threads.
+ * @param int $user_id User id.
+ * @param int $board_id Board id.
+ * @param int $page Page number.
+ * @param int $threads_per_page Count of threads per page.
+ * @return array
+ * threads.
+ */
+function threads_get_visible_by_page($user_id, $board_id, $page, $threads_per_page) {
+    return db_threads_get_visible_by_page(DataExchange::getDBLink(),
+                                          $user_id,
+                                          $board_id,
+                                          $page,
+                                          $threads_per_page);
 }
 /**
  * Calculate count of visible threads.
