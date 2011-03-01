@@ -37,7 +37,7 @@ try {
     $boards = boards_get_visible($_SESSION['user']);
 
     // Generate news html-code.
-    $news_html = "";
+    $news_html = '';
     foreach ($boards as $board) {
         if ($board['name'] == Config::NEWS_BOARD) {
 
@@ -67,7 +67,6 @@ try {
             $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
             $smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
 
-            $threads_html = '';
             $simple_posts_html = '';
 
             foreach ($threads as $t) {
@@ -128,7 +127,7 @@ try {
                 }
                 $smarty->assign('original_post_html', $original_post_html);
                 $smarty->assign('simple_posts_html', $simple_posts_html);
-                $threads_html .= $smarty->fetch('thread.tpl');
+                $news_html .= $smarty->fetch('thread.tpl');
                 $simple_posts_html = '';
             }
 
@@ -139,7 +138,7 @@ try {
     // Generate main page html-code and display it.
     $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('boards', $boards);
-    $smarty->assign('news_html', $threads_html);
+    $smarty->assign('news_html', $news_html);
     $smarty->assign('version', '$Revision$');
     $smarty->assign('last_modification', '$Date$');
     $smarty->assign('ib_name', Config::IB_NAME);
