@@ -146,17 +146,18 @@ create table boards                         -- Boards.
     -- null - унаследовано из config.php.
     -- 1 - включено.
     -- 0 - отключено.
-    enable_macro bit default null,          -- Macrochan integration flag.
-    enable_youtube bit default null,        -- Youtube video posting flag.
-    enable_captcha bit default null,        -- Captcha flag.
-    enable_translation bit default null,    -- Translation flag.
-    enable_geoip bit default null,          -- GeoIP flag.
-    enable_shi bit default null,            -- Painting flag.
-    enable_postid bit default null,         -- Post identification flag.
+    enable_macro bit default null,              -- Macrochan integration flag.
+    enable_youtube bit default null,            -- Youtube video posting flag.
+    enable_captcha bit default null,            -- Captcha flag.
+    enable_translation bit default null,        -- Translation flag.
+    enable_geoip bit default null,              -- GeoIP flag.
+    enable_shi bit default null,                -- Painting flag.
+    enable_postid bit default null,             -- Post identification flag.
 
-    same_upload varchar(32) not null,       -- Upload policy from same files.
-    popdown_handler int not null,           -- Popdown handler id.
-    category int not null,                  -- Category id.
+    same_upload varchar(32) not null,           -- Upload policy from same files.
+    popdown_handler int not null,               -- Popdown handler id.
+    category int not null,                      -- Category id.
+    last_post_number int not null default 0,    -- Last post number.
     primary key (id),
     unique key (name),
     constraint foreign key (category) references categories (id) on delete restrict on update restrict,
@@ -266,6 +267,7 @@ create table posts                      -- Posts.
     sage bit default null,              -- Sage flag.
     deleted bit not null,               -- Mark to delete.
     primary key (id),
+    index (number),
     constraint foreign key (board) references boards (id) on delete restrict on update restrict,
     constraint foreign key (thread) references threads (id) on delete restrict on update restrict,
     constraint foreign key (user) references users (id) on delete restrict on update restrict
@@ -454,4 +456,4 @@ insert into acl (`group`, board, `view`, `change`, moderate) values (4, 1, 1, 1,
 insert into acl (`group`, board, `view`, `change`, moderate) values (4, 2, 1, 1, 1);
 
 -- Current database version.
-insert into db_version (version) values (10);
+insert into db_version (version) values (12);
