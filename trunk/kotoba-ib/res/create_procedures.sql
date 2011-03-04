@@ -27,6 +27,7 @@ drop procedure if exists sp_boards_get_changeable_by_id|
 drop procedure if exists sp_boards_get_changeable_by_name|
 drop procedure if exists sp_boards_get_moderatable|
 drop procedure if exists sp_boards_get_visible|
+drop procedure if exists sp_boards_set_last_post_number|
 
 drop procedure if exists sp_categories_add|
 drop procedure if exists sp_categories_delete|
@@ -758,6 +759,18 @@ begin
             and a3.`view` = 1
         group by b.id
         order by b.category, b.name;
+end|
+
+-- Select boards visible to user.
+create procedure sp_boards_set_last_post_number
+(
+    _id int,                -- Board id.
+    _last_post_number int   -- Last post number.
+)
+begin
+    start transaction;
+    update boards set last_post_number = _last_post_number where id = _id;
+    commit;
 end|
 
 -- ----------------
@@ -1751,7 +1764,7 @@ begin
     declare threadsage bit;     -- whole thread sage
     declare post_id int;
 
-    select max(number) into post_number from posts where board = board_id;
+    select last_post_number into post_number from boards where id = board_id;
     if(post_number is null) then
         set post_number = 1;
     else
@@ -1778,6 +1791,7 @@ begin
     select id, board, thread, number, user, password, name, tripcode, ip,
             subject, date_time, `text`, sage
         from posts where id = post_id;
+    call sp_boards_set_last_post_number(board_id, post_number);
 end|
 
 -- Remove post.
@@ -3814,7 +3828,7 @@ begin
     select last_insert_id() into _thread;
 
     -- Calculate new original post number and copy original post.
-    select max(number) into _number from posts where board = _board;
+    select last_post_number into _number from boards where id = _board;
     if(_number is null) then
         set _number = 1;
     else
@@ -3829,6 +3843,7 @@ begin
             from posts
             where id = old_original_post_id;
     select last_insert_id() into new_original_post_id;
+    call sp_boards_set_last_post_number(_board, _number);
     call sp_threads_edit_original_post(_thread, _number);
 
     create temporary table tmp_posts

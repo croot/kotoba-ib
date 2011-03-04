@@ -52,7 +52,7 @@ Variables:
 </table>
 </div>
 
-{if $count > 0}
+{if isset($count) && $count > 0}
 <hr/>
 <div class="replymode">Результаты поиска</div>
 <b>Найдено {$count} сообщений:</b>
