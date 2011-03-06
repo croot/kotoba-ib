@@ -2535,6 +2535,258 @@ function db_posts_get_by_boards($link, $boards) {
     return $posts;
 }
 /**
+ * Get posts by boards posted after date.
+ * @param MySQLi $link Link to database.
+ * @param array $boards Boards.
+ * @param int $date_time Date time.
+ * @param int $page Page number.
+ * @param int $posts_per_page Count of posts per page.
+ * @return array
+ * int count - total count of posts posted after date.
+ * array posts - posts.
+ */
+function db_posts_get_by_boards_datetime($link,
+                                         $boards,
+                                         $date_time,
+                                         $page,
+                                         $posts_per_page) {
+
+    $posts = array();
+    $posts_per_page = $posts_per_page / count($boards);
+    $count = 0;
+
+    foreach ($boards as $board) {
+
+        // Do query.
+        $query = "call sp_posts_get_by_board_datetime({$board['id']},
+                                                      $date_time,
+                                                      $page,
+                                                      $posts_per_page)";
+        $result = mysqli_multi_query($link, $query);
+        if (!$result) {
+            throw new CommonException(mysqli_error($link));
+        }
+
+        // Collect data from query result.
+        if ( ($result = mysqli_store_result($link)) == FALSE) {
+            throw new CommonException(mysqli_error($link));
+        }
+        if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            $count += $row['count'];
+        }
+        mysqli_free_result($result);
+
+        if (!mysqli_next_result($link)) {
+            throw new CommonException('Not all expected data received.');
+        }
+        if ( ($result = mysqli_store_result($link)) == false) {
+            throw new CommonException(mysqli_error($link));
+        }
+        while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            if (!isset($thread_data[$row['thread_id']])) {
+                $thread_data[$row['thread_id']] =
+                    array('id' => $row['thread_id'],
+                          'board' => $row['thread_board'],
+                          'original_post' => $row['thread_original_post'],
+                          'bump_limit' => $row['thread_bump_limit'],
+                          'sage' => $row['thread_sage'],
+                          'sticky' => $row['thread_sticky'],
+                          'with_attachments'
+                              => $row['thread_with_attachments']);
+            }
+            array_push($posts,
+                       array('id' => $row['post_id'],
+                             'board' => &$board,
+                             'thread' => &$thread_data[$row['thread_id']],
+                             'number' => $row['post_number'],
+                             'user' => $row['post_user'],
+                             'password' => $row['post_password'],
+                             'name' => $row['post_name'],
+                             'tripcode' => $row['post_tripcode'],
+                             'ip' => $row['post_ip'],
+                             'subject' => $row['post_subject'],
+                             'date_time' => $row['post_date_time'],
+                             'text' => $row['post_text'],
+                             'sage' => $row['post_sage'],
+                             'deleted' => $row['post_deleted']));
+        }
+
+        // Cleanup.
+        mysqli_free_result($result);
+        db_cleanup_link($link);
+    }
+
+    return array('count' => $count, 'posts' => $posts);
+}
+/**
+ * Get posts by boards limited by ip.
+ * @param MySQLi $link Link to database.
+ * @param array $boards Boards.
+ * @param int $ip IP-address.
+ * @param int $page Page number.
+ * @param int $posts_per_page Count of posts per page.
+ * @return array
+ * int count - total count of posts limited by ip.
+ * array posts - posts.
+ */
+function db_posts_get_by_boards_ip($link,
+                                   $boards,
+                                   $ip,
+                                   $page,
+                                   $posts_per_page) {
+
+    $posts = array();
+    $posts_per_page = $posts_per_page / count($boards);
+    $count = 0;
+
+    foreach ($boards as $board) {
+
+        // Do query.
+        $query = "call sp_posts_get_by_board_ip({$board['id']},
+                                                $ip,
+                                                $page,
+                                                $posts_per_page)";
+        $result = mysqli_multi_query($link, $query);
+        if (!$result) {
+            throw new CommonException(mysqli_error($link));
+        }
+
+        // Collect data from query result.
+        if ( ($result = mysqli_store_result($link)) == FALSE) {
+            throw new CommonException(mysqli_error($link));
+        }
+        if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            $count += $row['count'];
+        }
+        mysqli_free_result($result);
+
+        if (!mysqli_next_result($link)) {
+            throw new CommonException('Not all expected data received.');
+        }
+        if ( ($result = mysqli_store_result($link)) == false) {
+            throw new CommonException(mysqli_error($link));
+        }
+        while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            if (!isset($thread_data[$row['thread_id']])) {
+                $thread_data[$row['thread_id']] =
+                    array('id' => $row['thread_id'],
+                          'board' => $row['thread_board'],
+                          'original_post' => $row['thread_original_post'],
+                          'bump_limit' => $row['thread_bump_limit'],
+                          'sage' => $row['thread_sage'],
+                          'sticky' => $row['thread_sticky'],
+                          'with_attachments'
+                              => $row['thread_with_attachments']);
+            }
+            array_push($posts,
+                       array('id' => $row['post_id'],
+                             'board' => &$board,
+                             'thread' => &$thread_data[$row['thread_id']],
+                             'number' => $row['post_number'],
+                             'user' => $row['post_user'],
+                             'password' => $row['post_password'],
+                             'name' => $row['post_name'],
+                             'tripcode' => $row['post_tripcode'],
+                             'ip' => $row['post_ip'],
+                             'subject' => $row['post_subject'],
+                             'date_time' => $row['post_date_time'],
+                             'text' => $row['post_text'],
+                             'sage' => $row['post_sage'],
+                             'deleted' => $row['post_deleted']));
+        }
+
+        // Cleanup.
+        mysqli_free_result($result);
+        db_cleanup_link($link);
+    }
+
+    return array('count' => $count, 'posts' => $posts);
+}
+/**
+ * Get posts by boards limited by number.
+ * @param MySQLi $link Link to database.
+ * @param array $boards Boards.
+ * @param int $number Post number.
+ * @param int $page Page number.
+ * @param int $posts_per_page Count of posts per page.
+ * @return array
+ * int count - total count of posts limited by number.
+ * array posts - posts.
+ */
+function db_posts_get_by_boards_number($link,
+                                       $boards,
+                                       $number,
+                                       $page,
+                                       $posts_per_page) {
+
+    $posts = array();
+    $posts_per_page = $posts_per_page / count($boards);
+    $count = 0;
+
+    foreach ($boards as $board) {
+
+        // Do query.
+        $query = "call sp_posts_get_by_board_number({$board['id']},
+                                                    $number,
+                                                    $page,
+                                                    $posts_per_page)";
+        $result = mysqli_multi_query($link, $query);
+        if (!$result) {
+            throw new CommonException(mysqli_error($link));
+        }
+
+        // Collect data from query result.
+        if ( ($result = mysqli_store_result($link)) == FALSE) {
+            throw new CommonException(mysqli_error($link));
+        }
+        if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            $count += $row['count'];
+        }
+        mysqli_free_result($result);
+
+        if (!mysqli_next_result($link)) {
+            throw new CommonException('Not all expected data received.');
+        }
+        if ( ($result = mysqli_store_result($link)) == false) {
+            throw new CommonException(mysqli_error($link));
+        }
+        while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            if (!isset($thread_data[$row['thread_id']])) {
+                $thread_data[$row['thread_id']] =
+                    array('id' => $row['thread_id'],
+                          'board' => $row['thread_board'],
+                          'original_post' => $row['thread_original_post'],
+                          'bump_limit' => $row['thread_bump_limit'],
+                          'sage' => $row['thread_sage'],
+                          'sticky' => $row['thread_sticky'],
+                          'with_attachments'
+                              => $row['thread_with_attachments']);
+            }
+            array_push($posts,
+                       array('id' => $row['post_id'],
+                             'board' => &$board,
+                             'thread' => &$thread_data[$row['thread_id']],
+                             'number' => $row['post_number'],
+                             'user' => $row['post_user'],
+                             'password' => $row['post_password'],
+                             'name' => $row['post_name'],
+                             'tripcode' => $row['post_tripcode'],
+                             'ip' => $row['post_ip'],
+                             'subject' => $row['post_subject'],
+                             'date_time' => $row['post_date_time'],
+                             'text' => $row['post_text'],
+                             'sage' => $row['post_sage'],
+                             'deleted' => $row['post_deleted']));
+        }
+
+        // Cleanup.
+        mysqli_free_result($result);
+        db_cleanup_link($link);
+    }
+
+    return array('count' => $count, 'posts' => $posts);
+}
+/**
  * Get posts.
  * @param MySQLi $link Link to database.
  * @param int $thread_id Thread id.

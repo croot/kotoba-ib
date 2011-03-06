@@ -99,6 +99,9 @@ drop procedure if exists sp_posts_edit_text_by_id|
 drop procedure if exists sp_posts_get_all|
 drop procedure if exists sp_posts_get_all_numbers|
 drop procedure if exists sp_posts_get_by_board|
+drop procedure if exists sp_posts_get_by_board_datetime|
+drop procedure if exists sp_posts_get_by_board_ip|
+drop procedure if exists sp_posts_get_by_board_number|
 drop procedure if exists sp_posts_get_by_thread|
 drop procedure if exists sp_posts_get_reported_by_board|
 drop procedure if exists sp_posts_get_visible_by_id|
@@ -1963,6 +1966,171 @@ begin
         group by p.id
         order by p.date_time desc;
 end|
+
+-- Select posts by boards posted after date.
+CREATE PROCEDURE sp_posts_get_by_board_datetime
+(
+    _board int,         -- Board id.
+    _date_time int,     -- Timestamp.
+    page int,           -- Page number.
+    posts_per_page int  -- Count of posts per page.
+)
+BEGIN
+    set @_board = _board;
+    set @_date_time = _date_time;
+    set @offset = (page - 1) * posts_per_page;
+    set @posts_per_page = posts_per_page;
+
+    -- Select count of posts posted after date.
+    SELECT COUNT(id) as count
+        FROM posts
+        WHERE board = _board and UNIX_TIMESTAMP(date_time) > _date_time;
+
+    -- Select posts posted after date.
+    PREPARE stmt1 FROM 'select p.id as post_id,
+                               p.board as post_board,
+                               p.thread as post_thread,
+                               p.number as post_number,
+                               p.user as post_user,
+                               p.password as post_password,
+                               p.name as post_name,
+                               p.tripcode as post_tripcode,
+                               p.ip as post_ip,
+                               p.subject as post_subject,
+                               p.date_time as post_date_time,
+                               p.text as post_text,
+                               p.sage as post_sage,
+                               p.deleted as post_deleted,
+
+                               t.id as thread_id,
+                               t.board as thread_board,
+                               t.original_post as thread_original_post,
+                               t.bump_limit as thread_bump_limit,
+                               t.sage as thread_sage,
+                               t.sticky as thread_sticky,
+                               t.with_attachments as thread_with_attachments
+
+                            from posts p
+                            join threads t on t.id = p.thread
+                            where p.board = ?
+                                  and UNIX_TIMESTAMP(p.date_time) > ?
+                                  and t.archived = 0
+                            order by p.number desc
+                            limit ?, ?';
+
+    EXECUTE stmt1 USING @_board, @_date_time, @offset, @posts_per_page;
+    DEALLOCATE PREPARE stmt1;
+END|
+
+-- Select posts by boards and limited by ip.
+CREATE PROCEDURE sp_posts_get_by_board_ip
+(
+    _board int,         -- Board id.
+    _ip int,            -- IP-address.
+    page int,           -- Page number.
+    posts_per_page int  -- Count of posts per page.
+)
+BEGIN
+    set @_board = _board;
+    set @_ip = _ip;
+    set @offset = (page - 1) * posts_per_page;
+    set @posts_per_page = posts_per_page;
+
+    -- Select count of posts.
+    SELECT COUNT(id) as count
+        FROM posts
+        WHERE board = _board and ip = _ip;
+
+    -- Select posts.
+    PREPARE stmt1 FROM 'select p.id as post_id,
+                               p.board as post_board,
+                               p.thread as post_thread,
+                               p.number as post_number,
+                               p.user as post_user,
+                               p.password as post_password,
+                               p.name as post_name,
+                               p.tripcode as post_tripcode,
+                               p.ip as post_ip,
+                               p.subject as post_subject,
+                               p.date_time as post_date_time,
+                               p.text as post_text,
+                               p.sage as post_sage,
+                               p.deleted as post_deleted,
+
+                               t.id as thread_id,
+                               t.board as thread_board,
+                               t.original_post as thread_original_post,
+                               t.bump_limit as thread_bump_limit,
+                               t.sage as thread_sage,
+                               t.sticky as thread_sticky,
+                               t.with_attachments as thread_with_attachments
+
+                            from posts p
+                            join threads t on t.id = p.thread
+                            where p.board = ?
+                                  and p.ip = ?
+                                  and t.archived = 0
+                            order by p.number desc
+                            limit ?, ?';
+
+    EXECUTE stmt1 USING @_board, @_ip, @offset, @posts_per_page;
+    DEALLOCATE PREPARE stmt1;
+END|
+
+-- Select posts by boards and limited by number.
+CREATE PROCEDURE sp_posts_get_by_board_number
+(
+    _board int,         -- Board id.
+    _number int,        -- Post number.
+    page int,           -- Page number.
+    posts_per_page int  -- Count of posts per page.
+)
+BEGIN
+    set @_board = _board;
+    set @_number = _number;
+    set @offset = (page - 1) * posts_per_page;
+    set @posts_per_page = posts_per_page;
+
+    -- Select count of posts.
+    SELECT COUNT(id) as count
+        FROM posts
+        WHERE board = _board and number > _number;
+
+    -- Select posts.
+    PREPARE stmt1 FROM 'select p.id as post_id,
+                               p.board as post_board,
+                               p.thread as post_thread,
+                               p.number as post_number,
+                               p.user as post_user,
+                               p.password as post_password,
+                               p.name as post_name,
+                               p.tripcode as post_tripcode,
+                               p.ip as post_ip,
+                               p.subject as post_subject,
+                               p.date_time as post_date_time,
+                               p.text as post_text,
+                               p.sage as post_sage,
+                               p.deleted as post_deleted,
+
+                               t.id as thread_id,
+                               t.board as thread_board,
+                               t.original_post as thread_original_post,
+                               t.bump_limit as thread_bump_limit,
+                               t.sage as thread_sage,
+                               t.sticky as thread_sticky,
+                               t.with_attachments as thread_with_attachments
+
+                            from posts p
+                            join threads t on t.id = p.thread
+                            where p.board = ?
+                                  and p.number > ?
+                                  and t.archived = 0
+                            order by p.number desc
+                            limit ?, ?';
+
+    EXECUTE stmt1 USING @_board, @_number, @offset, @posts_per_page;
+    DEALLOCATE PREPARE stmt1;
+END|
 
 -- Select posts.
 create procedure sp_posts_get_by_thread

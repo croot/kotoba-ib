@@ -1668,6 +1668,57 @@ function posts_get_by_boards($boards) {
     return db_posts_get_by_boards(DataExchange::getDBLink(), $boards);
 }
 /**
+ * Get posts by boards posted after date.
+ * @param array $boards Boards.
+ * @param int $date_time Date time.
+ * @param int $page Page number.
+ * @param int $posts_per_page Count of posts per page.
+ * @return array
+ * int count - total count of posts posted after date.
+ * array posts - posts.
+ */
+function posts_get_by_boards_datetime($boards, $date_time, $page, $posts_per_page) {
+    return db_posts_get_by_boards_datetime(DataExchange::getDBLink(),
+                                           $boards,
+                                           $date_time,
+                                           $page,
+                                           $posts_per_page);
+}
+/**
+ * Get posts by boards limited by ip.
+ * @param array $boards Boards.
+ * @param int $ip IP-address.
+ * @param int $page Page number.
+ * @param int $posts_per_page Count of posts per page.
+ * @return array
+ * int count - total count of posts limited by number.
+ * array posts - posts.
+ */
+function posts_get_by_boards_ip($boards, $ip, $page, $posts_per_page) {
+    return db_posts_get_by_boards_ip(DataExchange::getDBLink(),
+                                     $boards,
+                                     $ip,
+                                     $page,
+                                     $posts_per_page);
+}
+/**
+ * Get posts by boards limited by number.
+ * @param array $boards Boards.
+ * @param int $number Post number.
+ * @param int $page Page number.
+ * @param int $posts_per_page Count of posts per page.
+ * @return array
+ * int count - total count of posts limited by number.
+ * array posts - posts.
+ */
+function posts_get_by_boards_number($boards, $number, $page, $posts_per_page) {
+    return db_posts_get_by_boards_number(DataExchange::getDBLink(),
+                                         $boards,
+                                         $number,
+                                         $page,
+                                         $posts_per_page);
+}
+/**
  * Get posts.
  * @param int $thread_id Thread id.
  * @return array
