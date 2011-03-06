@@ -11,7 +11,12 @@ Variables:
     $STYLESHEET - stylesheet (see config.default).
     $show_control - show link to manage page.
     $boards - boards.
+    $page - page number.
     $is_admin - is current user are admin.
+    $prev_filter_board - previous value of board filter between two script calls.
+    $prev_filter_date_time - previous value of date-time filter between two script calls.
+    $prev_filter_number - previous value of number filter between two script calls.
+    $prev_filter_ip - previous value of ip filter between two script calls.
     $moderate_posts - array of code of filtred posts for moderation.
 *}
 {include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title='Основная страница модератора'}
@@ -21,6 +26,14 @@ Variables:
 {include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
 
 <div class="logo">Основная страница модератора</div>
+{include file='moderate_pages_list.tpl'
+         pages=$pages
+         page=$page
+         prev_filter_board=$prev_filter_board
+         prev_filter_date_time=$prev_filter_date_time
+         prev_filter_number=$prev_filter_number
+         prev_filter_ip=$prev_filter_ip}
+
 <hr>
 <form action="{$DIR_PATH}/admin/moderate.php" method="post">
 <table border="1">
@@ -28,16 +41,16 @@ Variables:
     <td>доска
     <select name="filter_board">
         <option value="" selected></option>
-        {if $is_admin}<option value="all">Все</option>{/if}
+        {if $is_admin}<option value="all"{if $prev_filter_board == 'all'} selected{/if}>Все</option>{/if}
 
 {section name=i loop=$boards}
-        <option value="{$boards[i].id}">{$boards[i].name}</option>{/section}
+        <option value="{$boards[i].id}"{if $prev_filter_board == $boards[i].id} selected{/if}>{$boards[i].name}</option>{/section}
 
     </select>
     </td>
-    <td>дата <input type="text" name="filter_date_time"></td>
-    <td>номер сообщения <input type="text" name="filter_number"></td>
-    <td>IP-адрес <input type="text" name="filter_ip"></td>
+    <td>дата <input type="text" name="filter_date_time" value="{$prev_filter_date_time}"></td>
+    <td>номер сообщения <input type="text" name="filter_number" value="{$prev_filter_number}"></td>
+    <td>IP-адрес <input type="text" name="filter_ip" value="{$prev_filter_ip}"></td>
     <td><input type="submit" name="filter" value="Выбрать"> <input type="reset" value="Сброс"></td>
 </tr>
 <tr>

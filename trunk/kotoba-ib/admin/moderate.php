@@ -44,9 +44,19 @@ try {
     }
     call_user_func(Logging::$f['MODERATE_USE']);
 
+    $page = 1;
+    if (isset($_GET['page'])) {
+        $page = check_page($_GET['page']);
+    }
+    $page_max = 1;
+
     $boards = ($is_admin == true) ? boards_get_all() : boards_get_moderatable($_SESSION['user']);
     $output = '';
     $moderate_posts = array();
+    $prev_filter_board = '';
+    $prev_filter_date_time = '';
+    $prev_filter_number = '';
+    $prev_filter_ip = '';
     $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('boards', $boards);
     $smarty->assign('is_admin', $is_admin);
@@ -55,6 +65,15 @@ try {
     $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
     $smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
     date_default_timezone_set(Config::DEFAULT_TIMEZONE);
+
+    // Dirty work.
+    if (isset($_GET['filter'])) {
+        $_POST['filter'] = 1;
+        $_POST['filter_board'] = $_GET['bf'];
+        $_POST['filter_date_time'] = $_GET['df'];
+        $_POST['filter_number'] = $_GET['nf'];
+        $_POST['filter_ip'] = $_GET['if'];
+    }
 
     // Request posts. Apply defined filter to posts and show.
     if (isset($_POST['filter'])
@@ -69,6 +88,7 @@ try {
         if ($_POST['filter_board'] == 'all') {
             if ($is_admin) {
                 $filter_boards = $boards;
+                $prev_filter_board = 'all';
             } else {
                 throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
             }
@@ -77,6 +97,7 @@ try {
             foreach ($boards as $board) {
                 if ($_POST['filter_board'] == $board['id']) {
                     array_push($filter_boards, $board);
+                    $prev_filter_board = $board['id'];
                     break;  // Only one yet.
                 }
             }
@@ -86,40 +107,59 @@ try {
         if ($_POST['filter_date_time'] != '') {
             $filter_date_time = date_format(date_create($_POST['filter_date_time']), 'U');
 
-            // Filters posts whose datetime equal or greater than defined value.
-            $fileter = function($post, $filter_date_time, $attachments_only) {
-                date_default_timezone_set(Config::DEFAULT_TIMEZONE);
-                if (date_format(date_create($post['date_time']), 'U') >= $filter_date_time) {
-                    if (!$attachments_only || $attachments_only && $post['attachments_count'] > 0) {
-                        return true;
-                    }
-                }
-                return false;
-            };
-            $posts = posts_get_filtred_by_boards($filter_boards, $fileter, $filter_date_time, isset($_POST['attachments_only']));
+            $posts_data = posts_get_by_boards_datetime($filter_boards, $filter_date_time, $page, 100);
+            $posts = $posts_data['posts'];
+
+            // We already select something but anyway we need to calculate
+            // pages count and check what page was correct.
+            $page_max = ($posts_data['count'] % 100 == 0
+                         ? (int)($posts_data['count'] / 100)
+                         : (int)($posts_data['count'] / 100) + 1);
+            if ($page_max == 0) {
+                $page_max = 1;
+            }
+            if ($page > $page_max) {
+                throw new LimitException(LimitException::$messages['MAX_PAGE']);
+            }
+
+            $prev_filter_date_time = date_format(date_create($_POST['filter_date_time']), Config::DATETIME_FORMAT);
         } elseif($_POST['filter_number'] != '') {
             $filter_number = posts_check_number($_POST['filter_number']);
 
-            // Filters posts whose number equal or greater than defined value.
-            $fileter = function($post, $filter_number, $attachments_only) {
-                if ($post['number'] >= $filter_number) {
-                    if (!$attachments_only || $attachments_only && $post['attachments_count'] > 0) {
-                        return true;
-                    }
-                }
-                return false;
-            };
-            $posts = posts_get_filtred_by_boards($filter_boards, $fileter, $filter_number, isset($_POST['attachments_only']));
+            $posts_data = posts_get_by_boards_number($filter_boards, $filter_number, $page, 100);
+            $posts = $posts_data['posts'];
+
+            // We already select something but anyway we need to calculate
+            // pages count and check what page was correct.
+            $page_max = ($posts_data['count'] % 100 == 0
+                         ? (int)($posts_data['count'] / 100)
+                         : (int)($posts_data['count'] / 100) + 1);
+            if ($page_max == 0) {
+                $page_max = 1;
+            }
+            if ($page > $page_max) {
+                throw new LimitException(LimitException::$messages['MAX_PAGE']);
+            }
+
+            $prev_filter_number = $filter_number;
         } elseif($_POST['filter_ip'] != '') {
 
-            // Filters posts whose ip equal defined value.
-            $fileter = function($post, $filter_ip) {
-                if ($post['ip'] == $filter_ip) {
-                    return true;
-                }
-                return false;
-            };
-            $posts = posts_get_filtred_by_boards($filter_boards, $fileter, ip2long($_POST['filter_ip']));
+            $posts_data = posts_get_by_boards_ip($filter_boards, ip2long($_POST['filter_ip']), $page, 100);
+            $posts = $posts_data['posts'];
+
+            // We already select something but anyway we need to calculate
+            // pages count and check what page was correct.
+            $page_max = ($posts_data['count'] % 100 == 0
+                         ? (int)($posts_data['count'] / 100)
+                         : (int)($posts_data['count'] / 100) + 1);
+            if ($page_max == 0) {
+                $page_max = 1;
+            }
+            if ($page > $page_max) {
+                throw new LimitException(LimitException::$messages['MAX_PAGE']);
+            }
+
+            $prev_filter_ip = long2ip(ip2long($_POST['filter_ip']));
         }
 
         // Generate list of filtered posts.
@@ -189,6 +229,16 @@ try {
     }
 
     $smarty->assign('moderate_posts', $moderate_posts);
+    $smarty->assign('prev_filter_board', $prev_filter_board);
+    $smarty->assign('prev_filter_date_time', $prev_filter_date_time);
+    $smarty->assign('prev_filter_number', $prev_filter_number);
+    $smarty->assign('prev_filter_ip', $prev_filter_ip);
+    $pages = array();
+    for ($i = 1; $i <= $page_max; $i++) {
+        array_push($pages, $i);
+    }
+    $smarty->assign('pages', $pages);
+    $smarty->assign('page', $page);
     $smarty->display('moderate.tpl');
 
     // Cleanup.

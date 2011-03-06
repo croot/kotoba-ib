@@ -408,7 +408,11 @@ try {
         header('Location: ' . Config::DIR_PATH . "/{$board['name']}/");
     }
 
-    echo "{$post['id']}";
+    if (ctype_digit($post['id'])) {
+        echo "{$post['id']}";
+    } else {
+        throw new Exception('ID of new post is empty. Highload issue?');
+    }
 
     // Cleanup.
     DataExchange::releaseResources();

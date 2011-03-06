@@ -401,7 +401,11 @@ try {
         header('Location: ' . Config::DIR_PATH . "/{$board['name']}/");
     }
 
-    echo "{$thread['id']}";
+    if (ctype_digit($thread['id'])) {
+        echo "{$thread['id']}";
+    } else {
+        throw new Exception('ID of new original post is empty. Highload issue?');
+    }
 
     // Cleanup.
     DataExchange::releaseResources();
