@@ -11,6 +11,7 @@ Variables:
     $STYLESHEET - stylesheet (see config.default).
     $show_control - show link to manage page.
     $boards - boards.
+    $pages - pages.
     $page - page number.
     $is_admin - is current user are admin.
     $prev_filter_board - previous value of board filter between two script calls.

@@ -2186,57 +2186,76 @@ begin
 end|
 
 -- Get reported posts.
-create procedure sp_posts_get_reported_by_board
+CREATE PROCEDURE sp_posts_get_reported_by_board
 (
-    board_id int    -- Board id.
+    board_id int,       -- Board id.
+    page int,           -- Page number.
+    posts_per_page int  -- Count of posts per page.
 )
-begin
-    select p.id as post_id,
-           p.number as post_number,
-           p.password as post_password,
-           p.name as post_name,
-           p.tripcode as post_tripcode,
-           p.ip as post_ip,
-           p.subject as post_subject,
-           p.date_time as post_date_time,
-           p.text as post_text,
-           p.sage as post_sage,
-           p.user as post_user,
+BEGIN
+    SET @_board = board_id;
+    SET @offset = (page - 1) * posts_per_page;
+    SET @posts_per_page = posts_per_page;
 
-           b.id as board_id,
-           b.name as board_name,
-           b.title as board_title,
-           b.annotation as board_annotation,
-           b.bump_limit as board_bump_limit,
-           b.force_anonymous as board_force_anonymous,
-           b.default_name as board_default_name,
-           b.with_attachments as board_with_attachments,
-           b.enable_macro as board_enable_macro,
-           b.enable_youtube as board_enable_youtube,
-           b.enable_captcha as board_enable_captcha,
-           b.enable_translation as board_enable_translation,
-           b.enable_geoip as board_enable_geoip,
-           b.enable_shi as board_enable_shi,
-           b.enable_postid as board_enable_postid,
-           b.same_upload as board_same_upload,
-           b.popdown_handler as board_popdown_handler,
-           b.category as board_category,
+    -- Select count of reported posts.
+    SELECT COUNT(p.id) AS count
+        FROM posts p
+        JOIN reports r ON r.post = p.id
+        WHERE p.board = @_board;
 
-           t.id as thread_id,
-           t.board as thread_board,
-           t.original_post as thread_original_post,
-           t.bump_limit as thread_bump_limit,
-           t.sage as thread_sage,
-           t.sticky as thread_sticky,
-           t.with_attachments as thread_with_attachments
+    -- Select reported posts.
+    PREPARE stmt1 FROM 'select p.id as post_id,
+                               p.number as post_number,
+                               p.password as post_password,
+                               p.name as post_name,
+                               p.tripcode as post_tripcode,
+                               p.ip as post_ip,
+                               p.subject as post_subject,
+                               p.date_time as post_date_time,
+                               p.text as post_text,
+                               p.sage as post_sage,
+                               p.user as post_user,
 
-        from posts p
-        join threads t on t.id = p.thread
-        join boards b on b.id = p.board
-        join reports r on p.id = r.post
-        where p.deleted = 0 and t.deleted = 0 and t.archived = 0
-            and p.board = board_id
-        order by p.date_time desc;
+                               b.id as board_id,
+                               b.name as board_name,
+                               b.title as board_title,
+                               b.annotation as board_annotation,
+                               b.bump_limit as board_bump_limit,
+                               b.force_anonymous as board_force_anonymous,
+                               b.default_name as board_default_name,
+                               b.with_attachments as board_with_attachments,
+                               b.enable_macro as board_enable_macro,
+                               b.enable_youtube as board_enable_youtube,
+                               b.enable_captcha as board_enable_captcha,
+                               b.enable_translation as board_enable_translation,
+                               b.enable_geoip as board_enable_geoip,
+                               b.enable_shi as board_enable_shi,
+                               b.enable_postid as board_enable_postid,
+                               b.same_upload as board_same_upload,
+                               b.popdown_handler as board_popdown_handler,
+                               b.category as board_category,
+
+                               t.id as thread_id,
+                               t.board as thread_board,
+                               t.original_post as thread_original_post,
+                               t.bump_limit as thread_bump_limit,
+                               t.sage as thread_sage,
+                               t.sticky as thread_sticky,
+                               t.with_attachments as thread_with_attachments
+
+                            from posts p
+                            join threads t on t.id = p.thread
+                            join boards b on b.id = p.board
+                            join reports r on p.id = r.post
+                            where p.board = ?
+                                  and p.deleted = 0
+                                  and t.deleted = 0
+                                  and t.archived = 0
+                            order by p.date_time desc
+                            limit ?, ?';
+
+    EXECUTE stmt1 USING @_board, @offset, @posts_per_page;
+    DEALLOCATE PREPARE stmt1;
 end|
 
 -- Select visible post.

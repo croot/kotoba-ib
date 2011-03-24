@@ -21,7 +21,7 @@ locale_setup();
 $data = array(array('name' => 'boxxy001.png',
                     'width' => 100,
                     'height' => 50,
-                    'words'=> array('boxxy', 'бокси')));
+                    'words'=> array('boxxy', 'бокси', 'catie')));
 
 // Read image.
 $n = rand(0, count($data) - 1);

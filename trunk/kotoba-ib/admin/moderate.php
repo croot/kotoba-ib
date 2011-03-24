@@ -82,7 +82,9 @@ try {
             && isset($_POST['filter_number'])
             && isset($_POST['filter_ip'])
             && $_POST['filter_board'] != ''
-            && ($_POST['filter_date_time'] != '' || $_POST['filter_number'] != '' ||  $_POST['filter_ip'] != '')) {
+            && ($_POST['filter_date_time'] != ''
+                    || $_POST['filter_number'] != ''
+                    || $_POST['filter_ip'] != '')) {
 
         // Board filter.
         if ($_POST['filter_board'] == 'all') {
@@ -107,7 +109,10 @@ try {
         if ($_POST['filter_date_time'] != '') {
             $filter_date_time = date_format(date_create($_POST['filter_date_time']), 'U');
 
-            $posts_data = posts_get_by_boards_datetime($filter_boards, $filter_date_time, $page, 100);
+            $posts_data = posts_get_by_boards_datetime($filter_boards,
+                                                       $filter_date_time,
+                                                       $page,
+                                                       100);
             $posts = $posts_data['posts'];
 
             // We already select something but anyway we need to calculate

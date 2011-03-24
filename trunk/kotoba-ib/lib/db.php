@@ -1750,11 +1750,17 @@ function posts_get_filtred_by_boards($boards, $filter) {
 /**
  * Get reported posts.
  * @param array $boards Boards.
+ * @param int $page Page number.
+ * @param int $posts_per_page Count of posts per page.
  * @return array
- * posts.
+ * int count - total count of reported posts.
+ * array posts - posts.
  */
-function posts_get_reported_by_boards($boards) {
-    return db_posts_get_reported_by_boards(DataExchange::getDBLink(), $boards);
+function posts_get_reported_by_boards($boards, $page, $posts_per_page) {
+    return db_posts_get_reported_by_boards(DataExchange::getDBLink(),
+                                           $boards,
+                                           $page,
+                                           $posts_per_page);
 }
 /**
  * Get visible post.
