@@ -11,8 +11,11 @@ Variables:
     $STYLESHEET - stylesheet (see config.default).
     $show_control - show link to manage page.
     $boards - boards.
+    $pages - pages.
+    $page - page number.
     $is_admin - is current user are admin.
     $reported_posts - array of code of reported posts.
+    $prev_filter_board - previous value of board filter between two script calls.
 *}
 {include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title='Жалобы'}
 
@@ -20,17 +23,23 @@ Variables:
 
 {include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
 
-<br>
+<div class="logo">Жалобы</div>
+{include file='reports_pages_list.tpl'
+         pages=$pages
+         page=$page
+         prev_filter_board=$prev_filter_board}
+
+<hr>
 <form action="{$DIR_PATH}/admin/reports.php" method="post">
     <table border="1">
     <tr>
         <td colspan=3>доска
             <select name="filter_board">
             <option value="" selected></option>
-            {if $is_admin}<option value="all">Все</option>{/if}
+            {if $is_admin}<option value="all"{if $prev_filter_board == 'all'} selected{/if}>Все</option>{/if}
 
             {section name=i loop=$boards}
-            <option value="{$boards[i].id}">{$boards[i].name}</option>
+            <option value="{$boards[i].id}"{if $prev_filter_board == $boards[i].id} selected{/if}>{$boards[i].name}</option>
 
             {/section}
             </select>
@@ -70,6 +79,4 @@ Variables:
     {/section}
     </table>
 </form>
-<br>
-<a href="{$DIR_PATH}/">На главную</a>
 {include file='footer.tpl'}

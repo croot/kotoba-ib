@@ -41,8 +41,15 @@ try {
     }
     call_user_func(Logging::$f['REPORTS_USE']);
 
+    $page = 1;
+    if (isset($_GET['page'])) {
+        $page = check_page($_GET['page']);
+    }
+    $page_max = 1;
+
     $boards = boards_get_all();
     $reported_posts = array();
+    $prev_filter_board = '';
     $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('boards', $boards);
     $smarty->assign('is_admin', is_admin());
@@ -52,6 +59,12 @@ try {
     $smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
     date_default_timezone_set(Config::DEFAULT_TIMEZONE);
 
+    // Dirty work.
+    if (isset($_GET['filter'])) {
+        $_POST['filter'] = 1;
+        $_POST['filter_board'] = $_GET['bf'];
+    }
+
     // Request posts. Apply defined filter to posts and show.
     if (isset($_POST['filter'])
             && isset($_POST['filter_board'])
@@ -60,21 +73,38 @@ try {
         // Board filter.
         if ($_POST['filter_board'] == 'all') {
             $filter_boards = $boards;
+            $prev_filter_board = 'all';
         } else {
             $filter_boards = array();
             foreach ($boards as $board) {
                 if ($_POST['filter_board'] == $board['id']) {
                     array_push($filter_boards, $board);
+                    $prev_filter_board = $board['id'];
                     break;  // Only one yet.
                 }
             }
         }
 
         // Generate list of filtered posts.
-        $posts = posts_get_reported_by_boards($filter_boards);
+        $posts_data = posts_get_reported_by_boards($filter_boards, $page, 100);
+        $posts = $posts_data['posts'];
+
+        // We already select something but anyway we need to calculate
+        // pages count and check what page was correct.
+        $page_max = ($posts_data['count'] % 100 == 0
+                     ? (int)($posts_data['count'] / 100)
+                     : (int)($posts_data['count'] / 100) + 1);
+        if ($page_max == 0) {
+            $page_max = 1;
+        }
+        if ($page > $page_max) {
+            throw new LimitException(LimitException::$messages['MAX_PAGE']);
+        }
+
         $posts_attachments = posts_attachments_get_by_posts($posts);
         $attachments = attachments_get_by_posts($posts);
         $admins = users_get_admins();
+
         foreach ($posts as $post) {
 
             // Find if author of this post is admin.
@@ -86,11 +116,12 @@ try {
                 }
             }
 
-            array_push($reported_posts, post_report_generate_html($smarty,
-                                                                  $post,
-                                                                  $posts_attachments,
-                                                                  $attachments,
-                                                                  $author_admin));
+            array_push($reported_posts,
+                       post_report_generate_html($smarty,
+                                                 $post,
+                                                 $posts_attachments,
+                                                 $attachments,
+                                                 $author_admin));
         }
     }
 
@@ -99,7 +130,9 @@ try {
             && isset($_POST['ban_type'])
             && isset($_POST['del_type'])
             && isset($_POST['report_act'])
-            && ($_POST['ban_type'] != 'none' || $_POST['del_type'] != 'none' || $_POST['report_act'])) {
+            && ($_POST['ban_type'] != 'none'
+                    || $_POST['del_type'] != 'none'
+                    || $_POST['report_act'])) {
 
         $posts = posts_get_reported_by_boards($boards);
         foreach ($posts as $post) {
@@ -116,7 +149,10 @@ try {
                     case 'simple':
 
                         // Ban for 1 hour by default.
-                        bans_add($post['ip'], $post['ip'], '', date('Y-m-d H:i:s', time() + (60 * 60)));
+                        bans_add($post['ip'],
+                                 $post['ip'],
+                                 '',
+                                 date('Y-m-d H:i:s', time() + (60 * 60)));
                         break;
                     case 'hard':
                         hard_ban_add($post['ip'], $post['ip']);
@@ -141,11 +177,20 @@ try {
         }
     }
 
+    $pages = array();
+    for ($i = 1; $i <= $page_max; $i++) {
+        array_push($pages, $i);
+    }
+    $smarty->assign('pages', $pages);
+    $smarty->assign('page', $page);
+    $smarty->assign('prev_filter_board', $prev_filter_board);
     $smarty->assign('reported_posts', $reported_posts);
     $smarty->display('reports.tpl');
 
     DataExchange::releaseResources();
-    exit;
+    Logging::close_log();
+
+    exit(0);
 } catch(Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();
