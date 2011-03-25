@@ -124,6 +124,25 @@ function locale_setup() {
  ***********/
 
 /**
+ * Clone array by value.
+ * @param array $array Array to clone.
+ * @return array
+ * clone.
+ */
+function kotoba_array_clone($array) {
+    $new_array = NULL;
+
+    foreach ($array as $key => $val) {
+        if (!is_array($val)) {
+            $new_array[$key] = $val;
+        } else {
+            $new_array[$key] = kotoba_array_clone($val);
+        }
+    }
+
+    return $new_array;
+}
+/**
  * Get certain column of 2nd dimensinal array.
  * @param array $src Source array.
  * @param mixed $col Column index or name.

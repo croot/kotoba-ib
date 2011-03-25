@@ -2787,6 +2787,74 @@ function db_posts_get_by_boards_number($link,
     return array('count' => $count, 'posts' => $posts);
 }
 /**
+ * Get posts by it's id's.
+ * @param MySQLi $link Link to database.
+ * @param array $ids Id's of posts.
+ * @return array
+ * posts.
+ */
+function db_posts_get_by_ids($link, $ids) {
+    $posts = array();
+    $post = NULL;
+    $query = 'call sp_posts_get_by_id(?)';
+
+    if ( ($stmt = mysqli_prepare($link, $query)) != FALSE) {
+        foreach ($ids as $id) {
+            mysqli_stmt_bind_param($stmt, "i", $id);
+            mysqli_stmt_execute($stmt);
+            mysqli_stmt_bind_result($stmt,
+                                    $post['id'],
+                                    $post['number'],
+                                    $post['user'],
+                                    $post['password'],
+                                    $post['name'],
+                                    $post['tripcode'],
+                                    $post['ip'],
+                                    $post['subject'],
+                                    $post['date_time'],
+                                    $post['text'],
+                                    $post['sage'],
+                                    $post['board']['id'],
+                                    $post['board']['name'],
+                                    $post['board']['title'],
+                                    $post['board']['annotation'],
+                                    $post['board']['bump_limit'],
+                                    $post['board']['force_anonymous'],
+                                    $post['board']['default_name'],
+                                    $post['board']['with_attachments'],
+                                    $post['board']['enable_macro'],
+                                    $post['board']['enable_youtube'],
+                                    $post['board']['enable_captcha'],
+                                    $post['board']['enable_translation'],
+                                    $post['board']['enable_geoip'],
+                                    $post['board']['enable_shi'],
+                                    $post['board']['enable_postid'],
+                                    $post['board']['same_upload'],
+                                    $post['board']['popdown_handler'],
+                                    $post['board']['category'],
+                                    $post['thread']['id'],
+                                    $post['thread']['board'],
+                                    $post['thread']['original_post'],
+                                    $post['thread']['bump_limit'],
+                                    $post['thread']['sage'],
+                                    $post['thread']['sticky'],
+                                    $post['thread']['with_attachments']);
+            mysqli_stmt_fetch($stmt);
+
+            // Hack to clone array. Thank you PHP.
+            array_push($posts, kotoba_array_clone($post));
+
+            db_cleanup_link($link);
+        }
+    } else {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    mysqli_stmt_close($stmt);
+
+    return $posts;
+}
+/**
  * Get posts.
  * @param MySQLi $link Link to database.
  * @param int $thread_id Thread id.

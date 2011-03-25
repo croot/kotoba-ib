@@ -130,49 +130,55 @@ try {
             && isset($_POST['ban_type'])
             && isset($_POST['del_type'])
             && isset($_POST['report_act'])
+            && isset($_POST['marked'])
+            && is_array($_POST['marked'])
             && ($_POST['ban_type'] != 'none'
                     || $_POST['del_type'] != 'none'
                     || $_POST['report_act'])) {
 
-        $posts = posts_get_reported_by_boards($boards);
+        for ($i = 0; $i < count($_POST['marked']); $i++) {
+            $_POST['marked'][$i] = posts_check_id($_POST['marked'][$i]);
+        }
+
+        $posts = posts_get_by_ids($_POST['marked']);
+
         foreach ($posts as $post) {
 
-            // If post was marked do action.
-            if (isset($_POST["mark_{$post['id']}"])) {
+            if ($_POST['report_act']) {
+                reports_delete($post['id']);
+            }
 
-                if ($_POST['report_act']) {
-                    reports_delete($post['id']);
-                }
+            // Ban poster?
+            switch ($_POST['ban_type']) {
+                case 'simple':
 
-                // Ban poster?
-                switch ($_POST['ban_type']) {
-                    case 'simple':
+                    // Ban for 1 hour by default.
+                    bans_add($post['ip'],
+                             $post['ip'],
+                             '',
+                             date('Y-m-d H:i:s', time() + (60 * 60)));
+                    break;
+                case 'hard':
+                    hard_ban_add($post['ip'], $post['ip']);
+                    break;
+            }
 
-                        // Ban for 1 hour by default.
-                        bans_add($post['ip'],
-                                 $post['ip'],
-                                 '',
-                                 date('Y-m-d H:i:s', time() + (60 * 60)));
-                        break;
-                    case 'hard':
-                        hard_ban_add($post['ip'], $post['ip']);
-                        break;
-                }
+            // Remove post(s) or attachment?
+            switch ($_POST['del_type']) {
+                case 'post':
+                    posts_delete($post['id']);
+                    break;
+                case 'file':
+                    posts_attachments_delete_by_post($post['id']);
+                    break;
+                case 'last':
 
-                // Remove post(s) or attachment?
-                switch ($_POST['del_type']) {
-                    case 'post':
-                        posts_delete($post['id']);
-                        break;
-                    case 'file':
-                        posts_attachments_delete_by_post($post['id']);
-                        break;
-                    case 'last':
-
-                        // Delete all posts posted from this IP-address in last hour.
-                        posts_delete_last($post['id'], date(Config::DATETIME_FORMAT, time() - (60 * 60)));
-                        break;
-                }
+                    // Delete all posts posted from this IP-address in last
+                    // hour.
+                    posts_delete_last($post['id'],
+                                      date(Config::DATETIME_FORMAT,
+                                           time() - (60 * 60)));
+                    break;
             }
         }
     }
