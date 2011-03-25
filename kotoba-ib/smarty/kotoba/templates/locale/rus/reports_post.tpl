@@ -17,7 +17,7 @@ Variables:
     $attachments - attachments.
     $enable_translation - Translation flag. (see config.default).
 *}
-<td><input type="checkbox" name="mark_{$post.id}" value="1"></td>
+<td><input type="checkbox" name="marked[]" value="{$post.id}"></td>
 <td colspan="3" class="reply"{if isset($post.deleted) && $post.deleted} style="background-color:pink"{/if}>
     <a name="{$post.number}"></a>
     <span class="filetitle">{$post.subject}</span>
