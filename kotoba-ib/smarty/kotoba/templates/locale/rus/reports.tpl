@@ -78,5 +78,6 @@ Variables:
 
     {/section}
     </table>
+    <input type="hidden" name="prev_filter_board" value="{$prev_filter_board}">
 </form>
 {include file='footer.tpl'}

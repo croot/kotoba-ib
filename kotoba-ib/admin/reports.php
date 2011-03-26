@@ -47,9 +47,17 @@ try {
     }
     $page_max = 1;
 
+    $prev_filter_board = '';
+    if (isset($_POST['prev_filter_board'])) {
+        if ($_POST['prev_filter_board'] == 'all') {
+            $prev_filter_board = 'all';
+        } else {
+            $prev_filter_board = boards_check_id($_POST['prev_filter_board']);
+        }
+    }
+
     $boards = boards_get_all();
     $reported_posts = array();
-    $prev_filter_board = '';
     $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('boards', $boards);
     $smarty->assign('is_admin', is_admin());
@@ -63,66 +71,6 @@ try {
     if (isset($_GET['filter'])) {
         $_POST['filter'] = 1;
         $_POST['filter_board'] = $_GET['bf'];
-    }
-
-    // Request posts. Apply defined filter to posts and show.
-    if (isset($_POST['filter'])
-            && isset($_POST['filter_board'])
-            && $_POST['filter_board'] != '') {
-
-        // Board filter.
-        if ($_POST['filter_board'] == 'all') {
-            $filter_boards = $boards;
-            $prev_filter_board = 'all';
-        } else {
-            $filter_boards = array();
-            foreach ($boards as $board) {
-                if ($_POST['filter_board'] == $board['id']) {
-                    array_push($filter_boards, $board);
-                    $prev_filter_board = $board['id'];
-                    break;  // Only one yet.
-                }
-            }
-        }
-
-        // Generate list of filtered posts.
-        $posts_data = posts_get_reported_by_boards($filter_boards, $page, 100);
-        $posts = $posts_data['posts'];
-
-        // We already select something but anyway we need to calculate
-        // pages count and check what page was correct.
-        $page_max = ($posts_data['count'] % 100 == 0
-                     ? (int)($posts_data['count'] / 100)
-                     : (int)($posts_data['count'] / 100) + 1);
-        if ($page_max == 0) {
-            $page_max = 1;
-        }
-        if ($page > $page_max) {
-            throw new LimitException(LimitException::$messages['MAX_PAGE']);
-        }
-
-        $posts_attachments = posts_attachments_get_by_posts($posts);
-        $attachments = attachments_get_by_posts($posts);
-        $admins = users_get_admins();
-
-        foreach ($posts as $post) {
-
-            // Find if author of this post is admin.
-            $author_admin = false;
-            foreach ($admins as $admin) {
-                if ($post['user'] == $admin['id']) {
-                    $author_admin = true;
-                    break;
-                }
-            }
-
-            array_push($reported_posts,
-                       post_report_generate_html($smarty,
-                                                 $post,
-                                                 $posts_attachments,
-                                                 $attachments,
-                                                 $author_admin));
-        }
     }
 
     // Action on marked posts.
@@ -180,6 +128,82 @@ try {
                                            time() - (60 * 60)));
                     break;
             }
+        }
+    }
+
+    // Request posts. Apply defined filter to posts and show.
+    $filter_boards = array();
+    if (isset($_POST['filter'])
+            && isset($_POST['filter_board'])
+            && $_POST['filter_board'] != '') {
+
+        // Board filter.
+        if ($_POST['filter_board'] == 'all') {
+            $filter_boards = $boards;
+            $prev_filter_board = 'all';
+        } else {
+            foreach ($boards as $board) {
+                if ($_POST['filter_board'] == $board['id']) {
+                    array_push($filter_boards, $board);
+                    $prev_filter_board = $board['id'];
+                    break;  // Only one yet.
+                }
+            }
+        }
+    } else if ($prev_filter_board != '') {
+
+        // Board filter.
+        if ($prev_filter_board == 'all') {
+            $filter_boards = $boards;
+        } else {
+            foreach ($boards as $board) {
+                if ($prev_filter_board == $board['id']) {
+                    array_push($filter_boards, $board);
+                    break;  // Only one yet.
+                }
+            }
+        }
+    }
+
+    if (count($filter_boards) > 0) {
+
+        // Generate list of filtered posts.
+        $posts_data = posts_get_reported_by_boards($filter_boards, $page, 100);
+        $posts = $posts_data['posts'];
+
+        // We already select something but anyway we need to calculate
+        // pages count and check what page was correct.
+        $page_max = ($posts_data['count'] % 100 == 0
+                     ? (int)($posts_data['count'] / 100)
+                     : (int)($posts_data['count'] / 100) + 1);
+        if ($page_max == 0) {
+            $page_max = 1;
+        }
+        if ($page > $page_max) {
+            throw new LimitException(LimitException::$messages['MAX_PAGE']);
+        }
+
+        $posts_attachments = posts_attachments_get_by_posts($posts);
+        $attachments = attachments_get_by_posts($posts);
+        $admins = users_get_admins();
+
+        foreach ($posts as $post) {
+
+            // Find if author of this post is admin.
+            $author_admin = false;
+            foreach ($admins as $admin) {
+                if ($post['user'] == $admin['id']) {
+                    $author_admin = true;
+                    break;
+                }
+            }
+
+            array_push($reported_posts,
+                       post_report_generate_html($smarty,
+                                                 $post,
+                                                 $posts_attachments,
+                                                 $attachments,
+                                                 $author_admin));
         }
     }
 
