@@ -696,45 +696,59 @@ begin
 end|
 
 -- Выбирает доски, доступные для модерирования заданному пользователю.
---
--- Аргументы:
--- user_id - идентификатор пользователя.
-create procedure sp_boards_get_moderatable
+CREATE PROCEDURE sp_boards_get_moderatable
 (
-	user_id int
+    user_id int -- Идентификатор пользователя.
 )
-begin
-	select b.id, b.name, b.title, b.annotation, b.bump_limit, b.force_anonymous,
-		b.default_name, b.with_attachments, b.enable_macro, b.enable_youtube,
-		b.enable_captcha, b.same_upload, b.popdown_handler, b.category
-	from boards b
-	join user_groups ug on ug.user = user_id
-	-- Правила для конкретной группы и доски.
-	left join acl a1 on ug.`group` = a1.`group` and b.id = a1.board
-	-- Правило для конкретной доски.
-	left join acl a2 on a2.`group` is null and b.id = a2.board
-	-- Правила для конкретной группы.
-	left join acl a3 on ug.`group` = a3.`group` and a3.board is null
-		and a3.thread is null and a3.post is null
-	where
-			-- Доска не запрещена для просмотра группе и
-		((a1.`view` = 1 or a1.`view` is null)
-			-- доска не запрещена для просмотра всем и
-			and (a2.`view` = 1 or a2.`view` is null)
-			-- группе разрешен просмотр.
-			and a3.`view` = 1)
-			-- Модерирование доски разрешено конкретной группе
-		and (a1.moderate = 1
-			-- или модерирование доски не запрещено конкретной группе и
-			-- разрешено всем группам
-			or (a1.moderate is null and a2.moderate = 1)
-			-- или модерирование доски не запрещено ни конкретной группе ни
-			-- всем, и конкретной группе модерирование разрешено.
-			or (a1.moderate is null and a2.moderate is null
-				and a3.moderate = 1))
-	group by b.id
-	order by b.name;
-end|
+BEGIN
+    SELECT b.id,
+           b.name,
+           b.title,
+           b.annotation,
+           b.bump_limit,
+           b.force_anonymous,
+           b.default_name,
+           b.with_attachments,
+           b.enable_macro,
+           b.enable_youtube,
+           b.enable_captcha,
+           b.enable_translation,
+           b.enable_geoip,
+           b.enable_shi,
+           b.enable_postid,
+           b.same_upload,
+           b.popdown_handler,
+           b.category,
+           c.name as category_name
+        FROM boards b
+        JOIN categories c on c.id = b.category
+        JOIN user_groups ug on ug.user = user_id
+        -- Правила для конкретной группы и доски.
+        LEFT JOIN acl a1 on ug.`group` = a1.`group` and b.id = a1.board
+        -- Правило для конкретной доски.
+        LEFT JOIN acl a2 on a2.`group` is null and b.id = a2.board
+        -- Правила для конкретной группы.
+        LEFT JOIN acl a3 on ug.`group` = a3.`group` and a3.board is null
+            and a3.thread is null and a3.post is null
+        WHERE
+            -- Доска не запрещена для просмотра группе и
+            ((a1.`view` = 1 or a1.`view` is null)
+                -- доска не запрещена для просмотра всем и
+                and (a2.`view` = 1 or a2.`view` is null)
+                -- группе разрешен просмотр.
+                and a3.`view` = 1)
+            -- Модерирование доски разрешено конкретной группе
+            and (a1.moderate = 1
+                -- или модерирование доски не запрещено конкретной группе и
+                -- разрешено всем группам
+                or (a1.moderate is null and a2.moderate = 1)
+                -- или модерирование доски не запрещено ни конкретной группе ни
+                -- всем, и конкретной группе модерирование разрешено.
+                or (a1.moderate is null and a2.moderate is null
+                    and a3.moderate = 1))
+        GROUP BY b.id
+        ORDER BY b.name;
+END|
 
 -- Select boards visible to user.
 create procedure sp_boards_get_visible
