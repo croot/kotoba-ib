@@ -7,14 +7,14 @@
             <line>4448</line>
         </file>
         <file>
-            <url>res/create_procedures.sql</url>
-            <line>1971</line>
-            <line>2250</line>
-        </file>
-        <file>
             <url>securimage/securimage.php</url>
             <line>418</line>
             <line>802</line>
+        </file>
+        <file>
+            <url>res/create_procedures.sql</url>
+            <line>1971</line>
+            <line>2250</line>
         </file>
     </editor-bookmarks>
 </project-private>

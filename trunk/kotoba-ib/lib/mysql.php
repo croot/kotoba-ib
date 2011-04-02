@@ -855,37 +855,41 @@ function db_boards_get_changeable_by_name($link, $board_name, $user_id)
  * 'popdown_handler' - Обработчик автоматического удаления нитей.<br>
  * 'category' - Категория.</p>
  */
-function db_boards_get_moderatable($link, $user_id)
-{
-	$result = mysqli_query($link, "call sp_boards_get_moderatable($user_id)");
-	if(!$result)
-	{
-		throw new CommonException(mysqli_error($link));
-	}
-	$boards = array();
-	if(mysqli_affected_rows($link) > 0)
-	{
-		while(($row = mysqli_fetch_assoc($result)) !== null)
-		{
-			array_push($boards, array('id' => $row['id'],
-					'name' => $row['name'],
-					'title' => $row['title'],
-					'annotation' => $row['annotation'],
-					'bump_limit' => $row['bump_limit'],
-					'force_anonymous' => $row['force_anonymous'],
-					'default_name' => $row['default_name'],
-					'with_attachments' => $row['with_attachments'],
-					'enable_macro' => $row['enable_macro'],
-					'enable_youtube' => $row['enable_youtube'],
-					'enable_captcha' => $row['enable_captcha'],
-					'same_upload' => $row['same_upload'],
-					'popdown_handler' => $row['popdown_handler'],
-					'category' => $row['category']));
-		}
-	}
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $boards;
+function db_boards_get_moderatable($link, $user_id) {
+    $result = mysqli_query($link, "call sp_boards_get_moderatable($user_id)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    $boards = array();
+    if (mysqli_affected_rows($link) > 0) {
+        while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            array_push($boards,
+                       array('id' => $row['id'],
+                             'name' => $row['name'],
+                             'title' => $row['title'],
+                             'annotation' => $row['annotation'],
+                             'bump_limit' => $row['bump_limit'],
+                             'force_anonymous' => $row['force_anonymous'],
+                             'default_name' => $row['default_name'],
+                             'with_attachments' => $row['with_attachments'],
+                             'enable_macro' => $row['enable_macro'],
+                             'enable_youtube' => $row['enable_youtube'],
+                             'enable_captcha' => $row['enable_captcha'],
+                             'enable_translation' => $row['enable_translation'],
+                             'enable_geoip' => $row['enable_geoip'],
+                             'enable_shi' => $row['enable_shi'],
+                             'enable_postid' => $row['enable_postid'],
+                             'same_upload' => $row['same_upload'],
+                             'popdown_handler' => $row['popdown_handler'],
+                             'category' => $row['category'],
+                             'category_name' => $row['category_name']));
+        }
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $boards;
 }
 /**
  * Returns boards visible to user.

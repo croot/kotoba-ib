@@ -826,9 +826,8 @@ function boards_get_changeable_by_name($board_name, $user_id)
  * 'popdown_handler' - Обработчик автоматического удаления нитей.<br>
  * 'category' - Категория.</p>
  */
-function boards_get_moderatable($user_id)
-{
-	return db_boards_get_moderatable(DataExchange::getDBLink(), $user_id);
+function boards_get_moderatable($user_id) {
+    return db_boards_get_moderatable(DataExchange::getDBLink(), $user_id);
 }
 /**
  * Returns boards visible to user.
