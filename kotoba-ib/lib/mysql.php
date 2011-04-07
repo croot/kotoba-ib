@@ -2755,7 +2755,9 @@ function db_posts_get_by_boards_number($link,
             throw new CommonException(mysqli_error($link));
         }
         while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
-            if (!isset($thread_data[$row['thread_id']])) {
+            if (!isset($board_data[$board['id']])) {
+                $board_data[$board['id']] = $board;
+            }if (!isset($thread_data[$row['thread_id']])) {
                 $thread_data[$row['thread_id']] =
                     array('id' => $row['thread_id'],
                           'board' => $row['thread_board'],
@@ -2768,7 +2770,7 @@ function db_posts_get_by_boards_number($link,
             }
             array_push($posts,
                        array('id' => $row['post_id'],
-                             'board' => &$board,
+                             'board' => &$board_data[$board['id']],
                              'thread' => &$thread_data[$row['thread_id']],
                              'number' => $row['post_number'],
                              'user' => $row['post_user'],

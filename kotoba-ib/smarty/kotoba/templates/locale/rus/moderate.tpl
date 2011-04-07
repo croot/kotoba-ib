@@ -13,68 +13,68 @@ Variables:
     $boards - boards.
     $pages - pages.
     $page - page number.
+    $filter - posts filter.
     $is_admin - is current user are admin.
-    $prev_filter_board - previous value of board filter between two script calls.
-    $prev_filter_date_time - previous value of date-time filter between two script calls.
-    $prev_filter_number - previous value of number filter between two script calls.
-    $prev_filter_ip - previous value of ip filter between two script calls.
     $moderate_posts - array of code of filtred posts for moderation.
 *}
-{include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title='Основная страница модератора'}
+{include file='header.tpl'
+         DIR_PATH=$DIR_PATH
+         STYLESHEET=$STYLESHEET
+         page_title='Основная страница модератора'}
 
-{include file='adminbar.tpl' DIR_PATH=$DIR_PATH show_control=$show_control}
+{include file='adminbar.tpl'
+         DIR_PATH=$DIR_PATH
+         show_control=$show_control}
 
-{include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
+{include file='navbar.tpl'
+         DIR_PATH=$DIR_PATH
+         boards=$boards}
 
 <div class="logo">Основная страница модератора</div>
 {include file='moderate_pages_list.tpl'
          pages=$pages
          page=$page
-         prev_filter_board=$prev_filter_board
-         prev_filter_date_time=$prev_filter_date_time
-         prev_filter_number=$prev_filter_number
-         prev_filter_ip=$prev_filter_ip}
+         filter=$filter}
 
 <hr>
 <form action="{$DIR_PATH}/admin/moderate.php" method="post">
+<input type="hidden" name="page" value="{$page}">
 <table border="1">
 <tr>
     <td>доска
-    <select name="filter_board">
+    <select name="filter[board]">
         <option value="" selected></option>
-        {if $is_admin}<option value="all"{if $prev_filter_board == 'all'} selected{/if}>Все</option>{/if}
+        {if $is_admin}<option value="all"{if $filter.board == 'all'} selected{/if}>Все</option>{/if}
 
 {section name=i loop=$boards}
-        <option value="{$boards[i].id}"{if $prev_filter_board == $boards[i].id} selected{/if}>{$boards[i].name}</option>{/section}
+        <option value="{$boards[i].id}"{if $filter.board == $boards[i].id} selected{/if}>{$boards[i].name}</option>{/section}
 
     </select>
     </td>
-    <td>дата <input type="text" name="filter_date_time" value="{$prev_filter_date_time}"></td>
-    <td>номер сообщения <input type="text" name="filter_number" value="{$prev_filter_number}"></td>
-    <td>IP-адрес <input type="text" name="filter_ip" value="{$prev_filter_ip}"></td>
-    <td><input type="submit" name="filter" value="Выбрать"> <input type="reset" value="Сброс"></td>
+    <td>дата <input type="text" name="filter[date_time]" value="{$filter.date_time}"></td>
+    <td>номер сообщения <input type="text" name="filter[number]" value="{$filter.number}"></td>
+    <td>IP-адрес <input type="text" name="filter[ip]" value="{$filter.ip}"></td>
+    <td><input type="submit" name="do_filter" value="Выбрать"> <input type="reset" value="Сброс"></td>
 </tr>
 <tr>
     <td colspan="5">Показывать только сообщения с вложениями <input type="checkbox" name="attachments_only" value="1"></td>
 </tr>
 </table>
-</form>
 <hr>
-<form action="{$DIR_PATH}/admin/moderate.php" method="post">
 <table border="1">
 <tr>
     <td>Тип бана<br>
-        [<input type="radio" name="ban_type" value="none" checked>Не банить]<br>
-        [<input type="radio" name="ban_type" value="simple">Бан]<br>
-        [<input type="radio" name="ban_type" value="hard">Бан в фаерволе]
+        [<input type="radio" name="action[ban_type]" value="none" checked>Не банить]<br>
+        [<input type="radio" name="action[ban_type]" value="simple">Бан]<br>
+        [<input type="radio" name="action[ban_type]" value="hard">Бан в фаерволе]
     </td>
     <td colspan="2">Тип удаления<br>
-        [<input type="radio" name="del_type" value="none" checked>Не удалять]<br>
-        [<input type="radio" name="del_type" value="post">Удалить сообщение]<br>
-        [<input type="radio" name="del_type" value="file">Удалить файл]<br>
-        [<input type="radio" name="del_type" value="last">Удалить последние сообщения]
+        [<input type="radio" name="action[del_type]" value="none" checked>Не удалять]<br>
+        [<input type="radio" name="action[del_type]" value="post">Удалить сообщение]<br>
+        [<input type="radio" name="action[del_type]" value="file">Удалить файл]<br>
+        [<input type="radio" name="action[del_type]" value="last">Удалить последние сообщения]
     </td>
-    <td><input type="submit" name="action" value="Ок"> <input type="reset" value="Сброс"></td>
+    <td><input type="submit" name="do_action" value="Ок"> <input type="reset" value="Сброс"></td>
 </tr>
 <tr>
     <td>Отметьте сообщения</td>

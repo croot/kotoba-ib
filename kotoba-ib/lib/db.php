@@ -1792,6 +1792,33 @@ function posts_get_visible_by_number($board_name, $post_number, $user_id) {
     return db_posts_get_visible_by_number(DataExchange::getDBLink(), $board_name, $post_number, $user_id);
 }
 /**
+ * Get specifed count of visible posts.
+ * @param int $board_id Boards.
+ * @param array $threads Threads.
+ * @param int $user_id User id.
+ * @param int $posts_per_thread Count of posts per thread.
+ * @return array
+ * posts.
+ */
+function posts_get_visible_by_threads_preview($board_id, &$threads, $user_id, $posts_per_thread) {
+    $posts = array();
+
+    foreach ($threads as &$thread) {
+        $tmp = db_posts_get_visible_by_thread_preview(DataExchange::getDBLink(),
+                                                      $board_id,
+                                                      $thread['id'],
+                                                      $user_id,
+                                                      $posts_per_thread);
+        $thread['posts_count'] = $tmp[0]['thread']['posts_count'];
+
+        foreach ($tmp as $post) {
+            array_push($posts, $post);
+        }
+    }
+
+    return $posts;
+}
+/**
  * Get posts visible to user and filter it.
  * @param array $threads Threads.
  * @param int $user_id User id.
@@ -1818,33 +1845,6 @@ function posts_prepare_text(&$text, $board) {
     $text = str_replace("\n<blockquote", '<blockquote', $text);
     $text = preg_replace('/\n{3,}/', '\n', $text);
     $text = preg_replace('/\n/', '<br>', $text);
-}
-/**
- * Get specifed count of visible posts.
- * @param int $board_id Boards.
- * @param array $threads Threads.
- * @param int $user_id User id.
- * @param int $posts_per_thread Count of posts per thread.
- * @return array
- * posts.
- */
-function posts_get_visible_by_threads_preview($board_id, &$threads, $user_id, $posts_per_thread) {
-    $posts = array();
-
-    foreach ($threads as &$thread) {
-        $tmp = db_posts_get_visible_by_thread_preview(DataExchange::getDBLink(),
-                                                      $board_id,
-                                                      $thread['id'],
-                                                      $user_id,
-                                                      $posts_per_thread);
-        $thread['posts_count'] = $tmp[0]['thread']['posts_count'];
-
-        foreach ($tmp as $post) {
-            array_push($posts, $post);
-        }
-    }
-
-    return $posts;
 }
 /**
  * Search posts by keyword.
@@ -2683,6 +2683,27 @@ function users_get_admins() {
  */
 function users_get_by_keyword($keyword) {
     return db_users_get_by_keyword(DataExchange::getDBLink(), $keyword);
+}
+/**
+ * Check if use is admin.
+ * @param int $id User id.
+ * @return boolean
+ * TRUE if user is admin, FALSE otherwise.
+ */
+function users_is_admin($id) {
+    static $admins = NULL;
+
+    if ($admins === NULL) {
+        $admins = users_get_admins();
+    }
+
+    foreach ($admins as $admin) {
+        if ($id == $admin['id']) {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
 }
 /**
  * Set redirection.
