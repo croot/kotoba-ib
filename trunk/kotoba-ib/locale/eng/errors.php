@@ -47,6 +47,7 @@ NodataException::$messages['GROUPS_NOT_EXIST'] = 'No one group exists.';
 NodataException::$messages['LANGUAGE_NOT_EXIST'] = 'Language id=%s not exist.';
 NodataException::$messages['LANGUAGES_NOT_EXIST'] = 'No languages.';
 NodataException::$messages['POST_NOT_FOUND'] = 'Post not found or you have no permission to it.';
+NodataException::$messages['REQUEST_METHOD'] = 'Request method not defined or unexpected.';
 NodataException::$messages['SEARCH_KEYWORD'] = 'Search keyword not set or too short.';
 // Параметры: идентификатор стиля оформления.
 NodataException::$messages['STYLESHEET_NOT_EXIST'] = 'Stylesheeit id=%s not exist.';
