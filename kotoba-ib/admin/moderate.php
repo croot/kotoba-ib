@@ -14,10 +14,6 @@ require_once Config::ABS_PATH . '/lib/misc.php';
 require_once Config::ABS_PATH . '/lib/wrappers.php';
 
 try {
-    //
-    // Initialization.
-    //
-
     // Initialization.
     kotoba_session_start();
     if (Config::LANGUAGE != $_SESSION['language']) {
@@ -45,10 +41,6 @@ try {
         throw new PermissionException(PermissionException::$messages['NOT_ADMIN'] . ' ' . PermissionException::$messages['NOT_MOD']);
     }
     call_user_func(Logging::$f['MODERATE_USE']);
-
-    //
-    // Read input parameters.
-    //
 
     $REQ = $_REQUEST;
 
@@ -142,10 +134,6 @@ try {
 
     date_default_timezone_set(Config::DEFAULT_TIMEZONE);
 
-    //
-    // Action.
-    //
-
     if ($action && isset($REQ['marked'])) {
 
         // Check add post id's.
@@ -193,10 +181,6 @@ try {
             }
         }
     }
-
-    //
-    // Get filtred data.
-    //
 
     if ($f['board'] != '' && ($f['date_time'] != ''
                                   || $f['number'] != ''
@@ -254,8 +238,6 @@ try {
         if ($page > $page_max) {
             throw new LimitException(LimitException::$messages['MAX_PAGE']);
         }
-
-        //echo '<pre>' . var_export($posts, TRUE) . '</pre>';
 
         // Generate html.
         $posts_attachments = posts_attachments_get_by_posts($posts);

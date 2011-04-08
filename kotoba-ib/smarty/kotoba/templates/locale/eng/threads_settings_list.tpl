@@ -10,8 +10,13 @@ Variables:
     $DIR_PATH - path from server document root to index.php directory (see config.default).
     $boards - boards.
     $threads - threads.
+    $page - page number.
+    $pages - pages.
 *}
+{include file='edit_threads_pages_list.tpl' pages=$pages page=$page}
+
 <form action="{$DIR_PATH}/admin/edit_threads.php" method="post">
+<input type="hidden" name="page" value="{$page}">
 <table border="1">
 <tr><td colspan="8">Change settings and save.</td></tr>
 <tr>

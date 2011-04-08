@@ -2118,11 +2118,16 @@ function threads_edit_original_post($id, $original_post) { // Java CC
 }
 /**
  * Get threads.
+ * @param int $page Page number. Default value is 1.
+ * @param int $threads_per_page Count of thread per page. Default value is 100.
  * @return array
- * threads.
+ * 0 int - total count of threads.
+ * 1 array - threads.
  */
-function threads_get_all() {
-    return db_threads_get_all(DataExchange::getDBLink());
+function threads_get_all($page = 1, $threads_per_page = 100) {
+    return db_threads_get_all(DataExchange::getDBLink(),
+                              $page,
+                              $threads_per_page);
 }
 /**
  * Получает нити, помеченные для архивирования.
@@ -2174,11 +2179,17 @@ function threads_get_changeable_by_id($thread_id, $user_id) {
 /**
  * Get moderatable threads.
  * @param int $user_id User id.
+ * @param int $page Page number. Default value is 1.
+ * @param int $threads_per_page Count of thread per page. Default value is 100.
  * @return array
- * threads.
+ * 0 int - total count of threads.
+ * 1 array - threads.
  */
-function threads_get_moderatable($user_id) {
-    return db_threads_get_moderatable(DataExchange::getDBLink(), $user_id);
+function threads_get_moderatable($user_id, $page = 1, $threads_per_page = 100) {
+    return db_threads_get_moderatable(DataExchange::getDBLink(),
+                                      $user_id,
+                                      $page,
+                                      $threads_per_page);
 }
 /**
  * Get moderatable thread.

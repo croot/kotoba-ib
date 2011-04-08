@@ -34,16 +34,37 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    // Check permission, get correspond data and write message to log file.
-    if (is_admin()) {
-        $threads = threads_get_all();
+    call_user_func(Logging::$f['EDIT_THREADS_USE']);
+
+    $page = 1;
+    $page_max = 1;
+    if (isset($_REQUEST['page'])) {
+        $page = check_page($_REQUEST['page']);
+    }
+
+    $is_admin = is_admin();
+
+    if ($is_admin) {
+        list($count, $threads) = threads_get_all($page, 100);
     } else {
-        $threads = threads_get_moderatable($_SESSION['user']);
+        list($count, $threads) = threads_get_moderatable($_SESSION['user'],
+                                                         $page,
+                                                         100);
     }
     if (count($threads) <= 0) {
         throw new NodataException(NodataException::$messages['THREADS_EDIT']);
     }
-    call_user_func(Logging::$f['EDIT_THREADS_USE']);
+
+    // We already select threads but anyway we need to calculate
+    // pages count and check what page was correct.
+    $page_max = ($count % 100 == 0 ? (int)($count / 100)
+                                   : (int)($count / 100) + 1);
+    if ($page_max == 0) {
+        $page_max = 1;
+    }
+    if ($page > $page_max) {
+        throw new LimitException(LimitException::$messages['MAX_PAGE']);
+    }
 
     $boards = boards_get_all();
     $reload_threads = false;
@@ -167,13 +188,26 @@ try {
     }
 
     if ($reload_threads) {
-        if (is_admin ()) {
-            $threads = threads_get_all();
+        if ($is_admin) {
+            list($count, $threads) = threads_get_all($page, 100);
         } else {
-            $threads = threads_get_moderatable($_SESSION['user']);
+            list($count, $threads) = threads_get_moderatable($_SESSION['user'],
+                                                             $page,
+                                                             100);
         }
         if (count($threads) <= 0) {
             throw new NodataException(NodataException::$messages['THREADS_EDIT']);
+        }
+
+        // We already select threads but anyway we need to calculate
+        // pages count and check what page was correct.
+        $page_max = ($count % 100 == 0 ? (int)($count / 100)
+                                       : (int)($count / 100) + 1);
+        if ($page_max == 0) {
+            $page_max = 1;
+        }
+        if ($page > $page_max) {
+            throw new LimitException(LimitException::$messages['MAX_PAGE']);
         }
     }
 
@@ -181,6 +215,12 @@ try {
     $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('boards', $boards);
     $smarty->assign('threads', $threads);
+    $pages = array();
+    for ($i = 1; $i <= $page_max; $i++) {
+        array_push($pages, $i);
+    }
+    $smarty->assign('pages', $pages);
+    $smarty->assign('page', $page);
     $smarty->display('edit_threads.tpl');
 
     // Cleanup.
