@@ -3954,53 +3954,77 @@ function db_threads_edit_original_post($link, $id, $original_post) {
 }
 /**
  * Get threads.
+ * @param int $page Page number. Default value is 1.
+ * @param int $threads_per_page Count of thread per page. Default value is 100.
  * @return array
- * threads.
+ * 0 int - total count of threads.
+ * 1 array - threads.
  */
-function db_threads_get_all($link) {
-    $result = mysqli_query($link, 'call sp_threads_get_all()');
+function db_threads_get_all($link, $page, $threads_per_page) {
+    $threads = array();
+    $count = 0;
+
+    // Do query.
+    $query = "call sp_threads_get_all($page, $threads_per_page)";
+    $result = mysqli_multi_query($link, $query);
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
 
-    $threads = array();
-    if (mysqli_affected_rows($link) > 0) {
-        while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
-            if (!isset($board_data[$row['board_id']])) {
-                $board_data[$row['board_id']] = array(  'id' => $row['board_id'],
-                                                        'name' => $row['board_name'],
-                                                        'title' => $row['board_title'],
-                                                        'annotation' => $row['board_annotation'],
-                                                        'bump_limit' => $row['board_bump_limit'],
-                                                        'force_anonymous' => $row['board_force_anonymous'],
-                                                        'default_name' => $row['board_default_name'],
-                                                        'with_attachments' => $row['board_with_attachments'],
-                                                        'enable_macro' => $row['board_enable_macro'],
-                                                        'enable_youtube' => $row['board_enable_youtube'],
-                                                        'enable_captcha' => $row['board_enable_captcha'],
-                                                        'enable_translation' => $row['board_enable_translation'],
-                                                        'enable_geoip' => $row['board_enable_geoip'],
-                                                        'enable_shi' => $row['board_enable_shi'],
-                                                        'enable_postid' => $row['board_enable_postid'],
-                                                        'same_upload' => $row['board_same_upload'],
-                                                        'popdown_handler' => $row['board_popdown_handler'],
-                                                        'category' => $row['board_category']);
-            }
-            array_push($threads,
-                       array('id' => $row['thread_id'],
-                             'board' => &$board_data[$row['board_id']],
-                             'original_post' => $row['thread_original_post'],
-                             'bump_limit' => $row['thread_bump_limit'],
-                             'sage' => $row['thread_sage'],
-                             'sticky' => $row['thread_sticky'],
-                             'with_attachments' => $row['thread_with_attachments'],
-                             'closed' => $row['thread_closed']));
+    // Collect data from query result.
+    if ( ($result = mysqli_store_result($link)) == FALSE) {
+        throw new CommonException(mysqli_error($link));
+    }
+    if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+        $count = $row['count'];
+    }
+    mysqli_free_result($result);
+
+    if (!mysqli_next_result($link)) {
+        throw new CommonException('Not all expected data received.');
+    }
+    if ( ($result = mysqli_store_result($link)) == false) {
+        throw new CommonException(mysqli_error($link));
+    }
+    while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+        if (!isset($board_data[$row['board_id']])) {
+            $board_data[$row['board_id']]
+                = array('id' => $row['board_id'],
+                        'name' => $row['board_name'],
+                        'title' => $row['board_title'],
+                        'annotation' => $row['board_annotation'],
+                        'bump_limit' => $row['board_bump_limit'],
+                        'force_anonymous' => $row['board_force_anonymous'],
+                        'default_name' => $row['board_default_name'],
+                        'with_attachments' => $row['board_with_attachments'],
+                        'enable_macro' => $row['board_enable_macro'],
+                        'enable_youtube' => $row['board_enable_youtube'],
+                        'enable_captcha' => $row['board_enable_captcha'],
+                        'enable_translation'
+                            => $row['board_enable_translation'],
+                        'enable_geoip' => $row['board_enable_geoip'],
+                        'enable_shi' => $row['board_enable_shi'],
+                        'enable_postid' => $row['board_enable_postid'],
+                        'same_upload' => $row['board_same_upload'],
+                        'popdown_handler' => $row['board_popdown_handler'],
+                        'category' => $row['board_category']);
         }
+        array_push($threads,
+                   array('id' => $row['thread_id'],
+                         'board' => &$board_data[$row['board_id']],
+                         'original_post' => $row['thread_original_post'],
+                         'bump_limit' => $row['thread_bump_limit'],
+                         'sage' => $row['thread_sage'],
+                         'sticky' => $row['thread_sticky'],
+                         'with_attachments' => $row['thread_with_attachments'],
+                         'closed' => $row['thread_closed']));
     }
 
+    // Cleanup.
     mysqli_free_result($result);
     db_cleanup_link($link);
-    return $threads;
+
+    return array($count, $threads);
 }
 /**
  * Получает нити, помеченные для архивирования.
@@ -4166,53 +4190,79 @@ function db_threads_get_changeable_by_id($link, $thread_id, $user_id) {
  * Get moderatable threads.
  * @param MySQLi $link Link to database.
  * @param int $user_id User id.
+ * @param int $page Page number. Default value is 1.
+ * @param int $threads_per_page Count of thread per page. Default value is 100.
  * @return array
- * threads.
+ * 0 int - total count of threads.
+ * 1 array - threads.
  */
-function db_threads_get_moderatable($link, $user_id) {
-	$result = mysqli_query($link, "call sp_threads_get_moderatable($user_id)");
+function db_threads_get_moderatable($link, $user_id, $page, $threads_per_page) {
+    $threads = array();
+    $count = 0;
+
+    // Do query.
+    $query = "call sp_threads_get_moderatable($user_id,
+                                              $page,
+                                              $threads_per_page)";
+	$result = mysqli_multi_query($link, $query);
 	if (!$result) {
 		throw new CommonException(mysqli_error($link));
     }
 
-	$threads = array();
-	if (mysqli_affected_rows($link) > 0) {
-		while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
-            if (!isset($board_data[$row['board_id']])) {
-                $board_data[$row['board_id']] = array(  'id' => $row['board_id'],
-                                                        'name' => $row['board_name'],
-                                                        'title' => $row['board_title'],
-                                                        'annotation' => $row['board_annotation'],
-                                                        'bump_limit' => $row['board_bump_limit'],
-                                                        'force_anonymous' => $row['board_force_anonymous'],
-                                                        'default_name' => $row['board_default_name'],
-                                                        'with_attachments' => $row['board_with_attachments'],
-                                                        'enable_macro' => $row['board_enable_macro'],
-                                                        'enable_youtube' => $row['board_enable_youtube'],
-                                                        'enable_captcha' => $row['board_enable_captcha'],
-                                                        'enable_translation' => $row['board_enable_translation'],
-                                                        'enable_geoip' => $row['board_enable_geoip'],
-                                                        'enable_shi' => $row['board_enable_shi'],
-                                                        'enable_postid' => $row['board_enable_postid'],
-                                                        'same_upload' => $row['board_same_upload'],
-                                                        'popdown_handler' => $row['board_popdown_handler'],
-                                                        'category' => $row['board_category']);
-            }
-			array_push($threads,
-                       array('id' => $row['thread_id'],
-                             'board' => &$board_data[$row['board_id']],
-                             'original_post' => $row['thread_original_post'],
-                             'bump_limit' => $row['thread_bump_limit'],
-                             'sage' => $row['thread_sage'],
-                             'sticky' => $row['thread_sticky'],
-                             'with_attachments' => $row['thread_with_attachments'],
-                             'closed' => $row['thread_closed']));
+    // Collect data from query result.
+    if ( ($result = mysqli_store_result($link)) == FALSE) {
+        throw new CommonException(mysqli_error($link));
+    }
+    if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+        $count = $row['count'];
+    }
+    mysqli_free_result($result);
+
+    if (!mysqli_next_result($link)) {
+        throw new CommonException('Not all expected data received.');
+    }
+    if ( ($result = mysqli_store_result($link)) == false) {
+        throw new CommonException(mysqli_error($link));
+    }
+    while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+        if (!isset($board_data[$row['board_id']])) {
+            $board_data[$row['board_id']]
+                = array('id' => $row['board_id'],
+                        'name' => $row['board_name'],
+                        'title' => $row['board_title'],
+                        'annotation' => $row['board_annotation'],
+                        'bump_limit' => $row['board_bump_limit'],
+                        'force_anonymous' => $row['board_force_anonymous'],
+                        'default_name' => $row['board_default_name'],
+                        'with_attachments' => $row['board_with_attachments'],
+                        'enable_macro' => $row['board_enable_macro'],
+                        'enable_youtube' => $row['board_enable_youtube'],
+                        'enable_captcha' => $row['board_enable_captcha'],
+                        'enable_translation'
+                            => $row['board_enable_translation'],
+                        'enable_geoip' => $row['board_enable_geoip'],
+                        'enable_shi' => $row['board_enable_shi'],
+                        'enable_postid' => $row['board_enable_postid'],
+                        'same_upload' => $row['board_same_upload'],
+                        'popdown_handler' => $row['board_popdown_handler'],
+                        'category' => $row['board_category']);
         }
+        array_push($threads,
+                   array('id' => $row['thread_id'],
+                         'board' => &$board_data[$row['board_id']],
+                         'original_post' => $row['thread_original_post'],
+                         'bump_limit' => $row['thread_bump_limit'],
+                         'sage' => $row['thread_sage'],
+                         'sticky' => $row['thread_sticky'],
+                         'with_attachments' => $row['thread_with_attachments'],
+                         'closed' => $row['thread_closed']));
     }
 
+    // Cleanup.
 	mysqli_free_result($result);
 	db_cleanup_link($link);
-	return $threads;
+
+    return array($count, $threads);
 }
 /**
  * Get moderatable thread.
