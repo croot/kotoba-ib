@@ -86,7 +86,7 @@ check_retval "mysql" $? "Before another try, manually drop database what was cre
 # 5. Download smarty, unpack and patch.
 #
 echo "Download smarty, unpack and patch."
-wget -P /tmp/ http://www.smarty.net/do_download.php?download_file=Smarty-2.6.26.tar.gz
+wget -P /tmp/ http://www.smarty.net/files/Smarty-2.6.26.tar.gz
 tar -zxvf /tmp/Smarty-2.6.26.tar.gz -C /tmp/ > /dev/null
 check_retval "tar" $?
 cp -r /tmp/Smarty-2.6.26/libs/* $1/smarty/
@@ -99,12 +99,14 @@ wget -P /tmp/ http://kotoba-ib.googlecode.com/files/PhpDocumentor-1.4.3.tgz
 tar -zxvf /tmp/PhpDocumentor-1.4.3.tgz -C /tmp/ > /dev/null
 check_retval "tar" $?
 cp -r /tmp/PhpDocumentor-1.4.3/* $1/phpdoc/
+chmod u+x patch_phpdoc.sh
 ./patch_phpdoc.sh $1/phpdoc $1/res/phpdoc
 
 #
 # 7. Create documentation.
 #
 echo "Create documentation."
+chmod u+x generate_doc.sh
 ./generate_doc.sh $1
 
 #
