@@ -4,16 +4,13 @@
 
 # Source directory. Directory where working copy of Kotoba engine will be
 # created.
-SRC_DIR="/home/sauce/src/kotoba"
+SRC_DIR="/home/sorc/src/kotoba"
 
 # Destination directory. Directory where engine will actually work.
 DST_DIR="/var/www/html/kotoba"
 
 # Path from server document root to kotoba directory.
 KOTOBA_DOC_ROOT="/kotoba"
-
-# Apache user name and group.
-APACHE_UG="apache:apache"
 
 # Mysql user name.
 MYSQL_USR="root"
@@ -38,33 +35,32 @@ fi
 # Constants
 #
 
-MAIN_SCRIPTS="$SRC_DIR/boards.php \
-              $SRC_DIR/catalog.php \
-              $SRC_DIR/config.default \
-              $SRC_DIR/config.php \
-              $SRC_DIR/create_thread.php \
-              $SRC_DIR/edit_settings.php \
-              $SRC_DIR/favorites.php \
-              $SRC_DIR/flower.png \
-              $SRC_DIR/hide_thread.php \
-              $SRC_DIR/index.php \
-              $SRC_DIR/kotoba.js \
-              $SRC_DIR/license.txt \
-              $SRC_DIR/logout.php \
-              $SRC_DIR/manage.php \
-              $SRC_DIR/my_id.php \
-              $SRC_DIR/over.php \
-              $SRC_DIR/post.php \
-              $SRC_DIR/protoaculous-compressed.js \
-              $SRC_DIR/remove_post.php \
-              $SRC_DIR/remove_upload.php \
-              $SRC_DIR/reply.php \
-              $SRC_DIR/report.php \
-              $SRC_DIR/search.php \
-              $SRC_DIR/threads.php \
-              $SRC_DIR/unhide_thread.php"
+MAIN_SCRIPTS="boards.php \
+              catalog.php \
+              config.default \
+              create_thread.php \
+              edit_settings.php \
+              favorites.php \
+              flower.png \
+              hide_thread.php \
+              index.php \
+              kotoba.js \
+              license.txt \
+              logout.php \
+              manage.php \
+              my_id.php \
+              over.php \
+              post.php \
+              protoaculous-compressed.js \
+              remove_post.php \
+              remove_upload.php \
+              reply.php \
+              report.php \
+              search.php \
+              threads.php \
+              unhide_thread.php"
 
-ADMIN_DIR="$SRC_DIR/admin"
+ADMIN_DIR="admin"
 ADMIN_SCRIPTS="$ADMIN_DIR/archive.php \
                $ADMIN_DIR/delete_dangling_attachments.php \
                $ADMIN_DIR/delete_marked.php \
@@ -91,13 +87,13 @@ ADMIN_SCRIPTS="$ADMIN_DIR/archive.php \
                $ADMIN_DIR/reports.php \
                $ADMIN_DIR/update_macrochan.php"
 
-ANIMAPTCHA_DIR="$SRC_DIR/animaptcha"
+ANIMAPTCHA_DIR="animaptcha"
 ANIMAPTCHA_SCRIPTS="$ANIMAPTCHA_DIR/animaptcha.php"
 
-CAPTCHA_DIR="$SRC_DIR/captcha"
+CAPTCHA_DIR="captcha"
 CAPTCHA_SCRIPTS="$CAPTCHA_DIR/image.php"
 
-CSS_DIR="$SRC_DIR/css"
+CSS_DIR="css"
 CSS_SCRIPTS="$CSS_DIR/global.css \
              $CSS_DIR/img_global.css"
 CSS="futaba.css \
@@ -110,13 +106,13 @@ CSS_ICONS="closed.png \
            report.png \
            sticky.png"
 
-DEFAULT_IMAGES_DIR="$SRC_DIR/img"
+DEFAULT_IMAGES_DIR="img"
 DEFAULT_IMAGES="$DEFAULT_IMAGES_DIR/deleted.png \
                 $DEFAULT_IMAGES_DIR/spoiler.png"
 
-LATEX_DIR="$SRC_DIR/latexcache"
+LATEX_DIR="latexcache"
 
-LIB_DIR="$SRC_DIR/lib"
+LIB_DIR="lib"
 LIB_SCRIPTS="$LIB_DIR/db.php \
              $LIB_DIR/errors.php \
              $LIB_DIR/events.php \
@@ -132,21 +128,21 @@ LIB_SCRIPTS="$LIB_DIR/db.php \
              $LIB_DIR/upload_handlers.php \
              $LIB_DIR/wrappers.php"
 
-LOCALE_DIR="$SRC_DIR/locale"
+LOCALE_DIR="locale"
 LOCALES="eng \
          rus"
 LOCALE_SCRIPTS="errors.php \
                 logging.php"
 
-LOG_DIR="$SRC_DIR/log"
+LOG_DIR="log"
 
-RESOURCE_DIR="$SRC_DIR/res"
+RESOURCE_DIR="res"
 
-SESSIONS_DIR="$SRC_DIR/sessions"
+SESSIONS_DIR="sessions"
 
-SHI_DIR="$SRC_DIR/shi"
+SHI_DIR="shi"
 
-SMARTY_DIR="$SRC_DIR/smarty"
+SMARTY_DIR="smarty"
 SMARTY_DIRS="$SMARTY_DIR/kotoba \
              $SMARTY_DIR/kotoba/cache \
              $SMARTY_DIR/kotoba/configs \
@@ -250,7 +246,8 @@ function execute {
         done
     fi
 
-    $1
+    echo "Execute command $1"
+    eval $1
     check_exitcode $? $2
 
     return 0
@@ -331,28 +328,39 @@ execute "is_file_rx $SRC_DIR" "`basename $0`:$LINENO"
 execute "is_file_r $DST_DIR" "`basename $0`:$LINENO"
 
 #
-# 2. Get working copy to source directory.
+# 2. Read apache user name and group.
+#
+APACHE_U=`grep -e "^User ." /etc/httpd/conf/httpd.conf | awk '{print $2}'`
+APACHE_G=`grep -e "^Group ." /etc/httpd/conf/httpd.conf | awk '{print $2}'`
+if [ -z $APACHE_U ] || [ -z $APACHE_G ]; then
+    echo "Parse apache user name and group failed."
+    exit 1
+fi
+APACHE_UG="$APACHE_U:$APACHE_G"
+
+#
+# 3. Get working copy to source directory.
 #
 echo "Get working copy to $SRC_DIR direcrory."
 execute "svn checkout https://kotoba-ib.googlecode.com/svn/trunk/kotoba-ib/ $SRC_DIR/" "`basename $0`:$LINENO"
 
 #
-# 3. Create database.
+# 4. Create database.
 #
 echo "Create database."
-execute "mysql -u $MYSQL_USR `if ! [ -n "$MYSQL_PSWD" ]; then echo "-p $MYSQL_PSWD "; fi`< $RESOURCE_DIR/create_struct.sql" "`basename $0`:$LINENO"
-execute "mysql -u $MYSQL_USR `if ! [ -n "$MYSQL_PSWD" ]; then echo "-p $MYSQL_PSWD "; fi`-D kotoba < $RESOURCE_DIR/create_procedures.sql" "`basename $0`:$LINENO"
+execute "mysql -u $MYSQL_USR `if ! [ -z "$MYSQL_PSWD" ]; then echo "-p $MYSQL_PSWD "; fi`< $SRC_DIR/$RESOURCE_DIR/create_struct.sql" "`basename $0`:$LINENO"
+execute "mysql -u $MYSQL_USR `if ! [ -z "$MYSQL_PSWD" ]; then echo "-p $MYSQL_PSWD "; fi`-D kotoba < $SRC_DIR/$RESOURCE_DIR/create_procedures.sql" "`basename $0`:$LINENO"
 
 #
-# 4. Download smarty, unpack and patch.
+# 5. Download smarty, unpack and patch.
 #
 echo "Download smarty, unpack and patch."
 execute "wget -P /tmp/ http://www.smarty.net/files/Smarty-2.6.26.tar.gz" "`basename $0`:$LINENO"
 execute "tar -zxvf /tmp/Smarty-2.6.26.tar.gz -C /tmp/ > /dev/null" "`basename $0`:$LINENO"
-execute "cp -r /tmp/Smarty-2.6.26/libs/* $SMARTY_DIR/" "`basename $0`:$LINENO"
+execute "cp -r /tmp/Smarty-2.6.26/libs/* $SRC_DIR/$SMARTY_DIR/" "`basename $0`:$LINENO"
 
 #
-# 5. Add requied directives to httpd.conf.
+# 6. Add requied directives to httpd.conf.
 #
 echo "Add requied directives to httpd.conf."
 echo "
@@ -366,101 +374,142 @@ echo "
 </Directory>" >> /etc/httpd/conf/httpd.conf
 
 #
-# 6. Generate .htaccess.
+# 7. Generate .htaccess.
 #
 echo "Generate .htaccess."
 echo "DirectoryIndex index.php
 RewriteEngine On
-RewriteRule ^([\w]{1,16})/$ $2/boards.php?board=\$1 [NE,L]
-RewriteRule ^([\w]{1,16})$ $2/boards.php?board=\$1 [NE,L]
-RewriteRule ^([\w]{1,16})/([\d]+)/$ $2/threads.php?board=\$1&thread=\$2 [NE,L]
-RewriteRule ^([\w]{1,16})/([\d]+)$ $2/threads.php?board=\$1&thread=\$2 [NE,L]
-RewriteRule ^([\w]{1,16})/p([\d]+)/$ $2/boards.php?board=\$1&page=\$2 [NE,L]
-RewriteRule ^([\w]{1,16})/p([\d]+)$ $2/boards.php?board=\$1&page=\$2 [NE,L]" > $DST_DIR/.htaccess
+RewriteRule ^([\w]{1,16})/$ $KOTOBA_DOC_ROOT/boards.php?board=\$1 [NE,L]
+RewriteRule ^([\w]{1,16})$ $KOTOBA_DOC_ROOT/boards.php?board=\$1 [NE,L]
+RewriteRule ^([\w]{1,16})/([\d]+)/$ $KOTOBA_DOC_ROOT/threads.php?board=\$1&thread=\$2 [NE,L]
+RewriteRule ^([\w]{1,16})/([\d]+)$ $KOTOBA_DOC_ROOT/threads.php?board=\$1&thread=\$2 [NE,L]
+RewriteRule ^([\w]{1,16})/p([\d]+)/$ $KOTOBA_DOC_ROOT/boards.php?board=\$1&page=\$2 [NE,L]
+RewriteRule ^([\w]{1,16})/p([\d]+)$ $KOTOBA_DOC_ROOT/boards.php?board=\$1&page=\$2 [NE,L]" > $DST_DIR/.htaccess
 
 #
-# 7. Setup permissions.
+# 8. Copy files and setup permissions.
 #
-echo "Setup permissions."
+echo "Copy files and setup permissions."
+for s in $MAIN_SCRIPTS; do
+    execute "cp $SRC_DIR/$s $DST_DIR/$s" "`basename $0`:$LINENO"
+    execute "chown $APACHE_UG $DST_DIR/$s" "`basename $0`:$LINENO"
+    execute "chmod $R__ $DST_DIR/$s" "`basename $0`:$LINENO"
+done
 
-execute "chown $APACHE_UG $MAIN_SCRIPTS" "`basename $0`:$LINENO"
-execute "chmod $R__ $MAIN_SCRIPTS" "`basename $0`:$LINENO"
+execute "mkdir $DST_DIR/$ADMIN_DIR" "`basename $0`:$LINENO"
+execute "chown $APACHE_UG $DST_DIR/$ADMIN_DIR" "`basename $0`:$LINENO"
+execute "chmod $RWX $DST_DIR/$ADMIN_DIR" "`basename $0`:$LINENO"
+for s in $MAIN_SCRIPTS; do
+    execute "cp $SRC_DIR/$s $DST_DIR/$s" "`basename $0`:$LINENO"
+    execute "chown $APACHE_UG $DST_DIR/$s" "`basename $0`:$LINENO"
+    execute "chmod $R__ $DST_DIR/$s" "`basename $0`:$LINENO"
+done
 
-execute "chown $APACHE_UG $ADMIN_DIR" "`basename $0`:$LINENO"
-execute "chmod $RWX $ADMIN_DIR" "`basename $0`:$LINENO"
-execute "chown $APACHE_UG $ADMIN_SCRIPTS" "`basename $0`:$LINENO"
-execute "chmod $R__ $ADMIN_SCRIPTS" "`basename $0`:$LINENO"
+execute "mkdir $DST_DIR/$ANIMAPTCHA_DIR" "`basename $0`:$LINENO"
+execute "chown $APACHE_UG $DST_DIR/$ANIMAPTCHA_DIR" "`basename $0`:$LINENO"
+execute "chmod $RWX $DST_DIR/$ANIMAPTCHA_DIR" "`basename $0`:$LINENO"
+for s in $ANIMAPTCHA_SCRIPTS; do
+    execute "cp $SRC_DIR/$s $DST_DIR/$s" "`basename $0`:$LINENO"
+    execute "chown $APACHE_UG $DST_DIR/$s" "`basename $0`:$LINENO"
+    execute "chmod $R__ $DST_DIR/$s" "`basename $0`:$LINENO"
+done
 
-execute "chown $APACHE_UG $ANIMAPTCHA_DIR" "`basename $0`:$LINENO"
-execute "chmod $RWX $ANIMAPTCHA_DIR" "`basename $0`:$LINENO"
-execute "chown $APACHE_UG $ANIMAPTCHA_SCRIPTS" "`basename $0`:$LINENO"
-execute "chmod $R__ $ANIMAPTCHA_SCRIPTS" "`basename $0`:$LINENO"
+execute "mkdir $DST_DIR/$CAPTCHA_DIR" "`basename $0`:$LINENO"
+execute "chown $APACHE_UG $DST_DIR/$CAPTCHA_DIR" "`basename $0`:$LINENO"
+execute "chmod $RWX $DST_DIR/$CAPTCHA_DIR" "`basename $0`:$LINENO"
+for s in $CAPTCHA_SCRIPTS; do
+    execute "cp $SRC_DIR/$s $DST_DIR/$s" "`basename $0`:$LINENO"
+    execute "chown $APACHE_UG $CAPTCHA_SCRIPTS" "`basename $0`:$LINENO"
+    execute "chmod $R__ $CAPTCHA_SCRIPTS" "`basename $0`:$LINENO"
+done
 
-execute "chown $APACHE_UG $CAPTCHA_DIR" "`basename $0`:$LINENO"
-execute "chmod $RWX $CAPTCHA_DIR" "`basename $0`:$LINENO"
-execute "chown $APACHE_UG $CAPTCHA_SCRIPTS" "`basename $0`:$LINENO"
-execute "chmod $R__ $CAPTCHA_SCRIPTS" "`basename $0`:$LINENO"
-
-execute "chown $APACHE_UG $CSS_DIR" "`basename $0`:$LINENO"
-execute "chmod $RWX $CSS_DIR" "`basename $0`:$LINENO"
-execute "chown $APACHE_UG $CSS_SCRIPTS" "`basename $0`:$LINENO"
-execute "chmod $R__ $CSS_SCRIPTS" "`basename $0`:$LINENO"
+execute "mkdir $DST_DIR/$CSS_DIR" "`basename $0`:$LINENO"
+execute "chown $APACHE_UG $DST_DIR/$CSS_DIR" "`basename $0`:$LINENO"
+execute "chmod $RWX $DST_DIR/$CSS_DIR" "`basename $0`:$LINENO"
+for s in $CSS_SCRIPTS; do
+    execute "cp $SRC_DIR/$s $DST_DIR/$s" "`basename $0`:$LINENO"
+    execute "chown $APACHE_UG $DST_DIR/$s" "`basename $0`:$LINENO"
+    execute "chmod $R__ $DST_DIR/$s" "`basename $0`:$LINENO"
+done
 for c in $CSS; do
-    execute "chown $APACHE_UG $CSS_DIR/$c" "`basename $0`:$LINENO"
-    execute "chmod $RWX $CSS_DIR/$c" "`basename $0`:$LINENO"
-    execute "chown $APACHE_UG $CSS_DIR/$c/$c" "`basename $0`:$LINENO"
-    execute "chmod $R__ $APACHE_UG $CSS_DIR/$c/$c" "`basename $0`:$LINENO"
+    execute "mkdir $DST_DIR/$CSS_DIR/$c" "`basename $0`:$LINENO"
+    execute "chown $APACHE_UG $DST_DIR/$CSS_DIR/$c" "`basename $0`:$LINENO"
+    execute "chmod $RWX $DST_DIR/$CSS_DIR/$c" "`basename $0`:$LINENO"
+
+    execute "cp $SRC_DIR/$CSS_DIR/$c/$c $DST_DIR/$CSS_DIR/$c/$c" "`basename $0`:$LINENO"
+    execute "chown $APACHE_UG $DST_DIR/$CSS_DIR/$c/$c" "`basename $0`:$LINENO"
+    execute "chmod $R__ $APACHE_UG $DST_DIR/$CSS_DIR/$c/$c" "`basename $0`:$LINENO"
     for i in $CSS_ICONS; do
-        execute "chown $APACHE_UG $CSS_DIR/$c/$i" "`basename $0`:$LINENO"
-        execute "chmod $R__ $APACHE_UG $CSS_DIR/$c/$i" "`basename $0`:$LINENO"
+        execute "cp $SRC_DIR/$CSS_DIR/$c/$i $DST_DIR/$CSS_DIR/$c/$i" "`basename $0`:$LINENO"
+        execute "chown $APACHE_UG $DST_DIR/$CSS_DIR/$c/$i" "`basename $0`:$LINENO"
+        execute "chmod $R__ $APACHE_UG $DST_DIR/$CSS_DIR/$c/$i" "`basename $0`:$LINENO"
     done
 done
 
-execute "chown $APACHE_UG $DEFAULT_IMAGES_DIR" "`basename $0`:$LINENO"
-execute "chmod $RWX $DEFAULT_IMAGES_DIR" "`basename $0`:$LINENO"
-execute "chown $APACHE_UG $DEFAULT_IMAGES" "`basename $0`:$LINENO"
-execute "chmod $R__ $DEFAULT_IMAGES" "`basename $0`:$LINENO"
+execute "mkdir $DST_DIR/$DEFAULT_IMAGES_DIR" "`basename $0`:$LINENO"
+execute "chown $APACHE_UG $DST_DIR/$DEFAULT_IMAGES_DIR" "`basename $0`:$LINENO"
+execute "chmod $RWX $DST_DIR/$DEFAULT_IMAGES_DIR" "`basename $0`:$LINENO"
+for i in $DEFAULT_IMAGES; do
+    execute "cp $SRC_DIR/$i $DST_DIR/$i" "`basename $0`:$LINENO"
+    execute "chown $APACHE_UG $DST_DIR/$i" "`basename $0`:$LINENO"
+    execute "chmod $R__ $DST_DIR/$i" "`basename $0`:$LINENO"
+done
 
-execute "chown $APACHE_UG $LATEX_DIR" "`basename $0`:$LINENO"
-execute "chmod $RWX $LATEX_DIR" "`basename $0`:$LINENO"
+execute "mkdir $DST_DIR/$LATEX_DIR" "`basename $0`:$LINENO"
+execute "chown $APACHE_UG $DST_DIR/$LATEX_DIR" "`basename $0`:$LINENO"
+execute "chmod $RWX $DST_DIR/$LATEX_DIR" "`basename $0`:$LINENO"
 
-execute "chown $APACHE_UG $LIB_DIR" "`basename $0`:$LINENO"
-execute "chmod $RWX $LIB_DIR" "`basename $0`:$LINENO"
-execute "chown $APACHE_UG $LIB_SCRIPTS" "`basename $0`:$LINENO"
-execute "chmod $R__ $LIB_SCRIPTS" "`basename $0`:$LINENO"
+execute "mkdir $DST_DIR/$LIB_DIR" "`basename $0`:$LINENO"
+execute "chown $APACHE_UG $DST_DIR/$LIB_DIR" "`basename $0`:$LINENO"
+execute "chmod $RWX $DST_DIR/$LIB_DIR" "`basename $0`:$LINENO"
+for s in $LIB_SCRIPTS; do
+    execute "cp $SRC_DIR/$s $DST_DIR/$s" "`basename $0`:$LINENO"
+    execute "chown $APACHE_UG $DST_DIR/$s" "`basename $0`:$LINENO"
+    execute "chmod $R__ $DST_DIR/$s" "`basename $0`:$LINENO"
+done
 
-execute "chown $APACHE_UG $LOG_DIR" "`basename $0`:$LINENO"
-execute "chmod $RWX $LOG_DIR" "`basename $0`:$LINENO"
+execute "mkdir $DST_DIR/$LOG_DIR" "`basename $0`:$LINENO"
+execute "chown $APACHE_UG $DST_DIR/$LOG_DIR" "`basename $0`:$LINENO"
+execute "chmod $RWX $DST_DIR/$LOG_DIR" "`basename $0`:$LINENO"
 
-execute "chown $APACHE_UG $LOCALE_DIR" "`basename $0`:$LINENO"
-execute "chmod $RWX $LOCALE_DIR" "`basename $0`:$LINENO"
+execute "mkdir $DST_DIR/$LOCALE_DIR" "`basename $0`:$LINENO"
+execute "chown $APACHE_UG $DST_DIR/$LOCALE_DIR" "`basename $0`:$LINENO"
+execute "chmod $RWX $DST_DIR/$LOCALE_DIR" "`basename $0`:$LINENO"
 for l in $LOCALES; do
-    execute "chown $APACHE_UG $LOCALE_DIR/$l" "`basename $0`:$LINENO"
-    execute "chmod $RWX $LOCALE_DIR/$l" "`basename $0`:$LINENO"
+    execute "mkdir $DST_DIR/$LOCALE_DIR/$l" "`basename $0`:$LINENO"
+    execute "chown $APACHE_UG $DST_DIR/$LOCALE_DIR/$l" "`basename $0`:$LINENO"
+    execute "chmod $RWX $DST_DIR/$LOCALE_DIR/$l" "`basename $0`:$LINENO"
     for s in $LOCALE_SCRIPTS; do
-        execute "chown $APACHE_UG $LOCALE_DIR/$l/$s" "`basename $0`:$LINENO"
-        execute "chmod $R__ $APACHE_UG $LOCALE_DIR/$l/$s" "`basename $0`:$LINENO"
+        execute "cp $SRC_DIR/$LOCALE_DIR/$l/$s $DST_DIR/$LOCALE_DIR/$l/$s" "`basename $0`:$LINENO"
+        execute "chown $APACHE_UG $DST_DIR/$LOCALE_DIR/$l/$s" "`basename $0`:$LINENO"
+        execute "chmod $R__ $APACHE_UG $DST_DIR/$LOCALE_DIR/$l/$s" "`basename $0`:$LINENO"
     done
 done
 
-execute "chown $APACHE_UG $SESSIONS_DIR" "`basename $0`:$LINENO"
-execute "chmod $RWX $SESSIONS_DIR" "`basename $0`:$LINENO"
+execute "mkdir $DST_DIR/$SESSIONS_DIR" "`basename $0`:$LINENO"
+execute "chown $APACHE_UG $DST_DIR/$SESSIONS_DIR" "`basename $0`:$LINENO"
+execute "chmod $RWX $DST_DIR/$SESSIONS_DIR" "`basename $0`:$LINENO"
 
-execute "chown $APACHE_UG $SHI_DIR" "`basename $0`:$LINENO"
-execute "chmod $RWX $SHI_DIR" "`basename $0`:$LINENO"
+execute "mkdir $DST_DIR/$SHI_DIR" "`basename $0`:$LINENO"
+execute "chown $APACHE_UG $DST_DIR/$SHI_DIR" "`basename $0`:$LINENO"
+execute "chmod $RWX $DST_DIR/$SHI_DIR" "`basename $0`:$LINENO"
 
-execute "chown $APACHE_UG $SMARTY_DIR" "`basename $0`:$LINENO"
-execute "chmod $RWX $SMARTY_DIR" "`basename $0`:$LINENO"
+execute "mkdir $DST_DIR/$SMARTY_DIR" "`basename $0`:$LINENO"
+execute "chown $APACHE_UG $DST_DIR/$SMARTY_DIR" "`basename $0`:$LINENO"
+execute "chmod $RWX $DST_DIR/$SMARTY_DIR" "`basename $0`:$LINENO"
 for dir in $SMARTY_DIRS; do
-    execute "chown $APACHE_UG $dir" "`basename $0`:$LINENO"
-    execute "chmod $RWX $dir" "`basename $0`:$LINENO"
+    execute "mkdir $DST_DIR/$dir" "`basename $0`:$LINENO"
+    execute "chown $APACHE_UG $DST_DIR/$dir" "`basename $0`:$LINENO"
+    execute "chmod $RWX $DST_DIR/$dir" "`basename $0`:$LINENO"
 done
 for l in $LOCALES; do
-    execute "chown $APACHE_UG $SMARTY_DIR/kotoba/locale/$l" "`basename $0`:$LINENO"
-    execute "chmod $RWX $SMARTY_DIR/kotoba/locale/$l" "`basename $0`:$LINENO"
+    execute "mkdir $DST_DIR/$SMARTY_DIR/kotoba/locale/$l" "`basename $0`:$LINENO"
+    execute "chown $APACHE_UG $DST_DIR/$SMARTY_DIR/kotoba/locale/$l" "`basename $0`:$LINENO"
+    execute "chmod $RWX $DST_DIR/$SMARTY_DIR/kotoba/locale/$l" "`basename $0`:$LINENO"
     for t in $TEMPLATES; do
-        execute "chown $APACHE_UG $SMARTY_DIR/kotoba/locale/$l/$t" "`basename $0`:$LINENO"
-        execute "chmod $R__ $SMARTY_DIR/kotoba/locale/$l/$t" "`basename $0`:$LINENO"
+        execute "cp $SRC_DIR/$SMARTY_DIR/kotoba/locale/$l/$t $DST_DIR/$SMARTY_DIR/kotoba/locale/$l/$t" "`basename $0`:$LINENO"
+        execute "chown $APACHE_UG $DST_DIR/$SMARTY_DIR/kotoba/locale/$l/$t" "`basename $0`:$LINENO"
+        execute "chmod $R__ $DST_DIR/$SMARTY_DIR/kotoba/locale/$l/$t" "`basename $0`:$LINENO"
     done
 done
 
