@@ -22,7 +22,7 @@ MYSQL_PASWD=""
 DEBUG=0
 
 # Set this value to 1
-CONFIRM_CHANGES=1
+CONFIRM_CHANGES=0
 
 ########## Do not edit code after this line ####################################
 
@@ -392,23 +392,6 @@ execute "mysql -u $MYSQL_USR `if ! [ -z "$MYSQL_PSWD" ]; then echo "-p $MYSQL_PS
 execute "mysql -u $MYSQL_USR `if ! [ -z "$MYSQL_PSWD" ]; then echo "-p $MYSQL_PSWD "; fi`-D kotoba < $SRC_DIR/$RESOURCE_DIR/create_procedures.sql" "`basename $0`:$LINENO"
 
 #
-# 5. Download smarty, unpack and patch.
-#
-echo "Download smarty, unpack and patch."
-execute "wget -P /tmp/ http://www.smarty.net/files/Smarty-2.6.26.tar.gz" "`basename $0`:$LINENO"
-execute "tar -zxvf /tmp/Smarty-2.6.26.tar.gz -C /tmp/ > /dev/null" "`basename $0`:$LINENO"
-execute "cp -r /tmp/Smarty-2.6.26/libs/* $SRC_DIR/$SMARTY_DIR/" "`basename $0`:$LINENO"
-
-#
-# 6. Shi
-#
-echo "Download shi, unpack and copy."
-execute "wget -P /tmp/ http://kotoba-ib.googlecode.com/files/shi_1287405235.7z" "`basename $0`:$LINENO"
-execute "7z x -o/tmp /tmp/shi_1287405235.7z" "`basename $0`:$LINENO"
-execute "cp -r /tmp/shi/* $SRC_DIR/$SHI_DIR/" "`basename $0`:$LINENO"
-execute "cp $SRC_DIR/$SHI_DIR/shi_save.php $SRC_DIR/$LIB_DIR/shi_save.php" "`basename $0`:$LINENO"
-
-#
 # 7. Copy files and setup permissions.
 #
 echo "Copy files and setup permissions."
@@ -421,7 +404,7 @@ done
 execute "mkdir $DST_DIR/$ADMIN_DIR" "`basename $0`:$LINENO"
 execute "chown $APACHE_UG $DST_DIR/$ADMIN_DIR" "`basename $0`:$LINENO"
 execute "chmod $RWX $DST_DIR/$ADMIN_DIR" "`basename $0`:$LINENO"
-for s in $MAIN_SCRIPTS; do
+for s in $ADMIN_SCRIPTS; do
     execute "cp $SRC_DIR/$s $DST_DIR/$s" "`basename $0`:$LINENO"
     execute "chown $APACHE_UG $DST_DIR/$s" "`basename $0`:$LINENO"
     execute "chmod $R__ $DST_DIR/$s" "`basename $0`:$LINENO"
@@ -539,6 +522,24 @@ for l in $LOCALES; do
 done
 
 #
+# 5. Download smarty, unpack and patch.
+#
+echo "Download smarty, unpack and patch."
+execute "wget -P /tmp/ http://www.smarty.net/files/Smarty-2.6.26.tar.gz" "`basename $0`:$LINENO"
+execute "tar -zxvf /tmp/Smarty-2.6.26.tar.gz -C /tmp/ > /dev/null" "`basename $0`:$LINENO"
+execute "cp -r /tmp/Smarty-2.6.26/libs/* $DST_DIR/$SMARTY_DIR/libs/" "`basename $0`:$LINENO"
+execute "cp $DST_DIR/$SMARTY_DIR/libs/Smarty.class.php $DST_DIR/$LIB_DIR/Smarty.class.php" "`basename $0`:$LINENO"
+
+#
+# 6. Shi
+#
+echo "Download shi, unpack and copy."
+execute "wget -P /tmp/ http://kotoba-ib.googlecode.com/files/shi_1287405235.7z" "`basename $0`:$LINENO"
+execute "7z x -o/tmp /tmp/shi_1287405235.7z" "`basename $0`:$LINENO"
+execute "cp -r /tmp/shi/* $DST_DIR/$SHI_DIR/" "`basename $0`:$LINENO"
+execute "cp $DST_DIR/$SHI_DIR/shi_save.php $DST_DIR/$LIB_DIR/shi_save.php" "`basename $0`:$LINENO"
+
+#
 # 8. Generate .htaccess.
 #
 echo "Generate .htaccess."
@@ -567,5 +568,11 @@ echo "
 <Directory \"$DST_DIR\">
     AllowOverride FileInfo Limit Indexes
 </Directory>" >> /etc/httpd/conf/httpd.conf
+
+#
+# 10. Grant $DST_DIR to Apache.
+#
+echo "Grant $DST_DIR to Apache."
+execute "chown $APACHE_UG $DST_DIR" "`basename $0`:$LINENO"
 
 exit 0
