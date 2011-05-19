@@ -22,7 +22,7 @@ MYSQL_PASWD=""
 DEBUG=0
 
 # Set this value to 1
-CONFIRM_CHANGES=0
+CONFIRM_CHANGES=1
 
 ########## Do not edit code after this line ####################################
 
@@ -94,8 +94,7 @@ CAPTCHA_DIR="captcha"
 CAPTCHA_SCRIPTS="$CAPTCHA_DIR/image.php"
 
 CSS_DIR="css"
-CSS_SCRIPTS="$CSS_DIR/global.css \
-             $CSS_DIR/img_global.css"
+CSS_SCRIPTS="$CSS_DIR/global.css"
 CSS="futaba.css \
      kusaba.css"
 CSS_ICONS="closed.png \
@@ -149,6 +148,7 @@ SMARTY_DIRS="$SMARTY_DIR/kotoba \
              $SMARTY_DIR/kotoba/templates \
              $SMARTY_DIR/kotoba/templates/locale \
              $SMARTY_DIR/kotoba/templates_c \
+             $SMARTY_DIR/kotoba/templates_c/locale \
              $SMARTY_DIR/libs"
 TEMPLATES="adminbar.tpl \
            adm_panel.tpl \
@@ -316,6 +316,45 @@ function is_file_rx {
     return $ret
 }
 
+# Check if file exists and read,write,execute permissions granted.
+# $1 - full file name.
+function is_file_rwx {
+    ret=1
+
+    if [ -e $1 ]; then
+        if [ -r $1 ]; then
+            if [ -w $1 ]; then
+                if [ -x $1 ]; then
+                    ret=0
+                    if [ $DEBUG -eq 1 ]; then
+                        TABS=""
+                        echo "File $1 is ok"
+                        for ((i=0; i<${#FUNCNAME[@]}; i++)); do
+                            echo -n "${TABS}in ${BASH_SOURCE[$i]}:"
+                            echo "${BASH_LINENO[$i]} ${FUNCNAME[$i]}()"
+                            TABS="$TABS    "
+                        done
+                    fi
+                else
+                    echo "Have no permission to execute file $1"
+                    ret=1
+                fi
+            else
+                echo "Have no permission to write file $1"
+                ret=1
+            fi
+        else
+            echo "Have no permission to read file $1"
+            ret=1
+        fi
+    else
+        echo "File $1 not exist."
+        ret=1
+    fi
+
+    return $ret
+}
+
 ################################################################################
 #
 #
@@ -326,6 +365,7 @@ function is_file_rx {
 echo "Validate pathes."
 execute "is_file_rx $SRC_DIR" "`basename $0`:$LINENO"
 execute "is_file_r $DST_DIR" "`basename $0`:$LINENO"
+execute "is_file_rwx /tmp" "`basename $0`:$LINENO"
 
 #
 # 2. Read apache user name and group.
@@ -360,34 +400,16 @@ execute "tar -zxvf /tmp/Smarty-2.6.26.tar.gz -C /tmp/ > /dev/null" "`basename $0
 execute "cp -r /tmp/Smarty-2.6.26/libs/* $SRC_DIR/$SMARTY_DIR/" "`basename $0`:$LINENO"
 
 #
-# 6. Add requied directives to httpd.conf.
+# 6. Shi
 #
-echo "Add requied directives to httpd.conf."
-echo "
-
-### Kotoba
-#
-# Options requied or recommended for Kotoba.
-
-<Directory \"$DST_DIR\">
-    AllowOverride FileInfo Limit Indexes
-</Directory>" >> /etc/httpd/conf/httpd.conf
+echo "Download shi, unpack and copy."
+execute "wget -P /tmp/ http://kotoba-ib.googlecode.com/files/shi_1287405235.7z" "`basename $0`:$LINENO"
+execute "7z x -o/tmp /tmp/shi_1287405235.7z" "`basename $0`:$LINENO"
+execute "cp -r /tmp/shi/* $SRC_DIR/$SHI_DIR/" "`basename $0`:$LINENO"
+execute "cp $SRC_DIR/$SHI_DIR/shi_save.php $SRC_DIR/$LIB_DIR/shi_save.php" "`basename $0`:$LINENO"
 
 #
-# 7. Generate .htaccess.
-#
-echo "Generate .htaccess."
-echo "DirectoryIndex index.php
-RewriteEngine On
-RewriteRule ^([\w]{1,16})/$ $KOTOBA_DOC_ROOT/boards.php?board=\$1 [NE,L]
-RewriteRule ^([\w]{1,16})$ $KOTOBA_DOC_ROOT/boards.php?board=\$1 [NE,L]
-RewriteRule ^([\w]{1,16})/([\d]+)/$ $KOTOBA_DOC_ROOT/threads.php?board=\$1&thread=\$2 [NE,L]
-RewriteRule ^([\w]{1,16})/([\d]+)$ $KOTOBA_DOC_ROOT/threads.php?board=\$1&thread=\$2 [NE,L]
-RewriteRule ^([\w]{1,16})/p([\d]+)/$ $KOTOBA_DOC_ROOT/boards.php?board=\$1&page=\$2 [NE,L]
-RewriteRule ^([\w]{1,16})/p([\d]+)$ $KOTOBA_DOC_ROOT/boards.php?board=\$1&page=\$2 [NE,L]" > $DST_DIR/.htaccess
-
-#
-# 8. Copy files and setup permissions.
+# 7. Copy files and setup permissions.
 #
 echo "Copy files and setup permissions."
 for s in $MAIN_SCRIPTS; do
@@ -419,8 +441,8 @@ execute "chown $APACHE_UG $DST_DIR/$CAPTCHA_DIR" "`basename $0`:$LINENO"
 execute "chmod $RWX $DST_DIR/$CAPTCHA_DIR" "`basename $0`:$LINENO"
 for s in $CAPTCHA_SCRIPTS; do
     execute "cp $SRC_DIR/$s $DST_DIR/$s" "`basename $0`:$LINENO"
-    execute "chown $APACHE_UG $CAPTCHA_SCRIPTS" "`basename $0`:$LINENO"
-    execute "chmod $R__ $CAPTCHA_SCRIPTS" "`basename $0`:$LINENO"
+    execute "chown $APACHE_UG $DST_DIR/$s" "`basename $0`:$LINENO"
+    execute "chmod $R__ $DST_DIR/$s" "`basename $0`:$LINENO"
 done
 
 execute "mkdir $DST_DIR/$CSS_DIR" "`basename $0`:$LINENO"
@@ -438,11 +460,11 @@ for c in $CSS; do
 
     execute "cp $SRC_DIR/$CSS_DIR/$c/$c $DST_DIR/$CSS_DIR/$c/$c" "`basename $0`:$LINENO"
     execute "chown $APACHE_UG $DST_DIR/$CSS_DIR/$c/$c" "`basename $0`:$LINENO"
-    execute "chmod $R__ $APACHE_UG $DST_DIR/$CSS_DIR/$c/$c" "`basename $0`:$LINENO"
+    execute "chmod $R__ $DST_DIR/$CSS_DIR/$c/$c" "`basename $0`:$LINENO"
     for i in $CSS_ICONS; do
         execute "cp $SRC_DIR/$CSS_DIR/$c/$i $DST_DIR/$CSS_DIR/$c/$i" "`basename $0`:$LINENO"
         execute "chown $APACHE_UG $DST_DIR/$CSS_DIR/$c/$i" "`basename $0`:$LINENO"
-        execute "chmod $R__ $APACHE_UG $DST_DIR/$CSS_DIR/$c/$i" "`basename $0`:$LINENO"
+        execute "chmod $R__ $DST_DIR/$CSS_DIR/$c/$i" "`basename $0`:$LINENO"
     done
 done
 
@@ -482,7 +504,7 @@ for l in $LOCALES; do
     for s in $LOCALE_SCRIPTS; do
         execute "cp $SRC_DIR/$LOCALE_DIR/$l/$s $DST_DIR/$LOCALE_DIR/$l/$s" "`basename $0`:$LINENO"
         execute "chown $APACHE_UG $DST_DIR/$LOCALE_DIR/$l/$s" "`basename $0`:$LINENO"
-        execute "chmod $R__ $APACHE_UG $DST_DIR/$LOCALE_DIR/$l/$s" "`basename $0`:$LINENO"
+        execute "chmod $R__ $DST_DIR/$LOCALE_DIR/$l/$s" "`basename $0`:$LINENO"
     done
 done
 
@@ -498,19 +520,52 @@ execute "mkdir $DST_DIR/$SMARTY_DIR" "`basename $0`:$LINENO"
 execute "chown $APACHE_UG $DST_DIR/$SMARTY_DIR" "`basename $0`:$LINENO"
 execute "chmod $RWX $DST_DIR/$SMARTY_DIR" "`basename $0`:$LINENO"
 for dir in $SMARTY_DIRS; do
-    execute "mkdir $DST_DIR/$dir" "`basename $0`:$LINENO"
+    execute "mkdir -p $DST_DIR/$dir" "`basename $0`:$LINENO"
     execute "chown $APACHE_UG $DST_DIR/$dir" "`basename $0`:$LINENO"
     execute "chmod $RWX $DST_DIR/$dir" "`basename $0`:$LINENO"
 done
 for l in $LOCALES; do
-    execute "mkdir $DST_DIR/$SMARTY_DIR/kotoba/locale/$l" "`basename $0`:$LINENO"
-    execute "chown $APACHE_UG $DST_DIR/$SMARTY_DIR/kotoba/locale/$l" "`basename $0`:$LINENO"
-    execute "chmod $RWX $DST_DIR/$SMARTY_DIR/kotoba/locale/$l" "`basename $0`:$LINENO"
+    execute "mkdir -p $DST_DIR/$SMARTY_DIR/kotoba/templates/locale/$l" "`basename $0`:$LINENO"
+    execute "chown $APACHE_UG $DST_DIR/$SMARTY_DIR/kotoba/templates/locale/$l" "`basename $0`:$LINENO"
+    execute "chmod $RWX $DST_DIR/$SMARTY_DIR/kotoba/templates/locale/$l" "`basename $0`:$LINENO"
+    execute "mkdir -p $DST_DIR/$SMARTY_DIR/kotoba/templates_c/locale/$l" "`basename $0`:$LINENO"
+    execute "chown $APACHE_UG $DST_DIR/$SMARTY_DIR/kotoba/templates_c/locale/$l" "`basename $0`:$LINENO"
+    execute "chmod $RWX $DST_DIR/$SMARTY_DIR/kotoba/templates_c/locale/$l" "`basename $0`:$LINENO"
     for t in $TEMPLATES; do
-        execute "cp $SRC_DIR/$SMARTY_DIR/kotoba/locale/$l/$t $DST_DIR/$SMARTY_DIR/kotoba/locale/$l/$t" "`basename $0`:$LINENO"
-        execute "chown $APACHE_UG $DST_DIR/$SMARTY_DIR/kotoba/locale/$l/$t" "`basename $0`:$LINENO"
-        execute "chmod $R__ $DST_DIR/$SMARTY_DIR/kotoba/locale/$l/$t" "`basename $0`:$LINENO"
+        execute "cp $SRC_DIR/$SMARTY_DIR/kotoba/templates/locale/$l/$t $DST_DIR/$SMARTY_DIR/kotoba/templates/locale/$l/$t" "`basename $0`:$LINENO"
+        execute "chown $APACHE_UG $DST_DIR/$SMARTY_DIR/kotoba/templates/locale/$l/$t" "`basename $0`:$LINENO"
+        execute "chmod $R__ $DST_DIR/$SMARTY_DIR/kotoba/templates/locale/$l/$t" "`basename $0`:$LINENO"
     done
 done
+
+#
+# 8. Generate .htaccess.
+#
+echo "Generate .htaccess."
+echo "DirectoryIndex index.php
+RewriteEngine On
+RewriteRule ^([\w]{1,16})/$ $KOTOBA_DOC_ROOT/boards.php?board=\$1 [NE,L]
+RewriteRule ^([\w]{1,16})$ $KOTOBA_DOC_ROOT/boards.php?board=\$1 [NE,L]
+RewriteRule ^([\w]{1,16})/([\d]+)/$ $KOTOBA_DOC_ROOT/threads.php?board=\$1&thread=\$2 [NE,L]
+RewriteRule ^([\w]{1,16})/([\d]+)$ $KOTOBA_DOC_ROOT/threads.php?board=\$1&thread=\$2 [NE,L]
+RewriteRule ^([\w]{1,16})/p([\d]+)/$ $KOTOBA_DOC_ROOT/boards.php?board=\$1&page=\$2 [NE,L]
+RewriteRule ^([\w]{1,16})/p([\d]+)$ $KOTOBA_DOC_ROOT/boards.php?board=\$1&page=\$2 [NE,L]" > $DST_DIR/.htaccess
+echo "Deny from all" > $DST_DIR/$SMARTY_DIR/.htaccess
+echo "Deny from all" > $DST_DIR/$LOG_DIR/.htaccess
+echo "Deny from all" > $DST_DIR/$SESSIONS_DIR/.htaccess
+
+#
+# 9. Add requied directives to httpd.conf.
+#
+echo "Add requied directives to httpd.conf."
+echo "
+
+### Kotoba
+#
+# Options requied or recommended for Kotoba.
+
+<Directory \"$DST_DIR\">
+    AllowOverride FileInfo Limit Indexes
+</Directory>" >> /etc/httpd/conf/httpd.conf
 
 exit 0
