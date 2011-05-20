@@ -4,7 +4,7 @@
 
 # Source directory. Directory where working copy of Kotoba engine will be
 # created.
-SRC_DIR="/home/sorc/src/kotoba"
+SRC_DIR="/tmp/kotoba"
 
 # Destination directory. Directory where engine will actually work.
 DST_DIR="/var/www/html/kotoba"
@@ -123,7 +123,6 @@ LIB_SCRIPTS="$LIB_DIR/db.php \
              $LIB_DIR/popdown_handlers.php \
              $LIB_DIR/shi_applet.php \
              $LIB_DIR/shi_exit.php \
-             $LIB_DIR/shi_save.php \
              $LIB_DIR/upload_handlers.php \
              $LIB_DIR/wrappers.php"
 
@@ -574,5 +573,12 @@ echo "
 #
 echo "Grant $DST_DIR to Apache."
 execute "chown $APACHE_UG $DST_DIR" "`basename $0`:$LINENO"
+
+#
+# 11. Epilogue.
+#
+echo "Installations successful. You can manually clean up following dirs:"
+echo "rm -rf $SRC_DIR /tmp/Smarty-2.6.26* /tmp/shi*"
+echo "if you like."
 
 exit 0
