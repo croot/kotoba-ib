@@ -32,12 +32,16 @@ function db_cleanup_link($link) {
     if (($result = mysqli_store_result($link)) != false) {
         mysqli_free_result($result);
     }
-    while (mysqli_more_results($link)) {
+    $loop = 0;
+    while (mysqli_more_results($link) && ++$loop < 1000) {
         mysqli_next_result($link);
 		if (($result = mysqli_store_result($link)) != false) {
 			mysqli_free_result($result);
         }
 	}
+    if ($loop >= 1000) {
+        throw new CommonException("Probably infinity loop.");
+    }
 	if (mysqli_errno($link)) {
 		throw new CommonException(mysqli_error($link));
     }
@@ -2793,70 +2797,101 @@ function db_posts_get_by_boards_number($link,
     return array('count' => $count, 'posts' => $posts);
 }
 /**
- * Get posts by it's id's.
+ * Get posts by its ids.
  * @param MySQLi $link Link to database.
- * @param array $ids Id's of posts.
- * @return array
- * posts.
+ * @param array $ids Ids of posts.
+ * @return array posts.
  */
 function db_posts_get_by_ids($link, $ids) {
     $posts = array();
-    $post = NULL;
-    $query = 'call sp_posts_get_by_id(?)';
 
-    if ( ($stmt = mysqli_prepare($link, $query)) != FALSE) {
-        foreach ($ids as $id) {
-            mysqli_stmt_bind_param($stmt, "i", $id);
-            mysqli_stmt_execute($stmt);
-            mysqli_stmt_bind_result($stmt,
-                                    $post['id'],
-                                    $post['number'],
-                                    $post['user'],
-                                    $post['password'],
-                                    $post['name'],
-                                    $post['tripcode'],
-                                    $post['ip'],
-                                    $post['subject'],
-                                    $post['date_time'],
-                                    $post['text'],
-                                    $post['sage'],
-                                    $post['board']['id'],
-                                    $post['board']['name'],
-                                    $post['board']['title'],
-                                    $post['board']['annotation'],
-                                    $post['board']['bump_limit'],
-                                    $post['board']['force_anonymous'],
-                                    $post['board']['default_name'],
-                                    $post['board']['with_attachments'],
-                                    $post['board']['enable_macro'],
-                                    $post['board']['enable_youtube'],
-                                    $post['board']['enable_captcha'],
-                                    $post['board']['enable_translation'],
-                                    $post['board']['enable_geoip'],
-                                    $post['board']['enable_shi'],
-                                    $post['board']['enable_postid'],
-                                    $post['board']['same_upload'],
-                                    $post['board']['popdown_handler'],
-                                    $post['board']['category'],
-                                    $post['thread']['id'],
-                                    $post['thread']['board'],
-                                    $post['thread']['original_post'],
-                                    $post['thread']['bump_limit'],
-                                    $post['thread']['sage'],
-                                    $post['thread']['sticky'],
-                                    $post['thread']['with_attachments']);
-            mysqli_stmt_fetch($stmt);
-
-            // Hack to clone array. Thank you PHP.
-            array_push($posts, kotoba_array_clone($post));
-
-            db_cleanup_link($link);
+    foreach ($ids as $id) {
+        $result = mysqli_multi_query($link, "call sp_posts_get_by_id($id)");
+        if (!$result) {
+            throw new CommonException(mysqli_error($link));
         }
-    } else {
-        throw new CommonException(mysqli_error($link));
-    }
 
-    mysqli_stmt_close($stmt);
+        // Collect board data.
+        if ( ($result = mysqli_store_result($link)) == FALSE) {
+            throw new CommonException(mysqli_error($link));
+        }
+        if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            if (!isset($boards[$row['board_id']])) {
+                $boards[$row['board_id']] =
+                    array('id' => $row['board_id'],
+                          'name' => $row['board_name'],
+                          'title' => $row['board_title'],
+                          'annotation' => $row['board_annotation'],
+                          'bump_limit' => $row['board_bump_limit'],
+                          'force_anonymous' => $row['board_force_anonymous'],
+                          'default_name' => $row['board_default_name'],
+                          'with_attachments' => $row['board_with_attachments'],
+                          'enable_macro' => $row['board_enable_macro'],
+                          'enable_youtube' => $row['board_enable_youtube'],
+                          'enable_captcha' => $row['board_enable_captcha'],
+                          'enable_translation' => $row['board_enable_translation'],
+                          'enable_geoip' => $row['board_enable_geoip'],
+                          'enable_shi' => $row['board_enable_shi'],
+                          'enable_postid' => $row['board_enable_postid'],
+                          'same_upload' => $row['board_same_upload'],
+                          'popdown_handler' => $row['board_popdown_handler'],
+                          'category' => $row['board_category'],
+                          'last_post_number' => $row['board_last_post_number']);
+            }
+        }
+        mysqli_free_result($result);
+
+        // Collect thread data.
+        if (!mysqli_next_result($link)) {
+            throw new CommonException('Not all expected data received.');
+        }
+        if ( ($result = mysqli_store_result($link)) == FALSE) {
+            throw new CommonException(mysqli_error($link));
+        }
+        if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            if (!isset($threads[$row['thread_id']])) {
+                $threads[$row['thread_id']] =
+                    array('id' => $row['thread_id'],
+                          'board' => $row['thread_board'],
+                          'original_post' => $row['thread_original_post'],
+                          'bump_limit' => $row['thread_bump_limit'],
+                          'deleted' => $row['thread_deleted'],
+                          'archived' => $row['thread_archived'],
+                          'sage' => $row['thread_sage'],
+                          'sticky' => $row['thread_sticky'],
+                          'with_attachments' => $row['thread_with_attachments'],
+                          'closed' => $row['thread_closed']);
+            }
+        }
+        mysqli_free_result($result);
+
+        // Collect post data.
+        if (!mysqli_next_result($link)) {
+            throw new CommonException('Not all expected data received.');
+        }
+        if ( ($result = mysqli_store_result($link)) == FALSE) {
+            throw new CommonException(mysqli_error($link));
+        }
+        if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            array_push($posts, array('id' => $row['post_id'],
+                                     'board' => &$boards[$row['post_board']],
+                                     'thread' => &$threads[$row['post_thread']],
+                                     'number' => $row['post_number'],
+                                     'user' => $row['post_user'],
+                                     'password' => $row['post_password'],
+                                     'name' => $row['post_name'],
+                                     'tripcode' => $row['post_tripcode'],
+                                     'ip' => $row['post_ip'],
+                                     'subject' => $row['post_subject'],
+                                     'date_time' => $row['post_date_time'],
+                                     'text' => $row['post_text'],
+                                     'sage' => $row['post_sage'],
+                                     'deleted' => $row['post_deleted']));
+        }
+        mysqli_free_result($result);
+
+        db_cleanup_link($link);
+    }
 
     return $posts;
 }
