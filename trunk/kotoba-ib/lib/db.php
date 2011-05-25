@@ -1718,10 +1718,9 @@ function posts_get_by_boards_number($boards, $number, $page, $posts_per_page) {
                                          $posts_per_page);
 }
 /**
- * Get posts by it's id's.
- * @param array $ids Id's of posts.
- * @return array
- * posts.
+ * Get posts by its ids.
+ * @param array $ids Ids of posts.
+ * @return array posts.
  */
 function posts_get_by_ids($ids) {
     return db_posts_get_by_ids(DataExchange::getDBLink(), $ids);
