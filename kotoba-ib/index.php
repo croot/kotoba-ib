@@ -33,8 +33,18 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    // Receieve visible boards.
+    $categories = categories_get_all();
     $boards = boards_get_visible($_SESSION['user']);
+
+    // Make category-boards tree for navigation panel.
+    foreach ($categories as &$c) {
+        $c['boards'] = array();
+        foreach ($boards as $b) {
+            if ($b['category'] == $c['id'] && !in_array($b['name'], Config::$INVISIBLE_BOARDS)) {
+                array_push($c['boards'], $b);
+            }
+        }
+    }
 
     // Generate news html-code.
     $news_html = '';
@@ -137,6 +147,7 @@ try {
 
     // Generate main page html-code and display it.
     $smarty->assign('show_control', is_admin() || is_mod());
+    $smarty->assign('categories', $categories);
     $smarty->assign('boards', $boards);
     $smarty->assign('news_html', $news_html);
     $smarty->assign('version', '$Revision$');

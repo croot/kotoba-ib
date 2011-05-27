@@ -2560,7 +2560,7 @@ function db_posts_get_by_boards_datetime($link,
                                          $posts_per_page) {
 
     $posts = array();
-    $posts_per_page = $posts_per_page / count($boards);
+    $posts_per_page = kotoba_intval($posts_per_page / count($boards));
     $count = 0;
 
     foreach ($boards as $board) {
@@ -2644,7 +2644,7 @@ function db_posts_get_by_boards_ip($link,
                                    $posts_per_page) {
 
     $posts = array();
-    $posts_per_page = $posts_per_page / count($boards);
+    $posts_per_page = kotoba_intval($posts_per_page / count($boards));
     $count = 0;
 
     foreach ($boards as $board) {
@@ -2728,7 +2728,7 @@ function db_posts_get_by_boards_number($link,
                                        $posts_per_page) {
 
     $posts = array();
-    $posts_per_page = $posts_per_page / count($boards);
+    $posts_per_page = kotoba_intval($posts_per_page / count($boards));
     $count = 0;
 
     foreach ($boards as $board) {
@@ -2977,7 +2977,7 @@ function db_posts_get_reported_by_boards($link,
                                          $posts_per_page) {
 
     $posts = array();
-    $posts_per_page = $posts_per_page / count($boards);
+    $posts_per_page = kotoba_intval($posts_per_page / count($boards));
     $count = 0;
 
     foreach ($boards as $b) {
