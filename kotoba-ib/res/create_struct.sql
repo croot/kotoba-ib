@@ -234,6 +234,7 @@ create table threads                    -- Threads.
     -- Если этот флаг null, то берётся родительский with_attachments доски.
     with_attachments bit default null,  -- Attachments flag.
     closed bit not null default 0,      -- Thread closed flag.
+    last_post int not null default 0,   -- Last undeleted unsaged post number.
     primary key (id),
     constraint foreign key (board) references boards (id) on delete restrict on update restrict
 )
@@ -268,6 +269,7 @@ create table posts                      -- Posts.
     deleted bit not null,               -- Mark to delete.
     primary key (id),
     index (number),
+    unique key (board, number),
     constraint foreign key (board) references boards (id) on delete restrict on update restrict,
     constraint foreign key (thread) references threads (id) on delete restrict on update restrict,
     constraint foreign key (user) references users (id) on delete restrict on update restrict
@@ -456,4 +458,4 @@ insert into acl (`group`, board, `view`, `change`, moderate) values (4, 1, 1, 1,
 insert into acl (`group`, board, `view`, `change`, moderate) values (4, 2, 1, 1, 1);
 
 -- Current database version.
-insert into db_version (version) values (12);
+insert into db_version (version) values (13);

@@ -164,6 +164,7 @@ drop procedure if exists sp_threads_get_visible_by_page|
 drop procedure if exists sp_threads_get_visible_count|
 drop procedure if exists sp_threads_move_thread|
 drop procedure if exists sp_threads_search_visible_by_board|
+drop procedure if exists sp_threads_update_last_post|
 
 drop procedure if exists sp_upload_handlers_add|
 drop procedure if exists sp_upload_handlers_delete|
@@ -1782,12 +1783,12 @@ begin
     declare threadsage bit;     -- whole thread sage
     declare post_id int;
 
-    select last_post_number into post_number from boards where id = board_id;
-    if(post_number is null) then
-        set post_number = 1;
-    else
-        set post_number = post_number + 1;
-    end if;
+    -- Trick to guarantee uniqueness of post_number per board.
+    update boards
+        set last_post_number = last_insert_id(last_post_number + 1)
+        where id = board_id;
+    select last_insert_id() into post_number;
+
     select bump_limit into bumplimit from threads where id = thread_id;
     select count(id) into count_posts from posts where thread = thread_id;
     select sage into threadsage from threads where id = thread_id;
@@ -1809,7 +1810,8 @@ begin
     select id, board, thread, number, user, password, name, tripcode, ip,
             subject, date_time, `text`, sage
         from posts where id = post_id;
-    call sp_boards_set_last_post_number(board_id, post_number);
+
+    call sp_threads_update_last_post(thread_id);
 end|
 
 -- Remove post.
@@ -4328,7 +4330,7 @@ end|
 -- user_id - Идентификатор пользователя.
 -- word - Слово для поиска.
 create procedure sp_threads_search_visible_by_board
-(	
+(
 	board_id int,
 	user_id int,
 	word varchar(60)
@@ -4400,6 +4402,33 @@ begin
 				and (p.sage = 0 or p.sage is null) and p.deleted = 0
 		group by q.id) q1
 	order by q1.last_post_num desc;
+end|
+
+-- Updates last post.
+create procedure sp_threads_update_last_post
+(
+    _id int -- Thread id.
+)
+begin
+    declare _last_post int;
+
+    create temporary table _posts
+    (
+        id int not null,
+        number int not null
+    )
+    engine=InnoDB;
+
+    insert into _posts (id, number)
+        select id, number
+            from posts
+            where thread = _id
+                  and (sage = 0 or sage is null)
+                  and deleted = 0;
+    select max(number) into _last_post from _posts;
+    update threads set last_post = _last_post where id = _id;
+
+    drop table _posts;
 end|
 
 -- --------------------
