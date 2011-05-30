@@ -55,9 +55,21 @@ try {
         $password = $_SESSION['password'];
     }
 
+    $categories = categories_get_all();
     $boards = boards_get_visible($_SESSION['user']);
     $board = null;
     $banners_board_id = null;
+
+    // Make category-boards tree for navigation panel.
+    foreach ($categories as &$c) {
+        $c['boards'] = array();
+        foreach ($boards as $b) {
+            if ($b['category'] == $c['id'] && !in_array($b['name'], Config::$INVISIBLE_BOARDS)) {
+                array_push($c['boards'], $b);
+            }
+        }
+    }
+
     foreach ($boards as $b) {
         if ($b['name'] == $board_name) {
             $board = $b;
@@ -87,77 +99,10 @@ try {
                                            $page,
                                            $_SESSION['threads_per_page']);
 
-    /*$tfilter = function($thread, $page, $threads_per_page) {
-        // Количество нитей, которое нужно пропустить.
-        $skip = $threads_per_page * ($page - 1);
-
-        // Номер записи с не закреплённой нитью. Начинается с 1.
-        static $number = 0;
-
-        // Число выбранных не закреплённых нитей.
-        static $received = 0;
-
-        if ($thread['sticky']) {
-
-            // Sticky threads shows only on 1st page.
-            if ($page == 1) {
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            $number++;
-            if ($number > $skip && $received < $threads_per_page) {
-                $received++;
-                return true;
-            } else {
-                return false;
-            }
-        }
-    };
-    $threads = threads_get_visible_filtred_by_board($board['id'],
-                                                    $_SESSION['user'],
-                                                    $tfilter,
-                                                    $page,
-                                                    $_SESSION['threads_per_page']);
-    $sticky_threads = array();
-    $other_threads = array();
-    foreach ($threads as $thread) {
-        if ($thread['sticky']) {
-            array_push($sticky_threads, $thread);
-        } else {
-            array_push($other_threads, $thread);
-        }
-    }
-    $threads = array_merge($sticky_threads, $other_threads);*/
-
     $posts = posts_get_visible_by_threads_preview($board['id'],
                                                   $threads,
                                                   $_SESSION['user'],
                                                   $_SESSION['posts_per_thread']);
-
-    /*$pfilter = function($posts_per_thread, $thread, $post) {
-        static $recived = 0;
-        static $prev_thread = null;
-
-        if ($prev_thread !== $thread) {
-            $recived = 0;
-            $prev_thread = $thread;
-        }
-
-        if ($thread['original_post'] == $post['post_number']) {
-            return true;
-        }
-        $recived++;
-        if ($recived >= $thread['posts_count'] - $posts_per_thread) {
-            return true;
-        }
-        return false;
-    };
-    $posts = posts_get_visible_filtred_by_threads($threads,
-                                                  $_SESSION['user'],
-                                                  $pfilter,
-                                                  $_SESSION['posts_per_thread']);*/
 
     // TODO: What if attachments disabled on this board?
     $posts_attachments = posts_attachments_get_by_posts($posts);
@@ -190,6 +135,7 @@ try {
     $admins = users_get_admins();
 
     $smarty->assign('show_control', is_admin() || is_mod());
+    $smarty->assign('categories', $categories);
     $board['annotation'] = $board['annotation'] ? html_entity_decode($board['annotation'], ENT_QUOTES, Config::MB_ENCODING) : $board['annotation'];
     $smarty->assign('board', $board);
     $smarty->assign('boards', $boards);

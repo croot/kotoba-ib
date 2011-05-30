@@ -53,7 +53,19 @@ try {
         $password = $_SESSION['password'];
     }
 
+    $categories = categories_get_all();
     $boards = boards_get_visible($_SESSION['user']);
+
+    // Make category-boards tree for navigation panel.
+    foreach ($categories as &$c) {
+        $c['boards'] = array();
+        foreach ($boards as $b) {
+            if ($b['category'] == $c['id'] && !in_array($b['name'], Config::$INVISIBLE_BOARDS)) {
+                array_push($c['boards'], $b);
+            }
+        }
+    }
+
     $board = null;
     $banners_board_id = null;
     foreach ($boards as $b) {
@@ -132,6 +144,7 @@ try {
     $smarty->assign('thread', $thread);
     $smarty->assign('enable_translation', ($board['enable_translation'] === null) ? Config::ENABLE_TRANSLATION : $board['enable_translation']);
     $smarty->assign('show_control', is_admin() || is_mod());
+    $smarty->assign('categories', $categories);
     $board['annotation'] = $board['annotation'] ? html_entity_decode($board['annotation'], ENT_QUOTES, Config::MB_ENCODING) : $board['annotation'];
     $smarty->assign('boards', $boards);
     if ($banners_board_id) {
