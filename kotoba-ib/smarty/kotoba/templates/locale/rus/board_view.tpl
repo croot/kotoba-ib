@@ -14,6 +14,7 @@ Variables:
     $page - page number.
     $enable_translation - translation flag (see config.default).
     $show_control - show link to manage page.
+    $categories - categories.
     $boards - boards.
     $banner - banner.
     $pages - pages numbers.
@@ -32,7 +33,9 @@ Variables:
     $threads_html - html code of threads.
     $hidden_threads - hidden threads.
 *}
-{include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title="`$ib_name` — /`$board.name`/ `$board.title`. Просмотр, страница $page"}
+{include file='header.tpl' DIR_PATH=$DIR_PATH
+                           STYLESHEET=$STYLESHEET
+                           page_title="`$ib_name` — /`$board.name`/ `$board.title`. Просмотр, страница $page"}
 
 
 {if $enable_translation}
@@ -50,7 +53,7 @@ google.load("language", "1");
 <script src="{$DIR_PATH}/kotoba.js"></script>
 {include file='adminbar.tpl' DIR_PATH=$DIR_PATH show_control=$show_control}
 
-{include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
+{include file='navbar.tpl' DIR_PATH=$DIR_PATH categories=$categories boards=$boards}
 
 
 {if isset($banner)}
@@ -153,7 +156,7 @@ else {
 {/if}
 {include file='pages_list.tpl' board_name=$board.name pages=$pages page=$page}
 <br>
-{include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
+{include file='navbar.tpl' DIR_PATH=$DIR_PATH categories=$categories boards=$boards}
 <br>
 <div class="footer" style="clear: both;">- <a href="http://code.google.com/p/kotoba-ib/" target="_top">Kotoba 1.2</a> -</div>
 {include file='footer.tpl'}

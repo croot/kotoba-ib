@@ -41,9 +41,23 @@ try {
     }
     call_user_func(Logging::$f['MANAGE_USE']);
 
+    $categories = categories_get_all();
+    $boards = boards_get_visible($_SESSION['user']);
+
+    // Make category-boards tree for navigation panel.
+    foreach ($categories as &$c) {
+        $c['boards'] = array();
+        foreach ($boards as $b) {
+            if ($b['category'] == $c['id'] && !in_array($b['name'], Config::$INVISIBLE_BOARDS)) {
+                array_push($c['boards'], $b);
+            }
+        }
+    }
+
     // Create html-code of manage page and display it.
     $smarty->assign('show_control', is_admin() || is_mod());
-    $smarty->assign('boards', boards_get_visible($_SESSION['user']));
+    $smarty->assign('categories', $categories);
+    $smarty->assign('boards', $boards);
     if (is_mod()) {
         $smarty->assign('mod_panel', true);
     } elseif (is_admin()) {

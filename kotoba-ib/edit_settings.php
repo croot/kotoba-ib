@@ -101,7 +101,19 @@ try {
         exit(0);
     }
 
+    $categories = categories_get_all();
     $boards = boards_get_visible($_SESSION['user']);
+
+    // Make category-boards tree for navigation panel.
+    foreach ($categories as &$c) {
+        $c['boards'] = array();
+        foreach ($boards as $b) {
+            if ($b['category'] == $c['id'] && !in_array($b['name'], Config::$INVISIBLE_BOARDS)) {
+                array_push($c['boards'], $b);
+            }
+        }
+    }
+
     // Pass all threads hidden by specific user.
     $htfilter = function ($hidden_thread, $user) {
         if ($hidden_thread['user'] == $user) {
@@ -142,6 +154,7 @@ try {
 
     // Generate html-code of page and display.
     $smarty->assign('show_control', is_admin() || is_mod());
+    $smarty->assign('categories', $categories);
     $smarty->assign('boards', $boards);
     $smarty->assign('settings', $_SESSION);
     $smarty->assign('languages', $languages);

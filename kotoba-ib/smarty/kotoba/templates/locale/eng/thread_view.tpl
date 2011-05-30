@@ -12,6 +12,7 @@ Variables:
     $thread - thread.
     $enable_translation - translation flag (see config.default).
     $show_control - show link to manage page.
+    $categories - categories.
     $boards - boards.
     $banner - banner.
     $ib_name - imageboard name  (see config.default).
@@ -53,7 +54,7 @@ google.load("language", "1");
 
 {include file='adminbar.tpl' DIR_PATH=$DIR_PATH show_control=$show_control}
 
-{include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
+{include file='navbar.tpl' DIR_PATH=$DIR_PATH categories=$categories boards=$boards}
 
 {if isset($banner)}
 <div class="logo"><img src="{$DIR_PATH}/misc/img/{$banner.name}" alt="{$banner.name}" width="{$banner.widht}" height="{$banner.height}"></div>
@@ -160,7 +161,7 @@ Hidden threads:
 <a href="{$DIR_PATH}/unhide_thread.php?thread={$hidden_threads[i].thread}" title="Refer to unhide thread.">{$hidden_threads[i].thread_number}</a>
 {/section}
 {/if}<br>
-{include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
+{include file='navbar.tpl' DIR_PATH=$DIR_PATH categories=$categories boards=$boards}
 
 <div class="footer" style="clear: both;">- <a href="http://code.google.com/p/kotoba-ib/" target="_top">Kotoba 1.2</a> -</div>
 {include file='footer.tpl'}
