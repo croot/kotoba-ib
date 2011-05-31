@@ -10,6 +10,7 @@ Variables:
     $DIR_PATH - path from server document root to index.php directory (see config.default).
     $STYLESHEET - stylesheet (see config.default).
     $show_control - show link to manage page.
+    $categories - categories.
     $boards - boards.
     $pages - pages numbers.
     $page - page number.
@@ -21,7 +22,7 @@ Variables:
 
 {include file='adminbar.tpl' DIR_PATH=$DIR_PATH show_control=$show_control}
 
-{include file='navbar.tpl' DIR_PATH=$DIR_PATH boards=$boards}
+{include file='navbar.tpl' DIR_PATH=$DIR_PATH categories=$categories boards=$boards}
 
 <div class="logo">Search</div>
 {include file='search_pages_list.tpl' pages=$pages page=$page keyword=$keyword boards=$boards}

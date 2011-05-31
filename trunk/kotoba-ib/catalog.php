@@ -40,7 +40,19 @@ try {
     header("Cache-Control: private");
 
     $board_name = boards_check_name($_GET['board']);
+    $categories = categories_get_all();
     $boards = boards_get_visible($_SESSION['user']);
+
+    // Make category-boards tree for navigation panel.
+    foreach ($categories as &$c) {
+        $c['boards'] = array();
+        foreach ($boards as $b) {
+            if ($b['category'] == $c['id'] && !in_array($b['name'], Config::$INVISIBLE_BOARDS)) {
+                array_push($c['boards'], $b);
+            }
+        }
+    }
+
     $board = null;
     foreach ($boards as $b) {
         if ($b['name'] == $board_name) {
@@ -95,6 +107,7 @@ try {
     $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
     $smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
     $smarty->assign('show_control', is_admin() || is_mod());
+    $smarty->assign('categories', $categories);
     $smarty->assign('boards', $boards);
 
     $threads_html = '';
