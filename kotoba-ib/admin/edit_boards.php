@@ -45,6 +45,16 @@ try {
     $boards = boards_get_all();
     $reload_boards = false;
 
+    // Make category-boards tree for navigation panel.
+    foreach ($categories as &$c) {
+        $c['boards'] = array();
+        foreach ($boards as $b) {
+            if ($b['category'] == $c['id'] && !in_array($b['name'], Config::$INVISIBLE_BOARDS)) {
+                array_push($c['boards'], $b);
+            }
+        }
+    }
+
     if (isset($_POST['submited'])) {
         $new_board = array();
 
