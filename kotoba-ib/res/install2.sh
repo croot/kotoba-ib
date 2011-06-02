@@ -88,7 +88,8 @@ ADMIN_SCRIPTS="$ADMIN_DIR/archive.php \
                $ADMIN_DIR/update_macrochan.php"
 
 ANIMAPTCHA_DIR="animaptcha"
-ANIMAPTCHA_SCRIPTS="$ANIMAPTCHA_DIR/animaptcha.php"
+ANIMAPTCHA_SCRIPTS="$ANIMAPTCHA_DIR/animaptcha.php \
+                    $ANIMAPTCHA_DIR/boxxy001.png"
 
 CAPTCHA_DIR="captcha"
 CAPTCHA_SCRIPTS="$CAPTCHA_DIR/image.php"

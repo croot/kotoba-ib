@@ -2168,8 +2168,9 @@ function threads_get_by_original_post($board, $original_post) {
  * Get changeable thread.
  * @param int $thread_id Thread id.
  * @param int $user_id User id.
- * @return array
- * thread.
+ * @return int|array Returns array of thread data or integer error value. Error
+ * values is: 1 if user have no permissions to change thread, 2 if thread not
+ * found.
  */
 function threads_get_changeable_by_id($thread_id, $user_id) {
     return db_threads_get_changeable_by_id(DataExchange::getDBLink(),

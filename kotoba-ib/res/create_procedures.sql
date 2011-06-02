@@ -3291,72 +3291,78 @@ create procedure sp_threads_get_changeable_by_id
     user_id int     -- User id.
 )
 begin
-    select t.id as thread_id,
-           t.original_post as thread_original_post,
-           t.bump_limit as thread_bump_limit,
-           t.archived as thread_archived,
-           t.sage as thread_sage,
-           t.with_attachments as thread_with_attachments,
-           t.closed as thread_closed,
+    declare _thread_id int;
+    select id into _thread_id from threads where id = thread_id;
+    if (_thread_id is null) then
+        select 'NOT_FOUND' as error;
+    else
+        select t.id as thread_id,
+               t.original_post as thread_original_post,
+               t.bump_limit as thread_bump_limit,
+               t.archived as thread_archived,
+               t.sage as thread_sage,
+               t.with_attachments as thread_with_attachments,
+               t.closed as thread_closed,
 
-           b.id as board_id,
-           b.name as board_name,
-           b.title as board_title,
-           b.annotation as board_annotation,
-           b.bump_limit as board_bump_limit,
-           b.force_anonymous as board_force_anonymous,
-           b.default_name as board_default_name,
-           b.with_attachments as board_with_attachments,
-           b.enable_macro as board_enable_macro,
-           b.enable_youtube as board_enable_youtube,
-           b.enable_captcha as board_enable_captcha,
-           b.enable_translation as board_enable_translation,
-           b.enable_geoip as board_enable_geoip,
-           b.enable_shi as board_enable_shi,
-           b.enable_postid as board_enable_postid,
-           b.same_upload as board_same_upload,
-           b.popdown_handler as board_popdown_handler,
-           b.category as board_category
+               b.id as board_id,
+               b.name as board_name,
+               b.title as board_title,
+               b.annotation as board_annotation,
+               b.bump_limit as board_bump_limit,
+               b.force_anonymous as board_force_anonymous,
+               b.default_name as board_default_name,
+               b.with_attachments as board_with_attachments,
+               b.enable_macro as board_enable_macro,
+               b.enable_youtube as board_enable_youtube,
+               b.enable_captcha as board_enable_captcha,
+               b.enable_translation as board_enable_translation,
+               b.enable_geoip as board_enable_geoip,
+               b.enable_shi as board_enable_shi,
+               b.enable_postid as board_enable_postid,
+               b.same_upload as board_same_upload,
+               b.popdown_handler as board_popdown_handler,
+               b.category as board_category
 
-        from threads t
-        join boards b on b.id = t.board
-        join user_groups ug on ug.user = user_id
-        left join hidden_threads ht on t.id = ht.thread and ug.user = ht.user
-        -- Правила для конкретной группы и нити.
-        left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
-        -- Правило для всех групп и конкретной нити.
-        left join acl a2 on a2.`group` is null and a2.thread = t.id
-        -- Правила для конкретной группы и доски.
-        left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
-        -- Правило для всех групп и конкретной доски.
-        left join acl a4 on a4.`group` is null and a4.board = t.board
-        -- Правило для конкретной групы.
-        left join acl a5 on a5.`group` = ug.`group` and a5.board is null
-            and a5.thread is null and a5.post is null
-        where t.id = thread_id
-            and (t.deleted = 0 or t.deleted is null)
-            and ht.thread is null
-            -- Нить должна быть доступна для просмотра.
-                -- Просмотр нити не запрещен конкретной группе и
-            and ((a1.`view` = 1 or a1.`view` is null)
-                -- просмотр нити не запрещен всем группам и
-                and (a2.`view` = 1 or a2.`view` is null)
-                -- просмотр доски не запрещен конкретной группе и
-                and (a3.`view` = 1 or a3.`view` is null)
-                -- просмотр доски не запрещен всем группам и
-                and (a4.`view` = 1 or a4.`view` is null)
-                -- просмотр разрешен конкретной группе.
-                and a5.`view` = 1)
-            -- Нить должна быть доступна для редактирования.
-                -- Редактирование нити разрешено конкретной группе или
-            and (a1.change = 1
-                -- редактирование нити не запрещено конкретной группе и
-                -- разрешено всем группам или
-                or (a1.change is null and a2.change = 1)
-                -- редактирование нити не запрещено ни конкретной группе ни
-                -- всем, и конкретной группе редактирование разрешено.
-                or (a1.change is null and a2.change is null and a5.change = 1))
-        group by t.id;
+            from threads t
+            join boards b on b.id = t.board
+            join user_groups ug on ug.user = user_id
+            left join hidden_threads ht on t.id = ht.thread and ug.user = ht.user
+            -- Правила для конкретной группы и нити.
+            left join acl a1 on a1.`group` = ug.`group` and a1.thread = t.id
+            -- Правило для всех групп и конкретной нити.
+            left join acl a2 on a2.`group` is null and a2.thread = t.id
+            -- Правила для конкретной группы и доски.
+            left join acl a3 on a3.`group` = ug.`group` and a3.board = t.board
+            -- Правило для всех групп и конкретной доски.
+            left join acl a4 on a4.`group` is null and a4.board = t.board
+            -- Правило для конкретной групы.
+            left join acl a5 on a5.`group` = ug.`group` and a5.board is null
+                and a5.thread is null and a5.post is null
+            where t.id = thread_id
+                and (t.deleted = 0 or t.deleted is null)
+                and ht.thread is null
+                -- Нить должна быть доступна для просмотра.
+                    -- Просмотр нити не запрещен конкретной группе и
+                and ((a1.`view` = 1 or a1.`view` is null)
+                    -- просмотр нити не запрещен всем группам и
+                    and (a2.`view` = 1 or a2.`view` is null)
+                    -- просмотр доски не запрещен конкретной группе и
+                    and (a3.`view` = 1 or a3.`view` is null)
+                    -- просмотр доски не запрещен всем группам и
+                    and (a4.`view` = 1 or a4.`view` is null)
+                    -- просмотр разрешен конкретной группе.
+                    and a5.`view` = 1)
+                -- Нить должна быть доступна для редактирования.
+                    -- Редактирование нити разрешено конкретной группе или
+                and (a1.change = 1
+                    -- редактирование нити не запрещено конкретной группе и
+                    -- разрешено всем группам или
+                    or (a1.change is null and a2.change = 1)
+                    -- редактирование нити не запрещено ни конкретной группе ни
+                    -- всем, и конкретной группе редактирование разрешено.
+                    or (a1.change is null and a2.change is null and a5.change = 1))
+            group by t.id;
+    end if;
 end|
 
 -- Select moderatable threads.
@@ -4114,7 +4120,6 @@ begin
             into _bump_limit, _sage, _with_attachments
         from threads where id = _id;
     call sp_threads_add(_board, null, _bump_limit, _sage, _with_attachments);
-    -- TODO: А что если ещё какой-то тред будет создан между моментов вызова sp_threads_add() и этим селектом?
     select last_insert_id() into _thread;
 
     -- Calculate new original post number and copy original post.

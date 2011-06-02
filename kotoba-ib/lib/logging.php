@@ -54,8 +54,7 @@ class Logging {
 
         date_default_timezone_set(Config::DEFAULT_TIMEZONE);
         if (self::$log_file == null) {
-            // TODO Надо добавить в конфиг этот формат даты.
-            self::$log_file = fopen(Config::ABS_PATH . '/log/actions-' . date('Y-m-d') . '.log', 'a');
+            self::$log_file = fopen(Config::ABS_PATH . '/log/actions-' . date(Config::LOG_DATETIME_FORMAT) . '.log', 'a');
             if (!self::$log_file) {
                 throw new CommonException(CommonException::$messages['LOG_FILE']);
             }

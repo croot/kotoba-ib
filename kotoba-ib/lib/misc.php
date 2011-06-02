@@ -518,15 +518,14 @@ function image_get_dimensions($upload_type, $file) {
  * @param array $type Image file type.
  * @param int $resize_x Thumbnail width.
  * @param int $resize_y Thumbnail height.
- * @param boolean $force Create thumbnail anyway.
  * @return array
  * thumbnail dimensions.
  */
-function create_thumbnail($source, $dest, $source_dimensions, $type, $resize_x, $resize_y, $force) {
+function create_thumbnail($source, $dest, $source_dimensions, $type, $resize_x, $resize_y) {
     $result = array();
 
     // small image doesn't need to be thumbnailed
-    if (!$force && $source_dimensions['x'] < $resize_x && $source_dimensions['y'] < $resize_y) {
+    if ($source_dimensions['x'] < $resize_x && $source_dimensions['y'] < $resize_y) {
         // big file but small image is some kind of trolling
         if (filesize($source) > Config::SMALLIMAGE_LIMIT_FILE_SIZE) {
             throw new LimitException(LimitException::$messages['MAX_SMALL_IMG_SIZE']);
