@@ -5,10 +5,12 @@ $postdata = array('name' => 'KotobaHighloadBot',
                   'file' => "@1.jpg",
                   'password' => 'testpassword',
                   'goto' => 'b');
-$threads_count = 100;
-$replies_conut = 100;
+$addr = isset($argv[1]) ? $argv[1] : "sorc.dyndns-home.com";
+$threads_count = isset($argv[2]) ? $argv[2] : 100;
+$replies_conut = isset($argv[3]) ? $argv[3] : 100;
+echo "addr=$addr,threads_count=$threads_count,replies_conut=$replies_conut\n";
 $posts_failed = 0;
-$posts_total = $threads_count * $replies_conut + 100;
+$posts_total = $threads_count * $replies_conut;
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_POST, TRUE);
 curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
@@ -16,7 +18,7 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 for ($t = 0; $t < $threads_count; $t++) {
     $postdata['board'] = '3';
     curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
-    curl_setopt($ch, CURLOPT_URL, 'http://sorc.dyndns-home.com/kotoba/create_thread.php');
+    curl_setopt($ch, CURLOPT_URL, "http://$addr/kotoba/create_thread.php");
     $postdata['t'] = curl_exec($ch);
     if (!ctype_digit($postdata['t'])) {
         $posts_failed += $replies_conut;
@@ -29,7 +31,7 @@ for ($t = 0; $t < $threads_count; $t++) {
         continue;
     }
     curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
-    curl_setopt($ch, CURLOPT_URL, 'http://sorc.dyndns-home.com/kotoba/reply.php');
+    curl_setopt($ch, CURLOPT_URL, "http://$addr/kotoba/reply.php");
     for ($r = 0; $r < $replies_conut; $r++) {
         $post_id = curl_exec($ch);
         if (!ctype_digit($post_id)) {

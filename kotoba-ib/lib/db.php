@@ -772,8 +772,9 @@ function boards_get_changeable($user_id)
  * Get changeable board.
  * @param int $board_id Board id.
  * @param int $user_id User id.
- * @return array
- * board.
+ * @return int|array Returns array of board data or integer error value. Error
+ * values is: 1 if user have no permissions to change board, 2 if board not
+ * found.
  */
 function boards_get_changeable_by_id($board_id, $user_id) {
     return db_boards_get_changeable_by_id(DataExchange::getDBLink(), $board_id, $user_id);

@@ -56,7 +56,14 @@ try {
     }
 
     /* TODO: Логичней было бы если бы проверка была вне фунции. */
-    $board = boards_get_changeable_by_id(boards_check_id($_POST['board']), $_SESSION['user']);
+    $ret = boards_get_changeable_by_id(boards_check_id($_POST['board']), $_SESSION['user']);
+    if ($ret == 1) {
+        throw new PermissionException(PermissionException::$messages['BOARD_NOT_ALLOWED']);
+    } else if ($ret == 2) {
+        throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']);
+    } else {
+        $board = $ret;
+    }
 
     // Captcha.
     if (is_captcha_enabled($board)) {

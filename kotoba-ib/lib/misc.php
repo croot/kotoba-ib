@@ -390,6 +390,15 @@ function is_admin() {
     return false;
 }
 /**
+ * Check if attachments enabled on board.
+ * @param array $board Board.
+ * @return
+ * TRUE if attachments enabled and FALSE otherwise.
+ */
+function is_attachments_enabled($board) {
+    return $board['with_attachments'] == TRUE;
+}
+/**
  * Check if geoip enabled.
  * @param array $board Board.
  * @return
@@ -524,7 +533,7 @@ function create_thumbnail($source, $dest, $source_dimensions, $type, $resize_x, 
         }
         $result['x'] = $source_dimensions['x'];
         $result['y'] = $source_dimensions['y'];
-        link_file($source, $dest); // TODO oops I lost this function.
+        link_file($source, $dest);
         return $result;
     }
 
