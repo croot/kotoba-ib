@@ -48,6 +48,9 @@ class Config
     // Формат даты и времени сохранения сообщений. См. описание фукнции date().
     const DATETIME_FORMAT = 'Y-m-d H:i:s';
 
+    // Logging date time format.
+    const LOG_DATETIME_FORMAT = 'Y-m-d';
+
     // Имена локали.
     static $LOCALE_NAMES = array('ru_RU.UTF-8', 'ru', 'rus', 'russian');
 

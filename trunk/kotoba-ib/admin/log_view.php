@@ -60,7 +60,7 @@ try {
         $smarty->assign('records_count_prev', $records_count);
 
         date_default_timezone_set(Config::DEFAULT_TIMEZONE);
-        $logf = fopen(Config::ABS_PATH . '/log/actions-' . date('Y-m-d') . '.log', 'r');
+        $logf = fopen(Config::ABS_PATH . '/log/actions-' . date(Config::LOG_DATETIME_FORMAT) . '.log', 'r');
         $i = 0;
         while (($line = fgets($logf))) {
             $log[$i] = preg_split('/\|/', $line, -1, PREG_SPLIT_NO_EMPTY);

@@ -4172,55 +4172,58 @@ function db_threads_get_by_original_post($link, $board, $original_post) {
  * @param MySQLi $link Link to database.
  * @param int $thread_id Thread id.
  * @param int $user_id User id.
- * @return array
- * thread.
+ * @return int|array Returns array of thread data or integer error value. Error
+ * values is: 1 if user have no permissions to change thread, 2 if thread not
+ * found.
  */
 function db_threads_get_changeable_by_id($link, $thread_id, $user_id) {
-	$result = mysqli_query($link,
-            "call sp_threads_get_changeable_by_id($thread_id, $user_id)");
-	if (!$result) {
-		throw new CommonException(mysqli_error($link));
+    $result = mysqli_query($link, "call sp_threads_get_changeable_by_id($thread_id, $user_id)");
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
     }
 
-	$thread = NULL;
-	if(mysqli_affected_rows($link) > 0) {
-		if( ($row = mysqli_fetch_assoc($result)) != NULL) {
-            $board_data = array('id' => $row['board_id'],
-                                'name' => $row['board_name'],
-                                'title' => $row['board_title'],
-                                'annotation' => $row['board_annotation'],
-                                'bump_limit' => $row['board_bump_limit'],
-                                'force_anonymous' => $row['board_force_anonymous'],
-                                'default_name' => $row['board_default_name'],
-                                'with_attachments' => $row['board_with_attachments'],
-                                'enable_macro' => $row['board_enable_macro'],
-                                'enable_youtube' => $row['board_enable_youtube'],
-                                'enable_captcha' => $row['board_enable_captcha'],
-                                'enable_translation' => $row['board_enable_translation'],
-                                'enable_geoip' => $row['board_enable_geoip'],
-                                'enable_shi' => $row['board_enable_shi'],
-                                'enable_postid' => $row['board_enable_postid'],
-                                'same_upload' => $row['board_same_upload'],
-                                'popdown_handler' => $row['board_popdown_handler'],
-                                'category' => $row['board_category']);
+    if (mysqli_affected_rows($link) <= 0) {
+        mysqli_free_result($result);
+        db_cleanup_link($link);
+        return 1;
+    }
 
-			$thread['id'] = $row['thread_id'];
-			$thread['board'] = &$board_data;
-			$thread['original_post'] = $row['thread_original_post'];
-			$thread['bump_limit'] = $row['thread_bump_limit'];
-			$thread['archived'] = $row['thread_archived'];
-			$thread['sage'] = $row['thread_sage'];
-			$thread['with_attachments'] = $row['thread_with_attachments'];
-			$thread['closed'] = $row['thread_closed'];
-		}
-	} else {
-        // TODO It happens if thread not exist also.
-		throw new PermissionException(PermissionException::$messages['THREAD_NOT_ALLOWED']);
-	}
+    $row = mysqli_fetch_assoc($result);
+    if (isset($row['error']) && $row['error'] == 'NOT_FOUND') {
+        mysqli_free_result($result);
+        db_cleanup_link($link);
+        return 2;
+    }
 
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $thread;
+    $thread = array('id' => $row['thread_id'],
+                    'board' => array('id' => $row['board_id'],
+                                     'name' => $row['board_name'],
+                                     'title' => $row['board_title'],
+                                     'annotation' => $row['board_annotation'],
+                                     'bump_limit' => $row['board_bump_limit'],
+                                     'force_anonymous' => $row['board_force_anonymous'],
+                                     'default_name' => $row['board_default_name'],
+                                     'with_attachments' => $row['board_with_attachments'],
+                                     'enable_macro' => $row['board_enable_macro'],
+                                     'enable_youtube' => $row['board_enable_youtube'],
+                                     'enable_captcha' => $row['board_enable_captcha'],
+                                     'enable_translation' => $row['board_enable_translation'],
+                                     'enable_geoip' => $row['board_enable_geoip'],
+                                     'enable_shi' => $row['board_enable_shi'],
+                                     'enable_postid' => $row['board_enable_postid'],
+                                     'same_upload' => $row['board_same_upload'],
+                                     'popdown_handler' => $row['board_popdown_handler'],
+                                     'category' => $row['board_category']),
+                    'original_post' => $row['thread_original_post'],
+                    'bump_limit' => $row['thread_bump_limit'],
+                    'archived' => $row['thread_archived'],
+                    'sage' => $row['thread_sage'],
+                    'with_attachments' => $row['thread_with_attachments'],
+                    'closed' => $row['thread_closed']);
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $thread;
 }
 /**
  * Get moderatable threads.

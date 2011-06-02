@@ -55,7 +55,6 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    /* TODO: Логичней было бы если бы проверка была вне фунции. */
     $ret = boards_get_changeable_by_id(boards_check_id($_POST['board']), $_SESSION['user']);
     if ($ret == 1) {
         throw new PermissionException(PermissionException::$messages['BOARD_NOT_ALLOWED']);
@@ -147,31 +146,6 @@ try {
     $subject = str_replace("\n", '', $subject);
     $subject = str_replace("\r", '', $subject);
 
-    // Text.
-    posts_check_text_size($_POST['text']);
-    if (Config::ENABLE_SPAMFILTER) {
-        $spam_filter = spamfilter_get_all();
-        foreach ($spam_filter as $record) {
-            if (preg_match("/{$record['pattern']}/", $_POST['text']) > 0) {
-                throw new CommonException(CommonException::$messages['SPAM_DETECTED']);
-            }
-        }
-    }
-    $text = htmlentities($_POST['text'], ENT_QUOTES, Config::MB_ENCODING);
-    $text = transform($text);
-	posts_check_text_size($text);
-    if (Config::ENABLE_WORDFILTER) {
-        $words = words_get_all_by_board(boards_check_id($_POST['board']));
-        foreach ($words as $word) {
-            $text = preg_replace("#".$word['word']."#iu", $word['replace'], $text);
-        }
-    }
-    $text = str_replace('\\', '\\\\', $text);
-    posts_check_text_size($text);
-    posts_check_text($text);
-    posts_prepare_text($text, $board);
-    posts_check_text_size($text);
-
     // Attachment type.
     $attachment_type = null;
     if ($board['with_attachments']) {
@@ -212,10 +186,7 @@ try {
         } elseif (($board['enable_macro'] === null && Config::ENABLE_MACRO || $board['enable_macro'])
                 && isset($_POST['macrochan_tag'])
                 && $_POST['macrochan_tag'] != '') {
-            /* TODO Actually macrochan tag entity is a pair: id, name. Is
-             * $macrochan_tag should be $macrochan_tag_name?
-             */
-            $macrochan_tag = macrochan_tags_check($_POST['macrochan_tag']);
+            $macrochan_tag['name'] = macrochan_tags_check($_POST['macrochan_tag']);
             $attachment_type = Config::ATTACHMENT_TYPE_LINK;
         } elseif (($board['enable_youtube'] === null && Config::ENABLE_YOUTUBE || $board['enable_youtube'])
                 && isset($_POST['youtube_video_code'])
@@ -227,10 +198,34 @@ try {
         }
     }
 
-    // TODO: А если одни пробелы или другие пустые сущности?
-    if ($attachment_type === null && $text == '') {
+    // Text.
+    $text = $_POST['text'];
+    if ($attachment_type === NULL && !preg_match('/\S/', $text)) {
         throw new NodataException(NodataException::$messages['EMPTY_MESSAGE']);
     }
+    posts_check_text_size($text);
+    if (Config::ENABLE_SPAMFILTER) {
+        $spam_filter = spamfilter_get_all();
+        foreach ($spam_filter as $record) {
+            if (preg_match("/{$record['pattern']}/", $text) > 0) {
+                throw new CommonException(CommonException::$messages['SPAM_DETECTED']);
+            }
+        }
+    }
+    $text = htmlentities($text, ENT_QUOTES, Config::MB_ENCODING);
+    $text = transform($text);
+	posts_check_text_size($text);
+    if (Config::ENABLE_WORDFILTER) {
+        $words = words_get_all_by_board(boards_check_id($_POST['board']));
+        foreach ($words as $word) {
+            $text = preg_replace("#".$word['word']."#iu", $word['replace'], $text);
+        }
+    }
+    $text = str_replace('\\', '\\\\', $text);
+    posts_check_text_size($text);
+    posts_check_text($text);
+    posts_prepare_text($text, $board);
+    posts_check_text_size($text);
 
     // Attachment.
     if ($attachment_type !== null) {
@@ -297,17 +292,12 @@ try {
                 $abs_thumb_path = Config::ABS_PATH . "/{$board['name']}/thumb/{$file_names[1]}";
                 if (!use_oekaki()) {
                     move_uploded_file($uploaded_file_path, $abs_img_path);
-
-                    // TODO Unhardcode handler name.
-                    $force = $upload_type['upload_handler_name'] === 'thumb_internal_png' ? true : false;
-
                     $thumb_dimensions = create_thumbnail($abs_img_path,
                                                          $abs_thumb_path,
                                                          $img_dimensions,
                                                          $upload_type,
                                                          Config::THUMBNAIL_WIDTH,
-                                                         Config::THUMBNAIL_HEIGHT,
-                                                         $force);
+                                                         Config::THUMBNAIL_HEIGHT);
                 } else {
                     copy_uploded_file($uploaded_file_path, $abs_img_path);
                     copy_uploded_file(Config::ABS_PATH . "/shi/{$_SESSION['oekaki']['thumbnail']}",
@@ -327,7 +317,7 @@ try {
                                             $spoiler);
             }
         } elseif ($attachment_type == Config::ATTACHMENT_TYPE_LINK) {
-            $macrochan_image = macrochan_images_get_random($macrochan_tag);
+            $macrochan_image = macrochan_images_get_random($macrochan_tag['name']);
             $macrochan_image['name'] = "http://12ch.ru/macro/index.php/image/{$macrochan_image['name']}";
             $macrochan_image['thumbnail'] = "http://12ch.ru/macro/index.php/thumb/{$macrochan_image['thumbnail']}";
             $attachment_id = links_add($macrochan_image['name'],

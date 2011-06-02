@@ -10,7 +10,7 @@
  *********************************/
 // Скрипт обработчиков загружаемых файлов и вспомогательных фукнций.
 /**
- * Описание.
+ * Стандартная функция (обработчик) создания уменьшенных копий изображений.
  * @param source string <p>Исходное изображение.</p>
  * @param dest string <p>Файл, куда должна быть помещена уменьшенная копия.</p>
  * @param source_dimensions array <p>Размеры исходного изображения.</p>
@@ -22,19 +22,20 @@
  * 'x' - ширина изображения.<br>
  * 'y' - высота изображения.</p>
  */
-// TODO Осознанное описание.
 function thumb_default_handler($source, $dest, $source_dimensions, $type,
-	$resize_x, $resize_y)
-{
-	if((check_module('gd') | check_module('gd2')) & Config::TRY_IMAGE_GD)
-		return gd_create_thumbnail($source, $dest, $type,
-			$source_dimensions['x'], $source_dimensions['y'], $resize_x,
-			$resize_y);
-	elseif(check_module('imagick') & Config::TRY_IMAGE_IM)
-		return im_create_thumbnail($source, $dest, $source_dimensions['x'],
-			$source_dimensions['y'], $resize_x, $resize_y, false);
-	else
-		throw new CommonException(CommonException::$messages['NO_IMG_LIB']);
+                               $resize_x, $resize_y) {
+    if ((check_module('gd') | check_module('gd2')) & Config::TRY_IMAGE_GD) {
+        return gd_create_thumbnail($source, $dest, $type,
+                                   $source_dimensions['x'],
+                                   $source_dimensions['y'], $resize_x,
+                                   $resize_y);
+    } elseif (check_module('imagick') & Config::TRY_IMAGE_IM) {
+        return im_create_thumbnail($source, $dest, $source_dimensions['x'],
+                                   $source_dimensions['y'], $resize_x,
+                                   $resize_y, false);
+    } else {
+        throw new CommonException(CommonException::$messages['NO_IMG_LIB']);
+    }
 }
 /**
  * Создает уменьшенную копию изображения с помощью GD.
@@ -245,14 +246,14 @@ function gd_resize(&$img, $x, $y, $resize_x, $resize_y, $source, &$dimensions,
  * 'y' - высота изображения.</p>
  */
 function thumb_internal_png($source, $dest, $source_dimensions, $type,
-	$resize_x, $resize_y)
-{
-	if(check_module('imagick') & Config::TRY_IMAGE_IM)
-		return im_create_png_thumbnail($source, $dest,
-			$source_dimensions['x'], $source_dimensions['y'], $resize_x,
-			$resize_y);
-	else
-		throw new CommonException(CommonException::$messages['NO_IMG_LIB']);
+                            $resize_x, $resize_y) {
+    if (check_module('imagick') & Config::TRY_IMAGE_IM) {
+        return im_create_png_thumbnail($source, $dest, $source_dimensions['x'],
+                                       $source_dimensions['y'], $resize_x,
+                                       $resize_y);
+    } else {
+        throw new CommonException(CommonException::$messages['NO_IMG_LIB']);
+    }
 }
 /**
  * Создаёт уменьшенную копию изображений разных форматов с помощью ImageMagick.
@@ -266,40 +267,37 @@ function thumb_internal_png($source, $dest, $source_dimensions, $type,
  * @return array
  * Возвращает размеры созданной уменьшенной копии изображения.
  */
-function im_create_png_thumbnail($source, $dest, $x, $y, $resize_x, $resize_y)
-{
-	$thumbnail = new Imagick($source);
-	$resolution = $thumbnail->getImageResolution();
-	$resolution_ratio_x = $resolution['x'] / $x;
-	$resolution_ratio_y = $resolution['y'] / $y;
-	// get background color of source image
-	$color = $thumbnail->getImageBackgroundColor();
-	if($x >= $y)
-	{
-		// calculate proportions of destination image
-		$ratio = $y / $x;
-		$resize_y = $resize_y * $ratio;
-	}
-	else
-	{
-		$ratio = $x / $y;
-		$resize_x = $resize_x * $ratio;
-	}
-	$thumbnail->removeImage();
-	$thumbnail->setResolution($resize_x * $resolution_ratio_x,
-								$resize_y * $resolution_ratio_y);
-	$thumbnail->readImage($source);
-	if(!$thumbnail->setImageFormat('png'))
-		throw new CommonException(CommonException::$messages['CONVERT_PNG']);
-	// fill destination image with source image background color
-	// (for transparency in svg for example)
-	$thumbnail->paintTransparentImage($color, 0.0, 0);
-	$dimensions = array();
-	$dimensions['x'] = $thumbnail->getImageWidth();
-	$dimensions['y'] = $thumbnail->getImageHeight();
-	$thumbnail->writeImage($dest);
-	$thumbnail->clear();
-	$thumbnail->destroy();
-	return $dimensions;
+function im_create_png_thumbnail($source, $dest, $x, $y, $resize_x, $resize_y) {
+    $thumbnail = new Imagick($source);
+    $resolution = $thumbnail->getImageResolution();
+    $resolution_ratio_x = $resolution['x'] / $x;
+    $resolution_ratio_y = $resolution['y'] / $y;
+    // get background color of source image
+    $color = $thumbnail->getImageBackgroundColor();
+    if ($x >= $y) {
+        // calculate proportions of destination image
+        $ratio = $y / $x;
+        $resize_y = $resize_y * $ratio;
+    } else {
+        $ratio = $x / $y;
+        $resize_x = $resize_x * $ratio;
+    }
+    $thumbnail->removeImage();
+    $thumbnail->setResolution($resize_x * $resolution_ratio_x,
+                              $resize_y * $resolution_ratio_y);
+    $thumbnail->readImage($source);
+    if (!$thumbnail->setImageFormat('png')) {
+        throw new CommonException(CommonException::$messages['CONVERT_PNG']);
+    }
+    // fill destination image with source image background color
+    // (for transparency in svg for example)
+    $thumbnail->paintTransparentImage($color, 0.0, 0);
+    $dimensions = array();
+    $dimensions['x'] = $thumbnail->getImageWidth();
+    $dimensions['y'] = $thumbnail->getImageHeight();
+    $thumbnail->writeImage($dest);
+    $thumbnail->clear();
+    $thumbnail->destroy();
+    return $dimensions;
 }
 ?>

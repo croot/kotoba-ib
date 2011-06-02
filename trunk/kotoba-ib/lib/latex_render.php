@@ -38,7 +38,7 @@ function transform($text) {
     for ($i = 0; $i < count($matches[0]); $i++) {
         $position = strpos($text, $matches[0][$i]);
         $code = $matches[1][$i];
-        $hash = md5($code); // TODO May be remove spaces from code?
+        $hash = md5(preg_replace('/\s/', '', $code));
         $full_name = Config::ABS_PATH . "/latexcache/$hash.png";
         $url = Config::DIR_PATH . "/latexcache/$hash.png";
         if (!is_file($full_name)) {
