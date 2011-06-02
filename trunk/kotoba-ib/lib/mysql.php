@@ -734,8 +734,9 @@ function db_boards_get_changeable($link, $user_id)
  * @param MySQLi $link Link to database.
  * @param int $board_id Board id.
  * @param int $user_id User id.
- * @return array
- * board.
+ * @return int|array Returns array of board data or integer error value. Error
+ * values is: 1 if user have no permissions to change board, 2 if board not
+ * found.
  */
 function db_boards_get_changeable_by_id($link, $board_id, $user_id) {
     $result = mysqli_query($link, "call sp_boards_get_changeable_by_id($board_id, $user_id)");
@@ -746,14 +747,14 @@ function db_boards_get_changeable_by_id($link, $board_id, $user_id) {
     if (mysqli_affected_rows($link) <= 0) {
         mysqli_free_result($result);
         db_cleanup_link($link);
-        throw new PermissionException(PermissionException::$messages['BOARD_NOT_ALLOWED']);
+        return 1;
     }
 
     $row = mysqli_fetch_assoc($result);
     if (isset($row['error']) && $row['error'] == 'NOT_FOUND') {
         mysqli_free_result($result);
         db_cleanup_link($link);
-        throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']);
+        return 2;
     }
 
     $board = array('id' => $row['id'],

@@ -59,6 +59,8 @@ try {
     $boards = boards_get_visible($_SESSION['user']);
     $board = null;
     $banners_board_id = null;
+    $posts_attachments = array();
+    $attachments = array();
 
     // Make category-boards tree for navigation panel.
     foreach ($categories as &$c) {
@@ -104,9 +106,10 @@ try {
                                                   $_SESSION['user'],
                                                   $_SESSION['posts_per_thread']);
 
-    // TODO: What if attachments disabled on this board?
-    $posts_attachments = posts_attachments_get_by_posts($posts);
-    $attachments = attachments_get_by_posts($posts);
+    if (is_attachments_enabled($board)) {
+        $posts_attachments = posts_attachments_get_by_posts($posts);
+        $attachments = attachments_get_by_posts($posts);
+    }
 
     $htfilter = function ($hidden_thread, $user) {
         if ($hidden_thread['user'] == $user) {

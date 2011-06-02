@@ -37,13 +37,16 @@ fi
 # Constants
 #
 
+UPDATED_SCRIPTS= "boards.php \
+                  lib/misc.php \
+                  lib/mysql.php \
+                  lib/db.php \
+                  create_thread.php \
+                  res/kotoba_highload_test.php"
+
 RESOURCE_DIR="res"
 
-UPDATED_SCRIPTS="smarty/kotoba/templates/locale/eng/log_view.tpl \
-                 smarty/kotoba/templates/locale/rus/log_view.tpl \
-                 admin/log_view.php \
-                 admin/edit_boards.php"
-
+RWX=700
 R__=400
 
 ################################################################################
@@ -87,7 +90,13 @@ for s in $UPDATED_SCRIPTS; do
 done
 
 #
-# 4. Epilogue.
+# 4. Update stored procs.
+#
+echo "Update stored procs."
+execute "mysql -u $DB_USER `if ! [ -z "$DB_PASS" ]; then echo "-p $DB_PASS "; fi`-D $DB_BASENAME < $SRC_DIR/$RESOURCE_DIR/create_procedures.sql" "`basename $0`:$LINENO"
+
+#
+# 5. Epilogue.
 #
 echo "Update successful."
 
