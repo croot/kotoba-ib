@@ -45,8 +45,7 @@ UPDATED_SCRIPTS="reply.php \
                  lib/db.php \
                  lib/logging.php \
                  create_thread.php \
-                 admin/log_view.php \
-                 animaptcha/boxxy001.png"
+                 admin/log_view.php"
 
 RESOURCE_DIR="res"
 
