@@ -37,12 +37,11 @@ fi
 # Constants
 #
 
-UPDATED_SCRIPTS= "boards.php \
-                  lib/misc.php \
-                  lib/mysql.php \
-                  lib/db.php \
-                  create_thread.php \
-                  res/kotoba_highload_test.php"
+UPDATED_SCRIPTS="boards.php \
+                 lib/misc.php \
+                 lib/mysql.php \
+                 lib/db.php \
+                 create_thread.php"
 
 RESOURCE_DIR="res"
 
