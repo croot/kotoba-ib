@@ -1816,10 +1816,13 @@ begin
             and p.number = t.original_post;
     if(thread_id is null) then
         update posts set deleted = 1 where id = _id;
+        select thread into thread_id from posts where id = _id;
     else
         update threads set deleted = 1 where id = thread_id;
         update posts set deleted = 1 where thread = thread_id;
     end if;
+
+    call sp_threads_update_last_post(thread_id);
 end|
 
 -- Delete last posts.
@@ -1844,13 +1847,16 @@ begin
         fetch `c` into thread_id;
         if(not done) then
             call sp_threads_edit_deleted(thread_id);
+            call sp_threads_update_last_post(thread_id);
         end if;
     until done end repeat;
     close `c`;
-    select ip into _ip from posts where id = _id;
+    select ip, thread into _ip, thread_id from posts where id = _id;
     if(_ip is not null) then
         update posts set deleted = 1 where ip = _ip and `date_time` > _date_time;
     end if;
+
+    call sp_threads_update_last_post(thread_id);
 end|
 
 -- Delete marked posts.
@@ -3907,22 +3913,28 @@ begin
     create temporary table ttable1 (id int not null,
                                     last_post int not null,
                                     primary key(id));
-    create temporary table ttable2 (id int not null, primary key(id));
-    create temporary table ttable3 (id int not null, primary key(id));
+    create temporary table ttable2 (id int not null,
+                                    last_post int not null,
+                                    primary key(id));
+    create temporary table ttable3 (id int not null,
+                                    last_post int not null,
+                                    primary key(id));
 
     -- We need to select visible sticky threads if first page.
     if page = 1 then
 
         -- Sticky threads.
-        insert into ttable2 (id)
-            select id from threads where board = board_id
-                                         and sticky = 1
-                                         and deleted = 0
-                                         and archived = 0;
+        insert into ttable2 (id, last_post)
+            select id, last_post
+                from threads
+                where board = board_id
+                      and sticky = 1
+                      and deleted = 0
+                      and archived = 0;
 
         -- Visible unhidden sticky threads.
-        insert into ttable3 (id)
-            select t.id
+        insert into ttable3 (id, last_post)
+            select t.id, t.last_post
                 from ttable2 t
                 join user_groups ug on ug.user = user_id
                 left join hidden_threads ht on ht.thread = t.id and ht.user = ug.user
@@ -3945,13 +3957,7 @@ begin
 
         -- Finally select sticky threads.
         insert into ttable1 (id, last_post)
-            select p.thread, max(p.number) as last_post
-                from posts p
-                join ttable3 t on t.id = p.thread
-                where (p.sage = 0 or p.sage is null)
-                      and p.deleted = 0
-                group by p.thread
-                order by last_post desc;
+            select id, last_post from ttable3 order by last_post desc;
         delete from ttable3;
 
         -- Sticky threads.
@@ -3969,13 +3975,16 @@ begin
         delete from ttable1;
     end if;
 
-    insert into ttable2 (id)
-        select id from threads where board = board_id
-                                     and sticky = 0
-                                     and deleted = 0
-                                     and archived = 0;
-    insert into ttable3 (id)
-        select t.id
+    insert into ttable2 (id, last_post)
+        select id, last_post
+            from threads
+            where board = board_id
+                  and sticky = 0
+                  and deleted = 0
+                  and archived = 0;
+
+    insert into ttable3 (id, last_post)
+        select t.id, t.last_post
             from ttable2 t
             join user_groups ug on ug.user = user_id
             left join hidden_threads ht on ht.thread = t.id and ht.user = ug.user
@@ -3999,6 +4008,11 @@ begin
     select * from boards where id = board_id;
 
     prepare stmt1 from 'insert into ttable1 (id, last_post)
+                            select id, last_post
+                                from ttable3
+                                order by last_post desc
+                                limit ?,?';
+    /*prepare stmt1 from 'insert into ttable1 (id, last_post)
                             select p.thread, max(p.number) as last_post
                                 from posts p
                                 join ttable3 t on t.id = p.thread
@@ -4006,7 +4020,7 @@ begin
                                        and p.deleted = 0
                                 group by p.thread
                                 order by last_post desc
-                                limit ?,?';
+                                limit ?,?';*/
     execute stmt1 using @offset, @threads_per_page;
 
     -- Threads.
