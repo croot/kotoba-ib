@@ -1,0 +1,236 @@
+.abbrev {
+    color:#707070;
+}
+.admin {
+    background: transparent url('./icons/admin.png') no-repeat;
+    font-size: 1px;
+}
+.adminbar {
+    text-align:right;
+    background:inherit;
+    clear:both;
+    float:right;
+}
+.commentpostername {
+    background:inherit;
+    font-size:10px;
+    color:#FFFFFF;
+    font-weight:800;
+    font-style:italic
+}
+.dellist {
+    background:inherit;
+    text-align:center;
+}
+.doc_code {
+    font-family: "Courier", monospace;
+    background: Silver;
+}
+.doubledash {
+    vertical-align:top;
+    clear:both;
+    float:left;
+    color:#443a00;
+}
+.error {
+    color: #ff0000;
+    font-weight: bold;
+}
+.filesize {
+    text-decoration:none;
+}
+.filesize {
+    font-size:12px;
+    font-family:sans-serif;
+    text-decoration:underline;
+    padding-left:3em;
+}
+.filetitle {
+    background:inherit;
+    font-size:18px;
+    font-family:serif;
+    color:#000000;
+    font-weight:800;
+    font-style:italic;
+}
+.footer {
+    text-align:center;
+    font-size:12px;
+}
+.highlight {
+    background:#6e7532;
+    border: 1px dashed #d7edb2;
+    color:#4c0000;
+    -moz-border-radius: 0px 5px 0px 5px;
+}
+.logo {
+    clear:both;
+    text-align:center;
+    font-size:2em;
+    width:100%;
+}
+.oldpost {
+    background:inherit;
+    font-size:18px;
+    font-family:serif;
+    color:#0F5D0C;
+    font-weight:800;
+}
+.omittedposts {
+    color:#707070;
+}
+.pass {
+    background: #950000;
+    color: #FFFFFF;
+    border-color: #b6d885;
+    -moz-border-radius: 10px 10px 10px 10px;
+    width: 320px;
+    height: 550px;
+    position: static;
+}
+.postarea table {
+    margin: 0px 0px 0px 31%;
+    text-align: left;
+}
+.postblock {
+}
+.postername {
+    color:#117743;
+    font-weight:bold;
+}
+.postername {
+    background:inherit;
+    color:#BE4800;
+}
+.postername a {
+    font-family:inherit;
+}
+.postertrip {
+    color:#FF3300;
+    font-size: .6em;
+}
+.reflink {
+    font-size: 18px;
+    font-weight: bold;
+}
+.reflink a:hover {
+    font-weight: bold;
+}
+.reflinkpreview {
+    position: absolute;
+    padding: 5px;
+    background: #b6d885;
+    border: 1px dotted;
+}
+.reply {
+    background: #b6d885;
+    color: #800000;
+    border: 1px solid #FFFFFF;
+    -moz-border-radius: 5px 5px 5px 5px;
+}
+.replymode {
+    background:#DAF0D6;
+    text-align:center;
+    padding:2px;
+    color:#000000;
+    width:100%;
+    font-weight: bold;
+}
+.replytitle {
+    background:inherit;
+    font-size:18px;
+    font-family:serif;
+    color:#0F5D0C;
+    font-weight:800;
+}
+.rules {
+    font-size: 12px;
+}
+.search {
+    float: right;
+}
+.spoiler {
+    background: #C2D311;
+    color: #C2D311;
+}
+.spoiler blockquote {
+    background: #C2D311 !important;
+    color: #C2C2EE !important;
+}
+.spoiler blockquote:hover {
+    color:#789922 !important;
+}
+.spoiler:hover {
+    background: #C2D311;
+    color: #000000;
+}
+.spoiler:hover blockquote {
+    color:#789922 !important;
+}
+.thumb {
+    border: none;
+    float: left;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    margin-left: 5px;
+}
+.thumbnailmsg {
+    background:inherit;
+    font-size:9px;
+    font-family:sans-serif;
+    color:#FFFFFF;
+    font-style:italic
+}
+.unkfunc {
+    color:#117743;
+    margin-left: 0em
+}
+.uwb4tp {
+    color: red;
+}
+a {
+    background:inherit;
+    color:#345C34;
+    text-decoration:none;
+    font-family:sans-serif;
+}
+a:hover {
+    color:#117743;
+    background:inherit;
+    text-decoration:underline;
+    font-family:sans-serif;
+}
+a:visited {
+    background:inherit;
+    color:#345C34;
+    text-decoration:none;
+    font-family:sans-serif;
+}
+big {
+    font-size: 72px;
+}
+form {
+    display: inline;
+}
+hr {
+    border-style: solid none none none;
+    border-width: 1px;
+    border-color: #919191;
+}
+html, body {
+    font-size:12pt;
+    background:#ECFFD0;
+    color:#443a00;
+    font-family:"Segoe UI","Microsoft Sans Serif",sans-serif;
+}
+input, textarea {
+    background-color: #F1F1FF;
+    border: 1px solid #8191aa;
+}
+td {
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 3px;
+    padding-right: 3px;
+}
