@@ -159,7 +159,7 @@ function kotoba_mark(&$text, $board) {
 // Шаг 3. Выделение ссылок.
 
 	// TODO Придумать проверку на сслыки.
-	if(1 == 1)
+	if(0 == 1)
 	{
 		if(isset($text_blocks))
 			$text_blocks = null;
