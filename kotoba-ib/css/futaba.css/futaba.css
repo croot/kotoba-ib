@@ -98,7 +98,7 @@
     padding:0px;
     color:#800000;
 }
-.reflink a:hover{
+.reflink a:hover {
     font-weight:bold;
 }
 .reflinkpreview {
@@ -145,6 +145,24 @@
 }
 .rules li {
     margin-left:1em;
+}
+.spoiler {
+    background: #C2D311;
+    color: #C2D311;
+}
+.spoiler blockquote {
+    background: #C2D311 !important;
+    color: #C2C2EE !important;
+}
+.spoiler blockquote:hover {
+    color:#789922 !important;
+}
+.spoiler:hover {
+    background: #C2D311;
+    color: #000000;
+}
+.spoiler:hover blockquote {
+    color:#789922 !important;
 }
 .theader {
     background:#E04000;
