@@ -16,7 +16,8 @@ function wrap($code) {
     return <<<EOS
 \documentclass[10pt]{article}
 
-% add additional packages here
+\usepackage[utf8]{inputenc}
+\usepackage[english,russian]{babel}
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
@@ -26,7 +27,7 @@ function wrap($code) {
 $code
 \end{document}
 EOS;
-}
+}//
 /**
  * Find TeX code in text, transform it to images and put images to text.
  * @param string $text Text.
