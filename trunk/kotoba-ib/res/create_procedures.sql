@@ -102,6 +102,7 @@ drop procedure if exists sp_posts_get_by_board_datetime|
 drop procedure if exists sp_posts_get_by_board_ip|
 drop procedure if exists sp_posts_get_by_board_number|
 drop procedure if exists sp_posts_get_by_id|
+drop procedure if exists sp_posts_get_by_number|
 drop procedure if exists sp_posts_get_by_thread|
 drop procedure if exists sp_posts_get_reported_by_board|
 drop procedure if exists sp_posts_get_visible_by_id|
@@ -2204,6 +2205,28 @@ BEGIN
            deleted as post_deleted
         from posts
         where id = _id;
+END|
+
+-- Get post by number and board name.
+CREATE PROCEDURE sp_posts_get_by_number
+(
+    board_name varchar(16),
+    post_number int
+)
+BEGIN
+    declare board_id int;
+    declare thread_id int;
+
+    SELECT id INTO board_id FROM boards WHERE name = board_name;
+    SELECT * FROM boards WHERE id = board_id;
+
+    SELECT thread INTO thread_id FROM posts WHERE board = board_id
+                                                  and number = post_number;
+    SELECT * FROM threads WHERE id = thread_id;
+
+    SELECT * FROM posts WHERE board = board_id
+                              and thread = thread_id
+                              and number = post_number;
 END|
 
 -- Select posts.

@@ -16,6 +16,10 @@ if (!array_filter(get_included_files(), function($path) { return basename($path)
     throw new Exception('Configuration file <b>config.php</b> must be included and executed BEFORE '
                         . '<b>' . basename(__FILE__) . '</b> but its not.');
 }
+if (!array_filter(get_included_files(), function($path) { return basename($path) == 'exceptions.php'; })) {
+    throw new Exception('Error handing file <b>errors.php</b> must be included and executed BEFORE '
+                        . '<b>' . basename(__FILE__) . '</b> but its not.');
+}
 if (!array_filter(get_included_files(), function($path) { return basename($path) == 'errors.php'; })) {
     throw new Exception('Error handing file <b>errors.php</b> must be included and executed BEFORE '
                         . '<b>' . basename(__FILE__) . '</b> but its not.');

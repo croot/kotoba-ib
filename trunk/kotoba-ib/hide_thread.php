@@ -12,6 +12,7 @@
  */
 
 require 'config.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
 require_once Config::ABS_PATH . '/lib/logging.php';
 require_once Config::ABS_PATH . '/lib/db.php';
@@ -21,7 +22,7 @@ try {
     // Initialization.
     kotoba_session_start();
     if (Config::LANGUAGE != $_SESSION['language']) {
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
     }
     locale_setup();
     $smarty = new SmartyKotobaSetup();

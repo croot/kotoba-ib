@@ -5,8 +5,9 @@
  * it after apply.
  */
 require "config.php";
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/exceptions.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 
 $boards = boards_get_all();
