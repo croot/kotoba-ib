@@ -7,6 +7,7 @@
 // Edit user settings script.
 
 require_once 'config.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
@@ -15,7 +16,7 @@ try {
     // Initialization.
     kotoba_session_start();
     if (Config::LANGUAGE != $_SESSION['language']) {
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
     }
     locale_setup();
     $smarty = new SmartyKotobaSetup();
@@ -42,7 +43,7 @@ try {
         kotoba_session_start();
         $_SESSION['kotoba_session_start_time'] = $kotoba_session_start_time;
         if (Config::LANGUAGE != $_SESSION['language']) {
-            require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+            require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
         }
         $keyword_hash = md5(users_check_keyword($_POST['keyword_load']));
         load_user_settings($keyword_hash);
@@ -55,7 +56,7 @@ try {
         kotoba_session_start();
         $_SESSION['kotoba_session_start_time'] = $kotoba_session_start_time;
         if (Config::LANGUAGE != $_SESSION['language']) {
-            require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+            require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
         }
         $keyword_hash = md5(users_check_keyword($_POST['keyword_save']));
         $threads_per_page = users_check_threads_per_page($_POST['threads_per_page']);

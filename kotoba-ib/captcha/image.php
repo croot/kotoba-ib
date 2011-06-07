@@ -9,7 +9,7 @@
  */
 
 require '../config.php';
-require Config::ABS_PATH . '/lib/errors.php';
+require Config::ABS_PATH . '/lib/exceptions.php';
 require Config::ABS_PATH . '/lib/misc.php';
 
 // <editor-fold defaultstate="collapsed" desc="Font">
@@ -93,7 +93,7 @@ function getrandchar() {
 
 kotoba_session_start();
 if (Config::LANGUAGE != $_SESSION['language']) {
-    require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+    require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
 }
 locale_setup();
 

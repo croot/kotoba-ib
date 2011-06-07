@@ -1,8 +1,8 @@
 a4 8
 // BEGIN Required for Kotoba
 require '../config.php';
-require Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
+require Config::ABS_PATH . '/lib/exceptions.php';
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/exceptions.php';
 require Config::ABS_PATH . '/lib/misc.php';
 kotoba_session_start();
 // END Required for Kotoba

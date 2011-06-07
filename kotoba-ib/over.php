@@ -7,8 +7,9 @@
 // Share imageboard data for overchan.
 
 require_once 'config.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/errors.php';
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/exceptions.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 
 try {

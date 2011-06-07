@@ -159,7 +159,7 @@ function kotoba_mark(&$text, $board) {
 // Шаг 3. Выделение ссылок.
 
 	// TODO Придумать проверку на сслыки.
-	if(0 == 1)
+	if(1 == 1)
 	{
 		if(isset($text_blocks))
 			$text_blocks = null;
@@ -206,51 +206,31 @@ function kotoba_mark(&$text, $board) {
 				// Ссылки в пределах доски.
 				if(preg_match('/(?<=\s|^)\&gt\;\&gt\;(\d+)(?=\s|$)/', $tokens[$j], $matches) == 1)
 				{
-					if(!$is_posts_data_recived)
-					{
-						$is_posts_data_recived = true;
-						$posts_data = posts_get_all_numbers();
-					}
-					$found = false;
-					foreach($posts_data as $post_data)
-						if($post_data['board'] == $board['name']
-							&& $post_data['post'] == $matches[1])
-						{
-							$found = true;
-							$output .= "link:$link_num";
-							$links[$link_num++] = "<a class=\"ref|{$post_data['board']}|{$post_data['thread']}|{$post_data['post']}\" href=\"" . Config::DIR_PATH . "/{$post_data['board']}/{$post_data['thread']}#{$post_data['post']}\">{$tokens[$j]}</a>";
-							break;
-						}
-					if(!$found)
-					{
+                    if ( ($post_data = posts_get_by_number($board['name'], $matches[1])) != NULL)
+                    {
+                        $output .= "link:$link_num";
+                        $links[$link_num++] = "<a class=\"ref|{$post_data['board']['name']}|{$post_data['thread']['original_post']}|{$post_data['number']}\" href=\"" . Config::DIR_PATH . "/{$post_data['board']['name']}/{$post_data['thread']['original_post']}#{$post_data['number']}\">{$tokens[$j]}</a>";
+                    }
+                    else
+                    {
 						$output .= "link:$link_num";
 						$links[$link_num++] = $tokens[$j];
-					}
+                    }
 					continue;
 				}
 				// Ссылки в пределах имэйджборды.
 				if(preg_match('/(?<=\s|^)\&gt\;\&gt\;\&gt\;\/(\w+?)\/(\d+)(?=\s|$)/', $tokens[$j], $matches) == 1)
 				{
-					if(!$is_posts_data_recived)
-					{
-						$is_posts_data_recived = true;
-						$posts_data = posts_get_all_numbers();
-					}
-					$found = false;
-					foreach($posts_data as $post_data)
-						if($post_data['board'] == $matches[1]
-							&& $post_data['post'] == $matches[2])
-						{
-							$found = true;
-							$output .= "link:$link_num";
-							$links[$link_num++] = "<a class=\"ref|{$post_data['board']}|{$post_data['thread']}|{$post_data['post']}\" href=\"" . Config::DIR_PATH . "/{$post_data['board']}/{$post_data['thread']}#{$post_data['post']}\">{$tokens[$j]}</a>";
-							break;
-						}
-					if(!$found)
-					{
+                    if ( ($post_data = posts_get_by_number($matches[1], $matches[2])) != NULL)
+                    {
+                        $output .= "link:$link_num";
+                        $links[$link_num++] = "<a class=\"ref|{$post_data['board']['name']}|{$post_data['thread']['original_post']}|{$post_data['number']}\" href=\"" . Config::DIR_PATH . "/{$post_data['board']['name']}/{$post_data['thread']['original_post']}#{$post_data['number']}\">{$tokens[$j]}</a>";
+                    }
+                    else
+                    {
 						$output .= "link:$link_num";
 						$links[$link_num++] = $tokens[$j];
-					}
+                    }
 					continue;
 				}
 				if(preg_match('/(?<=\s|^)google:\/\/([^?#]*?)\/(?=\s|$)/', $tokens[$j], $matches) == 1)

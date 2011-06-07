@@ -2897,6 +2897,96 @@ function db_posts_get_by_ids($link, $ids) {
     return $posts;
 }
 /**
+ * Get post by number and board name.
+ * @param MySQLi $link Link to database.
+ * @param string $board_name Board name.
+ * @param int $post_number Post number.
+ * @return array post.
+ */
+function db_posts_get_by_number($link, $board_name, $post_number) {
+    $post = NULL;
+    $query = "call sp_posts_get_by_number('$board_name', $post_number)";
+
+    $result = mysqli_multi_query($link, $query);
+    if (!$result) {
+        throw new CommonException(mysqli_error($link));
+    }
+
+    // Collect board data.
+    if ( ($result = mysqli_store_result($link)) == FALSE) {
+        throw new CommonException(mysqli_error($link));
+    }
+    if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+        $board = array('id' => $row['id'],
+                       'name' => $row['name'],
+                       'title' => $row['title'],
+                       'annotation' => $row['annotation'],
+                       'bump_limit' => $row['bump_limit'],
+                       'force_anonymous' => $row['force_anonymous'],
+                       'default_name' => $row['default_name'],
+                       'with_attachments' => $row['with_attachments'],
+                       'enable_macro' => $row['enable_macro'],
+                       'enable_youtube' => $row['enable_youtube'],
+                       'enable_captcha' => $row['enable_captcha'],
+                       'enable_translation' => $row['enable_translation'],
+                       'enable_geoip' => $row['enable_geoip'],
+                       'enable_shi' => $row['enable_shi'],
+                       'enable_postid' => $row['enable_postid'],
+                       'same_upload' => $row['same_upload'],
+                       'popdown_handler' => $row['popdown_handler'],
+                       'category' => $row['category'],
+                       'last_post_number' => $row['last_post_number']);
+    }
+    mysqli_free_result($result);
+
+    // Collect thread data.
+    if (mysqli_next_result($link)) {
+        if ( ($result = mysqli_store_result($link)) == FALSE) {
+            throw new CommonException(mysqli_error($link));
+        }
+        if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            $thread = array('id' => $row['id'],
+                            'board' => $row['board'],
+                            'original_post' => $row['original_post'],
+                            'bump_limit' => $row['bump_limit'],
+                            'deleted' => $row['deleted'],
+                            'archived' => $row['archived'],
+                            'sage' => $row['sage'],
+                            'sticky' => $row['sticky'],
+                            'with_attachments' => $row['with_attachments'],
+                            'closed' => $row['closed']);
+        }
+        mysqli_free_result($result);
+    }
+
+    // Collect post data.
+    if (mysqli_next_result($link)) {
+        if ( ($result = mysqli_store_result($link)) == FALSE) {
+            throw new CommonException(mysqli_error($link));
+        }
+        if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            $post = array('id' => $row['id'],
+                          'board' => &$board,
+                          'thread' => &$thread,
+                          'number' => $row['number'],
+                          'user' => $row['user'],
+                          'password' => $row['password'],
+                          'name' => $row['name'],
+                          'tripcode' => $row['tripcode'],
+                          'ip' => $row['ip'],
+                          'subject' => $row['subject'],
+                          'date_time' => $row['date_time'],
+                          'text' => $row['text'],
+                          'sage' => $row['sage'],
+                          'deleted' => $row['deleted']);
+        }
+        mysqli_free_result($result);
+    }
+
+    db_cleanup_link($link);
+    return $post;
+}
+/**
  * Get posts.
  * @param MySQLi $link Link to database.
  * @param int $thread_id Thread id.

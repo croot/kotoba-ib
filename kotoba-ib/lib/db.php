@@ -19,6 +19,10 @@ if (!array_filter(get_included_files(), function($path) { return basename($path)
     throw new Exception('Configuration file <b>config.php</b> must be included and executed BEFORE '
                         . '<b>' . basename(__FILE__) . '</b> but its not.');
 }
+if (!array_filter(get_included_files(), function($path) { return basename($path) == 'exceptions.php'; })) {
+    throw new Exception('Error handing file <b>exceptions.php</b> must be included and executed BEFORE '
+                        . '<b>' . basename(__FILE__) . '</b> but its not.');
+}
 if (!array_filter(get_included_files(), function($path) { return basename($path) == 'errors.php'; })) {
     throw new Exception('Error handing file <b>errors.php</b> must be included and executed BEFORE '
                         . '<b>' . basename(__FILE__) . '</b> but its not.');
@@ -1725,6 +1729,16 @@ function posts_get_by_boards_number($boards, $number, $page, $posts_per_page) {
  */
 function posts_get_by_ids($ids) {
     return db_posts_get_by_ids(DataExchange::getDBLink(), $ids);
+}
+/**
+ * Get post by number and board name.
+ * @param string $board_name Board name.
+ * @param int $post_number Post number.
+ * @return array post.
+ */
+function posts_get_by_number($board_name, $post_number) {
+    return db_posts_get_by_number(DataExchange::getDBLink(), $board_name,
+                                  $post_number);
 }
 /**
  * Get posts.
