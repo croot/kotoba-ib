@@ -65,8 +65,9 @@ class DataExchange {
      * Release connection to database.
      */
     static function releaseResources() {
-        if (self::$link != null && self::$link instanceof MySQLi) {
+        if (self::$link != NULL && self::$link instanceof MySQLi) {
             mysqli_close(self::$link);
+            self::$link = NULL;
         }
     }
 
