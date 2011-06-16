@@ -421,6 +421,6 @@ try {
     if (isset($abs_thumb_path)) { // Удаление уменьшенной копии.
         @unlink($abs_thumb_path);
     }
-    die($smarty->fetch('error.tpl'));
+    die($smarty->fetch('exception.tpl'));
 }
 ?>

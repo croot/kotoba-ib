@@ -108,7 +108,9 @@ CSS_ICONS="closed.png \
 
 DEFAULT_IMAGES_DIR="img"
 DEFAULT_IMAGES="$DEFAULT_IMAGES_DIR/deleted.png \
-                $DEFAULT_IMAGES_DIR/spoiler.png"
+                $DEFAULT_IMAGES_DIR/spoiler.png \
+                $DEFAULT_IMAGES_DIR/errors/default_error.png \
+                $DEFAULT_IMAGES_DIR/errors/board_not_exist.png"
 
 LATEX_DIR="latexcache"
 
@@ -176,6 +178,7 @@ TEMPLATES="adminbar.tpl \
            edit_user_groups.tpl \
            edit_words.tpl \
            error.tpl \
+           exception.tpl \
            footer.tpl \
            hard_ban.tpl \
            header.tpl \

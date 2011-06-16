@@ -12,6 +12,7 @@ Variables:
     $show_control - show link to manage page.
     $categories - categories.
     $boards - boards.
+    $ib_name - imageboard name.
     $version - version of Kotoba.
     $last_modification - date of last Kotoba modification.
     $news_html - news html code.

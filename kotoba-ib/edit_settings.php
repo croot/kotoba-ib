@@ -183,10 +183,10 @@ try {
         header('Location: http://z0r.de/?id=114');
         exit;
     }
-    die($smarty->fetch('error.tpl'));
+    die($smarty->fetch('exception.tpl'));
 } catch (Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();
-    die($smarty->fetch('error.tpl'));
+    die($smarty->fetch('exception.tpl'));
 }
 ?>

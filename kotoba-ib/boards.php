@@ -25,6 +25,7 @@ try {
     kotoba_session_start();
     if (Config::LANGUAGE != $_SESSION['language']) {
         require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
+        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
     }
     locale_setup();
     $smarty = new SmartyKotobaSetup();
@@ -58,7 +59,7 @@ try {
 
     $categories = categories_get_all();
     $boards = boards_get_visible($_SESSION['user']);
-    $board = null;
+    $board = NULL;
     $banners_board_id = null;
     $posts_attachments = array();
     $attachments = array();
@@ -82,8 +83,9 @@ try {
             $banners_board_id = $b['id'];
         }
     }
-    if (!$board) {
-        throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']);
+    if ($board == NULL) {
+        DataExchange::releaseResources();
+        $K_ERROR['board_not_exist']['handler']($smarty, $board_name);
     }
 
     $threads_count = threads_get_visible_count($_SESSION['user'], $board['id']);
@@ -256,7 +258,7 @@ try {
     if (isset($smarty)) {
         $smarty->assign('msg', $e->__toString());
         DataExchange::releaseResources();
-        die($smarty->fetch('error.tpl'));
+        die($smarty->fetch('exception.tpl'));
     } else {
         die($e->__toString());
     }

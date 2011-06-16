@@ -133,6 +133,6 @@ try {
 } catch(Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();
-    die($smarty->fetch('error.tpl'));
+    die($smarty->fetch('exception.tpl'));
 }
 ?>
