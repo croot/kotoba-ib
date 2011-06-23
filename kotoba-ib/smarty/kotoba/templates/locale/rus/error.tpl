@@ -11,7 +11,9 @@ Variables:
     $STYLESHEET - stylesheet (see config.default).
     $show_control - show link to manage page.
     $ib_name - imageboard name.
-    $error - Error data.
+    $image - Error image.
+    $text - Error text.
+    $title - Error title.
 *}
 {include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET
          page_title='Ошибка'}
@@ -21,11 +23,11 @@ Variables:
 <div style="display: block;" class="logo">{$ib_name}</div>
 <hr>
 <br>
-<div style="display: block;" class="replymode">{$error.title}</div>
+<div style="display: block;" class="replymode">{$title}</div>
 <p align="center">
-    <img src="{$error.image}" alt="{$error.title}" />
+    <img src="{$image}" alt="{$title}" />
     <br>
-    {$error.text}
+    {$text}
 </p>
 <hr>
 <div class="footer" style="clear: both;">
