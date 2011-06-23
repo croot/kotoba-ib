@@ -85,7 +85,7 @@ try {
     }
     if ($board == NULL) {
         DataExchange::releaseResources();
-        $K_ERROR['board_not_exist']['handler']($smarty, $board_name);
+        $ERRORS['BOARD_NOT_EXIST']($smarty, $board_name);
     }
 
     $threads_count = threads_get_visible_count($_SESSION['user'], $board['id']);

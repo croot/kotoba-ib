@@ -22,22 +22,18 @@ if (!array_filter(get_included_files(), function($path) { return basename($path)
 }
 
 /***/
-$K_ERROR['default_error']['image'] = Config::DIR_PATH . '/img/errors/default_error.png';
-$K_ERROR['default_error']['text'] = 'Произошла стандартная ошибка.';
-$K_ERROR['default_error']['title'] = 'Стандартная ошибка.';
-
-$K_ERROR['board_not_exist']['handler'] = function ($smarty, $board_name) {
-    global $K_ERROR;
-
-    $e = &$K_ERROR['board_not_exist'];
-    $smarty->assign('show_control', is_admin() || is_mod());
-    $smarty->assign('ib_name', Config::IB_NAME);
-    $e['text'] = sprintf($e['text'], $board_name);
-    $smarty->assign('error', $e);
-
-    die($smarty->fetch('error.tpl'));
-};
-$K_ERROR['board_not_exist']['image'] = Config::DIR_PATH . '/img/errors/board_not_exist.png';
-$K_ERROR['board_not_exist']['text'] = 'Доски с именем %s не существует.';
-$K_ERROR['board_not_exist']['title'] = 'Доски не существует.';
+$ERRORS['DEFAULT']
+    = new Error('Произошла стандартная ошибка.', 'Стандартная ошибка.');
+$ERRORS['BOARD_NOT_EXIST']
+    = new Error('Доски с именем %s не существует.',
+                'Доски не существует.',
+                Config::DIR_PATH . '/img/errors/board_not_exist.png',
+                function ($text, $title, $image, $smarty, $board_name) {
+                    $smarty->assign('show_control', is_admin() || is_mod());
+                    $smarty->assign('ib_name', Config::IB_NAME);
+                    $smarty->assign('text', sprintf($text, $board_name));
+                    $smarty->assign('title', $title);
+                    $smarty->assign('image', $image);
+                    die($smarty->fetch('error.tpl'));
+                });
 ?>
