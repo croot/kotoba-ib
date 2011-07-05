@@ -54,14 +54,15 @@ try {
         }
     }
 
-    $board = null;
+    $board = NULL;
     foreach ($boards as $b) {
         if ($b['name'] == $board_name) {
             $board = $b;
         }
     }
-    if (!$board) {
-        throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']);
+    if ($board == NULL) {
+        DataExchange::releaseResources();
+        $ERRORS['BOARD_NOT_FOUND']($smarty, $board_name);
     }
 
     // Pass all threads.

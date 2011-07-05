@@ -24,11 +24,11 @@ if (!array_filter(get_included_files(), function($path) { return basename($path)
 /***/
 $ERRORS['DEFAULT']
     = new Error('Default error occurs.', 'Default error.');
-$ERRORS['BOARD_NOT_EXIST']
-    = new Error('Board %s not exist.',
-                'Board not exist.',
-                Config::DIR_PATH . '/img/errors/board_not_exist.png',
-                function ($text, $title, $image, $smarty, $board_name) {
+$ERRORS['BOARD_NOT_FOUND']
+    = new Error('Board %s not found.',
+                'Board not found.',
+                Config::DIR_PATH . '/img/errors/board_not_found.png',
+                function ($smarty, $board_name, $text, $title, $image) {
                     $smarty->assign('show_control', is_admin() || is_mod());
                     $smarty->assign('ib_name', Config::IB_NAME);
                     $smarty->assign('text', sprintf($text, $board_name));
@@ -36,4 +36,19 @@ $ERRORS['BOARD_NOT_EXIST']
                     $smarty->assign('image', $image);
                     die($smarty->fetch('error.tpl'));
                 });
+$ERRORS['BOARD_NOT_FOUND_ID']
+    = new Error('Board id %s not found.',
+                'Board not found.',
+                Config::DIR_PATH . '/img/errors/board_not_found.png',
+                function ($smarty, $board_id, $text, $title, $image) {
+                    $smarty->assign('show_control', is_admin() || is_mod());
+                    $smarty->assign('ib_name', Config::IB_NAME);
+                    $smarty->assign('text', sprintf($text, $board_id));
+                    $smarty->assign('title', $title);
+                    $smarty->assign('image', $image);
+                    die($smarty->fetch('error.tpl'));
+                });
+$ERRORS['ACL_NO_RULES']
+    = new Error('No one rule in ACL.',
+                'No rules in ACL.');
 ?>

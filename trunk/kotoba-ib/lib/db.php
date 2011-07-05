@@ -725,30 +725,6 @@ function boards_get_by_id($board_id) {
     return db_boards_get_by_id(DataExchange::getDBLink(), $board_id);
 }
 /**
- * Получает заданную доску.
- * @param board_name string <p>Имя доски.</p>
- * @return array
- * Возвращает доску:<p>
- * 'id' - Идентификатор.<br>
- * 'name' - Имя.<br>
- * 'title' - Заголовок.<br>
- * 'annotation' - Аннотация.<br>
- * 'bump_limit' - Специфичный для доски бамплимит.<br>
- * 'force_anonymous' - Флаг отображения имени отправителя.<br>
- * 'default_name' - Имя отправителя по умолчанию.<br>
- * 'with_attachments' - Флаг вложений.<br>
- * 'enable_macro' - Включение интеграции с макрочаном.<br>
- * 'enable_youtube' - Включение вложения видео с ютуба.<br>
- * 'enable_captcha' - Включение капчи.<br>
- * 'same_upload' - Политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - Обработчик автоматического удаления нитей.<br>
- * 'category' - Категория.</p>
- */
-function boards_get_by_name($board_name)
-{
-	return db_boards_get_by_name(DataExchange::getDBLink(), $board_name);
-}
-/**
  * Получает доски, доступные для изменения заданному пользователю.
  * @param user_id mixed <p>Идентификатор пользователя.</p>
  * @return array
@@ -783,34 +759,6 @@ function boards_get_changeable($user_id)
  */
 function boards_get_changeable_by_id($board_id, $user_id) {
     return db_boards_get_changeable_by_id(DataExchange::getDBLink(), $board_id, $user_id);
-}
-/**
- * Получает заданную доску, доступную для редактирования заданному
- * пользователю.
- * @param board_name string <p>Имя доски.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @return array
- * Возвращает доску:<p>
- * 'id' - Идентификатор.<br>
- * 'name' - Имя.<br>
- * 'title' - Заголовок.<br>
- * 'annotation' - Аннотация.<br>
- * 'bump_limit' - Специфичный для доски бамплимит.<br>
- * 'force_anonymous' - Флаг отображения имени отправителя.<br>
- * 'default_name' - Имя отправителя по умолчанию.<br>
- * 'with_attachments' - Флаг вложений.<br>
- * 'enable_macro' - Включение интеграции с макрочаном.<br>
- * 'enable_youtube' - Включение вложения видео с ютуба.<br>
- * 'enable_captcha' - Включение капчи.<br>
- * 'same_upload' - Политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - Обработчик автоматического удаления нитей.<br>
- * 'category' - Категория.<br>
- * 'category_name' - Имя категории.</p>
- */
-function boards_get_changeable_by_name($board_name, $user_id)
-{
-	return db_boards_get_changeable_by_name(DataExchange::getDBLink(),
-		$board_name, $user_id);
 }
 /**
  * Получает доски, доступные для модерирования заданному пользователю.

@@ -67,7 +67,7 @@ try {
         }
     }
 
-    $board = null;
+    $board = NULL;
     $banners_board_id = null;
     foreach ($boards as $b) {
         if ($b['name'] == $board_name) {
@@ -78,8 +78,9 @@ try {
             $banners_board_id = $b['id'];
         }
     }
-    if (!$board) {
-        throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']);
+    if ($board == NULL) {
+        DataExchange::releaseResources();
+        $ERRORS['BOARD_NOT_FOUND']($smarty, $board_name);
     }
 
     $thread = threads_get_visible_by_original_post($board['id'], $thread_number, $_SESSION['user']);

@@ -39,8 +39,6 @@ CommonException::$messages['WORD_FOR_REPLACE'] = 'Введите слово дл
  * No data exceptions. *
  ***********************/
 
-NodataException::$messages['ACL_NOT_EXIST'] = 'No one rule in ACL.';
-NodataException::$messages['BOARD_NOT_FOUND'] = 'Board not found.';
 NodataException::$messages['EMPTY_MESSAGE'] = 'No attachment and message is empty.';
 NodataException::$messages['GROUPS_NOT_EXIST'] = 'No one group exists.';
 // Параметры: идентификатор языка.

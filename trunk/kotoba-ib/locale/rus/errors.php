@@ -24,11 +24,11 @@ if (!array_filter(get_included_files(), function($path) { return basename($path)
 /***/
 $ERRORS['DEFAULT']
     = new Error('Произошла стандартная ошибка.', 'Стандартная ошибка.');
-$ERRORS['BOARD_NOT_EXIST']
-    = new Error('Доски с именем %s не существует.',
-                'Доски не существует.',
-                Config::DIR_PATH . '/img/errors/board_not_exist.png',
-                function ($text, $title, $image, $smarty, $board_name) {
+$ERRORS['BOARD_NOT_FOUND']
+    = new Error('Доска с именем %s не найдена.',
+                'Доска не найдена.',
+                Config::DIR_PATH . '/img/errors/board_not_found.png',
+                function ($smarty, $board_name, $text, $title, $image) {
                     $smarty->assign('show_control', is_admin() || is_mod());
                     $smarty->assign('ib_name', Config::IB_NAME);
                     $smarty->assign('text', sprintf($text, $board_name));
@@ -36,4 +36,19 @@ $ERRORS['BOARD_NOT_EXIST']
                     $smarty->assign('image', $image);
                     die($smarty->fetch('error.tpl'));
                 });
+$ERRORS['BOARD_NOT_FOUND_ID']
+    = new Error('Доска с id %s не найдена.',
+                'Доска не найдена.',
+                Config::DIR_PATH . '/img/errors/board_not_found.png',
+                function ($smarty, $board_id, $text, $title, $image) {
+                    $smarty->assign('show_control', is_admin() || is_mod());
+                    $smarty->assign('ib_name', Config::IB_NAME);
+                    $smarty->assign('text', sprintf($text, $board_id));
+                    $smarty->assign('title', $title);
+                    $smarty->assign('image', $image);
+                    die($smarty->fetch('error.tpl'));
+                });
+$ERRORS['ACL_NO_RULES']
+    = new Error('В списке контроля доступа нет ни одного правила.',
+                'Нет правил.');
 ?>
