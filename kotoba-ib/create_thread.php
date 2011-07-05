@@ -56,11 +56,13 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    $ret = boards_get_changeable_by_id(boards_check_id($_POST['board']), $_SESSION['user']);
+    $board_id = boards_check_id($_REQUEST['board']);
+    $ret = boards_get_changeable_by_id($board_id, $_SESSION['user']);
     if ($ret == 1) {
         throw new PermissionException(PermissionException::$messages['BOARD_NOT_ALLOWED']);
     } else if ($ret == 2) {
-        throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']);
+        DataExchange::releaseResources();
+        $ERRORS['BOARD_NOT_FOUND_ID']($smarty, $board_id);
     } else {
         $board = $ret;
     }

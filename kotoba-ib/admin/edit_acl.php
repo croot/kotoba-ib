@@ -43,7 +43,11 @@ try {
 
     $groups = groups_get_all();
     $boards = boards_get_all();
-    $acl = acl_get_all();
+    if (count($acl = acl_get_all()) <= 0) {
+        DataExchange::releaseResources();
+        Logging::close_log();
+        $ERRORS['ACL_NO_RULES']($smarty);
+    }
     $reload_acl = false;
 
     if (isset($_POST['submited'])) {
@@ -270,7 +274,11 @@ try {
     }
 
     if ($reload_acl) {
-        $acl = acl_get_all();
+        if (count($acl = acl_get_all()) <= 0) {
+            DataExchange::releaseResources();
+            Logging::close_log();
+            $ERRORS['ACL_NO_RULES']($smarty);
+        }
     }
 
     // Generate html and display.

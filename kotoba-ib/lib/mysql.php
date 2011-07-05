@@ -138,17 +138,15 @@ function db_acl_get_all($link) {
     }
 
     $acl = array();
-    if (mysqli_affected_rows($link) > 0)
+    if (mysqli_affected_rows($link) > 0) {
         while ( ($row = mysqli_fetch_assoc($result)) != NULL)
-            array_push($acl, array(	'group' => $row['group'],
-                                    'board' => $row['board'],
-                                    'thread' => $row['thread'],
-                                    'post' => $row['post'],
-                                    'view' => $row['view'],
-                                    'change' => $row['change'],
-                                    'moderate' => $row['moderate']));
-    else {
-        throw new NodataException(NodataException::$messages['ACL_NOT_EXIST']);
+            array_push($acl, array('group' => $row['group'],
+                                   'board' => $row['board'],
+                                   'thread' => $row['thread'],
+                                   'post' => $row['post'],
+                                   'view' => $row['view'],
+                                   'change' => $row['change'],
+                                   'moderate' => $row['moderate']));
     }
 
     mysqli_free_result($result);
@@ -629,58 +627,6 @@ function db_boards_get_by_id($link, $board_id) {
     return $board;
 }
 /**
- * Получает заданную доску.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param board_name string <p>Имя доски.</p>
- * @return array
- * Возвращает доску:<p>
- * 'id' - Идентификатор.<br>
- * 'name' - Имя.<br>
- * 'title' - Заголовок.<br>
- * 'annotation' - Аннотация.<br>
- * 'bump_limit' - Специфичный для доски бамплимит.<br>
- * 'force_anonymous' - Флаг отображения имени отправителя.<br>
- * 'default_name' - Имя отправителя по умолчанию.<br>
- * 'with_attachments' - Флаг вложений.<br>
- * 'enable_macro' - Включение интеграции с макрочаном.<br>
- * 'enable_youtube' - Включение вложения видео с ютуба.<br>
- * 'enable_captcha' - Включение капчи.<br>
- * 'same_upload' - Политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - Обработчик автоматического удаления нитей.<br>
- * 'category' - Категория.</p>
- */
-function db_boards_get_by_name($link, $board_name)
-{
-	$result = mysqli_query($link, 'call sp_boards_get_by_name(\''
-		. $board_name . '\')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	$board = null;
-	if(mysqli_affected_rows($link) > 0
-		&& ($row = mysqli_fetch_assoc($result)) !== null)
-	{
-		$board['id'] = $row['id'];
-		$board['name'] = $row['name'];
-		$board['title'] = $row['title'];
-		$board['annotation'] = $row['annotation'];
-		$board['bump_limit'] = $row['bump_limit'];
-		$board['force_anonymous'] = $row['force_anonymous'];
-		$board['default_name'] = $row['default_name'];
-		$board['with_attachments'] = $row['with_attachments'];
-		$board['enable_macro'] = $row['enable_macro'];
-		$board['enable_youtube'] = $row['enable_youtube'];
-		$board['enable_captcha'] = $row['enable_captcha'];
-		$board['same_upload'] = $row['same_upload'];
-		$board['popdown_handler'] = $row['popdown_handler'];
-		$board['category'] = $row['category'];
-	}
-	if($board === null)
-		throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']);
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $board;
-}
-/**
  * Получает доски, доступные для изменения заданному пользователю.
  * @param link MySQLi <p>Связь с базой данных.</p>
  * @param user_id mixed <p>Идентификатор пользователя.</p>
@@ -776,68 +722,6 @@ function db_boards_get_changeable_by_id($link, $board_id, $user_id) {
     mysqli_free_result($result);
     db_cleanup_link($link);
     return $board;
-}
-/**
- * Получает заданную доску, доступную для редактирования заданному
- * пользователю.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param board_name string <p>Имя доски.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @return array
- * Возвращает доску:<p>
- * 'id' - Идентификатор.<br>
- * 'name' - Имя.<br>
- * 'title' - Заголовок.<br>
- * 'annotation' - Аннотация.<br>
- * 'bump_limit' - Специфичный для доски бамплимит.<br>
- * 'force_anonymous' - Флаг отображения имени отправителя.<br>
- * 'default_name' - Имя отправителя по умолчанию.<br>
- * 'with_attachments' - Флаг вложений.<br>
- * 'enable_macro' - Включение интеграции с макрочаном.<br>
- * 'enable_youtube' - Включение вложения видео с ютуба.<br>
- * 'enable_captcha' - Включение капчи.<br>
- * 'same_upload' - Политика загрузки одинаковых файлов.<br>
- * 'popdown_handler' - Обработчик автоматического удаления нитей.<br>
- * 'category' - Категория.<br>
- * 'category_name' - Имя категории.</p>
- */
-function db_boards_get_changeable_by_name($link, $board_name, $user_id)
-{
-	$result = mysqli_query($link, 'call sp_boards_get_changeable_by_name(\''
-		. $board_name . '\', ' . $user_id . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	if(mysqli_affected_rows($link) <= 0)
-	{
-		mysqli_free_result($result);
-		db_cleanup_link($link);
-		throw new PermissionException(PermissionException::$messages['BOARD_NOT_ALLOWED']);
-	}
-	$row = mysqli_fetch_assoc($result);
-	if(isset($row['error']) && $row['error'] == 'NOT_FOUND')
-	{
-		mysqli_free_result($result);
-		db_cleanup_link($link);
-		throw new NodataException(NodataException::$messages['BOARD_NOT_FOUND']);
-	}
-	$board['id'] = $row['id'];
-	$board['name'] = $row['name'];
-	$board['title'] = $row['title'];
-	$board['annotation'] = $row['annotation'];
-	$board['bump_limit'] = $row['bump_limit'];
-	$board['force_anonymous'] = $row['force_anonymous'];
-	$board['default_name'] = $row['default_name'];
-	$board['with_attachments'] = $row['with_attachments'];
-	$board['enable_macro'] = $row['enable_macro'];
-	$board['enable_youtube'] = $row['enable_youtube'];
-	$board['enable_captcha'] = $row['enable_captcha'];
-	$board['same_upload'] = $row['same_upload'];
-	$board['popdown_handler'] = $row['popdown_handler'];
-	$board['category'] = $row['category'];
-	$board['category_name'] = $row['category_name'];
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $board;
 }
 /**
  * Получает доски, доступные для модерирования заданному пользователю.

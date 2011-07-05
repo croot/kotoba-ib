@@ -8,8 +8,6 @@ $default_check = array(function ($c) {
                            $command = "diff \"{$c['s']}\" \"{$c['d']}\"";
 
                            if ($DEBUG) {
-                               echo "Debug: $command\n";
-                           } else {
                                echo "Executing $command\n";
                            }
                            exec($command, $output, $return_var);

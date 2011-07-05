@@ -52,8 +52,8 @@ class Error {
     function __invoke() {
         if (is_callable($this->handler)) {
             call_user_func_array($this->handler,
-                    array_merge(array($this->text, $this->title, $this->image),
-                            func_get_args()));
+                    array_merge(func_get_args(),
+                            array($this->text, $this->title, $this->image)));
         }
     }
 }
