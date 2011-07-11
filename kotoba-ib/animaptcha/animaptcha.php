@@ -6,9 +6,10 @@
 
 // Animaptcha.
 
-require '../config.php';
-require Config::ABS_PATH . '/lib/exceptions.php';
-require Config::ABS_PATH . '/lib/misc.php';
+require_once '../config.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
 
 // Initialization.
 kotoba_session_start();
