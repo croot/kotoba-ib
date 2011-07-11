@@ -51,4 +51,19 @@ $ERRORS['BOARD_NOT_FOUND_ID']
 $ERRORS['ACL_NO_RULES']
     = new Error('No one rule in ACL.',
                 'No rules in ACL.');
+$ERRORS['KOTOBA_INTVAL']
+    = new Error('Object cannot be cast to intger. See description to intval() function in PHP documentation.',
+                'Cast to integer.');
+$ERRORS['MAX_PAGE']
+    = new Error('Page number %s not exist.',
+                'Page number.',
+                Config::DIR_PATH . '/img/errors/default_error.png',
+                function ($smarty, $page, $text, $title, $image) {
+                    $smarty->assign('show_control', is_admin() || is_mod());
+                    $smarty->assign('ib_name', Config::IB_NAME);
+                    $smarty->assign('text', sprintf($text, $page));
+                    $smarty->assign('title', $title);
+                    $smarty->assign('image', $image);
+                    die($smarty->fetch('error.tpl'));
+                });
 ?>

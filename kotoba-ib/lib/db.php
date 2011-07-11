@@ -1719,6 +1719,15 @@ function posts_get_filtred_by_boards($boards, $filter) {
     return $filtred_posts;
 }
 /**
+ * Get original posts of threads.
+ * @param array $threads Threads.
+ * @return array Posts.
+ */
+function posts_get_original_by_threads($threads) {
+    return db_posts_get_original_by_threads(DataExchange::getDBLink(),
+                                            $threads);
+}
+/**
  * Get reported posts.
  * @param array $boards Boards.
  * @param int $page Page number.

@@ -61,12 +61,16 @@ class SmartyKotobaSetup extends Smarty {
 /**
  * intval() wrapper.
  */
-function kotoba_intval($var) {
+function kotoba_intval($var, $throw = TRUE) {
     if (!is_object($var)) {
         return intval($var);
     }
 
-    throw new FormatException(FormatException::$messages['KOTOBA_INTVAL']);
+    if ($throw) {
+        throw new FormatException(FormatException::$messages['KOTOBA_INTVAL']);
+    } else {
+        return NULL;
+    }
 }
 /**
  * strval() wrapper.
@@ -177,11 +181,12 @@ function load_user_settings($keyword) {
 /**
  * Check page number.
  * @param int $page Page number.
+ * @param boolean $throw Default value is TRUE. Throw exception or return NULL.
  * @return int
  * safe page number.
  */
-function check_page($page) {
-    return kotoba_intval($page);
+function check_page($page, $throw = TRUE) {
+    return kotoba_intval($page, $throw);
 }
 /**
  * Проверяет, загружено ли расширение php.
