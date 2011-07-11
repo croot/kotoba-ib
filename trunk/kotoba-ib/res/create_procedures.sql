@@ -104,6 +104,7 @@ drop procedure if exists sp_posts_get_by_board_number|
 drop procedure if exists sp_posts_get_by_id|
 drop procedure if exists sp_posts_get_by_number|
 drop procedure if exists sp_posts_get_by_thread|
+drop procedure if exists sp_posts_get_original_by_thread|
 drop procedure if exists sp_posts_get_reported_by_board|
 drop procedure if exists sp_posts_get_visible_by_id|
 drop procedure if exists sp_posts_get_visible_by_number|
@@ -2281,6 +2282,24 @@ begin
         join boards b on b.id = p.board
         where p.thread = thread_id;
 end|
+
+-- Get original post by thread.
+CREATE PROCEDURE sp_posts_get_original_by_thread
+(
+    _id int -- Thread id.
+)
+BEGIN
+    declare op int;
+    declare _board int;
+
+    select original_post into op from threads where id = _id;
+
+    select board into _board from posts where thread = _id and number = op;
+
+    select * from boards where id = _board;
+    select * from threads where id = _id;
+    select * from posts where thread = _id and number = op;
+END|
 
 -- Get reported posts.
 CREATE PROCEDURE sp_posts_get_reported_by_board

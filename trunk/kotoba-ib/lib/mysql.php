@@ -2937,6 +2937,63 @@ function db_posts_get_by_thread($link, $thread_id) {
     return $posts;
 }
 /**
+ * Get original posts of threads.
+ * @param MySQLi $link Link to database.
+ * @param array $threads Threads.
+ * @return array Posts.
+ */
+function db_posts_get_original_by_threads($link, $threads) {
+    $posts = array();
+    $board_data = array();
+    $thread_data = array();
+
+    foreach ($threads as $t) {
+        $query = "call sp_posts_get_original_by_thread({$t['id']})";
+        if ( ($result = mysqli_multi_query($link, $query)) == FALSE) {
+            throw new CommonException(mysqli_error($link));
+        }
+
+        if ( ($result = mysqli_store_result($link)) == FALSE) {
+            throw new CommonException(mysqli_error($link));
+        }
+        if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            if (!isset($board_data[$row['id']])) {
+                $board_data[$row['id']] = $row;
+            }
+        }
+        mysqli_free_result($result);
+        
+        if (!mysqli_next_result($link)) {
+            throw new CommonException('Not all expected data received.');
+        }
+        if ( ($result = mysqli_store_result($link)) == false) {
+            throw new CommonException(mysqli_error($link));
+        }
+        if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            if (!isset($thread_data[$row['id']])) {
+                $thread_data[$row['id']] = $row;
+            }
+        }
+
+        if (!mysqli_next_result($link)) {
+            throw new CommonException('Not all expected data received.');
+        }
+        if ( ($result = mysqli_store_result($link)) == false) {
+            throw new CommonException(mysqli_error($link));
+        }
+        if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            $row['board'] = &$board_data[$row['board']];
+            $row['thread'] = &$thread_data[$row['thread']];
+            array_push($posts, $row);
+        }
+
+        mysqli_free_result($result);
+        db_cleanup_link($link);
+    }
+
+    return $posts;
+}
+/**
  * Get reported posts.
  * @param MySQLi $link Link to database.
  * @param array $boards Boards.

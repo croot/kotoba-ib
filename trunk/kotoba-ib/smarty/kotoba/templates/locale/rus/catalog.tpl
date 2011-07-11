@@ -13,6 +13,9 @@ Variables:
     $categories - categories.
     $boards - boards.
     $threads_html - html code of catalog entries.
+    $page - page number.
+    $pages - page numbers.
+    $board - board.
 *}
 {include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title="Просмотр нитей доски /`$board.name`/ `$board.title`"}
 
@@ -22,6 +25,8 @@ Variables:
 
 <br>
 <br>
+{include file='catalog_pages_list.tpl' pages=$pages page=$page board=$board}
+
 <div style="float: left;">
 {$threads_html}
 </div>

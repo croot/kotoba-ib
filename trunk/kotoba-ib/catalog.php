@@ -26,10 +26,10 @@ try {
     $smarty = new SmartyKotobaSetup();
 
     // Check if client banned.
-    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
+    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
         throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
     }
-    if ( ($ban = bans_check($ip)) !== false) {
+    if ( ($ban = bans_check($ip)) !== FALSE) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
         session_destroy();
@@ -40,15 +40,27 @@ try {
     // Fix for Firefox.
     header("Cache-Control: private");
 
-    $board_name = boards_check_name($_GET['board']);
+    $board_name = boards_check_name($_REQUEST['board']);
     $categories = categories_get_all();
     $boards = boards_get_visible($_SESSION['user']);
+
+    $page = 1;
+    $pages = array();
+    $page_max = 1;
+    if (isset($_REQUEST['page'])) {
+        if ( ($page = check_page($_REQUEST['page'], FALSE)) === NULL) {
+            DataExchange::releaseResources();
+            $ERRORS['KOTOBA_INTVAL']($smarty);
+        }
+    }
 
     // Make category-boards tree for navigation panel.
     foreach ($categories as &$c) {
         $c['boards'] = array();
         foreach ($boards as $b) {
-            if ($b['category'] == $c['id'] && !in_array($b['name'], Config::$INVISIBLE_BOARDS)) {
+            if ($b['category'] == $c['id']
+                    && !in_array($b['name'], Config::$INVISIBLE_BOARDS)) {
+
                 array_push($c['boards'], $b);
             }
         }
@@ -65,36 +77,24 @@ try {
         $ERRORS['BOARD_NOT_FOUND']($smarty, $board_name);
     }
 
-    // Pass all threads.
-    $tfilter = function($thread) {
-        return true;
-    };
-    $threads = threads_get_visible_filtred_by_board($board['id'], $_SESSION['user'], $tfilter);
-    $sticky_threads = array();
-    $other_threads = array();
-    foreach ($threads as $thread) {
-        if ($thread['sticky']) {
-            array_push($sticky_threads, $thread);
-        } else {
-            array_push($other_threads, $thread);
-        }
+    $threads_count = threads_get_visible_count($_SESSION['user'], $board['id']);
+    $page_max = ($threads_count % 100 == 0
+        ? (int)($threads_count / 100)
+        : (int)($threads_count / 100) + 1);
+    if ($page_max == 0) {
+        $page_max = 1;  // Important for empty boards.
     }
-    $threads = array_merge($sticky_threads, $other_threads);
+    if ($page > $page_max) {
+        DataExchange::releaseResources();
+        $ERRORS['MAX_PAGE']($smarty, $page);
+    }
 
-    // Pass only original posts.
-    $pfilter = function($thread, $post) {
-        static $prev_thread = null;
+    $threads = threads_get_visible_by_page($_SESSION['user'],
+                                           $board['id'],
+                                           $page,
+                                           100);
 
-        if ($prev_thread !== $thread) {
-            $prev_thread = $thread;
-        }
-
-        if ($thread['original_post'] == $post['post_number']) {
-            return true;
-        }
-        return false;
-    };
-    $posts = posts_get_visible_filtred_by_threads($threads, $_SESSION['user'], $pfilter);
+    $posts = posts_get_original_by_threads($threads);
 
     $posts_attachments = array();
     $attachments = array();
@@ -125,6 +125,9 @@ try {
     }
 
     $smarty->assign('threads_html', $threads_html);
+    $smarty->assign('page', $page);
+    $smarty->assign('pages', range(1, $page_max));
+    $smarty->assign('board', $board);
     $smarty->display('catalog.tpl');
 
     // Cleanup.

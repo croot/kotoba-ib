@@ -51,4 +51,19 @@ $ERRORS['BOARD_NOT_FOUND_ID']
 $ERRORS['ACL_NO_RULES']
     = new Error('В списке контроля доступа нет ни одного правила.',
                 'Нет правил.');
+$ERRORS['KOTOBA_INTVAL']
+    = new Error('Объект не может быть преобразован к целому числу. См. описание фукнции intval() в документации PHP.',
+                'Преобразование к целому числу.');
+$ERRORS['MAX_PAGE']
+    = new Error('Номер страницы %s слишком большой. Такой страницы не существует.',
+                'Номер страницы.',
+                Config::DIR_PATH . '/img/errors/default_error.png',
+                function ($smarty, $page, $text, $title, $image) {
+                    $smarty->assign('show_control', is_admin() || is_mod());
+                    $smarty->assign('ib_name', Config::IB_NAME);
+                    $smarty->assign('text', sprintf($text, $page));
+                    $smarty->assign('title', $title);
+                    $smarty->assign('image', $image);
+                    die($smarty->fetch('error.tpl'));
+                });
 ?>
