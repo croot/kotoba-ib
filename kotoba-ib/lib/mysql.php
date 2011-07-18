@@ -1623,7 +1623,8 @@ function db_images_get_dangling($link) {
  * images.
  */
 function db_images_get_same($link, $board_id, $user_id, $image_hash) {
-    $result = mysqli_query($link, "call sp_images_get_same($board_id, $user_id, '$image_hash')");
+    $query = "call sp_images_get_same($board_id, $user_id, '$image_hash')";
+    $result = mysqli_query($link, $query);
     if (!$result) {
         throw new CommonException(mysqli_error($link));
     }
@@ -1670,9 +1671,10 @@ function db_images_get_same($link, $board_id, $user_id, $image_hash) {
                              'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE,
                              'view' => $row['view']));
         }
+
+        mysqli_free_result($result);
     }
 
-    mysqli_free_result($result);
     db_cleanup_link($link);
     return $images;
 }
@@ -3496,11 +3498,13 @@ function db_posts_search_visible_by_boards($link, $boards, $keyword, $user) {
  * Add post file relation.
  * @param MySQLi $link Link to database.
  * @param int $post Post id.
+ * @param int $board Board id.
  * @param int file File id.
  * @param int $deleted Mark to delete.
  */
-function db_posts_files_add($link, $post, $file, $deleted) {
-    if (!mysqli_query($link, "call sp_posts_files_add($post, $file, $deleted)")) {
+function db_posts_files_add($link, $post, $board, $file, $deleted) {
+    $query = "call sp_posts_files_add($post, $board, $file, $deleted)";
+    if (!mysqli_query($link, $query)) {
         throw new CommonException(mysqli_error($link));
     }
     db_cleanup_link($link);
@@ -3564,11 +3568,13 @@ function db_posts_files_get_by_post($link, $post_id) {
  * Add post image relation.
  * @param MySQLi $link Link to database.
  * @param int $post Post id.
+ * @param int $board Board id.
  * @param int $image Image id.
  * @param int $deleted Mark to delete.
  */
-function db_posts_images_add($link, $post, $image, $deleted) {
-    if(!mysqli_query($link, "call sp_posts_images_add($post, $image, $deleted)")) {
+function db_posts_images_add($link, $post, $board, $image, $deleted) {
+    $query = "call sp_posts_images_add($post, $board, $image, $deleted)";
+    if(!mysqli_query($link, $query)) {
         throw new CommonException(mysqli_error($link));
     }
     db_cleanup_link($link);

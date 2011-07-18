@@ -458,4 +458,4 @@ insert into acl (`group`, board, `view`, `change`, moderate) values (4, 1, 1, 1,
 insert into acl (`group`, board, `view`, `change`, moderate) values (4, 2, 1, 1, 1);
 
 -- Current database version.
-insert into db_version (version) values (13);
+insert into db_version (version) values (14);

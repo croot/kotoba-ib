@@ -53,6 +53,7 @@ try {
 
     // Remove post.
     if (is_admin() || ($post['password'] !== null && $post['password'] === $password)) {
+        posts_attachments_delete_by_post($post['id']);
         posts_delete($post['id']);
         header('Location: ' . Config::DIR_PATH . "/{$post['board']['name']}/");
     } else {

@@ -363,10 +363,11 @@ try {
     if ($attachment_type !== null) {
         switch ($attachment_type) {
             case Config::ATTACHMENT_TYPE_FILE:
-                posts_files_add($post['id'], $attachment_id, 0);
+                posts_files_add($post['id'], $post['board'], $attachment_id, 0);
                 break;
             case Config::ATTACHMENT_TYPE_IMAGE:
-                posts_images_add($post['id'], $attachment_id, 0);
+                posts_images_add($post['id'], $post['board'], $attachment_id,
+                                 0);
                 break;
             case Config::ATTACHMENT_TYPE_LINK:
                 posts_links_add($post['id'], $attachment_id, 0);
