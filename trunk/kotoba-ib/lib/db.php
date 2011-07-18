@@ -1837,11 +1837,13 @@ function posts_search_visible_by_boards($boards, $keyword, $user) {
 /**
  * Add post file relation.
  * @param int $post Post id.
+ * @param int $board Board id.
  * @param int file File id.
  * @param int $deleted Mark to delete.
  */
-function posts_files_add($post, $file, $deleted) {
-    db_posts_files_add(DataExchange::getDBLink(), $post, $file, $deleted);
+function posts_files_add($post, $board, $file, $deleted) {
+    db_posts_files_add(DataExchange::getDBLink(), $post, $board, $file,
+                       $deleted);
 }
 
 /* *************************
@@ -1851,11 +1853,13 @@ function posts_files_add($post, $file, $deleted) {
 /**
  * Add post image relation.
  * @param int $post Post id.
+ * @param int $board Board id.
  * @param int $image Image id.
  * @param int $deleted Mark to delete.
  */
-function posts_images_add($post, $image, $deleted) {
-    db_posts_images_add(DataExchange::getDBLink(), $post, $image, $deleted);
+function posts_images_add($post, $board, $image, $deleted) {
+    db_posts_images_add(DataExchange::getDBLink(), $post, $board, $image,
+                        $deleted);
 }
 
 /* ************************

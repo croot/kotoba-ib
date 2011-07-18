@@ -1381,98 +1381,113 @@ create procedure sp_images_get_same
 )
 begin
     declare _image_id int;
-    declare _post_id int;
-    declare _visible bit;
+    declare _post_id int default NULL;
+    declare _visible bit default 0;
 
     create temporary table _post (id int not null,
                                   board int not null,
                                   thread int not null,
                                   primary key (id));
 
-    select id into _image_id
-        from images
-        where hash = image_hash
+    create temporary table _images1 (id int not null,
+                                     primary key (id));
+
+    create temporary table _images2 (id int not null);
+
+    insert into _images1 (id)
+        select id from images where hash = image_hash;
+
+    insert into _images2 (id)
+        select image from posts_images where board = board_id and deleted = 0;
+
+    select i1.id into _image_id
+        from _images1 i1
+        join _images2 i2 on i1.id = i2.id
         limit 1;
+
+    drop temporary table _images2;
+    drop temporary table _images1;
 
     -- If image visible somewhere it visible everywhere. If not not. So we
     -- dont care where this post from.
-    select post into _post_id
-        from posts_images
-        where image = _image_id and deleted = 0
-        limit 1;
+    select post into _post_id from posts_images where image = _image_id limit 1;
 
-    insert into _post (id, board, thread)
-        select id, board, thread
-        from posts
-        where id = _post_id
-        limit 1;
+    if (_post_id is not NULL) then
 
-    select max(case when a1.`view` = 0 then 0
-                    when a2.`view` = 0 then 0
-                    when a3.`view` = 0 then 0
-                    when a4.`view` = 0 then 0
-                    when a5.`view` = 0 then 0
-                    when a6.`view` = 0 then 0
-                    when a7.`view` = 0 then 0
-                    else 1 end) into _visible
-        from _post p
-        join user_groups ug on ug.`user` = user_id
-        -- Правило для конкретной группы и сообщения.
-        left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
-        -- Правило для всех групп и конкретного сообщения.
-        left join acl a2 on a2.`group` is null and a2.post = p.id
-        -- Правила для конкретной группы и нити.
-        left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
-        -- Правило для всех групп и конкретной нити.
-        left join acl a4 on a4.`group` is null and a4.thread = p.thread
-        -- Правила для конкретной группы и доски.
-        left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
-        -- Правило для всех групп и конкретной доски.
-        left join acl a6 on a6.`group` is null and a6.board = p.board
-        -- Правило для конкретной групы.
-        left join acl a7 on a7.`group` = ug.`group` and a7.board is null
-            and a7.thread is null and a7.post is null
-        group by p.id
-        limit 1;
+        insert into _post (id, board, thread)
+            select id, board, thread
+                from posts
+                where id = _post_id
+                limit 1;
 
-    select i.id as image_id,
-           i.hash as image_hash,
-           i.name as image_name,
-           i.widht as image_widht,
-           i.height as image_height,
-           i.size as image_size,
-           i.thumbnail as image_thumbnail,
-           i.thumbnail_w as image_thumbnail_w,
-           i.thumbnail_h as image_thumbnail_h,
-           i.spoiler as image_spoiler,
+        select max(case when a1.`view` = 0 then 0
+                        when a2.`view` = 0 then 0
+                        when a3.`view` = 0 then 0
+                        when a4.`view` = 0 then 0
+                        when a5.`view` = 0 then 0
+                        when a6.`view` = 0 then 0
+                        when a7.`view` = 0 then 0
+                        else 1 end) into _visible
+            from _post p
+            join user_groups ug on ug.`user` = user_id
+            -- Правило для конкретной группы и сообщения.
+            left join acl a1 on a1.`group` = ug.`group` and a1.post = p.id
+            -- Правило для всех групп и конкретного сообщения.
+            left join acl a2 on a2.`group` is null and a2.post = p.id
+            -- Правила для конкретной группы и нити.
+            left join acl a3 on a3.`group` = ug.`group` and a3.thread = p.thread
+            -- Правило для всех групп и конкретной нити.
+            left join acl a4 on a4.`group` is null and a4.thread = p.thread
+            -- Правила для конкретной группы и доски.
+            left join acl a5 on a5.`group` = ug.`group` and a5.board = p.board
+            -- Правило для всех групп и конкретной доски.
+            left join acl a6 on a6.`group` is null and a6.board = p.board
+            -- Правило для конкретной групы.
+            left join acl a7 on a7.`group` = ug.`group` and a7.board is null
+                and a7.thread is null and a7.post is null
+            group by p.id
+            limit 1;
 
-           p.id as post_id,
-           p.board as post_board,
-           p.thread as post_thread,
-           p.number as post_number,
-           p.user as post_user,
-           p.password as post_password,
-           p.name as post_name,
-           p.tripcode as post_tripcode,
-           p.ip as post_ip,
-           p.subject as post_subject,
-           p.date_time as post_date_time,
-           p.`text` as post_text,
-           p.sage as post_sage,
+        select i.id as image_id,
+               i.hash as image_hash,
+               i.name as image_name,
+               i.widht as image_widht,
+               i.height as image_height,
+               i.size as image_size,
+               i.thumbnail as image_thumbnail,
+               i.thumbnail_w as image_thumbnail_w,
+               i.thumbnail_h as image_thumbnail_h,
+               i.spoiler as image_spoiler,
 
-           t.id as thread_id,
-           t.board as thread_board,
-           t.original_post as thread_original_post,
-           t.bump_limit as thread_bump_limit,
-           t.sage as thread_sage,
-           t.sticky as thread_sticky,
-           t.with_attachments as thread_with_attachments,
+               p.id as post_id,
+               p.board as post_board,
+               p.thread as post_thread,
+               p.number as post_number,
+               p.user as post_user,
+               p.password as post_password,
+               p.name as post_name,
+               p.tripcode as post_tripcode,
+               p.ip as post_ip,
+               p.subject as post_subject,
+               p.date_time as post_date_time,
+               p.`text` as post_text,
+               p.sage as post_sage,
 
-           _visible as `view`
-        from images i
-        join posts p on p.id = _post_id
-        join threads t on t.id = p.thread
-        where i.id = _image_id;
+               t.id as thread_id,
+               t.board as thread_board,
+               t.original_post as thread_original_post,
+               t.bump_limit as thread_bump_limit,
+               t.sage as thread_sage,
+               t.sticky as thread_sticky,
+               t.with_attachments as thread_with_attachments,
+
+               _visible as `view`
+            from images i
+            join posts p on p.id = _post_id
+            join threads t on t.id = p.thread
+            where i.id = _image_id;
+
+    end if;
 
     drop temporary table _post;
 end|
@@ -1816,7 +1831,7 @@ begin
         from posts p
         join threads t on t.id = p.thread and p.id = _id
             and p.number = t.original_post;
-    if(thread_id is null) then
+    if (thread_id is null) then
         update posts set deleted = 1 where id = _id;
         select thread into thread_id from posts where id = _id;
     else
@@ -2859,12 +2874,13 @@ end|
 create procedure sp_posts_files_add
 (
     _post int,      -- Post id.
+    _board int,     -- Board id.
     _file int,      -- File id.
     _deleted bit    -- Mark to delete.
 )
 begin
-    insert into posts_files (post, file, deleted)
-        values (_post, _file, _deleted);
+    insert into posts_files (post, board, file, deleted)
+        values (_post, _board, _file, _deleted);
 end|
 
 -- Delete post attachemnts relations.
@@ -2899,12 +2915,13 @@ end|
 create procedure sp_posts_images_add
 (
     _post int,      -- Post id.
+    _board int,     -- Board id.
     _image int,     -- Image id.
     _deleted bit    -- Mark to delete.
 )
 begin
-    insert into posts_images (post, image, deleted)
-        values (_post, _image, _deleted);
+    insert into posts_images (post, board, image, deleted)
+        values (_post, _board, _image, _deleted);
 end|
 
 -- Delete post images relations.
@@ -4456,7 +4473,7 @@ create procedure sp_threads_update_last_post
     _id int -- Thread id.
 )
 begin
-    declare _last_post int;
+    declare _last_post int default NULL;
 
     create temporary table _posts
     (
@@ -4472,7 +4489,11 @@ begin
                   and (sage = 0 or sage is null)
                   and deleted = 0;
     select max(number) into _last_post from _posts;
-    update threads set last_post = _last_post where id = _id;
+    if (_last_post is NULL) then
+        update threads set last_post = 0 where id = _id;
+    else
+        update threads set last_post = _last_post where id = _id;
+    end if;
 
     drop table _posts;
 end|
