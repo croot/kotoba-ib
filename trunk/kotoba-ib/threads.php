@@ -83,20 +83,20 @@ try {
         $ERRORS['BOARD_NOT_FOUND']($smarty, $board_name);
     }
 
-    $thread = threads_get_visible_by_original_post($board['id'], $thread_number, $_SESSION['user']);
+    $thread = threads_get_visible_by_original_post($board['id'],
+                                                   $thread_number,
+                                                   $_SESSION['user']);
 
     // Redirection to archived thread.
     if ($thread['archived']) {
         DataExchange::releaseResources();
-        header('Location: ' . Config::DIR_PATH . "/{$board['name']}/arch/" . "{$thread['original_post']}.html");
+        header('Location: ' . Config::DIR_PATH . "/{$board['name']}/arch/"
+               . "{$thread['original_post']}.html");
         exit(0);
     }
 
-    if (threads_get_moderatable_by_id($thread['id'], $_SESSION['user']) === NULL) {
-        $is_moderatable = false;
-    } else {
-        $is_moderatable = true;
-    }
+    $ret = threads_get_moderatable_by_id($thread['id'], $_SESSION['user']);
+    $is_moderatable = $ret === NULL ? false : true;
 
     $pfilter = function($posts_per_thread, $thread, $post) {
         static $recived = 0;
