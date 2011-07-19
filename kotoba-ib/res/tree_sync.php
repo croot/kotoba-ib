@@ -15,46 +15,18 @@ $default_check = array(function ($c) {
                        });
 
 $default_copy = array(function ($c) {
-                           global $DEBUG;
-                           $command = "cp \"{$c['s']}\" \"{$c['d']}\"";
+                          global $DEBUG;
+                          $command = "install -o {$c['u']} -g {$c['g']} -m {$c['m']} \"{$c['s']}\" \"{$c['d']}\"";
 
-                           if ($DEBUG) {
-                               echo "Debug: $command\n";
-                           } else {
-                               echo "Executing $command\n";
-                           }
-                           exec($command, $output, $return_var);
-                           if ($return_var != 0) {
-                               die("Error executing $command\n");
-                           }
-                      },
-                      function ($c) {
-                           global $DEBUG;
-                           $command = "chown {$c['ug']} \"{$c['d']}\"";
-
-                           if ($DEBUG) {
-                               echo "Debug: $command\n";
-                           } else {
-                               echo "Executing $command\n";
-                           }
-                           exec($command, $output, $return_var);
-                           if ($return_var != 0) {
-                               die("Error executing $command\n");
-                           }
-                      },
-                      function ($c) {
-                           global $DEBUG;
-                           $command = "chmod {$c['m']} \"{$c['d']}\"";
-
-                           if ($DEBUG) {
-                               echo "Debug: $command\n";
-                           } else {
-                               echo "Executing $command\n";
-                           }
-                           exec($command, $output, $return_var);
-                           if ($return_var != 0) {
-                               die("Error executing $command\n");
-                           }
+                          if ($DEBUG) {
+                              echo "Debug: $command\n";
+                          } else {
+                              echo "Executing $command\n";
+                          }
+                          exec($command, $output, $return_var);
+                          if ($return_var != 0) {
+                              die("Error executing $command\n");
+                          }
                       });
 
 $default_copy_check = array('check' => array($default_check, array()),
@@ -274,6 +246,8 @@ function walk_trough($node, $route) {
             $c = array('s' => "{$SVN_PATH}$route/$key",
                        'd' => "{$WEB_PATH}$route/$key",
                        'ug' => "apache:apache",
+                       'u' => "apache",
+                       'g' => "apache",
                        'm' => "400");
             foreach ($value['check'] as $check) {
                 foreach ($check as $command) {
