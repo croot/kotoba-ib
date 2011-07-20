@@ -8,9 +8,10 @@
  * Create captcha image script.
  */
 
-require '../config.php';
-require Config::ABS_PATH . '/lib/exceptions.php';
-require Config::ABS_PATH . '/lib/misc.php';
+require_once '../config.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
 
 // <editor-fold defaultstate="collapsed" desc="Font">
 $font = array('а' => array(4, array(0, 2, 1, 1, 2, 1, 3, 2, 3, 5, 4, 6), array(3, 3, 1, 3, 0, 4, 0, 5, 1, 6, 2, 6, 3, 5)),

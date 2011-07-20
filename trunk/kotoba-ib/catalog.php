@@ -26,8 +26,11 @@ try {
     $smarty = new SmartyKotobaSetup();
 
     // Check if client banned.
-    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
-        throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
+    if (!isset($_SERVER['REMOTE_ADDR'])
+            || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
+
+        DataExchange::releaseResources();
+        $ERRORS['REMOTE_ADDR']($smarty);
     }
     if ( ($ban = bans_check($ip)) !== FALSE) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);

@@ -13,9 +13,6 @@
  * Common *
  **********/
 
-CommonException::$messages['ACL_RULE_EXCESS'] = 'Board, Thread or Post is unique.';
-CommonException::$messages['ACL_RULE_CONFLICT'] = 'Permission conflict.';
-CommonException::$messages['CAPTCHA'] = 'Код подтверждения не верен.';
 CommonException::$messages['CONVERT_PNG'] = 'Не удалось преобразовать изображение в формат png.';
 CommonException::$messages['COPY_FAILED'] = 'Copy file failed.';
 CommonException::$messages['GD_WRONG_FILETYPE'] = 'GD не поддерживает этот тип файла.';
@@ -24,7 +21,6 @@ CommonException::$messages['IMAGEMAGICK_FORMAT'] = 'Imagemagick doesn\'t support
 CommonException::$messages['LOG_FILE'] = 'Не удалось открыть или создать файл лога.';
 CommonException::$messages['LINK_FAILED'] = 'Hard link creation failed.';
 CommonException::$messages['NO_IMG_LIB'] = 'Image libraries disabled or doesn\'t work.';
-CommonException::$messages['REMOTE_ADDR'] = 'Invalid remote adderess.';
 CommonException::$messages['REPLACE_FOR_WORD'] = 'Введите замену для слова.';
 CommonException::$messages['SESSION_START'] = 'Session start failed.';
 CommonException::$messages['SETLOCALE'] = 'Locale setup failed.';

@@ -27,8 +27,11 @@ try {
     $smarty = new SmartyKotobaSetup();
 
     // Check if client banned.
-    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
-        throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
+    if (!isset($_SERVER['REMOTE_ADDR'])
+            || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
+
+        DataExchange::releaseResources();
+        $ERRORS['REMOTE_ADDR']($smarty);
     }
     if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
@@ -57,23 +60,19 @@ try {
     } else {
         switch (Config::CAPTCHA) {
             case 'captcha':
-                if (isset($_POST['captcha_code'])
-                        && isset($_SESSION['captcha_code'])
-                        && mb_strtolower($_POST['captcha_code'], Config::MB_ENCODING) === $_SESSION['captcha_code']) {
-
+                if (is_captcha_valid()) {
                     $captcha_request = false;
                 }
                 break;
             case 'animaptcha':
-                if (isset($_POST['animaptcha_code'])
-                        && isset($_SESSION['animaptcha_code'])
-                        && in_array(mb_strtolower($_POST['animaptcha_code'], Config::MB_ENCODING), $_SESSION['animaptcha_code'], TRUE)) {
-
+                if (is_animaptcha_valid()) {
                     $captcha_request = false;
                 }
                 break;
             default:
-                throw new CommonException(CommonException::$messages['CAPTCHA']);
+                DataExchange::releaseResources();
+                $ERRORS['CAPTCHA']($smarty, 'Unknown captcha type',
+                                   'Unknown captcha type');
                 break;
         }
         if ($captcha_request) {

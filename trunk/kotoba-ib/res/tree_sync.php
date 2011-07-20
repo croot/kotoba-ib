@@ -15,14 +15,9 @@ $default_check = array(function ($c) {
                        });
 
 $default_copy = array(function ($c) {
-                          global $DEBUG;
                           $command = "install -o {$c['u']} -g {$c['g']} -m {$c['m']} \"{$c['s']}\" \"{$c['d']}\"";
 
-                          if ($DEBUG) {
-                              echo "Debug: $command\n";
-                          } else {
-                              echo "Executing $command\n";
-                          }
+                          echo "$command\n";
                           exec($command, $output, $return_var);
                           if ($return_var != 0) {
                               die("Error executing $command\n");
