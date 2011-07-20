@@ -24,8 +24,11 @@ try {
     $smarty = new SmartyKotobaSetup();
 
     // Check if client banned.
-    if ( ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
-        throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
+    if (!isset($_SERVER['REMOTE_ADDR'])
+            || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
+
+        DataExchange::releaseResources();
+        $ERRORS['REMOTE_ADDR']($smarty);
     }
     if ( ($ban = bans_check($ip)) !== FALSE) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
@@ -70,24 +73,23 @@ try {
              * Board, Thread or Post id is unique. If we know one we dont need
              * know more.
              */
-            if ($new_board !== null && ($new_thread !== null || $new_post !== null)) {
-                throw new CommonException(CommonException::$messages['ACL_RULE_EXCESS']);
-            }
-            if ($new_thread !== null && ($new_board !== null || $new_post !== null)) {
-                throw new CommonException(CommonException::$messages['ACL_RULE_EXCESS']);
-            }
-            if ($new_post != null && ($new_board !== null || $new_thread !== null)) {
-                throw new CommonException(CommonException::$messages['ACL_RULE_EXCESS']);
+            $_ = array($new_board, $new_thread, $new_post);
+            if (count(array_filter($_, 'is_null')) != 2) {
+                DataExchange::releaseResources();
+                Logging::close_log();
+                $ERRORS['ACL_RULE_EXCESS']($smarty);
             }
 
             /*
              * If view denied then change and moderate has no sense. If change
              * denyed then moderate has no sense.
              */
-            if ($new_view == 0 && ($new_change != 0 || $new_moderate != 0)) {
-                throw new CommonException(CommonException::$messages['ACL_RULE_CONFLICT']);
-            } elseif($new_change == 0 && $new_moderate != 0) {
-                throw new CommonException(CommonException::$messages['ACL_RULE_CONFLICT']);
+            if (($new_view == 0 && ($new_change != 0 || $new_moderate != 0))
+                    || ($new_change == 0 && $new_moderate != 0)) {
+
+                DataExchange::releaseResources();
+                Logging::close_log();
+                $ERRORS['ACL_RULE_CONFLICT']($smarty);
             }
 
             // Take a look if we already have that rule.

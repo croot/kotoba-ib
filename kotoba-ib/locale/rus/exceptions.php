@@ -13,9 +13,6 @@
  * Common *
  **********/
 
-CommonException::$messages['ACL_RULE_EXCESS'] = 'Получена избыточная информация. Доска, нить и сообщение определяются однозначно своими идентификаторами.';
-CommonException::$messages['ACL_RULE_CONFLICT'] = 'Конфликт разрешений для правила.';
-CommonException::$messages['CAPTCHA'] = 'Код подтверждения не верен.';
 CommonException::$messages['CONVERT_PNG'] = 'Не удалось преобразовать изображение в формат png.';
 CommonException::$messages['COPY_FAILED'] = 'Не удалось скопировать файл.';
 CommonException::$messages['GD_WRONG_FILETYPE'] = 'GD не поддерживает этот тип файла.';
@@ -24,7 +21,6 @@ CommonException::$messages['IMAGEMAGICK_FORMAT'] = 'Imagemagick не подде�
 CommonException::$messages['LOG_FILE'] = 'Не удалось открыть или создать файл лога.';
 CommonException::$messages['LINK_FAILED'] = 'Не удалось создать жесткую ссылку.';
 CommonException::$messages['NO_IMG_LIB'] = 'Библиотеки работы с изображением отсутствуют или отключены (см. config.default).';
-CommonException::$messages['REMOTE_ADDR'] = 'Неверный адрес клиента.';
 CommonException::$messages['REPLACE_FOR_WORD'] = 'Введите замену для слова.';
 CommonException::$messages['SESSION_START'] = 'Не удалось начать сессию.';
 CommonException::$messages['SETLOCALE'] = 'Неудача при установке локали.';

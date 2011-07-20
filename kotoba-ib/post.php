@@ -27,8 +27,11 @@ try {
     $smarty = new SmartyKotobaSetup($_SESSION['language'], $_SESSION['stylesheet']);
 
     // Проверка, не заблокирован ли клиент.
-    if (($ip = ip2long($_SERVER['REMOTE_ADDR'])) === false) {
-        throw new CommonException(CommonException::$messages['REMOTE_ADDR']);
+    if (!isset($_SERVER['REMOTE_ADDR'])
+            || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
+
+        DataExchange::releaseResources();
+        $ERRORS['REMOTE_ADDR']($smarty);
     }
     if (($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);

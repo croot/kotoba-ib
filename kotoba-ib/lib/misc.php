@@ -483,6 +483,29 @@ function is_translation_enabled($board) {
 function is_captcha_enabled($board) {
     return !is_admin() && (($board['enable_captcha'] === null && Config::ENABLE_CAPTCHA) || $board['enable_captcha']);
 }
+/**
+ * Check if captcha valid.
+ * @return
+ * TRUE if captcha valid or FALSE otherwise.
+ */
+function is_captcha_valid() {
+    return isset($_POST['captcha_code'])
+           && isset($_SESSION['captcha_code'])
+           && mb_strtolower($_POST['captcha_code'],
+                            Config::MB_ENCODING) === $_SESSION['captcha_code'];
+}
+/**
+ * Check if animaptcha valid.
+ * @return
+ * TRUE if animaptcha valid or FALSE otherwise.
+ */
+function is_animaptcha_valid() {
+    return isset($_POST['animaptcha_code'])
+           && isset($_SESSION['animaptcha_code'])
+           && in_array(mb_strtolower($_POST['animaptcha_code'],
+                                     Config::MB_ENCODING),
+                       $_SESSION['animaptcha_code'], TRUE);
+}
 
 /* *********
  * Images. *
