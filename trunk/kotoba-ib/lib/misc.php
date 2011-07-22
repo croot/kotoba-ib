@@ -67,7 +67,7 @@ function kotoba_intval($var, $throw = TRUE) {
     }
 
     if ($throw) {
-        throw new FormatException(FormatException::$messages['KOTOBA_INTVAL']);
+        throw new FormatException($EXCEPTIONS['KOTOBA_INTVAL']());
     } else {
         return NULL;
     }
@@ -374,7 +374,8 @@ function link_file($source, $dest) {
         }
     } else {
         if(!copy($source, $dest)) {
-            throw new CommonException(CommonException::$messages['COPY_FAILED']);
+            $_ = $EXCEPTIONS['COPY_FAILED']($source, $dest);
+            throw new CommonException($_);
         }
     }
 }
@@ -531,7 +532,8 @@ function image_get_dimensions($upload_type, $file) {
         //image magick library
 		$image = new Imagick($file);
 		if (!$image->setImageFormat($upload_type['extension'])) {
-			throw new CommonException(CommonException::$messages['IMAGEMAGICK_FORMAT']);
+            $_ = $EXCEPTIONS['IMAGEMAGICK_FORMAT']($upload_type['extension']);
+			throw new CommonException($_);
 		}
 		$result['x'] = $image->getImageWidth();
 		$result['y'] = $image->getImageHeight();

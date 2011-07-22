@@ -399,7 +399,7 @@ function bans_check($ip) {
  */
 function bans_check_range_beg($range_beg) {
     if ( ($range_beg = ip2long($range_beg)) == false) {
-        throw new FormatException(FormatException::$messages['BANS_RANGE_BEG']);
+        throw new FormatException($EXCEPTIONS['BANS_RANGE_BEG']());
     }
     return $range_beg;
 }
@@ -411,7 +411,7 @@ function bans_check_range_beg($range_beg) {
  */
 function bans_check_range_end($range_end) {
     if ( ($range_end = ip2long($range_end)) == false) {
-        throw new FormatException(FormatException::$messages['BANS_RANGE_END']);
+        throw new FormatException($EXCEPTIONS['BANS_RANGE_END']());
     }
     return $range_end;
 }
@@ -427,10 +427,10 @@ function bans_check_reason($reason) {
         $reason = htmlentities($reason, ENT_QUOTES, Config::MB_ENCODING);
         $length = strlen($reason);
         if ($length > 10000 || $length < 1) {
-            throw new FormatException(FormatException::$messages['BANS_REASON']);
+            throw new FormatException($EXCEPTIONS['BANS_REASON']());
         }
     } else {
-        throw new FormatException(FormatException::$messages['BANS_REASON']);
+        throw new FormatException($EXCEPTIONS['BANS_REASON']());
     }
     return $reason;
 }
@@ -596,7 +596,7 @@ function boards_check_bump_limit($bump_limit) {
         return $intval;
     }
 
-    throw new FormatException(FormatException::$messages['BOARD_BUMP_LIMIT']);
+    throw new FormatException($EXCEPTIONS['BOARD_BUMP_LIMIT']());
 }
 /**
  * Check default name.
@@ -642,13 +642,13 @@ function boards_check_name($name) {
         for ($i = 0; $i < $l; $i++) {
             $code = ord($name[$i]);
             if ($code < 0x30 || $code > 0x39 && $code < 0x41 || $code > 0x5A && $code < 0x61 || $code > 0x7A) {
-                throw new FormatException(FormatException::$messages['BOARD_NAME']);
+                throw new FormatException($EXCEPTIONS['BOARD_NAME']());
             }
         }
         return $name;
     }
 
-    throw new FormatException(FormatException::$messages['BOARD_NAME']);
+    throw new FormatException($EXCEPTIONS['BOARD_NAME']());
 }
 /**
  * Check upload policy from same files.
@@ -666,13 +666,13 @@ function boards_check_same_upload($same_upload) {
         for ($i = 0; $i < $l; $i++) {
             $code = ord($same_upload[$i]);
             if ($code < 0x41 || $code > 0x5A && $code < 0x61 || $code > 0x7A) {
-                throw new FormatException(FormatException::$messages['BOARD_SAME_UPLOAD']);
+                throw new FormatException($EXCEPTIONS['BOARD_SAME_UPLOAD']());
             }
         }
         return $same_upload;
     }
 
-    throw new FormatException(FormatException::$messages['BOARD_SAME_UPLOAD']);
+    throw new FormatException($EXCEPTIONS['BOARD_SAME_UPLOAD']());
 }
 /**
  * Check board title.
@@ -852,9 +852,9 @@ function categories_check_name($name) {
         $name = RawUrlEncode($name);
         $length = strlen($name);
         if($length > 50 || (strpos($name, '%') !== false) || $length < 1)
-        throw new FormatException(FormatException::$messages['CATEGORY_NAME']);
+        throw new FormatException($EXCEPTIONS['CATEGORY_NAME']());
     } else {
-        throw new FormatException(FormatException::$messages['CATEGORY_NAME']);
+        throw new FormatException($EXCEPTIONS['CATEGORY_NAME']());
     }
 
     return $name;
@@ -934,10 +934,10 @@ function groups_check_name($name) {
         $name = RawUrlEncode($name);
         $length = strlen($name);
         if ($length > 50 || (strpos($name, '%') !== false) || $length < 1) {
-            throw new FormatException(FormatException::$messages['GROUP_NAME']);
+            throw new FormatException($EXCEPTIONS['GROUP_NAME']());
         }
     } else {
-        throw new FormatException(FormatException::$messages['GROUP_NAME']);
+        throw new FormatException($EXCEPTIONS['GROUP_NAME']());
     }
 
     return $name;

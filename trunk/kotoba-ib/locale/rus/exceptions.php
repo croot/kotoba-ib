@@ -5,13 +5,15 @@
  *********************************/
 
 /**
- * Exception messages in russian.
+ * Exception data in russian.
  * @package ruslocale
  */
 
-/* ********
- * Common *
- **********/
+/**
+ * Derp. PHPDoc sucks.
+ */
+require_once '../config.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 
 CommonException::$messages['CONVERT_PNG'] = 'Не удалось преобразовать изображение в формат png.';
 CommonException::$messages['COPY_FAILED'] = 'Не удалось скопировать файл.';

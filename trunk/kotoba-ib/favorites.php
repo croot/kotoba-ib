@@ -44,7 +44,7 @@ try {
 
     // Guests cannot have favorites.
     if (is_guest()) {
-        throw new PermissionException(PermissionException::$messages['GUEST']);
+        throw new PermissionException($EXCEPTIONS['GUEST']());
     }
 
     // Check input parameters.

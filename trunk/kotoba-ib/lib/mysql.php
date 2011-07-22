@@ -1218,7 +1218,7 @@ function db_groups_add($link, $name) {
 
     if(mysqli_affected_rows($link) <= 0
             || ($row = mysqli_fetch_assoc($result)) == NULL) {
-        throw new CommonException(CommonException::$messages['GROUPS_ADD']);
+        throw new CommonException($EXCEPTIONS['GROUPS_ADD']());
     }
 
     mysqli_free_result($result);
@@ -1256,7 +1256,7 @@ function db_groups_get_all($link) {
             array_push($groups, array('id' => $row['id'], 'name' => $row['name']));
         }
     } else {
-        throw new NodataException(NodataException::$messages['GROUPS_NOT_EXIST']);
+        throw new NodataException($EXCEPTIONS['GROUPS_NOT_EXIST']());
     }
 
     mysqli_free_result($result);
@@ -1287,7 +1287,7 @@ function db_groups_get_by_user($link, $user_id) {
 			array_push($groups, array('id' => $row['id'], 'name' => $row['name']));
         }
     } else {
-		throw new NodataException(NodataException::$messages['GROUPS_NOT_EXIST']);
+		throw new NodataException($EXCEPTIONS['GROUPS_NOT_EXIST']());
     }
 
     // Освобождение ресурсов и очистка.

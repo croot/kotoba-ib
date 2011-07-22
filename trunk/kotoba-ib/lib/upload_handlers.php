@@ -1,13 +1,20 @@
 <?php
-/*************************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /*********************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
  *********************************/
+
+/**
+ * Error messages in russian.
+ * @package ?
+ */
+
+/**
+ * Derp. PHPDoc sucks.
+ */
+require_once '../config.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
+
 // Скрипт обработчиков загружаемых файлов и вспомогательных фукнций.
 /**
  * Стандартная функция (обработчик) создания уменьшенных копий изображений.
@@ -51,20 +58,22 @@ function thumb_default_handler($source, $dest, $source_dimensions, $type,
  * 'x' - ширина изображения.<br>
  * 'y' - высота изображения.</p>
  */
-function gd_create_thumbnail($source, $dest, $type, $x, $y, $resize_x, $resize_y)
-{
-	switch(strtolower($type['extension']))
-	{
-		case 'gif':
-			return gif_gd_create($source, $dest, $x, $y, $resize_x, $resize_y);
-		case 'jpeg':
-		case 'jpg':
-			return jpg_gd_create($source, $dest, $x, $y, $resize_x, $resize_y);
-		case 'png':
-			return png_gd_create($source, $dest, $x, $y, $resize_x, $resize_y);
-		default:
-			throw new CommonException(CommonException::$messages['GD_WRONG_FILETYPE']);
-	}
+function gd_create_thumbnail($source, $dest, $type, $x, $y, $resize_x,
+                             $resize_y) {
+
+    $ext = strtolower($type['extension']);
+
+    switch ($ext) {
+        case 'gif':
+            return gif_gd_create($source, $dest, $x, $y, $resize_x, $resize_y);
+        case 'jpeg':
+        case 'jpg':
+            return jpg_gd_create($source, $dest, $x, $y, $resize_x, $resize_y);
+        case 'png':
+            return png_gd_create($source, $dest, $x, $y, $resize_x, $resize_y);
+        default:
+            throw new CommonException($EXCEPTIONS['GD_WRONG_FILETYPE']($ext));
+    }
 }
 /**
  * Создаёт уменьшенную копию изображения с помощью ImageMagick.
@@ -287,7 +296,7 @@ function im_create_png_thumbnail($source, $dest, $x, $y, $resize_x, $resize_y) {
                               $resize_y * $resolution_ratio_y);
     $thumbnail->readImage($source);
     if (!$thumbnail->setImageFormat('png')) {
-        throw new CommonException(CommonException::$messages['CONVERT_PNG']);
+        throw new CommonException($EXCEPTIONS['CONVERT_PNG']());
     }
     // fill destination image with source image background color
     // (for transparency in svg for example)

@@ -62,7 +62,7 @@ try {
     $board_id = boards_check_id($_REQUEST['board']);
     $ret = boards_get_changeable_by_id($board_id, $_SESSION['user']);
     if ($ret == 1) {
-        throw new PermissionException(PermissionException::$messages['BOARD_NOT_ALLOWED']);
+        throw new PermissionException($EXCEPTIONS['BOARD_NOT_ALLOWED']());
     } else if ($ret == 2) {
         DataExchange::releaseResources();
         $ERRORS['BOARD_NOT_FOUND_ID']($smarty, $board_id);
@@ -208,14 +208,15 @@ try {
     // Text.
     $text = $_POST['text'];
     if ($attachment_type === NULL && !preg_match('/\S/', $text)) {
-        throw new NodataException(NodataException::$messages['EMPTY_MESSAGE']);
+        throw new NodataException($EXCEPTIONS['EMPTY_MESSAGE']());
     }
     posts_check_text_size($text);
     if (Config::ENABLE_SPAMFILTER) {
         $spam_filter = spamfilter_get_all();
         foreach ($spam_filter as $record) {
             if (preg_match("/{$record['pattern']}/", $text) > 0) {
-                throw new CommonException(CommonException::$messages['SPAM_DETECTED']);
+                DataExchange::releaseResources();
+                $ERRORS['SPAM_DETECTED']($smarty);
             }
         }
     }
@@ -416,6 +417,17 @@ try {
     DataExchange::releaseResources();
 
     exit(0);
+} catch (CommonException $e) {
+    if (isset($abs_file_path)) {
+        unlink($abs_file_path);
+    }
+    if (isset($abs_img_path)) {
+        unlink($abs_img_path);
+    }
+    if (isset($abs_thumb_path)) {
+        unlink($abs_thumb_path);
+    }
+    displayExceptionPage($smarty, $e, is_admin() || is_mod());
 } catch (Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();
@@ -430,4 +442,9 @@ try {
     }
     die($smarty->fetch('exception.tpl'));
 }
+
+// Cleanup.
+DataExchange::releaseResources();
+
+exit(1);
 ?>

@@ -5,275 +5,148 @@
  *********************************/
 
 /**
- * Exception extensions.
+ * Exceptions.
  * @package api
  */
 
 /**
- * Ensure what requirements to use functions and classes from this script are met.
+ * Derp. PHPDoc sucks.
  */
-if (!array_filter(get_included_files(), function($path) { return basename($path) == 'config.php'; })) {
-    throw new Exception('Configuration file <b>config.php</b> must be included and executed BEFORE '
-                        . '<b>' . basename(__FILE__) . '</b> but its not.');
-}
-
-// Load default error messages.
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/exceptions.php';
+require_once '../config.php';
+require_once Config::ABS_PATH . '/locale/messages.php';
 
 /**
- * Common exception.
+ * Kotoba extension for default Exception class.
  * @package exceptions
  */
-class CommonException extends Exception {
-    static $messages;
-    private $reason;
+abstract class KotobaException extends Exception {
+
     /**
-     * Создаёт новое исключение с заданным сообщением.
-     * @param string $message Сообщение.
+     * Message data. All neccessary data to display information about exception.
      */
-    public function __construct($message) {
-        $this->reason = $message;
-        parent::__construct($message);
-    }
+    protected $message_data;
+
     /**
-     * Возвращает данные об исключении.
+     * Returns string representation of common exception.
      * @return string
      */
     public function __toString() {
-        $html_encoded_message = htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING);
-        //var_dump($html_encoded_message);
-        return str_replace("\n", "<br>\n", $html_encoded_message);
-    }
-    /**
-     * Возвращает причину произошедшей ошибки.
-     * @return string
-     */
-    public function getReason() {
-        return $this->reason;
+        $_ = htmlentities(parent::__toString(), ENT_QUOTES,
+                          Config::MB_ENCODING);
+        return nl2br($_);
     }
 }
+
 /**
- * Ошибки поиска.
+ * Common exceptions.
  * @package exceptions
  */
-class SearchException extends Exception {
-    static $messages;
-    private $reason;
-    /**
-     * Создаёт новое исключение с заданным сообщением.
-     * @param string $message Сообщение.
-     */
-    public function __construct($message) {
-        $this->reason = $message;
-        parent::__construct($message);
-    }
-    /**
-     * Возвращает данные об исключении.
-     * @return string
-     */
-    public function __toString() {
-        return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
-    }
-    /**
-     * Возвращает причину произошедшей ошибки.
-     * @return string
-     */
-    public function getReason() {
-        return $this->reason;
-    }
-}
+abstract class CommonException extends KotobaException {}
+/**
+ * Search exceptions.
+ * @package exceptions
+ */
+class SearchException extends KotobaException {}
 /**
  * No data exception.
  * @package exceptions
  */
-class NodataException extends Exception {
-    static $messages;
-    private $reason;
-    /**
-     * Creates new no data exception.
-     * @param string $message Error message.
-     */
-    public function __construct($message) {
-        if ( ($n = func_num_args()) > 1) {
-            $message = vsprintf($message, array_slice(func_get_args(), 1, $n));
-        }
-        $this->reason = $message;
-        parent::__construct($message);
-    }
-    /**
-     * Возвращает данные об исключении.
-     * @return string
-     */
-    public function __toString() {
-        return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
-    }
-    /**
-     * Возвращает причину произошедшей ошибки.
-     * @return string
-     */
-    public function getReason() {
-        return $this->reason;
-    }
-}
+class NodataException extends KotobaException {}
 /**
  * Data format exception.
  * @package exceptions
  */
-class FormatException extends Exception {
-
-    static $messages;
-    private $reason;
-
-    /**
-     * Creates new data format exception.
-     * @param string $message Error message.
-     */
-    public function __construct($message) {
-        if ( ($n = func_num_args()) > 1) {
-            $message = vsprintf($message, array_slice(func_get_args(), 1, $n));
-        }
-        $this->reason = $message;
-        parent::__construct($message);
-    }
-    /**
-     * Возвращает данные об исключении.
-     * @return string
-     */
-    public function __toString() {
-        return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
-    }
-    /**
-     * Возвращает причину произошедшей ошибки.
-     * @return string
-     */
-    public function getReason() {
-        return $this->reason;
-    }
-}
+class FormatException extends KotobaException {}
 /**
  * Registration, authorization, identification and access violation exception.
  * @package exceptions
  */
-class PermissionException extends Exception {
-    static $messages;
-    private $reason;
-    /**
-     * Creates new exception.
-     * @param string $message Error message.
-     */
-    public function __construct($message) {
-        if ( ($n = func_num_args()) > 1) {
-            $message = vsprintf($message, array_slice(func_get_args(), 1, $n));
-        }
-        $this->reason = $message;
-        parent::__construct($message);
-    }
-    /**
-     * Возвращает данные об исключении.
-     * @return string
-     */
-    public function __toString() {
-        return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
-    }
-    /**
-     * Возвращает причину произошедшей ошибки.
-     * @return string
-     */
-    public function getReason() {
-        return $this->reason;
-    }
-}
+class PermissionException extends KotobaException {}
 /**
- * Ошибки обмена данными с хранилищем.
+ * Data exchange exceptions.
  * @package exceptions
  */
-class DataExchangeException extends Exception {
-    static $messages;
-    private $reason;
-    /**
-     * Создаёт новое исключение с заданным сообщением.
-     * @param string $message Сообщение.
-     */
-    public function __construct($message) {
-        $this->reason = $message;
-        parent::__construct($message);
-    }
-    /**
-     * Возвращает данные об исключении.
-     * @return string
-     */
-    public function __toString() {
-        return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
-    }
-    /**
-     * Возвращает причину произошедшей ошибки.
-     * @return string
-     */
-    public function getReason() {
-        return $this->reason;
-    }
-}
+class DataExchangeException extends KotobaException {}
 /**
- * Ошибки загрузки файла.
+ * Upload exceptions.
  * @package exceptions
  */
-class UploadException extends Exception {
-    static $messages;
-    private $reason;
-    /**
-     * Создаёт новое исключение с заданным сообщением.
-     * @param string $message Сообщение.
-     */
-    public function __construct($message) {
-        $this->reason = $message;
-        parent::__construct($message);
-    }
-    /**
-     * Возвращает данные об исключении.
-     * @return string
-     */
-    public function __toString() {
-        return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
-    }
-    /**
-     * Возвращает причину произошедшей ошибки.
-     * @return string
-     */
-    public function getReason() {
-        return $this->reason;
-    }
-}
+class UploadException extends KotobaException {}
 /**
  * Limit exceptions.
  * @package exceptions
  */
-class LimitException extends Exception {
-    static $messages;
-    private $reason;
-    /**
-     * Creates new exception.
-     * @param string $message Error message.
-     */
-    public function __construct($message) {
-        if ( ($n = func_num_args()) > 1) {
-            $message = vsprintf($message, array_slice(func_get_args(), 1, $n));
-        }
-        $this->reason = $message;
-        parent::__construct($message);
-    }
-    /**
-     * Возвращает данные об исключении.
-     * @return string
-     */
-    public function __toString() {
-        return str_replace("\n", "<br>\n", htmlentities(parent::__toString(), ENT_QUOTES, Config::MB_ENCODING));
-    }
-    /**
-     * Возвращает причину произошедшей ошибки.
-     * @return string
-     */
-    public function getReason() {
-        return $this->reason;
+class LimitException extends KotobaException {}
+
+class ConvertPNGException extends CommonException {
+    public function __construct() {
+        $_['title'] = kgettext('Image convertion.');
+        $_['text'] = kgettext('Cannot convert image to PNG format.');
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
     }
 }
+class CopyFileException extends CommonException {
+    public function __construct($src, $dest) {
+        $_['title'] = kgettext('Copy file.');
+        $_['text'] = kgettext('Failed to copy file %s to %s.');
+        $_['text'] = sprintf($_['text'], $src, $dest);
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class GDFiletypeException extends CommonException {
+    public function __construct($ext) {
+        $_['title'] = kgettext('GD library.');
+        $_['text'] = kgettext('GD doesn\'t support %s file type.');
+        $_['text'] = sprintf($_['text'], $ext);
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class GroupsAddException extends CommonException {
+    public function __construct() {
+        $_['title'] = kgettext('Groups.');
+        $_['text'] = kgettext('Id of new group was not received.');
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class ImagemagicFiletypeException extends CommonException {
+    public function __construct($ext) {
+        $_['title'] = kgettext('Imagemagic library.');
+        $_['text'] = kgettext('Imagemagic doesn\'t support %s file type.');
+        $_['text'] = sprintf($_['text'], $ext);
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class LogFileException extends CommonException {
+    public function __construct($path) {
+        $_['title'] = kgettext('Logging.');
+        $_['text'] = kgettext('Failed to open or create log file %s.');
+        $_['text'] = sprintf($_['text'], $path);
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+
+function displayExceptionPage($smarty, $exception, $show_control) {
+    $md = $exception->getMessageData();
+    $smarty->assign('show_control', $show_control);
+    $smarty->assign('ib_name', Config::IB_NAME);
+    $smarty->assign('text', $md['text']);
+    $smarty->assign('title', $md['title']);
+    $smarty->assign('image', $md['image']);
+    $smarty->assign('debug_info', $exception->__toString());
+    $smarty->display('exception.tpl');
+}
+
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/exceptions.php';
 ?>
