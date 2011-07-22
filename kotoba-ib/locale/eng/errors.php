@@ -90,4 +90,12 @@ $ERRORS['CAPTCHA']
 $ERRORS['REMOTE_ADDR']
     = new Error('Remote address is not an IP address.',
                 'Invalid remote address.');
+$ERRORS['SPAM_DETECTED']
+    = new Error('Your message is spam.', 'Spam deceted.');
+$ERRORS['THREAD_ARCHIVED']
+    = new Error('Impossible to post in archived thread.',
+                'Thread was archived.');
+$ERRORS['THREAD_CLOSED']
+    = new Error('Impossible to post in closed thread.',
+                'Thread closed.');
 ?>

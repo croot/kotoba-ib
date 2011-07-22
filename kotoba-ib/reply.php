@@ -66,10 +66,10 @@ try {
         throw new NodataException(NodataException::$messages['THREAD_NOT_FOUND']);
     }
     if ($thread['archived']) {
-        throw new CommonException(CommonException::$messages['THREAD_ARCHIVED']);
+        $ERRORS['THREAD_ARCHIVED']($smarty);
     }
     if ($thread['closed']) {
-        throw new CommonException(CommonException::$messages['THREAD_CLOSED']);
+        $ERRORS['THREAD_CLOSED']($smarty);
     }
 
     $board = $thread['board'];
@@ -216,14 +216,15 @@ try {
     // Text.
     $text = $_POST['text'];
     if ($attachment_type === NULL && !preg_match('/\S/', $text)) {
-        throw new NodataException(NodataException::$messages['EMPTY_MESSAGE']);
+        throw new NodataException($EXCEPTIONS['EMPTY_MESSAGE']());
     }
     posts_check_text_size($text);
     if (Config::ENABLE_SPAMFILTER) {
         $spam_filter = spamfilter_get_all();
         foreach ($spam_filter as $record) {
             if (preg_match("/{$record['pattern']}/", $text) > 0) {
-                throw new CommonException(CommonException::$messages['SPAM_DETECTED']);
+                DataExchange::releaseResources();
+                $ERRORS['SPAM_DETECTED']($smarty);
             }
         }
     }

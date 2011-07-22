@@ -53,7 +53,7 @@ try {
     if (isset($_REQUEST['page'])) {
         if ( ($page = check_page($_REQUEST['page'], FALSE)) === NULL) {
             DataExchange::releaseResources();
-            $ERRORS['KOTOBA_INTVAL']($smarty);
+            throw new FormatException($EXCEPTIONS['KOTOBA_INTVAL']());
         }
     }
 
