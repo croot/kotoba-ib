@@ -1025,28 +1025,6 @@ function hidden_threads_get_filtred_by_boards($boards, $filter) {
 
     return $filtred_threads;
 }
-/**
- * Получает доступную для просмотра скрытую нить и количество сообщений в ней.
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param thread_num mixed <p>Номер нити.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @return array
- * Возвращает нить:<p>
- * 'id' - Идентификатор.<br>
- * 'board' - Доска.<br>
- * 'original_post' - Номер оригинального сообщения.<br>
- * 'bump_limit' - Специфичный для нити бамплимит.<br>
- * 'archived' - Флаг архивирования.<br>
- * 'sage' - Флаг поднятия нити при ответе.<br>
- * 'sticky' - Флаг закрепления.<br>
- * 'with_attachments' - Флаг вложений.<br>
- * 'posts_count' - Число доступных для просмотра сообщений.</p>
- */
-function hidden_threads_get_visible($board_id, $thread_num, $user_id)
-{
-	return db_hidden_threads_get_visible(DataExchange::getDBLink(), $board_id,
-			$thread_num, $user_id);
-}
 
 /* *********
  * Images. *
@@ -1525,7 +1503,9 @@ function posts_check_subject_size($subject) {
  */
 function posts_check_text($text) {
     if (!check_utf8($text)) {
-        throw new CommonException(CommonException::$messages['TEXT_UNICODE']);
+        return FALSE;
+    } else {
+        return TRUE;
     }
 }
 /**
@@ -1781,7 +1761,11 @@ function posts_get_visible_by_threads_preview($board_id, &$threads, $user_id, $p
                                                       $thread['id'],
                                                       $user_id,
                                                       $posts_per_thread);
-        $thread['posts_count'] = $tmp[0]['thread']['posts_count'];
+        if (isset($tmp[0])) {
+            $thread['posts_count'] = $tmp[0]['thread']['posts_count'];
+        } else {
+            echo "Warning. Thread {$thread['id']} without any posts?<br>\n";
+        }
 
         foreach ($tmp as $post) {
             array_push($posts, $post);
@@ -2238,8 +2222,9 @@ function threads_search_visible_by_board($board_id, $page, $user_id,
  * @param int $board Board id.
  * @param int $original_post Original post number.
  * @param int $user_id User id.
- * @return array
- * threads.
+ * @return int|array Returns array of thread data or integer error value. Error
+ * values is: 1 if user have no permissions to view thread, 2 if thread not
+ * found.
  */
 function threads_get_visible_by_original_post($board, $original_post, $user_id) {
     return db_threads_get_visible_by_original_post(DataExchange::getDBLink(),

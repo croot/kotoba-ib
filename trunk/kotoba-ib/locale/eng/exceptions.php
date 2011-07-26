@@ -15,44 +15,6 @@
 require_once '../config.php';
 require_once Config::ABS_PATH . '/lib/exceptions.php';
 
-CommonException::$messages['CONVERT_PNG'] = 'Не удалось преобразовать изображение в формат png.';
-CommonException::$messages['COPY_FAILED'] = 'Copy file failed.';
-CommonException::$messages['GD_WRONG_FILETYPE'] = 'GD не поддерживает этот тип файла.';
-CommonException::$messages['GROUPS_ADD'] = 'New group was not added.';
-CommonException::$messages['IMAGEMAGICK_FORMAT'] = 'Imagemagick doesn\'t support this file format.';
-CommonException::$messages['LOG_FILE'] = 'Не удалось открыть или создать файл лога.';
-CommonException::$messages['LINK_FAILED'] = 'Hard link creation failed.';
-CommonException::$messages['NO_IMG_LIB'] = 'Image libraries disabled or doesn\'t work.';
-CommonException::$messages['REPLACE_FOR_WORD'] = 'Введите замену для слова.';
-CommonException::$messages['SESSION_START'] = 'Session start failed.';
-CommonException::$messages['SETLOCALE'] = 'Locale setup failed.';
-CommonException::$messages['SPAM_DETECTED'] = 'Spam.';
-CommonException::$messages['TEXT_UNICODE'] = 'Invlid unicode characters deteced.';
-CommonException::$messages['THREAD_ARCHIVED'] = 'Thread was archived.';
-CommonException::$messages['THREAD_CLOSED'] = 'Thread closed.';
-CommonException::$messages['TOO_LONG'] = 'Одно из слов имеет длину более 100 символов.';
-CommonException::$messages['WORD_FOR_REPLACE'] = 'Введите слово для замены.';
-
-/* *********************
- * No data exceptions. *
- ***********************/
-
-NodataException::$messages['EMPTY_MESSAGE'] = 'No attachment and message is empty.';
-NodataException::$messages['GROUPS_NOT_EXIST'] = 'No one group exists.';
-// Параметры: идентификатор языка.
-NodataException::$messages['LANGUAGE_NOT_EXIST'] = 'Language id=%s not exist.';
-NodataException::$messages['LANGUAGES_NOT_EXIST'] = 'No languages.';
-NodataException::$messages['POST_NOT_FOUND'] = 'Post not found or you have no permission to it.';
-NodataException::$messages['REQUEST_METHOD'] = 'Request method not defined or unexpected.';
-NodataException::$messages['SEARCH_KEYWORD'] = 'Search keyword not set or too short.';
-// Параметры: идентификатор стиля оформления.
-NodataException::$messages['STYLESHEET_NOT_EXIST'] = 'Stylesheeit id=%s not exist.';
-NodataException::$messages['STYLESHEETS_NOT_EXIST'] = 'No stylesheets.';
-NodataException::$messages['THREAD_NOT_FOUND'] = 'Thread not found.';
-NodataException::$messages['THREADS_EDIT'] = 'No thread to edit.';
-NodataException::$messages['USER_WITHOUT_GROUP'] = 'User has no group.';
-NodataException::$messages['USERS_NOT_EXIST'] = 'No one user exists.';
-
 /* *************************
  * Data format exceptions. *
  ***************************/

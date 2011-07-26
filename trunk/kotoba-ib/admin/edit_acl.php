@@ -27,8 +27,7 @@ try {
     if (!isset($_SERVER['REMOTE_ADDR'])
             || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
 
-        DataExchange::releaseResources();
-        $ERRORS['REMOTE_ADDR']($smarty);
+        throw new RemoteAddressException();
     }
     if ( ($ban = bans_check($ip)) !== FALSE) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
@@ -47,9 +46,7 @@ try {
     $groups = groups_get_all();
     $boards = boards_get_all();
     if (count($acl = acl_get_all()) <= 0) {
-        DataExchange::releaseResources();
-        Logging::close_log();
-        $ERRORS['ACL_NO_RULES']($smarty);
+        throw new AclNoRulesException();
     }
     $reload_acl = false;
 
@@ -277,9 +274,7 @@ try {
 
     if ($reload_acl) {
         if (count($acl = acl_get_all()) <= 0) {
-            DataExchange::releaseResources();
-            Logging::close_log();
-            $ERRORS['ACL_NO_RULES']($smarty);
+            throw new AclNoRulesException();
         }
     }
 

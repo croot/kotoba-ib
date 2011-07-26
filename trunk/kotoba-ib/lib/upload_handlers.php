@@ -41,7 +41,7 @@ function thumb_default_handler($source, $dest, $source_dimensions, $type,
                                    $source_dimensions['y'], $resize_x,
                                    $resize_y, false);
     } else {
-        throw new CommonException(CommonException::$messages['NO_IMG_LIB']);
+        throw new NoImageLibraryException();
     }
 }
 /**
@@ -72,7 +72,7 @@ function gd_create_thumbnail($source, $dest, $type, $x, $y, $resize_x,
         case 'png':
             return png_gd_create($source, $dest, $x, $y, $resize_x, $resize_y);
         default:
-            throw new CommonException($EXCEPTIONS['GD_WRONG_FILETYPE']($ext));
+            throw new GDFiletypeException($ext);
     }
 }
 /**
@@ -261,7 +261,7 @@ function thumb_internal_png($source, $dest, $source_dimensions, $type,
                                        $source_dimensions['y'], $resize_x,
                                        $resize_y);
     } else {
-        throw new CommonException(CommonException::$messages['NO_IMG_LIB']);
+        throw new NoImageLibraryException();
     }
 }
 /**
@@ -296,7 +296,7 @@ function im_create_png_thumbnail($source, $dest, $x, $y, $resize_x, $resize_y) {
                               $resize_y * $resolution_ratio_y);
     $thumbnail->readImage($source);
     if (!$thumbnail->setImageFormat('png')) {
-        throw new CommonException($EXCEPTIONS['CONVERT_PNG']());
+        throw new ConvertPNGException();
     }
     // fill destination image with source image background color
     // (for transparency in svg for example)

@@ -27,8 +27,7 @@ try {
     if (!isset($_SERVER['REMOTE_ADDR'])
             || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
 
-        DataExchange::releaseResources();
-        $ERRORS['REMOTE_ADDR']($smarty);
+        throw new RemoteAddressException();
     }
     if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
@@ -56,7 +55,13 @@ try {
                                                          100);
     }
     if (count($threads) <= 0) {
-        throw new NodataException(NodataException::$messages['THREADS_EDIT']);
+
+        // Cleanup.
+        DataExchange::releaseResources();
+        Logging::close_log();
+
+        $ERRORS['THREADS_EDIT']($smarty);
+        exit(1);
     }
 
     // We already select threads but anyway we need to calculate
@@ -67,7 +72,13 @@ try {
         $page_max = 1;
     }
     if ($page > $page_max) {
-        throw new LimitException(LimitException::$messages['MAX_PAGE']);
+
+        // Cleanup.
+        DataExchange::releaseResources();
+        Logging::close_log();
+
+        $ERRORS['MAX_PAGE']($smarty, $page);
+        exit(1);
     }
 
     $boards = boards_get_all();
@@ -200,7 +211,13 @@ try {
                                                              100);
         }
         if (count($threads) <= 0) {
-            throw new NodataException(NodataException::$messages['THREADS_EDIT']);
+
+            // Cleanup.
+            DataExchange::releaseResources();
+            Logging::close_log();
+
+            $ERRORS['THREADS_EDIT']($smarty);
+            exit(1);
         }
 
         // We already select threads but anyway we need to calculate
@@ -211,7 +228,13 @@ try {
             $page_max = 1;
         }
         if ($page > $page_max) {
-            throw new LimitException(LimitException::$messages['MAX_PAGE']);
+
+            // Cleanup.
+            DataExchange::releaseResources();
+            Logging::close_log();
+
+            $ERRORS['MAX_PAGE']($smarty, $page);
+            exit(1);
         }
     }
 

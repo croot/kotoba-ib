@@ -18,5 +18,7 @@ Variables:
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <link rel="stylesheet" type="text/css" href="{$DIR_PATH}/css/global.css">
     <link rel="stylesheet" type="text/css" href="{$DIR_PATH}/css/{$STYLESHEET}/{$STYLESHEET}">
+    {if isset($board) && isset($board.name)}
+        {if $board.name == "azu"}<link rel="icon" type="image/png" href="{$DIR_PATH}/azu/favicon.png" />{/if}{/if}
 </head>
 <body>

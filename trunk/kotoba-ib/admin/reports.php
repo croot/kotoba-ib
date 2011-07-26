@@ -28,8 +28,7 @@ try {
     if (!isset($_SERVER['REMOTE_ADDR'])
             || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
 
-        DataExchange::releaseResources();
-        $ERRORS['REMOTE_ADDR']($smarty);
+        throw new RemoteAddressException();
     }
     if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
@@ -184,7 +183,13 @@ try {
             $page_max = 1;
         }
         if ($page > $page_max) {
-            throw new LimitException(LimitException::$messages['MAX_PAGE']);
+
+            // Cleanup.
+            DataExchange::releaseResources();
+            Logging::close_log();
+
+            $ERRORS['MAX_PAGE']($smarty, $page);
+            exit(1);
         }
 
         $posts_attachments = posts_attachments_get_by_posts($posts);

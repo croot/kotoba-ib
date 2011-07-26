@@ -34,8 +34,7 @@ try {
     if (!isset($_SERVER['REMOTE_ADDR'])
             || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
 
-        DataExchange::releaseResources();
-        $ERRORS['REMOTE_ADDR']($smarty);
+        throw new RemoteAddressException();
     }
     if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
@@ -87,8 +86,12 @@ try {
         }
     }
     if ($board == NULL) {
+
+        // Cleanup.
         DataExchange::releaseResources();
+
         $ERRORS['BOARD_NOT_FOUND']($smarty, $board_name);
+        exit(1);
     }
 
     $threads_count = threads_get_visible_count($_SESSION['user'], $board['id']);
@@ -99,7 +102,12 @@ try {
         $page_max = 1; // Important for empty boards.
     }
     if ($page > $page_max) {
-        throw new LimitException(LimitException::$messages['MAX_PAGE']);
+
+        // Cleanup.
+        DataExchange::releaseResources();
+
+        $ERRORS['MAX_PAGE']($smarty, $page);
+        exit(1);
     }
 
     $threads = threads_get_visible_by_page($_SESSION['user'],

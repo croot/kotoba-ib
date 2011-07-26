@@ -58,9 +58,11 @@ class Logging {
 
         date_default_timezone_set(Config::DEFAULT_TIMEZONE);
         if (self::$log_file == null) {
-            self::$log_file = fopen(Config::ABS_PATH . '/log/actions-' . date(Config::LOG_DATETIME_FORMAT) . '.log', 'a');
+            $filename = Config::ABS_PATH . '/log/actions-'
+                        . date(Config::LOG_DATETIME_FORMAT) . '.log';
+            self::$log_file = fopen($filename, 'a');
             if (!self::$log_file) {
-                throw new CommonException(CommonException::$messages['LOG_FILE']);
+                throw new LogFileException($filename);
             }
         }
 

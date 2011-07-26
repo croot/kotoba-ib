@@ -48,8 +48,7 @@ try {
     if (!isset($_SERVER['REMOTE_ADDR'])
             || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
 
-        DataExchange::releaseResources();
-        $ERRORS['REMOTE_ADDR']($smarty);
+        throw new RemoteAddressException();
     }
     if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
@@ -61,11 +60,20 @@ try {
 
     $board_id = boards_check_id($_REQUEST['board']);
     $ret = boards_get_changeable_by_id($board_id, $_SESSION['user']);
-    if ($ret == 1) {
-        throw new PermissionException($EXCEPTIONS['BOARD_NOT_ALLOWED']());
-    } else if ($ret == 2) {
+    if ($ret === 1) {
+
+        // Cleanup.
         DataExchange::releaseResources();
+
+        $ERRORS['BOARD_NOT_ALLOWED']($smarty, $_SESSION['user'], $board_id);
+        exit(1);
+    } else if ($ret === 2) {
+
+        // Cleanup.
+        DataExchange::releaseResources();
+
         $ERRORS['BOARD_NOT_FOUND_ID']($smarty, $board_id);
+        exit(1);
     } else {
         $board = $ret;
     }
@@ -215,8 +223,7 @@ try {
         $spam_filter = spamfilter_get_all();
         foreach ($spam_filter as $record) {
             if (preg_match("/{$record['pattern']}/", $text) > 0) {
-                DataExchange::releaseResources();
-                $ERRORS['SPAM_DETECTED']($smarty);
+                throw new SpamException();
             }
         }
     }
@@ -231,7 +238,14 @@ try {
     }
     $text = str_replace('\\', '\\\\', $text);
     posts_check_text_size($text);
-    posts_check_text($text);
+    if (!posts_check_text($text)) {
+
+        // Cleanup
+        DataExchange::releaseResources();
+
+        $ERRORS['NON_UNICODE']($smarty);
+        exit(1);
+    }
     posts_prepare_text($text, $board);
     posts_check_text_size($text);
 

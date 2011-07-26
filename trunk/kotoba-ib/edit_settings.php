@@ -25,8 +25,7 @@ try {
     if (!isset($_SERVER['REMOTE_ADDR'])
             || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
 
-        DataExchange::releaseResources();
-        $ERRORS['REMOTE_ADDR']($smarty);
+        throw new RemoteAddressException();
     }
     if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
@@ -75,7 +74,12 @@ try {
             }
         }
         if (!$found) {
-            throw new NodataException(NodataException::$messages['STYLESHEET_NOT_EXIST'], $stylesheet_id);
+
+            // Cleanup.
+            DataExchange::releaseResources();
+
+            $ERRORS['STYLESHEET_NOT_EXIST']($smarty, $stylesheet_id);
+            exit(1);
         }
 
         $language_id = languages_check_id($_POST['language_id']);
@@ -87,7 +91,12 @@ try {
             }
         }
         if (!$found) {
-            throw new NodataException(NodataException::$messages['LANGUAGE_NOT_EXIST'], $language_id);
+
+            // Cleanup.
+            DataExchange::releaseResources();
+
+            $ERRORS['LANGUAGE_NOT_EXIST']($smarty, $language_id);
+            exit(1);
         }
 
         $goto = users_check_goto($_POST['goto']);

@@ -48,8 +48,7 @@ try {
     if (!isset($_SERVER['REMOTE_ADDR'])
             || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
 
-        DataExchange::releaseResources();
-        $ERRORS['REMOTE_ADDR']($smarty);
+        throw new RemoteAddressException();
     }
     if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
@@ -59,17 +58,33 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    $thread = threads_get_changeable_by_id(threads_check_id($_POST['t']), $_SESSION['user']);
-    if ($thread == 1) {
+    $thread_id = threads_check_id($_POST['t']);
+    $thread = threads_get_changeable_by_id($thread_id, $_SESSION['user']);
+    if ($thread === 1) {
         throw new PermissionException(PermissionException::$messages['THREAD_NOT_ALLOWED']);
-    } else if ($thread == 2) {
-        throw new NodataException(NodataException::$messages['THREAD_NOT_FOUND']);
+    } else if ($thread === 2) {
+
+        // Cleanup.
+        DataExchange::releaseResources();
+
+        $ERRORS['THREAD_NOT_FOUND_ID']($smarty, $thread_id);
+        exit(1);
     }
     if ($thread['archived']) {
-        $ERRORS['THREAD_ARCHIVED']($smarty);
+
+        // Cleanup
+        DataExchange::releaseResources();
+
+        $ERRORS['THREAD_ARCHIVED']($smarty, $thread['id']);
+        exit(1);
     }
     if ($thread['closed']) {
-        $ERRORS['THREAD_CLOSED']($smarty);
+
+        // Cleanup
+        DataExchange::releaseResources();
+
+        $ERRORS['THREAD_CLOSED']($smarty, $thread['id']);
+        exit(1);
     }
 
     $board = $thread['board'];
@@ -216,15 +231,22 @@ try {
     // Text.
     $text = $_POST['text'];
     if ($attachment_type === NULL && !preg_match('/\S/', $text)) {
-        throw new NodataException($EXCEPTIONS['EMPTY_MESSAGE']());
+
+        // Cleanup.
+        DataExchange::releaseResources();
+
+        $ERRORS['EMPTY_POST']($smarty);
     }
     posts_check_text_size($text);
     if (Config::ENABLE_SPAMFILTER) {
         $spam_filter = spamfilter_get_all();
         foreach ($spam_filter as $record) {
             if (preg_match("/{$record['pattern']}/", $text) > 0) {
+
+                // Cleanup.
                 DataExchange::releaseResources();
-                $ERRORS['SPAM_DETECTED']($smarty);
+
+                $ERRORS['SPAM']($smarty);
             }
         }
     }
@@ -239,7 +261,14 @@ try {
     }
 	$text = str_replace('\\', '\\\\', $text);
 	posts_check_text_size($text);
-	posts_check_text($text);
+	if (!posts_check_text($text)) {
+
+        // Cleanup
+        DataExchange::releaseResources();
+
+        $ERRORS['NON_UNICODE']($smarty);
+        exit(1);
+    }
 	posts_prepare_text($text, $board);
 	posts_check_text_size($text);
 
@@ -308,6 +337,9 @@ try {
                 $abs_thumb_path = Config::ABS_PATH . "/{$board['name']}/thumb/{$file_names[1]}";
                 if (!use_oekaki()) {
                     move_uploded_file($uploaded_file_path, $abs_img_path);
+                    if (!file_exists($abs_img_path)) {
+                        throw new UploadException(UploadException::$messages['UPLOAD_SAVE']);
+                    }
                     $thumb_dimensions = create_thumbnail($abs_img_path,
                                                          $abs_thumb_path,
                                                          $img_dimensions,

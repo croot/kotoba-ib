@@ -35,8 +35,7 @@ try {
     if (!isset($_SERVER['REMOTE_ADDR'])
             || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
 
-        DataExchange::releaseResources();
-        $ERRORS['REMOTE_ADDR']($smarty);
+        throw new RemoteAddressException();
     }
     if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
@@ -82,13 +81,27 @@ try {
         }
     }
     if ($board == NULL) {
+
+        // Cleanup.
         DataExchange::releaseResources();
+        
         $ERRORS['BOARD_NOT_FOUND']($smarty, $board_name);
+        exit(1);
     }
 
     $thread = threads_get_visible_by_original_post($board['id'],
                                                    $thread_number,
                                                    $_SESSION['user']);
+    if ($thread === 1) {
+        throw new PermissionException(PermissionException::$messages['THREAD_NOT_ALLOWED']);
+    } else if ($thread === 2) {
+
+        // Cleanup.
+        DataExchange::releaseResources();
+
+        $ERRORS['THREAD_NOT_FOUND']($smarty, $thread_number);
+        exit(1);
+    }
 
     // Redirection to archived thread.
     if ($thread['archived']) {
