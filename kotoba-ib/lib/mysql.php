@@ -1218,7 +1218,7 @@ function db_groups_add($link, $name) {
 
     if(mysqli_affected_rows($link) <= 0
             || ($row = mysqli_fetch_assoc($result)) == NULL) {
-        throw new CommonException($EXCEPTIONS['GROUPS_ADD']());
+        throw new GroupsAddException();
     }
 
     mysqli_free_result($result);
@@ -1256,7 +1256,7 @@ function db_groups_get_all($link) {
             array_push($groups, array('id' => $row['id'], 'name' => $row['name']));
         }
     } else {
-        throw new NodataException($EXCEPTIONS['GROUPS_NOT_EXIST']());
+        throw new GroupsNotExistsException();
     }
 
     mysqli_free_result($result);
@@ -1287,7 +1287,7 @@ function db_groups_get_by_user($link, $user_id) {
 			array_push($groups, array('id' => $row['id'], 'name' => $row['name']));
         }
     } else {
-		throw new NodataException($EXCEPTIONS['GROUPS_NOT_EXIST']());
+		throw new GroupsNotExistsException();
     }
 
     // Освобождение ресурсов и очистка.
@@ -1377,58 +1377,6 @@ function db_hidden_threads_get_by_boards($link, $boards) {
 
     return $threads;
 }
-/**
- * Получает доступную для просмотра скрытую нить и количество сообщений в ней.
- * @param link MySQLi <p>Связь с базой данных.</p>
- * @param board_id mixed <p>Идентификатор доски.</p>
- * @param thread_num mixed <p>Номер нити.</p>
- * @param user_id mixed <p>Идентификатор пользователя.</p>
- * @return array
- * Возвращает нить:<p>
- * 'id' - Идентификатор.<br>
- * 'board' - Доска.<br>
- * 'original_post' - Номер оригинального сообщения.<br>
- * 'bump_limit' - Специфичный для нити бамплимит.<br>
- * 'archived' - Флаг архивирования.<br>
- * 'sage' - Флаг поднятия нити при ответе.<br>
- * 'sticky' - Флаг закрепления.<br>
- * 'with_attachments' - Флаг вложений.<br>
- * 'posts_count' - Число доступных для просмотра сообщений.</p>
- */
-function db_hidden_threads_get_visible($link, $board_id, $thread_num, $user_id)
-{
-	$result = mysqli_query($link,
-		'call sp_hidden_threads_get_visible(' . $board_id . ', ' . $thread_num
-			. ', ' . $user_id . ')');
-	if(!$result)
-		throw new CommonException(mysqli_error($link));
-	if(mysqli_affected_rows($link) <= 0)
-	{
-		mysqli_free_result($result);
-		db_cleanup_link($link);
-		throw new PermissionException(PermissionException::$messages['THREAD_NOT_ALLOWED']);
-	}
-	$row = mysqli_fetch_assoc($result);
-	if(isset($row['error']) && $row['error'] == 'NOT_FOUND')
-	{
-		mysqli_free_result($result);
-		db_cleanup_link($link);
-		throw new NodataException(NodataException::$messages['THREAD_NOT_FOUND']);
-	}
-	$thread = array('id' => $row['id'],
-					'board' => $board_id,
-					'original_post' => $row['original_post'],
-					'bump_limit' => $row['bump_limit'],
-					'archived' => $row['archived'],
-					'sage' => $row['sage'],
-					'sticky' => $row['sticky'],
-					'with_attachments' => $row['with_attachments'],
-					'posts_count' => $row['posts_count']);
-	mysqli_free_result($result);
-	db_cleanup_link($link);
-	return $thread;
-}
-
 
 /* *********
  * Images. *
@@ -1729,7 +1677,7 @@ function db_languages_get_all($link) {
         }
     }
     else {
-        throw new NodataException(NodataException::$messages['LANGUAGES_NOT_EXIST']);
+        throw new LanguagesNotExistsException();
     }
 
     mysqli_free_result($result);
@@ -3150,7 +3098,10 @@ function db_posts_get_visible_by_id($link, $post_id, $user_id) {
     }
 
     if($post === null) {
-        throw new NodataException(NodataException::$messages['POST_NOT_FOUND'], $post_id, $user_id);
+        //throw new NodataException(NodataException::$messages['POST_NOT_FOUND'], $post_id, $user_id);
+        // TODO Handle error!
+        echo "Post not found!<br>\n";
+        exit(1);
     }
 
     mysqli_free_result($result);
@@ -3218,7 +3169,10 @@ function db_posts_get_visible_by_number($link, $board_name, $post_number, $user_
         $post['sage'] = $row['post_sage'];
     }
     if ($post === NULL) {
-        throw new NodataException(NodataException::$messages['POST_NOT_FOUND']);
+        //throw new NodataException(NodataException::$messages['POST_NOT_FOUND']);
+        // TODO Handle error!
+        echo "Post not found!<br>\n";
+        exit(1);
     }
 
     // Cleanup.
@@ -3917,7 +3871,7 @@ function db_stylesheets_get_all($link) {
                              'name' => $row['name']));
         }
     } else {
-        throw new NodataException(NodataException::$messages['STYLESHEETS_NOT_EXIST']);
+        throw new StylesheetsNotExistsException();
     }
 
     mysqli_free_result($result);
@@ -4457,10 +4411,13 @@ function db_threads_search_visible_by_board($link, $board_id, $page, $user_id,
 	$received = 0;	// Число выбранных не закреплённых нитей.
 	$words = preg_split("/\s+/", $string);
 	reset($words);
-	foreach($words as $word)
-	{
-		if(strlen($word) > 60)
-			throw new SearchException(SearchException::$messages['LONG_WORD']);
+	foreach ($words as $word) {
+		if (strlen($word) > 60) {
+			// TODO Handle this error.
+            // $ERRORS['LONG_WORD']($smarty);
+            echo "Word too long.<br>\n";
+            exit(1);
+        }
 		$result = mysqli_query($link, 'call sp_threads_search_visible_by_board('
 			. $board_id . ', ' . $user_id . ', "' . $word . '")');
 		if(!$result)
@@ -4515,23 +4472,24 @@ function db_threads_search_visible_by_board($link, $board_id, $page, $user_id,
  * threads.
  */
 function db_threads_get_visible_by_original_post($link, $board, $original_post, $user_id) {
-    $result = mysqli_query($link,
-            "call sp_threads_get_visible_by_original_post($board, $original_post, $user_id)");
-    if (!$result) {
+    $query = "call sp_threads_get_visible_by_original_post($board,
+                                                           $original_post,
+                                                           $user_id)";
+    if ( ($result = mysqli_query($link, $query)) == FALSE) {
         throw new CommonException(mysqli_error($link));
     }
 
     if (mysqli_affected_rows($link) <= 0) {
         mysqli_free_result($result);
         db_cleanup_link($link);
-        throw new PermissionException(PermissionException::$messages['THREAD_NOT_ALLOWED']);
+        return 1;
     }
 
     $row = mysqli_fetch_assoc($result);
     if (isset($row['error']) && $row['error'] == 'NOT_FOUND') {
         mysqli_free_result($result);
         db_cleanup_link($link);
-        throw new NodataException(NodataException::$messages['THREAD_NOT_FOUND']);
+        return 2;
     }
 
     $board_data = array('id' => $row['board_id'],
@@ -4985,7 +4943,7 @@ function db_users_get_all($link) {
         while( ($row = mysqli_fetch_assoc($result)) != NULL)
             array_push($users, array('id' => $row['id']));
     } else {
-        throw new NodataException(NodataException::$messages['USERS_NOT_EXIST']);
+        throw new UsersNotExistsException();
     }
 
     mysqli_free_result($result);
@@ -5058,7 +5016,7 @@ function db_users_get_by_keyword($link, $keyword) {
         array_push($user_settings['groups'], $row['name']);
     }
     if (count($user_settings['groups']) <= 0) {
-        throw new NodataException(NodataException::$messages['USER_WITHOUT_GROUP']);
+        throw new UserWithoutGroupException($user_settings['id']);
     }
 
     // Cleanup.

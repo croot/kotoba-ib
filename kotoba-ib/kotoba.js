@@ -185,6 +185,15 @@ function hide(id) {
     container.style.visibility = false;
 }
 
+function toggle_display(id) {
+    var container = document.getElementById(id);
+    if (container.style.display == 'none') {
+        container.style.display = '';
+    } else {
+        container.style.display = 'none';
+    }
+}
+
 function translate(id) {
     var container = document.getElementById("translation" + id);
     container.innerHTML = '<img src="' + path + '/css/icons/flower.gif">';

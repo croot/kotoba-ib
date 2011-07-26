@@ -92,7 +92,7 @@ function kotoba_session_start() {
     session_set_cookie_params(Config::SESSION_LIFETIME);
 
     if (!session_start()) {
-        throw new CommonException(CommonException::$messages['SESSION_START']);
+        throw new SessionStartException();
     }
 
     if (!isset($_SESSION['kotoba_session_start_time'])) {
@@ -123,7 +123,7 @@ function locale_setup() {
     mb_language(Config::MB_LANGUAGE);
     mb_internal_encoding(Config::MB_ENCODING);
     if (!setlocale(LC_ALL, Config::$LOCALE_NAMES)) {
-        throw new CommonException(CommonException::$messages['SETLOCALE']);
+        throw new SetLocaleException();
     }
 }
 
@@ -278,7 +278,7 @@ function calculate_tripcode($name) {
  * @param string $dest Destination path.
  */
 function move_uploded_file($source, $dest) {
-    if (!@rename($source, $dest)) {
+    if (!rename($source, $dest)) {
         throw new UploadException(UploadException::$messages['UPLOAD_SAVE']);
     }
 }
@@ -288,7 +288,7 @@ function move_uploded_file($source, $dest) {
  * @param string $dest Destination path.
  */
 function copy_uploded_file($source, $dest) {
-    if (!@copy($source, $dest)) {
+    if (!copy($source, $dest)) {
         throw new UploadException('Cannot copy file.');
     }
 }
@@ -370,12 +370,11 @@ function get_extension($name) {
 function link_file($source, $dest) {
     if (function_exists('link')) {
         if (!link($source, $dest)) {
-            throw new CommonException(CommonException::$messages['LINK_FAILED']);
+            throw new CreateLinkException($source, $dest);
         }
     } else {
         if(!copy($source, $dest)) {
-            $_ = $EXCEPTIONS['COPY_FAILED']($source, $dest);
-            throw new CommonException($_);
+            throw new CopyFileException($source, $dest);
         }
     }
 }
@@ -532,8 +531,7 @@ function image_get_dimensions($upload_type, $file) {
         //image magick library
 		$image = new Imagick($file);
 		if (!$image->setImageFormat($upload_type['extension'])) {
-            $_ = $EXCEPTIONS['IMAGEMAGICK_FORMAT']($upload_type['extension']);
-			throw new CommonException($_);
+			throw new ImagemagicFiletypeException($upload_type['extension']);
 		}
 		$result['x'] = $image->getImageWidth();
 		$result['y'] = $image->getImageHeight();
@@ -541,7 +539,7 @@ function image_get_dimensions($upload_type, $file) {
 		$image->destroy();
 		return $result;
 	} else {
-		throw new CommonException(CommonException::$messages['NO_IMG_LIB']);
+		throw new NoImageLibraryException();
 	}
 }
 /**

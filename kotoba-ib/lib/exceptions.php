@@ -10,10 +10,10 @@
  */
 
 /**
- * Derp. PHPDoc sucks.
+ * 
  */
 require_once '../config.php';
-require_once Config::ABS_PATH . '/locale/messages.php';
+require_once Config::ABS_PATH . '/lib/kgettext.php';
 
 /**
  * Kotoba extension for default Exception class.
@@ -131,6 +131,146 @@ class LogFileException extends CommonException {
         $_['title'] = kgettext('Logging.');
         $_['text'] = kgettext('Failed to open or create log file %s.');
         $_['text'] = sprintf($_['text'], $path);
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class CreateLinkException extends CommonException {
+    public function __construct($src, $dest) {
+        $_['title'] = kgettext('Link creation.');
+        $_['text'] = kgettext('Failed to create hard link %s for file %s.');
+        $_['text'] = sprintf($_['text'], $src, $dest);
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class NoImageLibraryException extends CommonException {
+    public function __construct() {
+        $_['title'] = kgettext('Image libraries.');
+        $_['text'] = kgettext('Image libraries disabled or doesn\'t work.');
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class SessionStartException extends CommonException {
+    public function __construct() {
+        $_['title'] = kgettext('Session.');
+        $_['text'] = kgettext('Failed to start session.');
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class SetLocaleException extends CommonException {
+    public function __construct() {
+        $_['title'] = kgettext('Locale.');
+        $_['text'] = kgettext('Setup locale failed.');
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class GroupsNotExistsException extends NodataException {
+    public function __construct() {
+        $_['title'] = kgettext('Groups.');
+        $_['text'] = kgettext('No one group exists.');
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class LanguageNotExistsException extends NodataException {
+    public function __construct($id) {
+        $_['title'] = kgettext('Languages.');
+        $_['text'] = kgettext('Language id=%s not exist.');
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class LanguagesNotExistsException extends NodataException {
+    public function __construct() {
+        $_['title'] = kgettext('Languages.');
+        $_['text'] = kgettext('No one language exists.');
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class PostNotFoundException extends NodataException {
+    public function __construct($post_id, $user_id) {
+        $_['title'] = kgettext('Posts.');
+        $_['text'] = kgettext('Post id=%d not found or user id=%d have no '
+                              . 'permission.');
+        $_['text'] = sprintf($_['text'], $post_id, $user_id);
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class RequestMethodException extends NodataException {
+    public function __construct() {
+        $_['title'] = kgettext('Request method.');
+        $_['text'] = kgettext('Request method not defined or unexpected.');
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class StylesheetNotExistsException extends NodataException {
+    public function __construct($id) {
+        $_['title'] = kgettext('Stylesheets.');
+        $_['text'] = kgettext('Stylesheet id=%d not exist.');
+        $_['text'] = sprintf($_['text'], $id);
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class StylesheetsNotExistsException extends NodataException {
+    public function __construct() {
+        $_['title'] = kgettext('Stylesheets.');
+        $_['text'] = kgettext('No one stylesheet exists.');
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class UserWithoutGroupException extends NodataException {
+    public function __construct($id) {
+        $_['title'] = kgettext('Users.');
+        $_['text'] = kgettext('User id=%d has no group.');
+        $_['text'] = sprintf($_['text'], $id);
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class UsersNotExistsException extends NodataException {
+    public function __construct() {
+        $_['title'] = kgettext('Users.');
+        $_['text'] = kgettext('No one user exists.');
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class RemoteAddressException extends CommonException {
+    public function __construct() {
+        $_['title'] = kgettext('Bans.');
+        $_['text'] = kgettext('Remote address is not an IP address.');
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class AclNoRulesException extends NodataException {
+    public function __construct() {
+        $_['title'] = kgettext('ACL.');
+        $_['text'] = kgettext('No one rule in ACL.');
         $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
         $this->message_data = $_;
         parent::__construct($_['text']);

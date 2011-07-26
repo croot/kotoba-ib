@@ -34,8 +34,7 @@ try {
     if (!isset($_SERVER['REMOTE_ADDR'])
             || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
 
-        DataExchange::releaseResources();
-        $ERRORS['REMOTE_ADDR']($smarty);
+        throw new RemoteAddressException();
     }
     if ( ($ban = bans_check($ip)) !== false) {
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
@@ -82,7 +81,11 @@ try {
         if (!isset($search['keyword'])
                 || mb_strlen($search['keyword'], Config::MB_ENCODING) < 4) {
 
-            throw new NodataException(NodataException::$messages['SEARCH_KEYWORD']);
+            // Cleanup
+            DataExchange::releaseResources();
+
+            $ERRORS['SEARCH_KEYWORD']($smarty);
+            exit(1);
         }
         posts_check_text_size($search['keyword']);
 
@@ -93,7 +96,14 @@ try {
         $keyword = str_replace('\\', '\\\\', $keyword);
 
         posts_check_text_size($keyword);
-        posts_check_text($keyword);
+        if (!posts_check_text($text)) {
+
+            // Cleanup
+            DataExchange::releaseResources();
+
+            $ERRORS['NON_UNICODE']($smarty);
+            exit(1);
+        }
 
         // Strip % and _ signs.
         $keyword = addcslashes($keyword, '%_');
@@ -132,7 +142,12 @@ try {
             $page_max = 1;
         }
         if ($page > $page_max) {
-            throw new LimitException(LimitException::$messages['MAX_PAGE']);
+
+            // Cleanup.
+            DataExchange::releaseResources();
+
+            $ERRORS['MAX_PAGE']($smarty, $page);
+            exit(1);
         }
         for ($i = 1; $i <= $page_max; $i++) {
             array_push($pages, $i);
