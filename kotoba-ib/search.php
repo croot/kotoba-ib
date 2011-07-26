@@ -87,7 +87,14 @@ try {
             $ERRORS['SEARCH_KEYWORD']($smarty);
             exit(1);
         }
-        posts_check_text_size($search['keyword']);
+        if (posts_check_text_size($search['keyword']) === 1) {
+
+            // Cleanup
+            DataExchange::releaseResources();
+
+            $ERRORS['MAX_TEXT_LENGTH']($smarty);
+            exit(1);
+        }
 
         // Encode quotes, bracers and percent sign into html entities.
         $keyword = htmlentities($search['keyword'], ENT_QUOTES, Config::MB_ENCODING);
@@ -95,7 +102,14 @@ try {
         // Strip slashes.
         $keyword = str_replace('\\', '\\\\', $keyword);
 
-        posts_check_text_size($keyword);
+        if (posts_check_text_size($keyword) === 1) {
+
+            // Cleanup
+            DataExchange::releaseResources();
+
+            $ERRORS['MAX_TEXT_LENGTH']($smarty);
+            exit(1);
+        }
         if (!posts_check_text($text)) {
 
             // Cleanup

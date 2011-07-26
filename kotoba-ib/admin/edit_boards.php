@@ -39,7 +39,12 @@ try {
 
     // Check permission and write message to log file.
     if (!is_admin()) {
-        throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
+
+        // Cleanup.
+        DataExchange::releaseResources();
+
+        $ERRORS['NOT_ADMIN']($smarty);
+        exit(1);
     }
     call_user_func(Logging::$f['EDIT_BOARDS_USE']);
 
@@ -85,11 +90,47 @@ try {
 
             // Check parameters.
             $new_board['name'] = boards_check_name($_POST['new_name']);
+            if ($new_board['name'] === 1) {
+
+                // Cleanup.
+                DataExchange::releaseResources();
+                Logging::close_log();
+
+                $ERRORS['BOARD_NAME']($smarty);
+                exit(1);
+            }
             $new_board['title'] = boards_check_title($_POST['new_title']);
+            if ($new_board['title'] === 1) {
+
+                // Cleanup.
+                DataExchange::releaseResources();
+                Logging::close_log();
+
+                $ERRORS['MAX_BOARD_TITLE']($smarty);
+                exit(1);
+            }
             $new_board['annotation'] = boards_check_annotation($_POST['new_annotation']);
+            if ($new_board['annotation'] === 1) {
+
+                // Cleanup.
+                DataExchange::releaseResources();
+                Logging::close_log();
+
+                $ERRORS['MAX_ANNOTATION']($smarty);
+                exit(1);
+            }
             $new_board['bump_limit'] = boards_check_bump_limit($_POST['new_bump_limit']);
             $new_board['force_anonymous'] = isset($_POST['new_force_anonymous']) ? true : false;
             $new_board['default_name'] = boards_check_default_name($_POST['new_default_name']);
+            if ($new_board['default_name'] === 1) {
+
+                // Cleanup.
+                DataExchange::releaseResources();
+                Logging::close_log();
+
+                $ERRORS['MAX_NAME_LENGTH']($smarty);
+                exit(1);
+            }
             $new_board['with_attachments'] = isset($_POST['new_with_attachments']) ? true : false;
             foreach (array('enable_macro',
                            'enable_youtube',
@@ -138,6 +179,15 @@ try {
             // Is title was changed?
             if (isset($_POST["title_{$board['id']}"])) {
                 $new_board['title'] = boards_check_title($_POST["title_{$board['id']}"]);
+                if ($new_board['title'] === 1) {
+
+                    // Cleanup.
+                    DataExchange::releaseResources();
+                    Logging::close_log();
+
+                    $ERRORS['MAX_BOARD_TITLE']($smarty);
+                    exit(1);
+                }
                 if (($new_board['title'] === null xor $board['title'] === null)
                         || $new_board['title'] != $board['title']) {
 
@@ -149,6 +199,15 @@ try {
             // Is annotation was changed?
             if (isset($_POST["annotation_{$board['id']}"])) {
                 $new_board['annotation'] = boards_check_annotation($_POST["annotation_{$board['id']}"]);
+                if ($new_board['annotation'] === 1) {
+
+                    // Cleanup.
+                    DataExchange::releaseResources();
+                    Logging::close_log();
+
+                    $ERRORS['MAX_ANNOTATION']($smarty);
+                    exit(1);
+                }
                 if (($new_board['annotation'] === null xor $board['annotation'] === null)
                         || $new_board['annotation'] != $board['annotation']) {
 
@@ -185,6 +244,15 @@ try {
 			// Is default poster name was changed?
             if (isset($_POST["default_name_{$board['id']}"])) {
                 $new_board['default_name'] = boards_check_default_name($_POST["default_name_{$board['id']}"]);
+                if ($new_board['default_name'] === 1) {
+
+                    // Cleanup.
+                    DataExchange::releaseResources();
+                    Logging::close_log();
+
+                    $ERRORS['MAX_NAME_LENGTH']($smarty);
+                    exit(1);
+                }
                 if (($new_board['default_name'] === null xor $board['default_name'] === null)
                         || $new_board['default_name'] != $board['default_name']) {
 

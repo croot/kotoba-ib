@@ -41,7 +41,12 @@ try {
     // Check permission and write message to log file.
     $is_admin = is_admin();
     if (!$is_admin && !is_mod()) {
-        throw new PermissionException(PermissionException::$messages['NOT_ADMIN'] . ' ' . PermissionException::$messages['NOT_MOD']);
+
+        // Cleanup.
+        DataExchange::releaseResources();
+
+        $ERRORS['NOT_MOD']($smarty);
+        exit(1);
     }
     call_user_func(Logging::$f['MODERATE_USE']);
 
@@ -194,7 +199,13 @@ try {
             if ($is_admin) {
                 $filter_boards = $boards;
             } else {
-                throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
+
+                // Cleanup.
+                DataExchange::releaseResources();
+                Logging::close_log();
+
+                $ERRORS['NOT_ADMIN']($smarty);
+                exit(1);
             }
         } else {
             foreach ($boards as $board) {

@@ -42,7 +42,12 @@ try {
     if (is_admin()) {
         $is_admin = true;
     } elseif (!is_mod()) {
-        throw new PermissionException(PermissionException::$messages['NOT_ADMIN'] . ' ' . PermissionException::$messages['NOT_MOD']);
+
+        // Cleanup.
+        DataExchange::releaseResources();
+
+        $ERRORS['NOT_MOD']($smarty);
+        exit(1);
     }
     call_user_func(Logging::$f['HARD_BAN_USE']);
 

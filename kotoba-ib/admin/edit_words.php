@@ -39,7 +39,12 @@ try {
 
     // Check permission and write message to log file.
     if (!is_admin()) {
-        throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
+
+        // Cleanup.
+        DataExchange::releaseResources();
+
+        $ERRORS['NOT_ADMIN']($smarty);
+        exit(1);
     }
     call_user_func(Logging::$f['EDIT_WORDFILTER_USE']);
 
@@ -57,7 +62,25 @@ try {
                 && $_POST['new_replace'] != '') {
 
             $new_word = words_check_word($_POST['new_word']);
+            if ($new_word === 1) {
+
+                // Cleanup.
+                DataExchange::releaseResources();
+                Logging::close_log();
+
+                $ERRORS['WORD_TOO_LONG']($smarty);
+                exit(1);
+            }
             $new_replace = words_check_word($_POST['new_replace']);
+            if ($new_replace === 1) {
+
+                // Cleanup.
+                DataExchange::releaseResources();
+                Logging::close_log();
+
+                $ERRORS['WORD_TOO_LONG']($smarty);
+                exit(1);
+            }
 
             // If word already exist change it and replacement. If not - add.
             $found = false;
@@ -87,6 +110,15 @@ try {
                     $new_word = null;
                 } else {
                     $new_word = words_check_word($_POST[$param_name]);
+                    if ($new_word === 1) {
+
+                        // Cleanup.
+                        DataExchange::releaseResources();
+                        Logging::close_log();
+
+                        $ERRORS['WORD_TOO_LONG']($smarty);
+                        exit(1);
+                    }
                 }
             }
 
@@ -98,6 +130,15 @@ try {
                     $new_replace = null;
                 } else {
                     $new_replace = words_check_word($_POST[$param_name]);
+                    if ($new_replace === 1) {
+
+                        // Cleanup.
+                        DataExchange::releaseResources();
+                        Logging::close_log();
+
+                        $ERRORS['WORD_TOO_LONG']($smarty);
+                        exit(1);
+                    }
                 }
             }
 
