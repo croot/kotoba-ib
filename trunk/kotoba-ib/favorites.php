@@ -43,7 +43,12 @@ try {
 
     // Guests cannot have favorites.
     if (is_guest()) {
-        throw new PermissionException($EXCEPTIONS['GUEST']());
+
+        // Cleanup.
+        DataExchange::releaseResources();
+
+        $ERRORS['GUEST']($smarty);
+        exit(1);
     }
 
     // Check input parameters.

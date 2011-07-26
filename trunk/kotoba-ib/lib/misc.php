@@ -165,9 +165,16 @@ function kotoba_array_column($src, $col) {
 /**
  * Load user settings.
  * @param string $keyword Keyword hash.
+ * @return int Returns integer 0 valuer if user settings successfully loaded or
+ * integer error value. Error values are: 1 - user not exists.
  */
 function load_user_settings($keyword) {
     $user_settings = users_get_by_keyword($keyword);
+
+    if ($user_settings === 1) {
+        return 1;
+    }
+
     $_SESSION['user'] = kotoba_intval($user_settings['id']);
     $_SESSION['groups'] = $user_settings['groups'];
     $_SESSION['threads_per_page'] = kotoba_intval($user_settings['threads_per_page']);
@@ -177,6 +184,8 @@ function load_user_settings($keyword) {
     $_SESSION['language'] = $user_settings['language'];
     $_SESSION['password'] = $user_settings['password'] == '' ? NULL : $user_settings['password'];
     $_SESSION['goto'] = $user_settings['goto'];
+
+    return 0;
 }
 /**
  * Check page number.
@@ -279,7 +288,7 @@ function calculate_tripcode($name) {
  */
 function move_uploded_file($source, $dest) {
     if (!rename($source, $dest)) {
-        throw new UploadException(UploadException::$messages['UPLOAD_SAVE']);
+        throw new MoveFileException($source, $dest);
     }
 }
 /**
@@ -313,7 +322,7 @@ function calculate_file_hash($path) {
 	$hash = null;
 
 	if ( ($hash = hash_file('md5', $path)) === false) {
-		throw new UploadException(UploadException::$messages['UPLOAD_HASH']);
+		throw new FileHashException($path);
     }
 
 	return $hash;
@@ -325,32 +334,6 @@ function calculate_file_hash($path) {
  */
 function use_oekaki() {
     return isset($_POST['use_oekaki']) && $_POST['use_oekaki'] == '1' && isset($_SESSION['oekaki']) && is_array($_SESSION['oekaki']);
-}
-/**
- * Check if error occurs in file uploading.
- * @param int $error File uploading error.
- */
-function check_upload_error($error) {
-    switch ($error) {
-        case UPLOAD_ERR_INI_SIZE:
-            throw new UploadException::$messages['UPLOAD_ERR_INI_SIZE'];
-            break;
-        case UPLOAD_ERR_FORM_SIZE:
-            throw new UploadException::$messages['UPLOAD_ERR_FORM_SIZE'];
-            break;
-        case UPLOAD_ERR_PARTIAL:
-            throw new UploadException::$messages['UPLOAD_ERR_PARTIAL'];
-            break;
-        case UPLOAD_ERR_NO_TMP_DIR:
-            throw new UploadException::$messages['UPLOAD_ERR_NO_TMP_DIR'];
-            break;
-        case UPLOAD_ERR_CANT_WRITE:
-            throw new UploadException::$messages['UPLOAD_ERR_CANT_WRITE'];
-            break;
-        case UPLOAD_ERR_EXTENSION:
-            throw new UploadException::$messages['UPLOAD_ERR_EXTENSION'];
-            break;
-    }
 }
 /**
  * Get file extension.
@@ -560,7 +543,16 @@ function create_thumbnail($source, $dest, $source_dimensions, $type, $resize_x, 
     if ($source_dimensions['x'] < $resize_x && $source_dimensions['y'] < $resize_y) {
         // big file but small image is some kind of trolling
         if (filesize($source) > Config::SMALLIMAGE_LIMIT_FILE_SIZE) {
-            throw new LimitException(LimitException::$messages['MAX_SMALL_IMG_SIZE']);
+            //throw new LimitException(LimitException::$messages['MAX_SMALL_IMG_SIZE']);
+            // TODO Handle error
+
+            // Cleanup.
+            // code
+
+            // $ERRORS['MAX_SMALL_IMG_SIZE']($smarty);
+            // exit(1);
+            echo "So small image cannot have so many data.<br>\n";
+            exit(1);
         }
         $result['x'] = $source_dimensions['x'];
         $result['y'] = $source_dimensions['y'];

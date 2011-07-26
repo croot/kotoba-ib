@@ -511,13 +511,13 @@ function words_add($board_id, $word, $replace) {
 /**
  * Check word.
  * @param string $word Word.
- * @return string
- * safe word.
+ * @return string|int Returns safe word or integer error code. Error codes: 1 -
+ * word too long.
  */
 function words_check_word($word) {
     $word = DataExchange::escapeString($word);
     if (strlen($word) > 100) {
-        throw new LimitException(LimitException::$messages['WORD_TOO_LONG']);
+        return 1;
     }
     return $word;
 }
@@ -569,8 +569,9 @@ function boards_add($new_board) {
 /**
  * Check annotation.
  * @param string $annotation Annotation.
- * @return string|null
- * safe annotation or NULL if annotation is empty.
+ * @return string|null|int Returns safe annotation or NULL if annotation is
+ * empty. If any error occurred returns integer error value. Error values: 1 -
+ * annotation too long.
  */
 function boards_check_annotation($annotation) {
     $annotation = htmlentities(kotoba_strval($annotation), ENT_QUOTES, Config::MB_ENCODING);
@@ -580,7 +581,7 @@ function boards_check_annotation($annotation) {
         return null;
     }
     if ($len > Config::MAX_ANNOTATION_LENGTH) {
-        throw new LimitException(LimitException::$messages['MAX_ANNOTATION']);
+        return 1;
     }
 
     return $annotation;
@@ -601,8 +602,9 @@ function boards_check_bump_limit($bump_limit) {
 /**
  * Check default name.
  * @param string $name Default name.
- * @return string|null
- * safe default name or NULL if default name is empty.
+ * @return string|null|int Returns safe default name or NULL if default name is
+ * empty. If any error occurred returns integer error value. Error values: 1 -
+ * name too long.
  */
 function boards_check_default_name($name) {
     $name = htmlentities(kotoba_strval($name), ENT_QUOTES, Config::MB_ENCODING);
@@ -612,7 +614,7 @@ function boards_check_default_name($name) {
         return NULL;
     }
     if ($l > Config::MAX_NAME_LENGTH) {
-        throw new LimitException(LimitException::$messages['MAX_NAME_LENGTH']);
+        return 1;
     }
 
 	return $name;
@@ -629,8 +631,8 @@ function boards_check_id($id) {
 /**
  * Check board name.
  * @param string $name Board name.
- * @return string
- * safe board name.
+ * @return string|int Returns safe board name or integer error code. Error
+ * codes: 1 - board name has wrong format.
  */
 function boards_check_name($name) {
     $name = kotoba_strval($name);
@@ -642,13 +644,13 @@ function boards_check_name($name) {
         for ($i = 0; $i < $l; $i++) {
             $code = ord($name[$i]);
             if ($code < 0x30 || $code > 0x39 && $code < 0x41 || $code > 0x5A && $code < 0x61 || $code > 0x7A) {
-                throw new FormatException($EXCEPTIONS['BOARD_NAME']());
+                return 1;
             }
         }
         return $name;
     }
 
-    throw new FormatException($EXCEPTIONS['BOARD_NAME']());
+    return 1;
 }
 /**
  * Check upload policy from same files.
@@ -677,8 +679,9 @@ function boards_check_same_upload($same_upload) {
 /**
  * Check board title.
  * @param mixed $title Board title.
- * @return string|null
- * safe board title or NULL if title is empty string.
+ * @return string|null|int Returns safe board title or NULL if title is empty
+ * string. If any error occurred returs integer error value. Error values: 1 -
+ * board title too long.
  */
 function boards_check_title($title) {
     $title = htmlentities(kotoba_strval($title), ENT_QUOTES, Config::MB_ENCODING);
@@ -688,7 +691,7 @@ function boards_check_title($title) {
         return null;
     }
     if ($l > 50) {
-        throw new LimitException(LimitException::$messages['MAX_BOARD_TITLE']);
+        return 1;
     }
 
 	return $title;
@@ -1068,11 +1071,15 @@ function images_add($hash,
 /**
  * Check image size.
  * @param int $img_size image size.
+ * @return int Return 0 on success or error code. Error codes: 1 - image too
+ * small.
  */
 function images_check_size($size) {
     if ($size < Config::MIN_IMGSIZE) {
-        throw new LimitException(LimitException::$messages['MIN_IMG_SIZE']);
+        return 1;
     }
+
+    return 0;
 }
 /**
  * Get images.
@@ -1448,11 +1455,15 @@ function posts_check_id($id) {
 /**
  * Check name length.
  * @param string $name Name.
+ * @return int Returns 0 on success or error value. Error values: 1 - name too
+ * long.
  */
 function posts_check_name_size($name) {
     if (strlen($name) > Config::MAX_THEME_LENGTH) {
-        throw new LimitException(LimitException::$messages['MAX_NAME_LENGTH']);
+        return 1;
     }
+
+    return 0;
 }
 /**
  * Check post number.
@@ -1491,11 +1502,15 @@ function posts_check_password($password) {
 /**
  * Check subject size.
  * @param string $subject Subject.
+ * @return int Reutrn 0 on success or error value. Error values: 1 - subject too
+ * long.
  */
 function posts_check_subject_size($subject) {
     if (strlen($subject) > Config::MAX_THEME_LENGTH) {
-        throw new LimitException(LimitException::$messages['MAX_SUBJECT_LENGTH']);
+        return 1;
     }
+
+    return 0;
 }
 /**
  * Validate text.
@@ -1511,11 +1526,15 @@ function posts_check_text($text) {
 /**
  * Check text size.
  * @param string $text Text.
+ * @return int Reutrn 0 on success or error value. Error values: 1 - text too
+ * long.
  */
 function posts_check_text_size($text) {
     if (mb_strlen($text) > Config::MAX_MESSAGE_LENGTH) {
-        throw new LimitException(LimitException::$messages['MAX_TEXT_LENGTH']);
+        return 1;
     }
+
+    return 0;
 }
 /**
  * Crop text.
@@ -2653,6 +2672,8 @@ function users_get_admins() {
 /**
  * Load user settings.
  * @param string $keyword Keyword hash.
+ * @return int|array Returns array of user settings or integer error value.
+ * Error values are: 1 - user not exists.
  */
 function users_get_by_keyword($keyword) {
     return db_users_get_by_keyword(DataExchange::getDBLink(), $keyword);
@@ -2713,13 +2734,13 @@ function videos_add($code, $widht, $height) {
 /**
  * Check youtube video code.
  * @param string $code Code of vide.
- * @return string
- * safe code of vide.
+ * @return string|int Returns safe code of video or integer error code. Error
+ * codes: 1 - link too long.
  */
 function videos_check_code($code) {
     $code = RawURLEncode($code);
     if (strlen($code) > Config::MAX_FILE_LINK) {
-        throw new LimitException(LimitException::$messages['MAX_FILE_LINK']);
+        return 1;
     }
     return RawURLEncode($code);
 }

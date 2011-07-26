@@ -48,7 +48,14 @@ try {
             require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
         }
         $keyword_hash = md5(users_check_keyword($_POST['keyword_load']));
-        load_user_settings($keyword_hash);
+        if (load_user_settings($keyword_hash) === 1) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+
+            $ERRORS['USER_NOT_EXIST']($smarty, $keyword_hash);
+            exit(1);
+        }
         header('Location: ' . Config::DIR_PATH . "/edit_settings.php");
         DataExchange::releaseResources();
         exit(0);
@@ -108,7 +115,14 @@ try {
                               $stylesheet_id,
                               null,
                               $goto);
-        load_user_settings($keyword_hash);  // We need to get new user id.
+        if (load_user_settings($keyword_hash) === 1) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+
+            $ERRORS['USER_NOT_EXIST']($smarty, $keyword_hash);
+            exit(1);
+        }
         header('Location: ' . Config::DIR_PATH . "/edit_settings.php");
         DataExchange::releaseResources();
         exit(0);

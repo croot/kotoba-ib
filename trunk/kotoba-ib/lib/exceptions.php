@@ -276,6 +276,35 @@ class AclNoRulesException extends NodataException {
         parent::__construct($_['text']);
     }
 }
+class FileHashException extends UploadException {
+    public function __construct($path) {
+        $_['title'] = kgettext('Uploads.');
+        $_['text'] = kgettext('File %s hash calculation failed.');
+        $_['text'] = sprintf($_['text'], $path);
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class MoveFileException extends UploadException {
+    public function __construct($src, $dest) {
+        $_['title'] = kgettext('Uploads.');
+        $_['text'] = kgettext('Cant move file %s to %s.');
+        $_['text'] = sprintf($_['text'], $src, $dest);
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class UnknownUploadTypeException extends UploadException {
+    public function __construct() {
+        $_['title'] = kgettext('Uploads.');
+        $_['text'] = kgettext('Unknown upload type.');
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
 
 function displayExceptionPage($smarty, $exception, $show_control) {
     $md = $exception->getMessageData();

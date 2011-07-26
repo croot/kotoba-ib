@@ -39,7 +39,12 @@ try {
 
     // Check permission and write message to log file.
     if (!is_admin()) {
-        throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
+
+        // Cleanup.
+        DataExchange::releaseResources();
+
+        $ERRORS['NOT_ADMIN']($smarty);
+        exit(1);
     }
     call_user_func(Logging::$f['LOG_VIEW_USE']);
 

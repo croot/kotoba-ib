@@ -46,13 +46,67 @@ try {
 
     // Check permission and write message to log file.
     if (!is_admin()) {
-        throw new PermissionException(PermissionException::$messages['NOT_ADMIN']);
+
+        // Cleanup.
+        DataExchange::releaseResources();
+
+        $ERRORS['NOT_ADMIN']($smarty);
+        exit(1);
     }
     call_user_func(Logging::$f['MASS_BAN_USE']);
 
     
     if (isset($_FILES['file'])) {
-        check_upload_error($_FILES['file']['error']);
+        switch ($_FILES['file']['error']) {
+            case UPLOAD_ERR_INI_SIZE:
+
+                // Cleanup
+                DataExchange::releaseResources();
+
+                $ERRORS['UPLOAD_ERR_INI_SIZE']($smarty);
+                exit(1);
+                break;
+            case UPLOAD_ERR_FORM_SIZE:
+
+                // Cleanup
+                DataExchange::releaseResources();
+
+                $ERRORS['UPLOAD_ERR_FORM_SIZE']($smarty);
+                exit(1);
+                break;
+            case UPLOAD_ERR_PARTIAL:
+
+                // Cleanup
+                DataExchange::releaseResources();
+
+                $ERRORS['UPLOAD_ERR_PARTIAL']($smarty);
+                exit(1);
+                break;
+            case UPLOAD_ERR_NO_TMP_DIR:
+
+                // Cleanup
+                DataExchange::releaseResources();
+
+                $ERRORS['UPLOAD_ERR_NO_TMP_DIR']($smarty);
+                exit(1);
+                break;
+            case UPLOAD_ERR_CANT_WRITE:
+
+                // Cleanup
+                DataExchange::releaseResources();
+
+                $ERRORS['UPLOAD_ERR_CANT_WRITE']($smarty);
+                exit(1);
+                break;
+            case UPLOAD_ERR_EXTENSION:
+
+                // Cleanup
+                DataExchange::releaseResources();
+
+                $ERRORS['UPLOAD_ERR_EXTENSION']($smarty);
+                exit(1);
+                break;
+        }
         $list = split("\n", file_get_contents($_FILES['file']['tmp_name']));
         foreach ($list as $range) {
             if ($range) {

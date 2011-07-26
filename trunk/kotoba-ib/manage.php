@@ -39,8 +39,12 @@ try {
 
     // Check permission and write message to log file.
     if (!is_admin() && !is_mod()) {
-        throw new PermissionException(PermissionException::$messages['NOT_ADMIN']
-              . ' ' . PermissionException::$messages['NOT_MOD']);
+
+        // Cleanup.
+        DataExchange::releaseResources();
+
+        $ERRORS['NOT_MOD']($smarty);
+        exit(1);
     }
     call_user_func(Logging::$f['MANAGE_USE']);
 

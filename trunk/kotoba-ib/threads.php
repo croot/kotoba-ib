@@ -93,7 +93,12 @@ try {
                                                    $thread_number,
                                                    $_SESSION['user']);
     if ($thread === 1) {
-        throw new PermissionException(PermissionException::$messages['THREAD_NOT_ALLOWED']);
+
+        // Cleanup.
+        DataExchange::releaseResources();
+
+        $ERRORS['THREAD_NOT_ALLOWED']($smarty, $_SESSION['user'], $thread_id);
+        exit(1);
     } else if ($thread === 2) {
 
         // Cleanup.

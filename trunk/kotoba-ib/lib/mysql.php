@@ -4980,6 +4980,8 @@ function db_users_get_admins($link) {
  * Load user settings.
  * @param MySQLi $link Link to database.
  * @param string $keyword Keyword hash.
+ * @return int|array Returns array of user settings or integer error value.
+ * Error values are: 1 - user not exists.
  */
 function db_users_get_by_keyword($link, $keyword) {
     if (mysqli_multi_query($link, "call sp_users_get_by_keyword('$keyword')") == false) {
@@ -5000,7 +5002,7 @@ function db_users_get_by_keyword($link, $keyword) {
         $user_settings['password'] = $row['password'];
         $user_settings['goto'] = $row['goto'];
     } else {
-        throw new PermissionException(PermissionException::$messages['USER_NOT_EXIST']);
+        return 1;
     }
     mysqli_free_result($result);
     if (!mysqli_next_result($link)) {

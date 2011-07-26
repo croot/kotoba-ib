@@ -61,7 +61,12 @@ try {
     $thread_id = threads_check_id($_POST['t']);
     $thread = threads_get_changeable_by_id($thread_id, $_SESSION['user']);
     if ($thread === 1) {
-        throw new PermissionException(PermissionException::$messages['THREAD_NOT_ALLOWED']);
+
+        // Cleanup.
+        DataExchange::releaseResources();
+
+        $ERRORS['THREAD_NOT_ALLOWED']($smarty, $_SESSION['user'], $thread_id);
+        exit(1);
     } else if ($thread === 2) {
 
         // Cleanup.
@@ -157,13 +162,34 @@ try {
     $name = null;
     $tripcode = null;
 	if (!$board['force_anonymous']) {
-		posts_check_name_size($_POST['name']);
+		if (posts_check_name_size($_POST['name']) === 1) {
+
+            // Cleanup
+            DataExchange::releaseResources();
+
+            $ERRORS['MAX_NAME_LENGTH']($smarty);
+            exit(1);
+        }
 		$name = htmlentities($_POST['name'], ENT_QUOTES, Config::MB_ENCODING);
 		$name = str_replace('\\', '\\\\', $name);
-        posts_check_name_size($name);
+        if (posts_check_name_size($name) === 1) {
+
+            // Cleanup
+            DataExchange::releaseResources();
+
+            $ERRORS['MAX_NAME_LENGTH']($smarty);
+            exit(1);
+        }
 		$name = str_replace("\n", '', $name);
 		$name = str_replace("\r", '', $name);
-		posts_check_name_size($name);
+		if (posts_check_name_size($name) === 1) {
+
+            // Cleanup
+            DataExchange::releaseResources();
+
+            $ERRORS['MAX_NAME_LENGTH']($smarty);
+            exit(1);
+        }
 		$name_tripcode = calculate_tripcode($name);
         $_SESSION['name'] = $name;
 		$name = $name_tripcode[0];
@@ -171,10 +197,24 @@ try {
 	}
 
     // Subject.
-    posts_check_subject_size($_POST['subject']);
+    if (posts_check_subject_size($_POST['subject']) === 1) {
+
+        // Cleanup
+        DataExchange::releaseResources();
+
+        $ERRORS['MAX_SUBJECT_LENGTH']($smarty);
+        exit(1);
+    }
 	$subject = htmlentities($_POST['subject'], ENT_QUOTES, Config::MB_ENCODING);
 	$subject = str_replace('\\', '\\\\', $subject);
-	posts_check_subject_size($subject);
+	if (posts_check_subject_size($subject) === 1) {
+
+        // Cleanup
+        DataExchange::releaseResources();
+
+        $ERRORS['MAX_SUBJECT_LENGTH']($smarty);
+        exit(1);
+    }
 	$subject = str_replace("\n", '', $subject);
 	$subject = str_replace("\r", '', $subject);
 
@@ -183,7 +223,56 @@ try {
     if ($thread['with_attachments'] || ($thread['with_attachments'] === null && $board['with_attachments'])) {
         if ((isset($_FILES['file']) && $_FILES['file']['error'] != UPLOAD_ERR_NO_FILE) || use_oekaki()) {
             if (!use_oekaki()) {
-                check_upload_error($_FILES['file']['error']);
+                switch ($_FILES['file']['error']) {
+                    case UPLOAD_ERR_INI_SIZE:
+
+                        // Cleanup
+                        DataExchange::releaseResources();
+
+                        $ERRORS['UPLOAD_ERR_INI_SIZE']($smarty);
+                        exit(1);
+                        break;
+                    case UPLOAD_ERR_FORM_SIZE:
+
+                        // Cleanup
+                        DataExchange::releaseResources();
+
+                        $ERRORS['UPLOAD_ERR_FORM_SIZE']($smarty);
+                        exit(1);
+                        break;
+                    case UPLOAD_ERR_PARTIAL:
+
+                        // Cleanup
+                        DataExchange::releaseResources();
+
+                        $ERRORS['UPLOAD_ERR_PARTIAL']($smarty);
+                        exit(1);
+                        break;
+                    case UPLOAD_ERR_NO_TMP_DIR:
+
+                        // Cleanup
+                        DataExchange::releaseResources();
+
+                        $ERRORS['UPLOAD_ERR_NO_TMP_DIR']($smarty);
+                        exit(1);
+                        break;
+                    case UPLOAD_ERR_CANT_WRITE:
+
+                        // Cleanup
+                        DataExchange::releaseResources();
+
+                        $ERRORS['UPLOAD_ERR_CANT_WRITE']($smarty);
+                        exit(1);
+                        break;
+                    case UPLOAD_ERR_EXTENSION:
+
+                        // Cleanup
+                        DataExchange::releaseResources();
+
+                        $ERRORS['UPLOAD_ERR_EXTENSION']($smarty);
+                        exit(1);
+                        break;
+                }
                 $uploaded_file_path = $_FILES['file']['tmp_name'];
                 $uploaded_file_name = $_FILES['file']['name'];
                 $uploaded_file_size = $_FILES['file']['size'];
@@ -207,11 +296,24 @@ try {
                 }
             }
             if (!$found) {
-                throw new UploadException(UploadException::$messages['UPLOAD_FILETYPE_NOT_SUPPORTED']);
+
+                // Cleanup
+                DataExchange::releaseResources();
+
+                $ERRORS['UPLOAD_FILETYPE_NOT_SUPPORTED']($smarty,
+                                                         $uploaded_file_ext);
+                exit(1);
             }
             if ($upload_type['is_image']) {
                 $attachment_type = Config::ATTACHMENT_TYPE_IMAGE;
-                images_check_size($uploaded_file_size);
+                if (images_check_size($uploaded_file_size) === 1) {
+
+                    // Cleanup
+                    DataExchange::releaseResources();
+
+                    $ERRORS['MIN_IMG_SIZE']($smarty);
+                    exit(1);
+                }
             } else {
                 $attachment_type = Config::ATTACHMENT_TYPE_FILE;
             }
@@ -224,6 +326,14 @@ try {
                   && isset($_POST['youtube_video_code'])
                   && $_POST['youtube_video_code'] != '') {
             $youtube_video_code = videos_check_code($_POST['youtube_video_code']);
+            if ($youtube_video_code === 1) {
+
+                // Cleanup
+                DataExchange::releaseResources();
+
+                $ERRORS['MAX_FILE_LINK']($smarty);
+                exit(1);
+            }
             $attachment_type = Config::ATTACHMENT_TYPE_VIDEO;
         }
     }
@@ -237,7 +347,14 @@ try {
 
         $ERRORS['EMPTY_POST']($smarty);
     }
-    posts_check_text_size($text);
+    if (posts_check_text_size($text) === 1) {
+
+        // Cleanup
+        DataExchange::releaseResources();
+
+        $ERRORS['MAX_TEXT_LENGTH']($smarty);
+        exit(1);
+    }
     if (Config::ENABLE_SPAMFILTER) {
         $spam_filter = spamfilter_get_all();
         foreach ($spam_filter as $record) {
@@ -252,7 +369,14 @@ try {
     }
 	$text = htmlentities($text, ENT_QUOTES, Config::MB_ENCODING);
     $text = transform($text);
-	posts_check_text_size($text);
+	if (posts_check_text_size($text) === 1) {
+
+        // Cleanup
+        DataExchange::releaseResources();
+
+        $ERRORS['MAX_TEXT_LENGTH']($smarty);
+        exit(1);
+    }
     if (Config::ENABLE_WORDFILTER) {
         $words = words_get_all_by_board($board['id']);
         foreach ($words as $word) {
@@ -260,7 +384,14 @@ try {
         }
     }
 	$text = str_replace('\\', '\\\\', $text);
-	posts_check_text_size($text);
+	if (posts_check_text_size($text) === 1) {
+
+        // Cleanup
+        DataExchange::releaseResources();
+
+        $ERRORS['MAX_TEXT_LENGTH']($smarty);
+        exit(1);
+    }
 	if (!posts_check_text($text)) {
 
         // Cleanup
@@ -270,7 +401,14 @@ try {
         exit(1);
     }
 	posts_prepare_text($text, $board);
-	posts_check_text_size($text);
+	if (posts_check_text_size($text) === 1) {
+
+        // Cleanup
+        DataExchange::releaseResources();
+
+        $ERRORS['MAX_TEXT_LENGTH']($smarty);
+        exit(1);
+    }
 
     // Attachment.
     if ($attachment_type !== null) {
@@ -331,15 +469,17 @@ try {
             } else {
                 $img_dimensions = image_get_dimensions($upload_type, $uploaded_file_path);
                 if($img_dimensions['x'] < Config::MIN_IMGWIDTH && $img_dimensions['y'] < Config::MIN_IMGHEIGHT) {
-                    throw new LimitException(LimitException::$messages['MIN_IMG_DIMENTIONS']);
+
+                    // Cleanup
+                    DataExchange::releaseResources();
+
+                    $ERRORS['MIN_IMG_DIMENTIONS']($smarty);
+                    exit(1);
                 }
                 $abs_img_path = Config::ABS_PATH . "/{$board['name']}/img/{$file_names[0]}";
                 $abs_thumb_path = Config::ABS_PATH . "/{$board['name']}/thumb/{$file_names[1]}";
                 if (!use_oekaki()) {
                     move_uploded_file($uploaded_file_path, $abs_img_path);
-                    if (!file_exists($abs_img_path)) {
-                        throw new UploadException(UploadException::$messages['UPLOAD_SAVE']);
-                    }
                     $thumb_dimensions = create_thumbnail($abs_img_path,
                                                          $abs_thumb_path,
                                                          $img_dimensions,
