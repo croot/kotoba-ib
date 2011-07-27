@@ -72,6 +72,16 @@ try {
                 && $_POST['new_untill'] != '') {
 
             $new_range_beg = bans_check_range_beg($_POST['new_range_beg']);
+            if ($new_range_beg === FALSE) {
+
+                // Cleanup.
+                DataExchange::releaseResources();
+                Logging::close_log();
+
+                $_ = kotoba_last_error();
+                $_($smarty);
+                exit(1);
+            }
             $new_range_end = bans_check_range_end($_POST['new_range_end']);
             if ($_POST['new_reason'] === '') {
                 $new_reason = null;
@@ -109,6 +119,16 @@ try {
         if (isset($_POST['unban']) && $_POST['unban'] !== '') {
 
             $ip = bans_check_range_beg($_POST['unban']);
+            if ($ip === FALSE) {
+
+                // Cleanup.
+                DataExchange::releaseResources();
+                Logging::close_log();
+
+                $_ = kotoba_last_error();
+                $_($smarty);
+                exit(1);
+            }
             bans_delete_by_ip($ip);
             $reload_bans = true;
         }

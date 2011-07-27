@@ -43,6 +43,14 @@ try {
     header("Cache-Control: private");
 
     $board_name = boards_check_name($_REQUEST['board']);
+    if ($board_name === 1) {
+
+        // Cleanup.
+        DataExchange::releaseResources();
+
+        $ERRORS['BOARD_NAME']($smarty);
+        exit(1);
+    }
     $categories = categories_get_all();
     $boards = boards_get_visible($_SESSION['user']);
 

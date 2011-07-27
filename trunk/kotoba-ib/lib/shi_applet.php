@@ -43,7 +43,16 @@ try {
         throw new Exception('y');
     }
     if (isset($_POST['board'])) {
-        $smarty->assign('board', boards_check_name($_POST['board']));
+        $board_name = boards_check_name($_POST['board']);
+        if ($board_name === 1) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+
+            $ERRORS['BOARD_NAME']($smarty);
+            exit(1);
+        }
+        $smarty->assign('board', $board_name);
     }
     if (isset($_POST['thread'])) {
         $smarty->assign('thread', threads_check_original_post($_POST['thread']));

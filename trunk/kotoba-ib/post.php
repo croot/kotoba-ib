@@ -40,7 +40,16 @@ try {
         die($smarty->fetch('banned.tpl'));
     }
 
-    $post = posts_get_visible_by_number(boards_check_name($_GET['board']), posts_check_number($_GET['post']), $_SESSION['user']);
+    $board_name = boards_check_name($_GET['board']);
+    if ($board_name === 1) {
+
+        // Cleanup.
+        DataExchange::releaseResources();
+
+        $ERRORS['BOARD_NAME']($smarty);
+        exit(1);
+    }
+    $post = posts_get_visible_by_number($board_name, posts_check_number($_GET['post']), $_SESSION['user']);
     $board = $post['board'];
     $thread = $post['thread'];
 

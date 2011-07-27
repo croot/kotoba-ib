@@ -49,6 +49,14 @@ try {
     header("Cache-Control: private");
 
     $board_name = boards_check_name($_GET['board']);
+    if ($board_name === 1) {
+
+        // Cleanup.
+        DataExchange::releaseResources();
+
+        $ERRORS['BOARD_NAME']($smarty);
+        exit(1);
+    }
     $thread_number = threads_check_original_post($_GET['thread']);
 
     $password = null;
