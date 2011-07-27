@@ -589,15 +589,16 @@ function boards_check_annotation($annotation) {
 /**
  * Check bump limit.
  * @param int $bump_limit Bump limit.
- * @return int
- * safe bump limit.
+ * @return int|boolean Returns safe bump limit or boolean FALSE if any error
+ * occuread and set last kotoba error to apropriate error object.
  */
 function boards_check_bump_limit($bump_limit) {
     if ( ($intval = kotoba_intval($bump_limit)) > 0) {
         return $intval;
+    } else {
+        kotoba_set_last_error(new BumpLimitError());
+        return FALSE;
     }
-
-    throw new FormatException($EXCEPTIONS['BOARD_BUMP_LIMIT']());
 }
 /**
  * Check default name.
@@ -653,10 +654,10 @@ function boards_check_name($name) {
     return 1;
 }
 /**
- * Check upload policy from same files.
- * @param mixed $same_upload Upload policy from same files.
- * @return string
- * safe upload policy from same files.
+ * Check upload policy for same files.
+ * @param mixed $same_upload Upload policy for same files.
+ * @return string|boolean Returns safe upload policy for same files or boolean
+ * FALSE if any error occurred and set last error to appropriate error object.
  */
 function boards_check_same_upload($same_upload) {
     $same_upload = kotoba_strval($same_upload);
@@ -668,13 +669,15 @@ function boards_check_same_upload($same_upload) {
         for ($i = 0; $i < $l; $i++) {
             $code = ord($same_upload[$i]);
             if ($code < 0x41 || $code > 0x5A && $code < 0x61 || $code > 0x7A) {
-                throw new FormatException($EXCEPTIONS['BOARD_SAME_UPLOAD']());
+                kotoba_set_last_error(new SameUploadsError());
+                return FALSE;
             }
         }
         return $same_upload;
     }
 
-    throw new FormatException($EXCEPTIONS['BOARD_SAME_UPLOAD']());
+    kotoba_set_last_error(new SameUploadsError());
+    return FALSE;
 }
 /**
  * Check board title.

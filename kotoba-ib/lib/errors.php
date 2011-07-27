@@ -53,6 +53,67 @@ class Error {
     }
 }
 
+class KotobaError {
+    private $title;
+    private $text;
+    private $image = NULL;
+
+    function __construct($title, $text, $image = NULL) {
+        $this->title = $title;
+        $this->text = $text;
+        if ($image == NULL) {
+            $image = Config::DIR_PATH . '/img/errors/default_error.png';
+        }
+        $this->image = $image;
+    }
+
+    function __invoke($smarty) {
+        $smarty->assign('ib_name', Config::IB_NAME);
+        $smarty->assign('text', $this->text);
+        $smarty->assign('title', $this->title);
+        $smarty->assign('image', $this->image);
+        $smarty->display('error.tpl');
+    }
+}
+
+class BumpLimitError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Boards.'),
+            kgettext('Bump limit must be digit greater than zero.')
+        );
+    }
+}
+class SameUploadsError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Boards.'),
+            kgettext('Upload policy from same files wrong format. It must be '
+                     . 'string at 1 to 32 latin letters.')
+        );
+    }
+}
+class RangeBegError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Bans.'),
+            kgettext('Begining of IP-address range has wrong format.')
+        );
+    }
+}
+
+$KOTOBA_LAST_ERROR = NULL;
+
+function kotoba_last_error() {
+    global $KOTOBA_LAST_ERROR;
+    return $KOTOBA_LAST_ERROR;
+}
+
+function kotoba_set_last_error($error) {
+    global $KOTOBA_LAST_ERROR;
+    $KOTOBA_LAST_ERROR = $error;
+}
+
 $ERRORS['SPAM']
     = new Error('Message detected as spam.', 'Spam.');
 $ERRORS['EMPTY_POST']

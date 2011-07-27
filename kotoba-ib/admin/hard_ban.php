@@ -53,6 +53,16 @@ try {
 
     if (isset($_POST['new_range_beg']) && isset($_POST['new_range_end'])) {
         $new_range_beg = bans_check_range_beg($_POST['new_range_beg']);
+        if ($new_range_beg === FALSE) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+            Logging::close_log();
+
+            $_ = kotoba_last_error();
+            $_($smarty);
+            exit(1);
+        }
         $new_range_end = bans_check_range_end($_POST['new_range_end']);
         hard_ban_add(long2ip($new_range_beg), long2ip($new_range_end));
     }

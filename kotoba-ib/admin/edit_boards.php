@@ -119,7 +119,19 @@ try {
                 $ERRORS['MAX_ANNOTATION']($smarty);
                 exit(1);
             }
-            $new_board['bump_limit'] = boards_check_bump_limit($_POST['new_bump_limit']);
+            $_ = boards_check_bump_limit($_POST['new_bump_limit']);
+            if ($_ === FALSE) {
+
+                // Cleanup.
+                DataExchange::releaseResources();
+                Logging::close_log();
+
+                $_ = kotoba_last_error();
+                $_($smarty);
+                exit(1);
+            } else {
+                $new_board['bump_limit'] = $_;
+            }
             $new_board['force_anonymous'] = isset($_POST['new_force_anonymous']) ? true : false;
             $new_board['default_name'] = boards_check_default_name($_POST['new_default_name']);
             if ($new_board['default_name'] === 1) {
@@ -146,7 +158,19 @@ try {
                     $new_board[$param_name] = $_POST["new_$param_name"] ? true : false;
                 }
             }
-            $new_board['same_upload'] = boards_check_same_upload($_POST['new_same_upload']);
+            $_ = boards_check_same_upload($_POST['new_same_upload']);
+            if ($_ === FALSE) {
+
+                // Cleanup.
+                DataExchange::releaseResources();
+                Logging::close_log();
+
+                $_ = kotoba_last_error();
+                $_($smarty);
+                exit(1);
+            } else {
+                $new_board['same_upload'] = $_;
+            }
             $new_board['popdown_handler'] = popdown_handlers_check_id($_POST['new_popdown_handler']);
             $new_board['category'] =  categories_check_id($_POST['new_category']);
 
@@ -218,7 +242,21 @@ try {
 
             // Is board-specified bump limit was changed?
             if (isset($_POST["bump_limit_{$board['id']}"])) {
-				$new_board['bump_limit'] = boards_check_bump_limit($_POST["bump_limit_{$board['id']}"]);
+                $_ = boards_check_bump_limit(
+                    $_POST["bump_limit_{$board['id']}"]
+                );
+                if ($_ === FALSE) {
+
+                    // Cleanup.
+                    DataExchange::releaseResources();
+                    Logging::close_log();
+
+                    $_ = kotoba_last_error();
+                    $_($smarty);
+                    exit(1);
+                } else {
+                    $new_board['bump_limit'] = $_;
+                }
                 if ($new_board['bump_limit'] != $board['bump_limit']) {
                     $changed = true;
                     //echo "bump_limit changed<br>\n";
@@ -302,7 +340,21 @@ try {
 
 			// Is same uploads policy was changed?
             if (isset($_POST["same_upload_{$board['id']}"])) {
-                $new_board['same_upload'] = boards_check_same_upload($_POST["same_upload_{$board['id']}"]);
+                $_ = boards_check_same_upload(
+                    $_POST["same_upload_{$board['id']}"]
+                );
+                if ($_ === FALSE) {
+
+                    // Cleanup.
+                    DataExchange::releaseResources();
+                    Logging::close_log();
+
+                    $_ = kotoba_last_error();
+                    $_($smarty);
+                    exit(1);
+                } else {
+                    $new_board['same_upload'] = $_;
+                }
                 if ($new_board['same_upload'] != $board['same_upload']) {
                     $changed = true;
                     //echo "same_upload changed<br>\n";

@@ -54,10 +54,26 @@ try {
 
     if (isset($_GET['thread']) && $_GET['thread'] != '' && isset($_GET['board']) && $_GET['board'] != '') {
         $board_name = boards_check_name($_GET['board']);
+        if ($board_name === 1) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+
+            $ERRORS['BOARD_NAME']($smarty);
+            exit(1);
+        }
         $thread_original_post = threads_check_original_post($_GET['thread']);
         header('Location: ' . Config::DIR_PATH . "/$board_name/$thread_original_post/");
     } else if(isset($_GET['board']) && $_GET['board'] != '') {
         $board_name = boards_check_name($_GET['board']);
+        if ($board_name === 1) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+
+            $ERRORS['BOARD_NAME']($smarty);
+            exit(1);
+        }
         header('Location: ' . Config::DIR_PATH . "/$board_name/");
     }
 

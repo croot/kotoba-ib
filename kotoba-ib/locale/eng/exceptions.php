@@ -19,10 +19,6 @@ require_once Config::ABS_PATH . '/lib/exceptions.php';
  * Data format exceptions. *
  ***************************/
 
-FormatException::$messages['BOARD_NAME'] = 'Board name wrong format. Board name must be string length at 1 to 16 symbols. Symbols can be latin letters and digits.';
-FormatException::$messages['BOARD_BUMP_LIMIT'] = 'Bump limit must be digit greater than zero.';
-FormatException::$messages['BOARD_SAME_UPLOAD'] = 'Upload policy from same files wrong format. It must be string at 1 to 32 latin letters.';
-
 FormatException::$messages['BANS_RANGE_BEG'] = 'Begining of IP-address range has wrong format.';
 FormatException::$messages['BANS_RANGE_END'] = 'End of IP-address range has wrong format.';
 FormatException::$messages['BANS_REASON'] = 'Ban reason has wrong format.';
