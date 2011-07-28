@@ -51,7 +51,20 @@ try {
         DataExchange::releaseResources();
         exit(1);
     }
-    $password = isset($REQUEST['password']) ? posts_check_password($REQUEST['password']) : (isset($_SESSION['password']) ? $_SESSION['password'] : NULL);
+    if (isset($REQUEST['password'])) {
+        $password = posts_check_password($REQUEST['password']);
+        if ($password === FALSE) {
+
+            // Cleanup
+            DataExchange::releaseResources();
+
+            $_ = kotoba_last_error();
+            $_($smarty);
+            exit(1);
+        }
+    } else {
+        $password = isset($_SESSION['password']) ? $_SESSION['password'] : NULL;
+    }
 
     // Remove post.
     if (is_admin() || ($post['password'] !== null && $post['password'] === $password)) {

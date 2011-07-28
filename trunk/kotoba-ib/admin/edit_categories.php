@@ -54,8 +54,20 @@ try {
 
     // Add category.
     if (isset($_POST['new_category']) && $_POST['new_category'] !== '') {
-        categories_add(categories_check_name($_POST['new_category']));
-        $reload_categories = true;
+        $_ = categories_check_name($_POST['new_category']);
+        if ($_ === FALSE) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+            Logging::close_log();
+
+            $_ = kotoba_last_error();
+            $_($smarty);
+            exit(1);
+        } else {
+            categories_add($_);
+            $reload_categories = true;
+        }
     }
 
     // Delete categories.

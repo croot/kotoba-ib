@@ -406,20 +406,21 @@ function bans_check_range_beg($range_beg) {
 /**
  * Check ending of IP-address range.
  * @param string $range_beg Ending of IP-address range.
- * @return string
- * safe ending of IP-address range.
+ * @return string|boolean Returns safe ending of IP-address range or boolean
+ * FALSE if any error occurred and set last error to appropriate error object.
  */
 function bans_check_range_end($range_end) {
     if ( ($range_end = ip2long($range_end)) == false) {
-        throw new FormatException($EXCEPTIONS['BANS_RANGE_END']());
+        kotoba_set_last_error(new RangeEndError());
+        return FALSE;
     }
     return $range_end;
 }
 /**
  * Check ban reason.
  * @param string $reason Ban reason.
- * @return string
- * safe reason.
+ * @return string|boolean Returs safe reason or boolean FALSE if any error
+ * occured and set last error to appropriate error object.
  */
 function bans_check_reason($reason) {
     $length = strlen($reason);
@@ -427,10 +428,12 @@ function bans_check_reason($reason) {
         $reason = htmlentities($reason, ENT_QUOTES, Config::MB_ENCODING);
         $length = strlen($reason);
         if ($length > 10000 || $length < 1) {
-            throw new FormatException($EXCEPTIONS['BANS_REASON']());
+            kotoba_set_last_error(new BansReasonError());
+            return FALSE;
         }
     } else {
-        throw new FormatException($EXCEPTIONS['BANS_REASON']());
+        kotoba_set_last_error(new BansReasonError());
+        return FALSE;
     }
     return $reason;
 }
@@ -849,18 +852,21 @@ function categories_check_id($id) {
 /**
  * Check category name.
  * @param mixed $name Name.
- * @return string
- * safe name.
+ * @return string|boolean Returns safe name or boolean FALSE if any error
+ * occurred and set last error to appropriate error object.
  */
 function categories_check_name($name) {
     $length = strlen($name);
     if ($length <= 50 && $length >= 1) {
         $name = RawUrlEncode($name);
         $length = strlen($name);
-        if($length > 50 || (strpos($name, '%') !== false) || $length < 1)
-        throw new FormatException($EXCEPTIONS['CATEGORY_NAME']());
+        if ($length > 50 || (strpos($name, '%') !== false) || $length < 1) {
+            kotoba_set_last_error(new CategoryNameError());
+            return FALSE;
+        }
     } else {
-        throw new FormatException($EXCEPTIONS['CATEGORY_NAME']());
+        kotoba_set_last_error(new CategoryNameError());
+        return FALSE;
     }
 
     return $name;
@@ -931,8 +937,8 @@ function groups_check_id($id) {
 /**
  * Check group name.
  * @param mixed $name Group name.
- * @return string
- * safe group name.
+ * @return string|boolean Returns safe group name or boolean FALSE if any error
+ * occurred and set last error to appropriate error object.
  */
 function groups_check_name($name) {
     $length = strlen($name);
@@ -940,10 +946,12 @@ function groups_check_name($name) {
         $name = RawUrlEncode($name);
         $length = strlen($name);
         if ($length > 50 || (strpos($name, '%') !== false) || $length < 1) {
-            throw new FormatException($EXCEPTIONS['GROUP_NAME']());
+            kotoba_set_last_error(new GroupNameError());
+            return FALSE;
         }
     } else {
-        throw new FormatException($EXCEPTIONS['GROUP_NAME']());
+        kotoba_set_last_error(new GroupNameError());
+        return FALSE;
     }
 
     return $name;
@@ -1132,8 +1140,8 @@ function languages_add($code) {
 /**
  * Check language ISO_639-2 code.
  * @param mixed $code ISO_639-2 code.
- * @return string
- * safe ISO_639-2 code.
+ * @return string|boolean Returns safe ISO_639-2 code or boolean FALSE if any
+ * error occurred and set last error to appropriate object.
  */
 function languages_check_code($code) {
     $length = strlen($code);
@@ -1141,10 +1149,12 @@ function languages_check_code($code) {
         $code = RawUrlEncode($code);
         $length = strlen($code);
         if ($length != 3 || (strpos($code, '%') !== FALSE)) {
-            throw new FormatException(FormatException::$messages['LANGUAGE_CODE']);
+            kotoba_set_last_error(new LanguageCodeError());
+            return FALSE;
         }
     } else {
-        throw new FormatException(FormatException::$messages['LANGUAGE_CODE']);
+        kotoba_set_last_error(new LanguageCodeError());
+        return FALSE;
     }
 
     return $code;
@@ -1222,8 +1232,8 @@ function macrochan_tags_add($name) { // Java CC
 /**
  * Check if macrochan tag valid.
  * @param string $name Tag name.
- * @return string
- * safe macrochan tag name.
+ * @return string|boolean Returns safe macrochan tag name or boolean FALSE if
+ * any error occurred and set last error to appropriate error object.
  */
 function macrochan_tags_check($name) {
     $macrochan_tags = macrochan_tags_get_all();
@@ -1232,7 +1242,9 @@ function macrochan_tags_check($name) {
             return $tag['name'];
         }
     }
-    throw new FormatException(FormatException::$messages['MACROCHAN_TAG_NAME']);
+
+    kotoba_set_last_error(new MacrochanTagNameError());
+    return FALSE;
 }
 /**
  * Delete tag.
@@ -1361,18 +1373,21 @@ function popdown_handlers_check_id($id) {
 /**
  * Check popdown handler name.
  * @param mixed $name Popdown handler name.
- * safe popdown handler name.
+ * @return string|boolean Returns safe popdown handler name or boolean FALSE if
+ * any error occurred and set last error to appropriate error object.
  */
 function popdown_handlers_check_name($name) {
     $length = strlen($name);
     if ($length <= 50 && $length >= 1) {
         $name = RawUrlEncode($name);
         $length = strlen($name);
-        if($length > 50 || (strpos($name, '%') !== false) || $length < 1 || ctype_digit($name[0])) {
-            throw new FormatException(FormatException::$messages['POPDOWN_HANDLER_NAME']);
+        if ($length > 50 || (strpos($name, '%') !== false) || $length < 1 || ctype_digit($name[0])) {
+            kotoba_set_last_error(new PopdownHandlerNameError());
+            return FALSE;
         }
     } else {
-        throw new FormatException(FormatException::$messages['POPDOWN_HANDLER_NAME']);
+        kotoba_set_last_error(new PopdownHandlerNameError());
+        return FALSE;
     }
 
     return $name;
@@ -1480,8 +1495,7 @@ function posts_check_number($number) {
 /**
  * Check password.
  * @param string $password Password.
- * @return string
- * safe password.
+ * @return string|boolean Returns safe password or
  */
 function posts_check_password($password) {
     $password = kotoba_strval($password);
@@ -1494,13 +1508,15 @@ function posts_check_password($password) {
         for ($i = 0; $i < $l; $i++) {
             $code = ord($password[$i]);
             if ($code < 0x30 || $code > 0x39 && $code < 0x41 || $code > 0x5A && $code < 0x61 || $code > 0x7A) {
-                throw new FormatException(FormatException::$messages['POST_PASSWORD']);
+                kotoba_set_last_error(new PostPasswordError());
+                return FALSE;
             }
         }
         return $password;
     }
 
-    throw new FormatException(FormatException::$messages['POST_PASSWORD']);
+    kotoba_set_last_error(new PostPasswordError());
+    return FALSE;
 }
 /**
  * Check subject size.
@@ -1935,13 +1951,14 @@ function spamfilter_add($pattern) {
 /**
  * Check spamfilter pattern.
  * @param mixed $pattern Pattern.
- * @return string
- * safe pattern.
+ * @return string|boolean Returns safe pattern or boolean FALSE if any error
+ * occurred and set last error to appropriate error object.
  */
 function spamfilter_check_pattern($pattern) {
     $pattern = DataExchange::escapeString($pattern);
     if (strlen($pattern) > 256) {
-        throw new FormatException(FormatException::$messages['SPAMFILTER_PATTERN']);
+        kotoba_set_last_error(new SpamfilterPatternError());
+        return FALSE;
     }
 
     return $pattern;

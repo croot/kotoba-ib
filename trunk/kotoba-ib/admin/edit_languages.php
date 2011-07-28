@@ -54,9 +54,20 @@ try {
     // Add new language.
     if (isset($_POST['new_language']) && $_POST['new_language'] !== '') {
         $code = languages_check_code($_POST['new_language']);
-        languages_add($code);
-        create_language_directories($code);
-        $reload_languages = true;
+        if ($code === FALSE) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+            Logging::close_log();
+
+            $_ = kotoba_last_error();
+            $_($smarty);
+            exit(1);
+        } else {
+            languages_add($code);
+            create_language_directories($code);
+            $reload_languages = true;
+        }
     }
 
     // Delete languages.

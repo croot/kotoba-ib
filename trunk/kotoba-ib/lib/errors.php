@@ -101,6 +101,78 @@ class RangeBegError extends KotobaError {
         );
     }
 }
+class RangeEndError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Bans.'),
+            kgettext('End of IP-address range has wrong format.')
+        );
+    }
+}
+class BansReasonError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Bans.'),
+            kgettext('Ban reason has wrong format.')
+        );
+    }
+}
+class CategoryNameError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Categories.'),
+            kgettext('Category name wrong format.')
+        );
+    }
+}
+class GroupNameError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Groups.'),
+            kgettext('Group name wrong format.')
+        );
+    }
+}
+class LanguageCodeError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Languages.'),
+            kgettext('ISO_639-2 code wrong format.')
+        );
+    }
+}
+class MacrochanTagNameError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Macrochan.'),
+            kgettext('Macrochan tag name wrong format or not exist.')
+        );
+    }
+}
+class PopdownHandlerNameError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Popdown handlers.'),
+            kgettext('Popdown handler name wrong format.')
+        );
+    }
+}
+class PostPasswordError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Posts.'),
+            kgettext('Password wrong format. Password must be at 1 to 12 symbols length. Valid symbold is digits and latin letters.')
+        );
+    }
+}
+class SpamfilterPatternError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Spamfilter.'),
+            kgettext('Wrong spamfilter pattern.')
+        );
+    }
+}
 
 $KOTOBA_LAST_ERROR = NULL;
 
