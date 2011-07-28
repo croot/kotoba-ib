@@ -83,11 +83,31 @@ try {
                 exit(1);
             }
             $new_range_end = bans_check_range_end($_POST['new_range_end']);
+            if ($new_range_end === FALSE) {
+
+                // Cleanup.
+                DataExchange::releaseResources();
+                Logging::close_log();
+
+                $_ = kotoba_last_error();
+                $_($smarty);
+                exit(1);
+            }
             if ($_POST['new_reason'] === '') {
                 $new_reason = null;
             }
             else {
                 $new_reason = bans_check_reason($_POST['new_reason']);
+                if ($new_reason === FALSE) {
+
+                    // Cleanup.
+                    DataExchange::releaseResources();
+                    Logging::close_log();
+
+                    $_ = kotoba_last_error();
+                    $_($smarty);
+                    exit(1);
+                }
             }
             $new_untill = bans_check_untill($_POST['new_untill']);
             bans_add($new_range_beg,

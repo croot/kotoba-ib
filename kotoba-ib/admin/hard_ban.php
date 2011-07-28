@@ -64,6 +64,16 @@ try {
             exit(1);
         }
         $new_range_end = bans_check_range_end($_POST['new_range_end']);
+        if ($new_range_end === FALSE) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+            Logging::close_log();
+
+            $_ = kotoba_last_error();
+            $_($smarty);
+            exit(1);
+        }
         hard_ban_add(long2ip($new_range_beg), long2ip($new_range_end));
     }
 

@@ -55,8 +55,19 @@ try {
     // Add new group.
     if (isset($_POST['new_group']) && $_POST['new_group'] !== '') {
         $new_group = groups_check_name($_POST['new_group']);
-        groups_add($new_group);
-        $reload_groups = true;
+        if ($new_group === FALSE) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+            Logging::close_log();
+
+            $_ = kotoba_last_error();
+            $_($smarty);
+            exit(1);
+        } else {
+            groups_add($new_group);
+            $reload_groups = true;
+        }
     }
 
     // Delete group.

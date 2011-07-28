@@ -55,7 +55,18 @@ try {
 
         // Add new pattern.
         if(isset($_POST['new_pattern']) && $_POST['new_pattern'] != '') {
-            spamfilter_add(spamfilter_check_pattern($_POST['new_pattern']));
+            $_ = spamfilter_check_pattern($_POST['new_pattern']);
+            if ($_ === FALSE) {
+
+                // Cleanup.
+                DataExchange::releaseResources();
+                Logging::close_log();
+
+                $_ = kotoba_last_error();
+                $_($smarty);
+                exit(1);
+            }
+            spamfilter_add($_);
             $reload_patterns = true;
         }
 

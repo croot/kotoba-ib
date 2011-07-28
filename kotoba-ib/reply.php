@@ -146,6 +146,15 @@ try {
 	$should_update_password = false;
 	if (isset($_POST['password']) && $_POST['password'] != '') {
         $password = posts_check_password($_POST['password']);
+        if ($password === FALSE) {
+
+            // Cleanup
+            DataExchange::releaseResources();
+
+            $_ = kotoba_last_error();
+            $_($smarty);
+            exit(1);
+        }
         if (!isset($_SESSION['password']) || $_SESSION['password'] != $password) {
             $_SESSION['password'] = $password;
             $should_update_password = true;
@@ -320,7 +329,18 @@ try {
         } elseif (($board['enable_macro'] === null && Config::ENABLE_MACRO || $board['enable_macro'])
                   && isset($_POST['macrochan_tag'])
                   && $_POST['macrochan_tag'] != '') {
-            $macrochan_tag['name'] = macrochan_tags_check($_POST['macrochan_tag']);
+
+            $_ = macrochan_tags_check($_POST['macrochan_tag']);
+            if ($_ === FALSE) {
+
+                // Cleanup
+                DataExchange::releaseResources();
+
+                $_ = kotoba_last_error();
+                $_($smarty);
+                exit(1);
+            }
+            $macrochan_tag['name'] = $_;
             $attachment_type = Config::ATTACHMENT_TYPE_LINK;
         } elseif (($board['enable_youtube'] === null && Config::ENABLE_YOUTUBE || $board['enable_youtube'])
                   && isset($_POST['youtube_video_code'])

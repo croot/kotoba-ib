@@ -53,7 +53,18 @@ try {
 
     // Add popdown handler.
     if (isset($_POST['new_popdown_handler']) && $_POST['new_popdown_handler'] !== '') {
-        popdown_handlers_add(popdown_handlers_check_name($_POST['new_popdown_handler']));
+        $_ = popdown_handlers_check_name($_POST['new_popdown_handler']);
+        if ($_ === FALSE) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+            Logging::close_log();
+
+            $_ = kotoba_last_error();
+            $_($smarty);
+            exit(1);
+        }
+        popdown_handlers_add($_);
         $reload_popdown_handlers = true;
     }
 
