@@ -1,9 +1,4 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* ********************************
  * This file is part of Kotoba.   *
  * See license.txt for more info. *
@@ -13,6 +8,12 @@
  * Интерфейс работы с БД.
  * @package api
  */
+
+/**
+ *
+ */
+require_once dirname(dirname(__FILE__)) . '/config.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 
 /* *********
  * Common. *
@@ -40,10 +41,10 @@ function db_cleanup_link($link) {
         }
 	}
     if ($loop >= 1000) {
-        throw new CommonException("Probably infinity loop.");
+        throw new Exception('Probably infinity loop.');
     }
 	if (mysqli_errno($link)) {
-		throw new CommonException(mysqli_error($link));
+		throw new DBException(mysqli_error($link));
     }
 }
 
@@ -185,10 +186,10 @@ function db_bans_add($link, $range_beg, $range_end, $reason, $untill) {
 function db_bans_check($link, $ip) {
     $result = mysqli_query($link, "call sp_bans_check($ip)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
-    $row = false;
+    $row = FALSE;
     if (mysqli_affected_rows($link) > 0) {
         $row = mysqli_fetch_assoc($result);
         $row = array('range_beg' => $row['range_beg'],
@@ -199,6 +200,7 @@ function db_bans_check($link, $ip) {
 
     mysqli_free_result($result);
     db_cleanup_link($link);
+
     return $row;
 }
 /**
@@ -784,19 +786,19 @@ function db_boards_get_moderatable($link, $user_id) {
  * Returns boards visible to user.
  * @param MySQLi $link Link to database.
  * @param int $user_id User id.
- * @return array
- * boards visible to user.
+ * @return array Boards visible to user.
  */
 function db_boards_get_visible($link, $user_id) {
     $result = mysqli_query($link, "call sp_boards_get_visible($user_id)");
-    if ($result == false) {
-        throw new CommonException(mysqli_error($link));
+    if ($result == FALSE) {
+        throw new DBException(mysqli_error($link));
     }
 
     $boards = array();
     if (mysqli_affected_rows($link) > 0) {
-        while (($row = mysqli_fetch_assoc($result)) != null) {
-            array_push($boards,
+        while (($row = mysqli_fetch_assoc($result)) != NULL) {
+            array_push(
+                $boards,
                 array('id' => $row['id'],
                       'name' => $row['name'],
                       'title' => $row['title'],
@@ -815,12 +817,14 @@ function db_boards_get_visible($link, $user_id) {
                       'same_upload' => $row['same_upload'],
                       'popdown_handler' => $row['popdown_handler'],
                       'category' => $row['category'],
-                      'category_name' => $row['category_name']));
+                      'category_name' => $row['category_name'])
+                );
         }
     }
 
     mysqli_free_result($result);
     db_cleanup_link($link);
+    
     return $boards;
 }
 
@@ -855,26 +859,23 @@ function db_categories_delete($link, $id) {
 /**
  * Get categories.
  * @param MySQLi $link Link to database.
- * @return array
- * category.
+ * @return array Category.
  */
 function db_categories_get_all($link) {
-    // Query.
-    if ( ($result = mysqli_query($link, 'call sp_categories_get_all()')) == FALSE) {
-        throw new CommonException(mysqli_error($link));
+    $result = mysqli_query($link, 'call sp_categories_get_all()');
+    if ($result == FALSE) {
+        throw new DBException(mysqli_error($link));
     }
 
-    // Collect data from query result.
     $categories = array();
     if (mysqli_affected_rows($link) > 0) {
-        while ( ($row = mysqli_fetch_assoc($result)) != null) {
+        while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             array_push($categories,
                        array('id' => $row['id'],
                              'name' => $row['name']));
         }
     }
 
-    // Cleanup.
     mysqli_free_result($result);
     db_cleanup_link($link);
 

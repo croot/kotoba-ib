@@ -5,25 +5,15 @@
  *********************************/
 
 /**
- * Фукнции не попавшие в другие модули или эксперементальные.
+ * Experimental or unsorted functions.
  * @package api
  */
 
 /**
- * Ensure what requirements to use functions and classes from this script are met.
+ *
  */
-if (!array_filter(get_included_files(), function($path) { return basename($path) == 'config.php'; })) {
-    throw new Exception('Configuration file <b>config.php</b> must be included and executed BEFORE '
-                        . '<b>' . basename(__FILE__) . '</b> but its not.');
-}
-if (!array_filter(get_included_files(), function($path) { return basename($path) == 'exceptions.php'; })) {
-    throw new Exception('Error handing file <b>errors.php</b> must be included and executed BEFORE '
-                        . '<b>' . basename(__FILE__) . '</b> but its not.');
-}
-if (!array_filter(get_included_files(), function($path) { return basename($path) == 'errors.php'; })) {
-    throw new Exception('Error handing file <b>errors.php</b> must be included and executed BEFORE '
-                        . '<b>' . basename(__FILE__) . '</b> but its not.');
-}
+require_once dirname(dirname(__FILE__)) . '/config.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 
 /* **************************
  * Начальная инициализация. *
@@ -43,13 +33,21 @@ class SmartyKotobaSetup extends Smarty {
         date_default_timezone_set(Config::DEFAULT_TIMEZONE);
         parent::__construct();
 
-        $language = isset($_SESSION['language']) ? $_SESSION['language'] : Config::LANGUAGE;
-        $stylesheet = isset($_SESSION['stylesheet']) ? $_SESSION['stylesheet'] : Config::STYLESHEET;
+        $language = isset($_SESSION['language'])
+                    ? $_SESSION['language']
+                    : Config::LANGUAGE;
+        $stylesheet = isset($_SESSION['stylesheet']) 
+                      ? $_SESSION['stylesheet']
+                      : Config::STYLESHEET;
 
-        $this->template_dir = Config::ABS_PATH . "/smarty/kotoba/templates/locale/$language/";
-        $this->compile_dir = Config::ABS_PATH . "/smarty/kotoba/templates_c/locale/$language/";
-        $this->config_dir = Config::ABS_PATH . "/smarty/kotoba/config/$language/";
-        $this->cache_dir = Config::ABS_PATH . "/smarty/kotoba/cache/$language/";
+        $this->template_dir = Config::ABS_PATH
+                              . "/smarty/kotoba/templates/locale/$language/";
+        $this->compile_dir = Config::ABS_PATH
+                             . "/smarty/kotoba/templates_c/locale/$language/";
+        $this->config_dir = Config::ABS_PATH
+                            . "/smarty/kotoba/config/$language/";
+        $this->cache_dir = Config::ABS_PATH
+                           . "/smarty/kotoba/cache/$language/";
         $this->caching = 0;
 
         // Variables what available by default in any template.
@@ -67,7 +65,7 @@ function kotoba_intval($var, $throw = TRUE) {
     }
 
     if ($throw) {
-        throw new FormatException($EXCEPTIONS['KOTOBA_INTVAL']());
+        throw new IntvalException();
     } else {
         return NULL;
     }
@@ -80,7 +78,7 @@ function kotoba_strval($var) {
         return strval($var);
     }
 
-    throw new FormatException(FormatException::$messages['KOTOBA_STRVAL']);
+    throw new StrvalException();
 }
 /**
  * Restores php session or create new one. In case of new session default
@@ -102,6 +100,9 @@ function kotoba_session_start() {
 
     // Apply default settings.
     if (!isset($_SESSION['user']) || $_SESSION['user'] == Config::GUEST_ID) {
+        if (!isset($_SESSION['user'])) {
+            $_SESSION['password'] = NULL;
+        }
         $_SESSION['user'] = Config::GUEST_ID;
         $_SESSION['groups'] = array(Config::GST_GROUP_NAME);
         $_SESSION['threads_per_page'] = Config::THREADS_PER_PAGE;
@@ -109,11 +110,8 @@ function kotoba_session_start() {
         $_SESSION['lines_per_post'] = Config::LINES_PER_POST;
         $_SESSION['stylesheet'] = Config::STYLESHEET;
         $_SESSION['language'] = Config::LANGUAGE;
-        if (!isset($_SESSION['user'])) {
-            $_SESSION['password'] = null;
-        }
         $_SESSION['goto'] = 'b';    // Redirection to board view.
-        $_SESSION['name'] = null;
+        $_SESSION['name'] = NULL;
     }
 }
 /**
@@ -131,6 +129,38 @@ function locale_setup() {
  * Разное. *
  ***********/
 
+/**
+ * Returns remote client IP address converted to long value or throw
+ * RemoteAddressException exception if address not defined or invalid.
+ */
+function get_remote_addr() {
+    $ip = FALSE;
+
+    if (isset($_SERVER['REMOTE_ADDR'])) {
+        $ip = ip2long($_SERVER['REMOTE_ADDR']);
+    }
+
+    if ($ip == FALSE) {
+        throw new RemoteAddressException();
+    } else {
+        return $ip;
+    }
+}
+/**
+ * Makes category-boards tree for navigation panel.
+ */
+function make_category_boards_tree(&$categories, $boards) {
+    foreach ($categories as &$c) {
+        $c['boards'] = array();
+        foreach ($boards as $b) {
+            if ($b['category'] == $c['id']
+                    && !in_array($b['name'], Config::$INVISIBLE_BOARDS)) {
+
+                array_push($c['boards'], $b);
+            }
+        }
+    }
+}
 /**
  * Clone array by value.
  * @param array $array Array to clone.
@@ -191,8 +221,7 @@ function load_user_settings($keyword) {
  * Check page number.
  * @param int $page Page number.
  * @param boolean $throw Default value is TRUE. Throw exception or return NULL.
- * @return int
- * safe page number.
+ * @return int Returns safe page number.
  */
 function check_page($page, $throw = TRUE) {
     return kotoba_intval($page, $throw);

@@ -53,7 +53,18 @@ try {
 
     // Add new handler.
     if (isset($_POST['new_upload_handler']) && $_POST['new_upload_handler'] !== '') {
-        upload_handlers_add(upload_handlers_check_name($_POST['new_upload_handler']));
+        $_ = upload_handlers_check_name($_POST['new_upload_handler']);
+        if ($_ === FALSE) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+            Logging::close_log();
+
+            $_ = kotoba_last_error();
+            $_($smarty);
+            exit(1);
+        }
+        upload_handlers_add($_);
         $reload_upload_handlers = true;
     }
 

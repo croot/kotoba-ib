@@ -60,7 +60,7 @@ try {
     if (isset($_REQUEST['page'])) {
         if ( ($page = check_page($_REQUEST['page'], FALSE)) === NULL) {
             DataExchange::releaseResources();
-            throw new FormatException($EXCEPTIONS['KOTOBA_INTVAL']());
+            throw new IntvalException();
         }
     }
 

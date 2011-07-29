@@ -1,9 +1,4 @@
 <?php
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* ********************************
  * This file is part of Kotoba.   *
  * See license.txt for more info. *
@@ -14,19 +9,10 @@
  * @package api
  */
 
-/***/
-if (!array_filter(get_included_files(), function($path) { return basename($path) == 'config.php'; })) {
-    throw new Exception('Configuration file <b>config.php</b> must be included and executed BEFORE '
-                        . '<b>' . basename(__FILE__) . '</b> but its not.');
-}
-if (!array_filter(get_included_files(), function($path) { return basename($path) == 'exceptions.php'; })) {
-    throw new Exception('Error handing file <b>exceptions.php</b> must be included and executed BEFORE '
-                        . '<b>' . basename(__FILE__) . '</b> but its not.');
-}
-if (!array_filter(get_included_files(), function($path) { return basename($path) == 'errors.php'; })) {
-    throw new Exception('Error handing file <b>errors.php</b> must be included and executed BEFORE '
-                        . '<b>' . basename(__FILE__) . '</b> but its not.');
-}
+/**
+ *
+ */
+require_once Config::ABS_PATH . '/lib/errors.php';
 require_once Config::ABS_PATH . '/lib/mysql.php';
 
 /**********
@@ -49,12 +35,13 @@ class DataExchange {
      */
     static function getDBLink() {
         if (self::$link == null) {
-            self::$link = mysqli_connect(Config::DB_HOST, Config::DB_USER, Config::DB_PASS, Config::DB_BASENAME);
+            self::$link = mysqli_connect(Config::DB_HOST, Config::DB_USER,
+                                         Config::DB_PASS, Config::DB_BASENAME);
             if (!self::$link) {
-                throw new CommonException(mysqli_connect_error());
+                throw new DBException(mysqli_connect_error());
             }
             if (!mysqli_set_charset(self::$link, Config::SQL_ENCODING)) {
-                throw new CommonException(mysqli_error(self::$link));
+                throw new DBException(mysqli_error(self::$link));
             }
         }
 
@@ -74,11 +61,13 @@ class DataExchange {
     /**
      * Escapes string to use in SQL statement.
      * @param string $s String to escape.
-     * @return string
-     * escaped string
+     * @return string Returns escaped string.
      */
     static function escapeString($s) {
-        return addcslashes(mysqli_real_escape_string(DataExchange::getDBLink(), $s), '%_');
+        return addcslashes(
+            mysqli_real_escape_string(DataExchange::getDBLink(), $s),
+            '%_'
+        );
     }
 }
 /**
@@ -635,26 +624,18 @@ function boards_check_id($id) {
 /**
  * Check board name.
  * @param string $name Board name.
- * @return string|int Returns safe board name or integer error code. Error
- * codes: 1 - board name has wrong format.
+ * @return string|boolean Returns safe board name or boolean FALSE if any error
+ * occurred and set last error to appropriate error object.
  */
 function boards_check_name($name) {
     $name = kotoba_strval($name);
     $l = strlen($name);
-
-    if ($l <= 16 && $l >= 1) {
-
-        // Symbols must be digits 0-9 or latin letters a-z or A-Z.
-        for ($i = 0; $i < $l; $i++) {
-            $code = ord($name[$i]);
-            if ($code < 0x30 || $code > 0x39 && $code < 0x41 || $code > 0x5A && $code < 0x61 || $code > 0x7A) {
-                return 1;
-            }
-        }
-        return $name;
+    if ($l > 16 || $l < 1 || preg_match('/^[0-9a-zA-Z]+$/', $name) !== 1) {
+        kotoba_set_last_error(new BoardNameError());
+        $name = FALSE;
     }
 
-    return 1;
+    return $name;
 }
 /**
  * Check upload policy for same files.
@@ -795,8 +776,7 @@ function boards_get_moderatable($user_id) {
 /**
  * Returns boards visible to user.
  * @param int $user_id User id.
- * @return array
- * boards visible to user.
+ * @return array Boards visible to user.
  */
 function boards_get_visible($user_id) {
     return db_boards_get_visible(DataExchange::getDBLink(), $user_id);
@@ -880,8 +860,7 @@ function categories_delete($id) {
 }
 /**
  * Get categories.
- * @return array
- * category.
+ * @return array Category.
  */
 function categories_get_all() {
     return db_categories_get_all(DataExchange::getDBLink());
@@ -1828,6 +1807,26 @@ function posts_get_visible_filtred_by_threads($threads, $user_id, $filter) {
             array_slice(func_get_args(), 3, func_num_args()));
 }
 /**
+ * Check if author of post is admin.
+ * @param int $id Post author id.
+ * @return boolean Returns TRUE if author of post is admin and FALSE otherwise.
+ */
+function posts_is_author_admin($id) {
+    static $admins = NULL;
+
+    if ($admins == NULL) {
+        $admins = users_get_admins();
+    }
+
+    foreach ($admins as $admin) {
+        if ($admin['id'] == $id) {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+/**
  * Cleanup and markup text.
  * @param string $text Text.
  * @param array $board Board.
@@ -2002,8 +2001,8 @@ function stylesheets_check_id($id) {
 /**
  * Check stylesheet name.
  * @param mixed $name Stylesheet name.
- * @return string
- * safe stylesheet name.
+ * @return string|boolean Return safe stylesheet name or boolean FALSE if any
+ * error occuerred and set last error to appropriate error object.
  */
 function stylesheets_check_name($name) {
     $length = strlen($name);
@@ -2011,10 +2010,12 @@ function stylesheets_check_name($name) {
         $name = RawUrlEncode($name);
         $length = strlen($name);
         if ($length > 50 || (strpos($name, '%') !== false) || $length < 1) {
-            throw new FormatException(FormatException::$messages['STYLESHEET_NAME']);
+            kotoba_set_last_error(new StylesheetNameError());
+            return FALSE;
         }
     } else {
-        throw new FormatException(FormatException::$messages['STYLESHEET_NAME']);
+        kotoba_set_last_error(new StylesheetNameError());
+        return FALSE;
     }
 
     return $name;
@@ -2338,10 +2339,12 @@ function upload_handlers_check_name($name) {
         $name = RawUrlEncode($name);
         $length = strlen($name);
         if ($length > 50 || (strpos($name, '%') !== false) || $length < 1 || ctype_digit($name[0])) {
-            throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_NAME']);
+            kotoba_set_last_error(new UploadHandlerNameError());
+            return FALSE;
         }
     } else {
-        throw new FormatException(FormatException::$messages['UPLOAD_HANDLER_NAME']);
+        kotoba_set_last_error(new UploadHandlerNameError());
+        return FALSE;
     }
 
     return $name;
@@ -2380,8 +2383,8 @@ function upload_types_add($extension, $store_extension, $is_image, $upload_handl
 /**
  * Check extension.
  * @param string $ext Extension.
- * @return string
- * safe extension.
+ * @return string|boolean Returns safe extension or boolean FALSE if any error
+ * occurred and set last error to appropriate error object.
  */
 function upload_types_check_extension($ext) {
     $length = strlen($ext);
@@ -2389,10 +2392,12 @@ function upload_types_check_extension($ext) {
         $ext = RawUrlEncode($ext);
         $length = strlen($ext);
         if ($length > 10 || (strpos($ext, '%') !== false) || $length < 1) {
-            throw new FormatException(FormatException::$messages['UPLOAD_TYPE_EXTENSION']);
+            kotoba_set_last_error(new UploadTypeExtensionError());
+            return FALSE;
         }
     } else {
-        throw new FormatException(FormatException::$messages['UPLOAD_TYPE_EXTENSION']);
+        kotoba_set_last_error(new UploadTypeExtensionError());
+        return FALSE;
     }
 
     return $ext;
@@ -2418,10 +2423,12 @@ function upload_types_check_store_extension($store_ext) {
         $store_ext = RawUrlEncode($store_ext);
         $length = strlen($store_ext);
         if ($length > 10 || (strpos($store_ext, '%') !== false) || $length < 1) {
-            throw new FormatException(FormatException::$messages['UPLOAD_TYPE_STORE_EXTENSION']);
+            kotoba_set_last_error(new UploadTypeStoreExtensionError());
+            return FALSE;
         }
     } else {
-        throw new FormatException(FormatException::$messages['UPLOAD_TYPE_STORE_EXTENSION']);
+        kotoba_set_last_error(new UploadTypeStoreExtensionError());
+        return FALSE;
     }
 
     return $store_ext;
@@ -2429,8 +2436,8 @@ function upload_types_check_store_extension($store_ext) {
 /**
  * Check thumbnail.
  * @param string $thumbnail_image thumbnail.
- * @return string
- * safe thumbnail.
+ * @return string|boolean Returns safe thumbnail or boolean FALSE if any error
+ * occurred and set last error to appropriate error object.
  */
 function upload_types_check_thumbnail_image($thumbnail_image) {
     $length = strlen($thumbnail_image);
@@ -2439,10 +2446,13 @@ function upload_types_check_thumbnail_image($thumbnail_image) {
         $length = strlen($thumbnail_image);
         if ($length > 256 || (strpos($thumbnail_image, '%') !== false)
                 || $length < 1) {
-            throw new FormatException(FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE']);
+
+            kotoba_set_last_error(new UploadTypeThumbnailError());
+            return FALSE;
         }
     } else {
-        throw new FormatException(FormatException::$messages['UPLOAD_TYPE_THUMBNAIL_IMAGE']);
+        kotoba_set_last_error(new UploadTypeThumbnailError());
+        return FALSE;
     }
 
     return $thumbnail_image;
@@ -2528,14 +2538,15 @@ function user_groups_get_all() {
 /**
  * Check redirection.
  * @param string $goto Redirection.
- * @return string
- * safe redirection.
+ * @return string|boolean Returns safe redirection or boolean FALSE if any error
+ * occured and set last error to appropriate error object.
  */
 function users_check_goto($goto) {
     if ($goto === 'b' || $goto === 't') {
         return $goto;
     } else {
-        throw new FormatException(FormatException::$messages['USER_GOTO']);
+        kotoba_set_last_error(new UserGotoError());
+        return FALSE;
     }
 }
 /**
@@ -2550,8 +2561,8 @@ function users_check_id($id) {
 /**
  * Check keyword.
  * @param string $keyword Keyword.
- * @return string
- * safe keyword.
+ * @return string|boolean Returns safe keyword or boolean FALSE if any error
+ * occurred and set last error to appropriate error object.
  */
 function users_check_keyword($keyword) {
     $keyword = kotoba_strval($keyword);
@@ -2560,10 +2571,12 @@ function users_check_keyword($keyword) {
         $keyword = RawUrlEncode($keyword);
         $length = strlen($keyword);
         if ($length > 32 || (strpos($keyword, '%') !== false) || $length < 2) {
-            throw new FormatException(FormatException::$messages['USER_KEYWORD']);
+            kotoba_set_last_error(new UserKeywordError());
+            return FALSE;
         }
     } else {
-        throw new FormatException(FormatException::$messages['USER_KEYWORD']);
+        kotoba_set_last_error(new UserKeywordError());
+        return FALSE;
     }
 
     return $keyword;
@@ -2571,9 +2584,8 @@ function users_check_keyword($keyword) {
 /**
  * Проверяет корректность количества строк в предпросмотре сообщения.
  * @param string|int $lines_per_post Количество строк в предпросмотре сообщения.
- * @return string
- * Возвращает безопасное для использования количество строк в предпросмотре
- * сообщения.
+ * @return string|boolean Returns safe count of lines per post or boolean FALSE
+ * if any error occurred and set last error to appropriate error object.
  */
 function users_check_lines_per_post($lines_per_post) {
     $lines_per_post = kotoba_intval($lines_per_post);
@@ -2582,14 +2594,16 @@ function users_check_lines_per_post($lines_per_post) {
         $lines_per_post = RawUrlEncode($lines_per_post);
         $length = strlen($lines_per_post);
         if($length > 2 || (ctype_digit($lines_per_post) === false) || $length < 1) {
-            throw new FormatException(FormatException::$messages['USER_LINES_PER_POST'],
-                                      Config::MIN_LINESPERPOST,
-                                      Config::MAX_LINESPERPOST);
+            $_ = new UserLinesPerPostError(Config::MIN_LINESPERPOST,
+                                           Config::MAX_LINESPERPOST);
+            kotoba_set_last_error($_);
+            return FALSE;
         }
     } else {
-        throw new FormatException(FormatException::$messages['USER_LINES_PER_POST'],
-                                      Config::MIN_LINESPERPOST,
-                                      Config::MAX_LINESPERPOST);
+        $_ = new UserLinesPerPostError(Config::MIN_LINESPERPOST,
+                                       Config::MAX_LINESPERPOST);
+        kotoba_set_last_error($_);
+        return FALSE;
     }
 
     return kotoba_intval($lines_per_post);
@@ -2597,8 +2611,8 @@ function users_check_lines_per_post($lines_per_post) {
 /**
  * Check count of posts per thread.
  * @param int $posts_per_thread Count of posts per thread.
- * @return int
- * safe count of posts per thread.
+ * @return int|boolean Returns safe count of posts per thread or boolean FALSE
+ * if any error occurred and set last error to appropriate error object.
  */
 function users_check_posts_per_thread($posts_per_thread) {
     $posts_per_thread = kotoba_intval($posts_per_thread);
@@ -2607,14 +2621,16 @@ function users_check_posts_per_thread($posts_per_thread) {
         $posts_per_thread = RawUrlEncode($posts_per_thread);
         $length = strlen($posts_per_thread);
         if($length > 2 || (ctype_digit($posts_per_thread) === false) || $length < 1) {
-            throw new FormatException(FormatException::$messages['USER_POSTS_PER_THREAD'],
-                                      Config::MIN_POSTSPERTHREAD,
-                                      Config::MAX_POSTSPERTHREAD);
+            $_ = new UserPostsPerThreadError(Config::MIN_POSTSPERTHREAD,
+                                             Config::MAX_POSTSPERTHREAD);
+            kotoba_set_last_error($_);
+            return FALSE;
         }
     } else {
-        throw new FormatException(FormatException::$messages['USER_POSTS_PER_THREAD'],
-                                  Config::MIN_POSTSPERTHREAD,
-                                  Config::MAX_POSTSPERTHREAD);
+        $_ = new UserPostsPerThreadError(Config::MIN_POSTSPERTHREAD,
+                                         Config::MAX_POSTSPERTHREAD);
+        kotoba_set_last_error($_);
+        return FALSE;
     }
 
     return kotoba_intval($posts_per_thread);
@@ -2622,8 +2638,8 @@ function users_check_posts_per_thread($posts_per_thread) {
 /**
  * Check count of threads per page.
  * @param int $threads_per_page Count of threads per page.
- * @return int
- * safe count of threads per page.
+ * @return int|boolean Returns safe count of threads per page or boolean FALSE
+ * if any error occurred and set last error to appropriate error object.
  */
 function users_check_threads_per_page($threads_per_page) {
     $threads_per_page = kotoba_intval($threads_per_page);
@@ -2632,14 +2648,16 @@ function users_check_threads_per_page($threads_per_page) {
         $threads_per_page = RawUrlEncode($threads_per_page);
         $length = strlen($threads_per_page);
         if ($length > 2 || (ctype_digit($threads_per_page) === false) || $length < 1) {
-            throw new FormatException(FormatException::$messages['USER_THREADS_PER_PAGE'],
-                                      Config::MIN_THREADSPERPAGE,
-                                      Config::MAX_THREADSPERPAGE);
+            $_ = new UserThreadsPerPageError(Config::MIN_THREADSPERPAGE,
+                                             Config::MAX_THREADSPERPAGE);
+            kotoba_set_last_error($_);
+            return FALSE;
         }
     } else {
-        throw new FormatException(FormatException::$messages['USER_THREADS_PER_PAGE'],
-                                  Config::MIN_THREADSPERPAGE,
-                                  Config::MAX_THREADSPERPAGE);
+        $_ = new UserThreadsPerPageError(Config::MIN_THREADSPERPAGE,
+                                         Config::MAX_THREADSPERPAGE);
+        kotoba_set_last_error($_);
+        return FALSE;
     }
     return kotoba_intval($threads_per_page);
 }

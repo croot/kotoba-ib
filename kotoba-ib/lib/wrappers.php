@@ -10,6 +10,13 @@
  */
 
 /**
+ *
+ */
+require_once dirname(dirname(__FILE__)) . '/config.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
+
+/**
  * Create html-code of simple post.
  * @param SmartyKotobaSetup $smarty Template engine.
  * @param array $board Board.
@@ -51,7 +58,10 @@ function post_simple_generate_html($smarty,
                                                          $posts_attachments,
                                                          $attachments);
     $post['ip'] = long2ip($post['ip']);
-    if ($enable_geoip && $post['ip'] != '127.0.0.1' && strpos($post['ip'], '192.168') === false) {
+    if ($enable_geoip
+            && $post['ip'] != '127.0.0.1'
+            && strpos($post['ip'], '192.168') === false) {
+
         $geoip = geoip_record_by_name($post['ip']);
         $smarty->assign('country',
                         array('name' => $geoip['country_name'],
@@ -122,7 +132,10 @@ function post_original_generate_html($smarty,
                                                              $posts_attachments,
                                                              $attachments);
     $post['ip'] = long2ip($post['ip']);
-    if ($enable_geoip && $post['ip'] != '127.0.0.1' && strpos($post['ip'], '192.168') === false) {
+    if ($enable_geoip
+            && $post['ip'] != '127.0.0.1'
+            && strpos($post['ip'], '192.168') === false) {
+
         $geoip = geoip_record_by_name($post['ip']);
         $smarty->assign('country',
                         array('name' => $geoip['country_name'],
@@ -156,9 +169,11 @@ function post_original_generate_html($smarty,
  *
  */
 function post_search_generate_html($smarty, &$post, $author_admin) {
-
     $post['ip'] = long2ip($post['ip']);
-    if (is_geoip_enabled($post['board']) && $post['ip'] != '127.0.0.1' && strpos($post['ip'], '192.168') === false) {
+    if (is_geoip_enabled($post['board'])
+            && $post['ip'] != '127.0.0.1'
+            && strpos($post['ip'], '192.168') === false) {
+
         $geoip = geoip_record_by_name($post['ip']);
         $smarty->assign('country',
                         array('name' => $geoip['country_name'],
@@ -173,7 +188,8 @@ function post_search_generate_html($smarty, &$post, $author_admin) {
     $smarty->assign('author_admin', $author_admin);
 
     $smarty->assign('post', $post);
-    $smarty->assign('enable_translation', is_translation_enabled($post['board']));
+    $smarty->assign('enable_translation',
+                    is_translation_enabled($post['board']));
 
     return $smarty->fetch('search_post.tpl');
 }
@@ -195,7 +211,8 @@ function post_report_generate_html($smarty,
     $smarty->assign('post', $post);
     $smarty->assign('author_admin', $author_admin);
     $smarty->assign('attachments', $post_attachments);
-    $smarty->assign('enable_translation', is_translation_enabled($post['board']));
+    $smarty->assign('enable_translation',
+                    is_translation_enabled($post['board']));
     return $smarty->fetch('reports_post.tpl');
 }
 /**
@@ -216,7 +233,8 @@ function post_moderate_generate_html($smarty,
     $smarty->assign('post', $post);
     $smarty->assign('author_admin', $author_admin);
     $smarty->assign('attachments', $post_attachments);
-    $smarty->assign('enable_translation', is_translation_enabled($post['board']));
+    $smarty->assign('enable_translation',
+                    is_translation_enabled($post['board']));
     return $smarty->fetch('reports_post.tpl');
 }
 /**
@@ -229,7 +247,9 @@ function post_moderate_generate_html($smarty,
  * @return array
  * attachments.
  */
-function wrappers_attachments_get_by_post($smarty, $board, &$post, $posts_attachments, $attachments) {
+function wrappers_attachments_get_by_post($smarty, $board, &$post,
+                                          $posts_attachments, $attachments) {
+
     $desired_attachments = array();
 
     $post['with_attachments'] = false;
@@ -241,9 +261,9 @@ function wrappers_attachments_get_by_post($smarty, $board, &$post, $posts_attach
                         case Config::ATTACHMENT_TYPE_FILE:
                             if ($a['id'] == $pa['file']) {
                                 $a['file_link'] = Config::DIR_PATH
-                                    . "/{$board['name']}/other/{$a['name']}";
+                                  . "/{$board['name']}/other/{$a['name']}";
                                 $a['thumbnail_link'] = Config::DIR_PATH
-                                    . "/img/{$a['thumbnail']}";
+                                  . "/img/{$a['thumbnail']}";
                                 $a['deleted'] = $pa['deleted'];
                                 $post['with_attachments'] = true;
                                 array_push($desired_attachments, $a);
@@ -252,9 +272,9 @@ function wrappers_attachments_get_by_post($smarty, $board, &$post, $posts_attach
                         case Config::ATTACHMENT_TYPE_IMAGE:
                             if ($a['id'] == $pa['image']) {
                                 $a['image_link'] = Config::DIR_PATH
-                                    . "/{$board['name']}/img/{$a['name']}";
+                                  . "/{$board['name']}/img/{$a['name']}";
                                 $a['thumbnail_link'] = Config::DIR_PATH
-                                    . "/{$board['name']}/thumb/{$a['thumbnail']}";
+                                  . "/{$board['name']}/thumb/{$a['thumbnail']}";
                                 $a['deleted'] = $pa['deleted'];
                                 $post['with_attachments'] = true;
                                 array_push($desired_attachments, $a);
@@ -271,13 +291,14 @@ function wrappers_attachments_get_by_post($smarty, $board, &$post, $posts_attach
                             if ($a['id'] == $pa['video']) {
                                 $a['deleted'] = $pa['deleted'];
                                 $smarty->assign('code', $a['code']);
-                                $a['video_link'] = $smarty->fetch('youtube.tpl');
+                                $a['video_link']
+                                  = $smarty->fetch('youtube.tpl');
                                 $post['with_attachments'] = true;
                                 array_push($desired_attachments, $a);
                             }
                             break;
                         default:
-                            throw new CommonException('Not supported.');
+                            throw new Exception('Not supported.');
                             break;
                     }
                 }

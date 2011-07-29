@@ -133,12 +133,26 @@ try {
     $should_update_goto = false;
     if (isset($_POST['goto'])) {
         $goto = users_check_goto($_POST['goto']);
+        if ($goto === FALSE) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+
+            $_ = new UserGotoError();
+            $_($smarty);
+            exit(1);
+        }
         if (!isset($_SESSION['goto']) || $_SESSION['goto'] != $goto) {
             $_SESSION['goto'] = $goto;
             $should_update_goto = true;
         }
     } else {
-		throw new FormatException(FormatException::$messages['USER_GOTO']);
+        // Cleanup.
+        DataExchange::releaseResources();
+
+        $_ = new UserGotoError();
+        $_($smarty);
+        exit(1);
     }
 
     // Password.

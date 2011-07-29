@@ -12,7 +12,7 @@
 /**
  *
  */
-require_once '../config.php';
+require_once dirname(dirname(__FILE__)) . '/config.php';
 require_once Config::ABS_PATH . '/lib/kgettext.php';
 
 class Error {
@@ -67,12 +67,20 @@ class KotobaError {
         $this->image = $image;
     }
 
+    function getTitle() {
+        return $this->title;
+    }
+
+    function getText() {
+        return $this->text;
+    }
+
+    function getImage() {
+        return $this->image;
+    }
+
     function __invoke($smarty) {
-        $smarty->assign('ib_name', Config::IB_NAME);
-        $smarty->assign('text', $this->text);
-        $smarty->assign('title', $this->title);
-        $smarty->assign('image', $this->image);
-        $smarty->display('error.tpl');
+        displayErrorPage($smarty, $this);
     }
 }
 
@@ -170,6 +178,113 @@ class SpamfilterPatternError extends KotobaError {
         parent::__construct(
             kgettext('Spamfilter.'),
             kgettext('Wrong spamfilter pattern.')
+        );
+    }
+}
+class StylesheetNameError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Stylesheets.'),
+            kgettext('Stylesheet name wrong format.')
+        );
+    }
+}
+class UploadHandlerNameError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Upload handlers.'),
+            kgettext('Upload handler function name has a wrong format.')
+        );
+    }
+}
+class UploadTypeExtensionError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Uploads.'),
+            kgettext('Extension has wrong format.')
+        );
+    }
+}
+class UploadTypeStoreExtensionError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Uploads.'),
+            kgettext('Stored extension has wrong format.')
+        );
+    }
+}
+class UserGotoError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Users.'),
+            kgettext('Redirection wrong format.')
+        );
+    }
+}
+class UserKeywordError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Users.'),
+            kgettext('Keyword length must be 2 up to 32 symbols. Valid symbols is: latin letters, digits, underscore and dash.')
+        );
+    }
+}
+class UploadTypeThumbnailError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Upload types.'),
+            kgettext('Thumbnail name for nonimage files has wrong format.')
+        );
+    }
+}
+class UserLinesPerPostError extends KotobaError {
+    function __construct($min, $max) {
+        parent::__construct(
+            kgettext('Users.'),
+            sprintf(kgettext('Count of lines per post must be in range %d-%d.'),
+                    $min, $max)
+        );
+    }
+}
+class UserPostsPerThreadError extends KotobaError {
+    function __construct($min, $max) {
+        parent::__construct(
+            kgettext('Users.'),
+            sprintf(
+                kgettext('Count of posts per thread must be in range %d-%d.'),
+                $min,
+                $max
+            )
+        );
+    }
+}
+class UserThreadsPerPageError extends KotobaError {
+    function __construct($min, $max) {
+        parent::__construct(
+            kgettext('Users.'),
+            sprintf(
+                kgettext('Count of threads per page must be in range %d-%d.'),
+                $min,
+                $max
+            )
+        );
+    }
+}
+class BoardNameError extends KotobaError {
+    function __construct($min, $max) {
+        parent::__construct(
+            kgettext('Boards.'),
+            kgettext('Board name has wrong format. Board name must be string '
+                     . 'length at 1 to 16 symbols. Symbols can be latin '
+                     . 'letters and digits.')
+        );
+    }
+}
+class BoardNotFoundError extends KotobaError {
+    function __construct($name) {
+        parent::__construct(
+            kgettext('Boards.'),
+            sprintf(kgettext('Board name=%s not found.'), $name)
         );
     }
 }
@@ -287,17 +402,6 @@ $ERRORS['BOARD_NOT_ALLOWED']
                     $smarty->assign('ib_name', Config::IB_NAME);
                     $smarty->assign('text',
                                     sprintf($text, $user_id, $board_id));
-                    $smarty->assign('title', $title);
-                    $smarty->assign('image', $image);
-                    die($smarty->fetch('error.tpl'));
-                });
-$ERRORS['BOARD_NOT_FOUND']
-    = new Error('Board name=%s not found.', 'Boards.',
-                Config::DIR_PATH . '/img/errors/board_not_found.png',
-                function ($smarty, $name, $text, $title, $image) {
-                    $smarty->assign('show_control', is_admin() || is_mod());
-                    $smarty->assign('ib_name', Config::IB_NAME);
-                    $smarty->assign('text', sprintf($text, $name));
                     $smarty->assign('title', $title);
                     $smarty->assign('image', $image);
                     die($smarty->fetch('error.tpl'));
@@ -421,8 +525,13 @@ $ERRORS['MIN_IMG_SIZE']
     = new Error('Image too small.', 'Uploads.');
 $ERRORS['WORD_TOO_LONG']
     = new Error('Word too long.', 'Wordfilter.');
-$ERRORS['BOARD_NAME']
-    = new Error('Board name wrong format. Board name must be string length at '
-                . '1 to 16 symbols. Symbols can be latin letters and digits.',
-                'Boards.');
+
+
+function display_error_page($smarty, $error) {
+    $smarty->assign('ib_name', Config::IB_NAME);
+    $smarty->assign('text', $error->getText());
+    $smarty->assign('title', $error->getTitle());
+    $smarty->assign('image', $error->getImage());
+    $smarty->display('error.tpl');
+}
 ?>

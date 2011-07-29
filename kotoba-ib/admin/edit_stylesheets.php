@@ -53,7 +53,18 @@ try {
 
     // Add stylesheet.
     if (isset($_POST['new_stylesheet']) && $_POST['new_stylesheet'] !== '') {
-        stylesheets_add(stylesheets_check_name($_POST['new_stylesheet']));
+        $_ = stylesheets_check_name($_POST['new_stylesheet']);
+        if ($_ === FALSE) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+            Logging::close_log();
+
+            $_ = kotoba_last_error();
+            $_($smarty);
+            exit(1);
+        }
+        stylesheets_add($_);
         $reload_stylesheets = true;
     }
 
