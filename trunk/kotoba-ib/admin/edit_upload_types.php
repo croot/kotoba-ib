@@ -63,14 +63,51 @@ try {
                 && $_POST['new_store_extension'] !== ''
                 && $_POST['new_upload_handler'] !== '') {
 
-            $new_extension =  upload_types_check_extension($_POST['new_extension']);
-            $new_store_extension = upload_types_check_store_extension($_POST['new_store_extension']);
+            $_ = upload_types_check_extension($_POST['new_extension']);
+            if ($_ === FALSE) {
+
+                // Cleanup.
+                DataExchange::releaseResources();
+                Logging::close_log();
+
+                $_ = kotoba_last_error();
+                $_($smarty);
+                exit(1);
+            }
+            $new_extension = $_;
+            $_ = upload_types_check_store_extension(
+                $_POST['new_store_extension']
+            );
+            if ($_ === FALSE) {
+
+                // Cleanup.
+                DataExchange::releaseResources();
+                Logging::close_log();
+
+                $_ = kotoba_last_error();
+                $_($smarty);
+                exit(1);
+            }
+            $new_store_extension = $_;
             $new_is_image = isset($_POST['new_is_image']) ? 1 : 0;
             $new_upload_handler_id = upload_handlers_check_id($_POST['new_upload_handler']);
             if ($_POST['new_thumbnail_image'] === '') {
                 $new_thumbnail_image = null;
             } else {
-                $new_thumbnail_image = upload_types_check_thumbnail_image($_POST['new_thumbnail_image']);
+                $_ = upload_types_check_thumbnail_image(
+                    $_POST['new_thumbnail_image']
+                );
+                if ($_ === FALSE) {
+
+                    // Cleanup.
+                    DataExchange::releaseResources();
+                    Logging::close_log();
+
+                    $_ = kotoba_last_error();
+                    $_($smarty);
+                    exit(1);
+                }
+                $new_thumbnail_image = $_;
             }
 
             // Change or add upload type.
@@ -99,7 +136,18 @@ try {
             $param_name = 'store_extension_' . $upload_type['id'];
             $new_store_extension = $upload_type['store_extension'];
             if (isset($_POST[$param_name]) && ($_POST[$param_name] != $upload_type['store_extension'])) {
-                $new_store_extension = upload_types_check_store_extension($_POST[$param_name]);
+                $_ = upload_types_check_store_extension($_POST[$param_name]);
+                if ($_ === FALSE) {
+
+                    // Cleanup.
+                    DataExchange::releaseResources();
+                    Logging::close_log();
+
+                    $_ = kotoba_last_error();
+                    $_($smarty);
+                    exit(1);
+                }
+                $new_store_extension = $_;
             }
 
             // Is image flag changes?
@@ -126,7 +174,20 @@ try {
                 if ($_POST[$param_name] === '') {
                     $new_thumbnail_image = null;
                 } else {
-                    $new_thumbnail_image = upload_types_check_thumbnail_image($_POST[$param_name]);
+                    $_ = upload_types_check_thumbnail_image(
+                        $_POST[$param_name]
+                    );
+                    if ($_ === FALSE) {
+
+                        // Cleanup.
+                        DataExchange::releaseResources();
+                        Logging::close_log();
+
+                        $_ = kotoba_last_error();
+                        $_($smarty);
+                        exit(1);
+                    }
+                    $new_thumbnail_image = $_;
                 }
             }
 

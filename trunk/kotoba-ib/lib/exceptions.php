@@ -12,7 +12,7 @@
 /**
  * 
  */
-require_once '../config.php';
+require_once dirname(dirname(__FILE__)) . '/config.php';
 require_once Config::ABS_PATH . '/lib/kgettext.php';
 
 /**
@@ -34,6 +34,13 @@ abstract class KotobaException extends Exception {
         $_ = htmlentities(parent::__toString(), ENT_QUOTES,
                           Config::MB_ENCODING);
         return nl2br($_);
+    }
+
+    /**
+     * Returns message data.
+     */
+    function getMessageData() {
+        return $this->message_data;
     }
 }
 
@@ -78,10 +85,33 @@ class UploadException extends KotobaException {}
  */
 class LimitException extends KotobaException {}
 
-class ConvertPNGException extends CommonException {
+class DBException extends CommonException {
+    public function __construct($err) {
+        $_['title'] = kgettext('Database error.');
+        $_['text'] = kgettext('Error in database: %s.');
+        $_['text'] = sprintf($_['text'], $err);
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class IntvalException extends CommonException {
     public function __construct() {
-        $_['title'] = kgettext('Image convertion.');
-        $_['text'] = kgettext('Cannot convert image to PNG format.');
+        $_['title'] = 'Intval.';
+        $_['text'] = kgettext('Object cannot be cast to intger. See '
+                              . 'description to intval() function.');
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
+class StrvalException extends CommonException {
+    public function __construct() {
+        $_['title'] = 'Strval.';
+        $_['text'] = kgettext('Arrays and Objects what not implements '
+                              . '__toString() method, cannot be cast to '
+                              . 'string. See description to strval() '
+                              . 'function.');
         $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
         $this->message_data = $_;
         parent::__construct($_['text']);
@@ -306,7 +336,7 @@ class UnknownUploadTypeException extends UploadException {
     }
 }
 
-function displayExceptionPage($smarty, $exception, $show_control) {
+function display_exception_page($smarty, $exception, $show_control) {
     $md = $exception->getMessageData();
     $smarty->assign('show_control', $show_control);
     $smarty->assign('ib_name', Config::IB_NAME);
@@ -316,6 +346,4 @@ function displayExceptionPage($smarty, $exception, $show_control) {
     $smarty->assign('debug_info', $exception->__toString());
     $smarty->display('exception.tpl');
 }
-
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/exceptions.php';
 ?>

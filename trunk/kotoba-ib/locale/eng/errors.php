@@ -21,11 +21,4 @@ if (!array_filter(get_included_files(), function($path) { return basename($path)
                         . '<b>' . __FILE__ . '</b> but its not.');
 }
 
-/***/
-$ERRORS['DEFAULT']
-    = new Error('Default error occurs.', 'Default error.');
-$ERRORS['KOTOBA_INTVAL']
-    = new Error('Object cannot be cast to intger. See description to intval() '
-                . 'function in PHP documentation.',
-                'Cast to integer.');
 ?>

@@ -117,12 +117,26 @@ try {
     $should_update_goto = false;
     if (isset($_POST['goto'])) {
         $goto = users_check_goto($_POST['goto']);
+        if ($goto === FALSE) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+
+            $_ = new UserGotoError();
+            $_($smarty);
+            exit(1);
+        }
         if (!isset($_SESSION['goto']) || $_SESSION['goto'] != $goto) {
             $_SESSION['goto'] = $goto;
             $should_update_goto = true;
         }
     } else {
-        throw new FormatException(FormatException::$messages['USER_GOTO']);
+        // Cleanup.
+        DataExchange::releaseResources();
+
+        $_ = new UserGotoError();
+        $_($smarty);
+        exit(1);
     }
 
     // Password.
@@ -599,7 +613,7 @@ try {
     if (isset($abs_thumb_path)) {
         unlink($abs_thumb_path);
     }
-    displayExceptionPage($smarty, $e, is_admin() || is_mod());
+    display_exception_page($smarty, $e, is_admin() || is_mod());
 } catch (Exception $e) {
     $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();

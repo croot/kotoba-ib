@@ -47,7 +47,17 @@ try {
         if (Config::LANGUAGE != $_SESSION['language']) {
             require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
         }
-        $keyword_hash = md5(users_check_keyword($_POST['keyword_load']));
+        $_ = users_check_keyword($_POST['keyword_load']);
+        if ($_ === FALSE) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+
+            $_ = kotoba_last_error();
+            $_($smarty);
+            exit(1);
+        }
+        $keyword_hash = md5($_);
         if (load_user_settings($keyword_hash) === 1) {
 
             // Cleanup.
@@ -67,10 +77,49 @@ try {
         if (Config::LANGUAGE != $_SESSION['language']) {
             require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
         }
-        $keyword_hash = md5(users_check_keyword($_POST['keyword_save']));
-        $threads_per_page = users_check_threads_per_page($_POST['threads_per_page']);
-        $posts_per_thread = users_check_posts_per_thread($_POST['posts_per_thread']);
+        $_ = users_check_keyword($_POST['keyword_save']);
+        if ($_ === FALSE) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+
+            $_ = kotoba_last_error();
+            $_($smarty);
+            exit(1);
+        }
+        $keyword_hash = md5($_);
+        $_ = users_check_threads_per_page($_POST['threads_per_page']);
+        if ($_ === FALSE) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+
+            $_ = kotoba_last_error();
+            $_($smarty);
+            exit(1);
+        }
+        $threads_per_page = $_;
+        $_ = users_check_posts_per_thread($_POST['posts_per_thread']);
+        if ($_ === FALSE) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+
+            $_ = kotoba_last_error();
+            $_($smarty);
+            exit(1);
+        }
+        $posts_per_thread = $_;
         $lines_per_post = users_check_lines_per_post($_POST['lines_per_post']);
+        if ($lines_per_post === FALSE) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+
+            $_ = kotoba_last_error();
+            $_($smarty);
+            exit(1);
+        }
 
         $stylesheet_id = stylesheets_check_id($_POST['stylesheet_id']);
         $found = false;
@@ -107,6 +156,15 @@ try {
         }
 
         $goto = users_check_goto($_POST['goto']);
+        if ($goto === FALSE) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+
+            $_ = new UserGotoError();
+            $_($smarty);
+            exit(1);
+        }
         users_edit_by_keyword($keyword_hash,
                               $posts_per_thread,
                               $threads_per_page,

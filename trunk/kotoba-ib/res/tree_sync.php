@@ -15,7 +15,7 @@ $default_check = array(function ($c) {
                        });
 
 $default_copy = array(function ($c) {
-                          $command = "install -o {$c['u']} -g {$c['g']} -m {$c['m']} \"{$c['s']}\" \"{$c['d']}\"";
+                          $command = "install -o {$c['u']} -g {$c['g']} -m {$c['m']} \"{$c['s']}\" \"{$c['dp']}\"";
 
                           echo "$command\n";
                           exec($command, $output, $return_var);
@@ -62,6 +62,7 @@ $tree = array('admin' => array('archive.php' => $default_copy_check,
                              'errors.php' => $default_copy_check,
                              'events.php' => $default_copy_check,
                              'exceptions.php' => $default_copy_check,
+                             'kgettext.php' => $default_copy_check,
                              'latex_render.php' => $default_copy_check,
                              'logging.php' => $default_copy_check,
                              'mark.php' => $default_copy_check,
@@ -75,10 +76,12 @@ $tree = array('admin' => array('archive.php' => $default_copy_check,
                              'wrappers.php' => $default_copy_check),
               'locale' => array('eng' => array('errors.php' => $default_copy_check,
                                                'exceptions.php' => $default_copy_check,
-                                               'logging.php' => $default_copy_check),
+                                               'logging.php' => $default_copy_check,
+                                               'messages.php' => $default_copy_check),
                                 'rus' => array('errors.php' => $default_copy_check,
                                                'exceptions.php' => $default_copy_check,
-                                               'logging.php' => $default_copy_check)),
+                                               'logging.php' => $default_copy_check,
+                                               'messages.php' => $default_copy_check)),
               'smarty' => array('kotoba' => array('templates' => array('locale' => array('eng' => array('adminbar.tpl' => $default_copy_check,
                                                                                                         'adm_panel.tpl' => $default_copy_check,
                                                                                                         'banned.tpl' => $default_copy_check,
@@ -240,6 +243,7 @@ function walk_trough($node, $route) {
             $pass = true;
             $c = array('s' => "{$SVN_PATH}$route/$key",
                        'd' => "{$WEB_PATH}$route/$key",
+                       'dp' => "{$WEB_PATH}$route/",
                        'ug' => "apache:apache",
                        'u' => "apache",
                        'g' => "apache",
@@ -249,7 +253,7 @@ function walk_trough($node, $route) {
                     $pass = $pass && $command($c);
                 }
             }
-            if ($pass) {
+            if ($pass || !file_exists($c['d'])) {
                 foreach ($value['copy'] as $copy) {
                     foreach ($copy as $command) {
                         $command($c);

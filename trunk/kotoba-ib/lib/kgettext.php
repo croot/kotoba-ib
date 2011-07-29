@@ -12,7 +12,10 @@
 /**
  *
  */
-require_once '../config.php';
+require_once dirname(dirname(__FILE__)) . '/config.php';
+
+// Messages in default language.
+require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/messages.php';
 
 function kgettext($text) {
     global $KOTOBA_LOCALE_MESSAGES;

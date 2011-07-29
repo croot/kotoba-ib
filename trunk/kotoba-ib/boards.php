@@ -8,14 +8,15 @@
  * Board view script.
  *
  * Parameters:
+ * board - board name.
  * page - page number.
  */
 
-require_once 'config.php';
+require_once dirname(__FILE__) . '/config.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
 require_once Config::ABS_PATH . '/lib/exceptions.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
 require_once Config::ABS_PATH . '/lib/db.php';
-require_once Config::ABS_PATH . '/lib/misc.php';
 require_once Config::ABS_PATH . '/lib/wrappers.php';
 require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
 require_once Config::ABS_PATH . '/lib/events.php';
@@ -24,36 +25,36 @@ try {
     // Initialization.
     kotoba_session_start();
     if (Config::LANGUAGE != $_SESSION['language']) {
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/errors.php";
+        require Config::ABS_PATH
+            . "/locale/{$_SESSION['language']}/messages.php";
     }
     locale_setup();
     $smarty = new SmartyKotobaSetup();
 
     // Check if client banned.
-    if (!isset($_SERVER['REMOTE_ADDR'])
-            || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
+    if ( ($ban = bans_check(get_remote_addr())) !== FALSE) {
 
-        throw new RemoteAddressException();
-    }
-    if ( ($ban = bans_check($ip)) !== false) {
+        // Cleanup.
+        DataExchange::releaseResources();
+
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
+        $smarty->display('banned.tpl');
+
         session_destroy();
-        DataExchange::releaseResources();
-        die($smarty->fetch('banned.tpl'));
+        exit(1);
     }
 
     // Fix for Firefox.
     header("Cache-Control: private");
 
-    $board_name = boards_check_name($_GET['board']);
-    if ($board_name === 1) {
+    $board_name = boards_check_name($_REQUEST['board']);
+    if ($board_name === FALSE) {
 
         // Cleanup.
         DataExchange::releaseResources();
 
-        $ERRORS['BOARD_NAME']($smarty);
+        display_error_page($smarty, kotoba_last_error());
         exit(1);
     }
 
@@ -67,22 +68,14 @@ try {
         $password = $_SESSION['password'];
     }
 
-    $categories = categories_get_all();
-    $boards = boards_get_visible($_SESSION['user']);
     $board = NULL;
     $banners_board_id = null;
     $posts_attachments = array();
     $attachments = array();
 
-    // Make category-boards tree for navigation panel.
-    foreach ($categories as &$c) {
-        $c['boards'] = array();
-        foreach ($boards as $b) {
-            if ($b['category'] == $c['id'] && !in_array($b['name'], Config::$INVISIBLE_BOARDS)) {
-                array_push($c['boards'], $b);
-            }
-        }
-    }
+    $categories = categories_get_all();
+    $boards = boards_get_visible($_SESSION['user']);
+    make_category_boards_tree($categories, $boards);
 
     foreach ($boards as $b) {
         if ($b['name'] == $board_name) {
@@ -98,7 +91,7 @@ try {
         // Cleanup.
         DataExchange::releaseResources();
 
-        $ERRORS['BOARD_NOT_FOUND']($smarty, $board_name);
+        display_error_page($smarty, new BoardNotFoundError($board_name));
         exit(1);
     }
 
