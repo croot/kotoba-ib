@@ -1813,11 +1813,13 @@ function posts_get_visible_by_threads_preview($board_id, &$threads, $user_id,
  * posts.
  */
 function posts_get_visible_filtred_by_threads($threads, $user_id, $filter) {
-    return db_posts_get_visible_filtred_by_threads(DataExchange::getDBLink(),
-            $threads,
-            $user_id,
-            $filter,
-            array_slice(func_get_args(), 3, func_num_args()));
+    return db_posts_get_visible_filtred_by_threads(
+        DataExchange::getDBLink(),
+        $threads,
+        $user_id,
+        $filter,
+        array_slice(func_get_args(), 3, func_num_args())
+    );
 }
 /**
  * Check if author of post is admin.
@@ -2209,7 +2211,7 @@ function threads_get_moderatable($user_id, $page = 1, $threads_per_page = 100) {
  * Get moderatable thread.
  * @param int $thread_id Thread id.
  * @param int $user_id User id.
- * @return mixed
+ * @return array|null
  * thread or NULL if this thread is not moderatable for this user.
  */
 function threads_get_moderatable_by_id($thread_id, $user_id) {
@@ -2275,11 +2277,13 @@ function threads_search_visible_by_board($board_id, $page, $user_id,
  * @param int $board Board id.
  * @param int $original_post Original post number.
  * @param int $user_id User id.
- * @return int|array Returns array of thread data or integer error value. Error
- * values is: 1 if user have no permissions to view thread, 2 if thread not
- * found.
+ * @return array|boolean
+ * thread or boolean FALSE if any error occurred and set last error to
+ * appropriate error object.
  */
-function threads_get_visible_by_original_post($board, $original_post, $user_id) {
+function threads_get_visible_by_original_post($board, $original_post,
+                                              $user_id) {
+
     return db_threads_get_visible_by_original_post(DataExchange::getDBLink(),
                                                    $board,
                                                    $original_post,

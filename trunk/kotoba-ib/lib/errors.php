@@ -297,6 +297,23 @@ class MaxPageError extends KotobaError {
         );
     }
 }
+class ThreadNotAvailableError extends KotobaError {
+    function __construct($user_id, $original_post) {
+        parent::__construct(
+            kgettext('Threads.'),
+            sprintf(kgettext('You id=%d have no permission to do it on thread '
+                             . 'number=%d.'), $user_id, $original_post)
+        );
+    }
+}
+class ThreadNotFoundError extends KotobaError {
+    function __construct($original_post) {
+        parent::__construct(
+            kgettext('Threads.'),
+            sprintf(kgettext('Thread number=%d not found.'), $original_post)
+        );
+    }
+}
 
 $KOTOBA_LAST_ERROR = NULL;
 
@@ -378,17 +395,6 @@ $ERRORS['STYLESHEET_NOT_EXIST']
                     $smarty->assign('image', $image);
                     die($smarty->fetch('error.tpl'));
                 });
-$ERRORS['THREAD_NOT_FOUND']
-    = new Error('Thread number=%d not found.', 'Threads.',
-                Config::DIR_PATH . '/img/errors/board_not_found.png',
-                function ($smarty, $name, $text, $title, $image) {
-                    $smarty->assign('show_control', is_admin() || is_mod());
-                    $smarty->assign('ib_name', Config::IB_NAME);
-                    $smarty->assign('text', sprintf($text, $name));
-                    $smarty->assign('title', $title);
-                    $smarty->assign('image', $image);
-                    die($smarty->fetch('error.tpl'));
-                });
 $ERRORS['THREAD_NOT_FOUND_ID']
     = new Error('Thread id=%d not found.', 'Threads.',
                 Config::DIR_PATH . '/img/errors/board_not_found.png',
@@ -448,21 +454,6 @@ $ERRORS['NOT_ADMIN']
     = new Error('You are not admin.', 'Admin.');
 $ERRORS['NOT_MOD']
     = new Error('You are not moderator.', 'Moderator.');
-$ERRORS['THREAD_NOT_ALLOWED']
-    = new Error('You id=%d have no permission to do it on thread id=%d.',
-                'Threads.',
-                Config::DIR_PATH . '/img/errors/default_error.png',
-                function ($smarty, $user_id, $thread_id, $text, $title,
-                          $image) {
-
-                    $smarty->assign('show_control', is_admin() || is_mod());
-                    $smarty->assign('ib_name', Config::IB_NAME);
-                    $smarty->assign('text',
-                                    sprintf($text, $user_id, $thread_id));
-                    $smarty->assign('title', $title);
-                    $smarty->assign('image', $image);
-                    die($smarty->fetch('error.tpl'));
-                });
 $ERRORS['USER_NOT_EXIST']
     = new Error('User keyword=%s not exists.', 'Users.',
                 Config::DIR_PATH . '/img/errors/default_error.png',
