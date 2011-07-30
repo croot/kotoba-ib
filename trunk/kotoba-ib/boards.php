@@ -14,12 +14,10 @@
 
 require_once dirname(__FILE__) . '/config.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
-require_once Config::ABS_PATH . '/lib/exceptions.php';
-require_once Config::ABS_PATH . '/lib/errors.php';
 require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 require_once Config::ABS_PATH . '/lib/wrappers.php';
-require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
-require_once Config::ABS_PATH . '/lib/events.php';
 
 try {
     // Initialization.
@@ -60,16 +58,16 @@ try {
 
     $page = 1;
     if (isset($_GET['page'])) {
-        $page = check_page($_GET['page']);
+        $page = check_page($_REQUEST['page']);
     }
 
-    $password = null;
+    $password = NULL;
     if (isset($_SESSION['password'])) {
         $password = $_SESSION['password'];
     }
 
     $board = NULL;
-    $banners_board_id = null;
+    $banners_board_id = NULL;
     $posts_attachments = array();
     $attachments = array();
 
@@ -96,9 +94,7 @@ try {
     }
 
     $threads_count = threads_get_visible_count($_SESSION['user'], $board['id']);
-    $page_max = ($threads_count % $_SESSION['threads_per_page'] == 0
-        ? (int)($threads_count / $_SESSION['threads_per_page'])
-        : (int)($threads_count / $_SESSION['threads_per_page']) + 1);
+    $page_max = ceil($threads_count / $_SESSION['threads_per_page']);
     if ($page_max == 0) {
         $page_max = 1; // Important for empty boards.
     }
@@ -107,7 +103,7 @@ try {
         // Cleanup.
         DataExchange::releaseResources();
 
-        $ERRORS['MAX_PAGE']($smarty, $page);
+        display_error_page($smarty, new MaxPageError($page));
         exit(1);
     }
 
@@ -116,10 +112,12 @@ try {
                                            $page,
                                            $_SESSION['threads_per_page']);
 
-    $posts = posts_get_visible_by_threads_preview($board['id'],
-                                                  $threads,
-                                                  $_SESSION['user'],
-                                                  $_SESSION['posts_per_thread']);
+    $posts = posts_get_visible_by_threads_preview(
+        $board['id'],
+        $threads,
+        $_SESSION['user'],
+        $_SESSION['posts_per_thread']
+    );
 
     if (is_attachments_enabled($board)) {
         $posts_attachments = posts_attachments_get_by_posts($posts);
@@ -132,10 +130,12 @@ try {
         }
         return false;
     };
-    $hidden_threads = hidden_threads_get_filtred_by_boards(array($board), $htfilter, $_SESSION['user']);
+    $hidden_threads = hidden_threads_get_filtred_by_boards(array($board),
+                                                           $htfilter,
+                                                           $_SESSION['user']);
 
     $upload_types = upload_types_get_by_board($board['id']);
-    if ($board['enable_macro'] === null ? Config::ENABLE_MACRO : $board['enable_macro']) {
+    if (is_macrochan_enabled($board)) {
         $macrochan_tags = macrochan_tags_get_all();
     } else {
         $macrochan_tags = array();
@@ -150,8 +150,6 @@ try {
 
     $favorites = favorites_get_by_user($_SESSION['user']);
 
-    $admins = users_get_admins();
-
     $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('categories', $categories);
     $board['annotation'] = $board['annotation'] ? html_entity_decode($board['annotation'], ENT_QUOTES, Config::MB_ENCODING) : $board['annotation'];
@@ -160,26 +158,20 @@ try {
     $smarty->assign('is_admin', is_admin());
     $smarty->assign('password', $password);
     $smarty->assign('upload_types', $upload_types);
-    $pages = array();
-    for ($i = 1; $i <= $page_max; $i++) {
-        array_push($pages, $i);
-    }
-    $smarty->assign('pages', $pages);
+    $smarty->assign('pages', ($pages = range(1, $page_max)));
     $smarty->assign('page', $page);
     $smarty->assign('goto', $_SESSION['goto']);
     $smarty->assign('macrochan_tags', $macrochan_tags);
     $smarty->assign('ib_name', Config::IB_NAME);
-    $smarty->assign('enable_macro', $board['enable_macro'] === null ? Config::ENABLE_MACRO : $board['enable_macro']);
-    $smarty->assign('enable_youtube', $board['enable_youtube'] === null ? Config::ENABLE_YOUTUBE : $board['enable_youtube']);
+    $smarty->assign('enable_macro', is_macrochan_enabled($board));
+    $smarty->assign('enable_youtube', is_youtube_enabled($board));
     $smarty->assign('enable_search', Config::ENABLE_SEARCH);
     $smarty->assign('enable_captcha', is_captcha_enabled($board));
     $smarty->assign('captcha', Config::CAPTCHA);
-    $smarty->assign('enable_translation', ($board['enable_translation'] === null) ? Config::ENABLE_TRANSLATION : $board['enable_translation']);
-    $enable_geoip = $board['enable_geoip'] === null ? Config::ENABLE_GEOIP : $board['enable_geoip'];
-    $smarty->assign('enable_geoip', $enable_geoip);
-    $smarty->assign('enable_shi', ($board['enable_shi'] === null) ? Config::ENABLE_SHI : $board['enable_shi']);
-    $enable_postid = $board['enable_postid'] === null ? Config::ENABLE_POSTID : $board['enable_postid'];
-    $smarty->assign('enable_postid', $enable_postid);
+    $smarty->assign('enable_translation', is_translation_enabled($board));
+    $smarty->assign('enable_geoip', is_geoip_enabled($board));
+    $smarty->assign('enable_shi', is_shi_enabled($board));
+    $smarty->assign('enable_postid', is_postid_enabled($board));
     $smarty->assign('ATTACHMENT_TYPE_FILE', Config::ATTACHMENT_TYPE_FILE);
     $smarty->assign('ATTACHMENT_TYPE_LINK', Config::ATTACHMENT_TYPE_LINK);
     $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
@@ -208,13 +200,7 @@ try {
             if ($t['id'] == $p['thread']['id']) {
 
                 // Find if author of this post is admin.
-                $author_admin = false;
-                foreach ($admins as $admin) {
-                    if ($p['user'] == $admin['id']) {
-                        $author_admin = true;
-                        break;
-                    }
-                }
+                $author_admin = posts_is_author_admin($p['user']);
 
                 // Set default post author name if enabled.
                 if (!$board['force_anonymous'] && $board['default_name'] && !$p['name']) {
@@ -223,32 +209,36 @@ try {
 
                 // Original post or reply.
                 if ($t['original_post'] == $p['number']) {
-                    $original_post_html = post_original_generate_html($smarty,
-                            $board,
-                            $t,
-                            $p,
-                            $posts_attachments,
-                            $attachments,
-                            true,
-                            $_SESSION['lines_per_post'],
-                            true,
-                            $_SESSION['posts_per_thread'],
-                            true,
-                            $author_admin,
-                            $enable_geoip,
-                            $enable_postid);
+                    $original_post_html = post_original_generate_html(
+                        $smarty,
+                        $board,
+                        $t,
+                        $p,
+                        $posts_attachments,
+                        $attachments,
+                        true,
+                        $_SESSION['lines_per_post'],
+                        true,
+                        $_SESSION['posts_per_thread'],
+                        true,
+                        $author_admin,
+                        is_geoip_enabled($board),
+                        is_postid_enabled($board)
+                    );
                 } else {
-                    $simple_posts_html .= post_simple_generate_html($smarty,
-                            $board,
-                            $t,
-                            $p,
-                            $posts_attachments,
-                            $attachments,
-                            true,
-                            $_SESSION['lines_per_post'],
-                            $author_admin,
-                            $enable_geoip,
-                            $enable_postid);
+                    $simple_posts_html .= post_simple_generate_html(
+                        $smarty,
+                        $board,
+                        $t,
+                        $p,
+                        $posts_attachments,
+                        $attachments,
+                        true,
+                        $_SESSION['lines_per_post'],
+                        $author_admin,
+                        is_geoip_enabled($board),
+                        is_postid_enabled($board)
+                    );
                 }
             }
         }
@@ -267,12 +257,11 @@ try {
 
     exit(0);
 } catch(Exception $e) {
-    if (isset($smarty)) {
-        $smarty->assign('msg', $e->__toString());
-        DataExchange::releaseResources();
-        die($smarty->fetch('exception.tpl'));
-    } else {
-        die($e->__toString());
-    }
+
+    // Cleanup.
+    DataExchange::releaseResources();
+
+    display_exception_page($smarty, $e, is_admin() || is_mod());
+    exit(1);
 }
 ?>

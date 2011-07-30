@@ -241,16 +241,22 @@ function posts_attachments_get_by_posts($posts) {
     $posts_attachments = array();
 
     foreach ($posts as $post) {
-        foreach (db_posts_files_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_file) {
+        $_ = db_posts_files_get_by_post(DataExchange::getDBLink(), $post['id']);
+        foreach ($_ as $post_file) {
             array_push($posts_attachments, $post_file);
         }
-        foreach (db_posts_images_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_image) {
+        $_ = db_posts_images_get_by_post(DataExchange::getDBLink(),
+                                         $post['id']);
+        foreach ($_ as $post_image) {
             array_push($posts_attachments, $post_image);
         }
-        foreach (db_posts_links_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_link) {
+        $_ = db_posts_links_get_by_post(DataExchange::getDBLink(), $post['id']);
+        foreach ($_ as $post_link) {
             array_push($posts_attachments, $post_link);
         }
-        foreach (db_posts_videos_get_by_post(DataExchange::getDBLink(), $post['id']) as $post_video) {
+        $_ = db_posts_videos_get_by_post(DataExchange::getDBLink(),
+                                         $post['id']);
+        foreach ($_ as $post_video) {
             array_push($posts_attachments, $post_video);
         }
     }
@@ -267,16 +273,20 @@ function attachments_get_by_posts($posts) {
     $attachments = array();
 
     foreach ($posts as $post) {
-        foreach (db_files_get_by_post(DataExchange::getDBLink(), $post['id']) as $file) {
+        $_ = db_files_get_by_post(DataExchange::getDBLink(), $post['id']);
+        foreach ($_ as $file) {
             array_push($attachments, $file);
         }
-        foreach (db_images_get_by_post(DataExchange::getDBLink(), $post['id']) as $image) {
+        $_ = db_images_get_by_post(DataExchange::getDBLink(), $post['id']);
+        foreach ($_ as $image) {
             array_push($attachments, $image);
         }
-        foreach (db_links_get_by_post(DataExchange::getDBLink(), $post['id']) as $link) {
+        $_ = db_links_get_by_post(DataExchange::getDBLink(), $post['id']);
+        foreach ($_ as $link) {
             array_push($attachments, $link);
         }
-        foreach (db_videos_get_by_post(DataExchange::getDBLink(), $post['id']) as $video) {
+        $_ = db_videos_get_by_post(DataExchange::getDBLink(), $post['id']);
+        foreach ($_ as $video) {
             array_push($attachments, $video);
         }
     }
@@ -1003,7 +1013,8 @@ function hidden_threads_delete($thread_id, $user_id) {
  * hidden threads.
  */
 function hidden_threads_get_filtred_by_boards($boards, $filter) {
-    $threads = db_hidden_threads_get_by_boards(DataExchange::getDBLink(), $boards);
+    $threads = db_hidden_threads_get_by_boards(DataExchange::getDBLink(),
+                                               $boards);
 
     $filter_args = array_slice(func_get_args(), 2 - 1, func_num_args());
     $filter_args[0] = NULL; // Reserved.
@@ -1761,7 +1772,7 @@ function posts_get_visible_by_number($board_name, $post_number, $user_id) {
     return db_posts_get_visible_by_number(DataExchange::getDBLink(), $board_name, $post_number, $user_id);
 }
 /**
- * Get specifed count of visible posts.
+ * Get visible posts.
  * @param int $board_id Boards.
  * @param array $threads Threads.
  * @param int $user_id User id.
@@ -1769,22 +1780,24 @@ function posts_get_visible_by_number($board_name, $post_number, $user_id) {
  * @return array
  * posts.
  */
-function posts_get_visible_by_threads_preview($board_id, &$threads, $user_id, $posts_per_thread) {
+function posts_get_visible_by_threads_preview($board_id, &$threads, $user_id,
+                                              $posts_per_thread) {
+
     $posts = array();
 
     foreach ($threads as &$thread) {
-        $tmp = db_posts_get_visible_by_thread_preview(DataExchange::getDBLink(),
-                                                      $board_id,
-                                                      $thread['id'],
-                                                      $user_id,
-                                                      $posts_per_thread);
-        if (isset($tmp[0])) {
-            $thread['posts_count'] = $tmp[0]['thread']['posts_count'];
+        $_ = db_posts_get_visible_by_thread_preview(DataExchange::getDBLink(),
+                                                    $board_id,
+                                                    $thread['id'],
+                                                    $user_id,
+                                                    $posts_per_thread);
+        if (isset($_[0])) {
+            $thread['posts_count'] = $_[0]['thread']['posts_count'];
         } else {
             echo "Warning. Thread {$thread['id']} without any posts?<br>\n";
         }
 
-        foreach ($tmp as $post) {
+        foreach ($_ as $post) {
             array_push($posts, $post);
         }
     }
@@ -2273,7 +2286,7 @@ function threads_get_visible_by_original_post($board, $original_post, $user_id) 
                                                    $user_id);
 }
 /**
- * Calculate count of visible threads.
+ * Get visible threads.
  * @param int $user_id User id.
  * @param int $board_id Board id.
  * @param int $page Page number.
@@ -2281,7 +2294,9 @@ function threads_get_visible_by_original_post($board, $original_post, $user_id) 
  * @return array
  * threads.
  */
-function threads_get_visible_by_page($user_id, $board_id, $page, $threads_per_page) {
+function threads_get_visible_by_page($user_id, $board_id, $page,
+                                     $threads_per_page) {
+
     return db_threads_get_visible_by_page(DataExchange::getDBLink(),
                                           $user_id,
                                           $board_id,
@@ -2292,11 +2307,12 @@ function threads_get_visible_by_page($user_id, $board_id, $page, $threads_per_pa
  * Calculate count of visible threads.
  * @param int $user_id User id.
  * @param int $board_id Board id.
- * @return string
+ * @return int
  * count of visible threads.
  */
 function threads_get_visible_count($user_id, $board_id) {
-    return db_threads_get_visible_count(DataExchange::getDBLink(), $user_id, $board_id);
+    return db_threads_get_visible_count(DataExchange::getDBLink(), $user_id,
+                                        $board_id);
 }
 /**
  * Move thread.

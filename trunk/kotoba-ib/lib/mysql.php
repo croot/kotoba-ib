@@ -74,7 +74,7 @@ function db_acl_add($link, $group_id, $board_id, $thread_id, $post_id, $view, $c
     $query = "call sp_acl_add($group_id, $board_id, $thread_id, $post_id, $view, $change, $moderate)";
     $result = mysqli_query($link, $query);
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -95,7 +95,7 @@ function db_acl_delete($link, $group_id, $board_id, $thread_id, $post_id) {
     $query = "call sp_acl_delete($group_id, $board_id, $thread_id, $post_id)";
     $result = mysqli_query($link, $query);
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -122,7 +122,7 @@ function db_acl_edit($link, $group_id, $board_id, $thread_id, $post_id, $view, $
     $query = "call sp_acl_edit($group_id, $board_id, $thread_id, $post_id, $view, $change, $moderate)";
     $result = mysqli_query($link, $query);
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -135,7 +135,7 @@ function db_acl_edit($link, $group_id, $board_id, $thread_id, $post_id, $view, $
  */
 function db_acl_get_all($link) {
     if ( ($result = mysqli_query($link, 'call sp_acl_get_all()')) == FALSE) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $acl = array();
@@ -171,7 +171,7 @@ function db_bans_add($link, $range_beg, $range_end, $reason, $untill) {
     $reason = ($reason === null ? 'null' : $reason);
 
     if (!mysqli_query($link, "call sp_bans_add($range_beg, $range_end, '$reason', '$untill')")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -210,7 +210,7 @@ function db_bans_check($link, $ip) {
  */
 function db_bans_delete_by_id($link, $id) {
     if (!mysqli_query($link, "call sp_bans_delete_by_id($id)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     db_cleanup_link($link);
 }
@@ -221,7 +221,7 @@ function db_bans_delete_by_id($link, $id) {
  */
 function db_bans_delete_by_ip($link, $ip) {
     if (!mysqli_query($link, "call sp_bans_delete_by_ip($ip)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     db_cleanup_link($link);
 }
@@ -234,7 +234,7 @@ function db_bans_delete_by_ip($link, $ip) {
 function db_bans_get_all($link) {
     $result = mysqli_query($link, 'call sp_bans_get_all()');
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $bans = array();
@@ -266,7 +266,7 @@ function db_bans_get_all($link) {
  */
 function db_board_upload_types_add($link, $board, $upload_type) {
     if (!mysqli_query($link, "call sp_board_upload_types_add($board, $upload_type)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -279,7 +279,7 @@ function db_board_upload_types_add($link, $board, $upload_type) {
  */
 function db_board_upload_types_delete($link, $board, $upload_type) {
     if (!mysqli_query($link, "call sp_board_upload_types_delete($board, $upload_type)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -293,7 +293,7 @@ function db_board_upload_types_delete($link, $board, $upload_type) {
 function db_board_upload_types_get_all($link) {
     $result = mysqli_query($link, 'call sp_board_upload_types_get_all()');
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $board_upload_types = array();
@@ -325,7 +325,7 @@ function db_words_add($link, $board_id, $word, $replace) {
     $word = $word == null ? 'null' : "'$word'";
     $replace = $replace == null ? 'null' : "'$replace'";
     if (!mysqli_query($link, "call sp_words_add($board_id, $word, $replace)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -337,7 +337,7 @@ function db_words_add($link, $board_id, $word, $replace) {
  */
 function db_words_delete($link, $id) {
     if (!mysqli_query($link, "call sp_words_delete($id)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -353,7 +353,7 @@ function db_words_edit($link, $id, $word, $replace) {
     $word = $word == null ? 'null' : "'$word'";
     $replace = $replace == null ? 'null' : "'$replace'";
     if (!mysqli_query($link, "call sp_words_edit($id, $word, $replace)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -367,7 +367,7 @@ function db_words_edit($link, $id, $word, $replace) {
 function db_words_get_all($link) {
     $result = mysqli_query($link, 'call sp_words_get_all()');
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $words = array();
@@ -395,7 +395,7 @@ function db_words_get_all($link) {
 function db_words_get_all_by_board($link, $board_id) {
     $result = mysqli_query($link, "call sp_words_get_all_by_board($board_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $words = array();
@@ -473,7 +473,7 @@ function db_boards_add($link, $new_board) {
                                  {$new_board['popdown_handler']},
                                  {$new_board['category']})";
     if (!mysqli_query($link, $query)) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -485,7 +485,7 @@ function db_boards_add($link, $new_board) {
  */
 function db_boards_delete($link, $id) {
     if (!mysqli_query($link, "call sp_boards_delete($id)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -546,7 +546,7 @@ function db_boards_edit($link, $board) {
                                   {$board['popdown_handler']},
                                   {$board['category']})";
     if (!mysqli_query($link, $query)) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -560,7 +560,7 @@ function db_boards_edit($link, $board) {
 function db_boards_get_all($link) {
     $result = mysqli_query($link, 'call sp_boards_get_all()');
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $boards = array();
@@ -603,7 +603,7 @@ function db_boards_get_all($link) {
 function db_boards_get_by_id($link, $board_id) {
     $result = mysqli_query($link, "call sp_boards_get_by_id($board_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $board = null;
@@ -654,7 +654,7 @@ function db_boards_get_changeable($link, $user_id)
 {
 	$result = mysqli_query($link, 'call sp_boards_get_changeable(' . $user_id . ')');
 	if($result == false)
-		throw new CommonException(mysqli_error($link));
+		throw new DBException(mysqli_error($link));
 	$boards = array();
 	if(mysqli_affected_rows($link) > 0)
 		while(($row = mysqli_fetch_assoc($result)) !== null)
@@ -689,7 +689,7 @@ function db_boards_get_changeable($link, $user_id)
 function db_boards_get_changeable_by_id($link, $board_id, $user_id) {
     $result = mysqli_query($link, "call sp_boards_get_changeable_by_id($board_id, $user_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     if (mysqli_affected_rows($link) <= 0) {
@@ -749,7 +749,7 @@ function db_boards_get_changeable_by_id($link, $board_id, $user_id) {
 function db_boards_get_moderatable($link, $user_id) {
     $result = mysqli_query($link, "call sp_boards_get_moderatable($user_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $boards = array();
@@ -839,7 +839,7 @@ function db_boards_get_visible($link, $user_id) {
  */
 function db_categories_add($link, $name) {
     if (!mysqli_query($link, "call sp_categories_add('$name')")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -851,7 +851,7 @@ function db_categories_add($link, $name) {
  */
 function db_categories_delete($link, $id) {
     if (!mysqli_query($link, "call sp_categories_delete($id)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -894,7 +894,7 @@ function db_categories_get_all($link) {
  */
 function db_favorites_add($link, $user, $thread) {
     if (!mysqli_query($link, "call sp_favorites_add($user, $thread)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -908,7 +908,7 @@ function db_favorites_add($link, $user, $thread) {
  */
 function db_favorites_delete($link, $user, $thread) {
     if (!mysqli_query($link, "call sp_favorites_delete($user, $thread)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -921,9 +921,11 @@ function db_favorites_delete($link, $user, $thread) {
  * threads.
  */
 function db_favorites_get_by_user($link, $user) {
+
     // Query.
-    if ( ($result = mysqli_query($link, "call sp_favorites_get_by_user($user)")) == FALSE) {
-        throw new CommonException(mysqli_error($link));
+    $query = "call sp_favorites_get_by_user($user)";
+    if ( ($result = mysqli_query($link, $query)) == FALSE) {
+        throw new DBException(mysqli_error($link));
     }
 
     // Collect data from query result.
@@ -931,60 +933,64 @@ function db_favorites_get_by_user($link, $user) {
     if (mysqli_affected_rows($link) > 0) {
         while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             if (!isset($board_data[$row['board_id']])) {
-                $board_data[$row['board_id']] = array('id' => $row['board_id'],
-                                                      'name' => $row['board_name'],
-                                                      'title' => $row['board_title'],
-                                                      'annotation' => $row['board_annotation'],
-                                                      'bump_limit' => $row['board_bump_limit'],
-                                                      'force_anonymous' => $row['board_force_anonymous'],
-                                                      'default_name' => $row['board_default_name'],
-                                                      'with_attachments' => $row['board_with_attachments'],
-                                                      'enable_macro' => $row['board_enable_macro'],
-                                                      'enable_youtube' => $row['board_enable_youtube'],
-                                                      'enable_captcha' => $row['board_enable_captcha'],
-                                                      'same_upload' => $row['board_same_upload'],
-                                                      'popdown_handler' => $row['board_popdown_handler'],
-                                                      'category' => $row['board_category']);
+                $board_data[$row['board_id']]
+                    = array('id' => $row['board_id'],
+                            'name' => $row['board_name'],
+                            'title' => $row['board_title'],
+                            'annotation' => $row['board_annotation'],
+                            'bump_limit' => $row['board_bump_limit'],
+                            'force_anonymous' => $row['board_force_anonymous'],
+                            'default_name' => $row['board_default_name'],
+                            'with_attachments' => $row['board_with_attachments'],
+                            'enable_macro' => $row['board_enable_macro'],
+                            'enable_youtube' => $row['board_enable_youtube'],
+                            'enable_captcha' => $row['board_enable_captcha'],
+                            'same_upload' => $row['board_same_upload'],
+                            'popdown_handler' => $row['board_popdown_handler'],
+                            'category' => $row['board_category']);
             }
             if (!isset($thread_data[$row['thread_id']])) {
-                $thread_data[$row['thread_id']] = array('id' => $row['thread_id'],
-                                                        'board' => &$board_data[$row['board_id']],
-                                                        'original_post' => $row['thread_original_post'],
-                                                        'bump_limit' => $row['thread_bump_limit'],
-                                                        'deleted' => $row['thread_deleted'],
-                                                        'archived' => $row['thread_archived'],
-                                                        'sage' => $row['thread_sage'],
-                                                        'sticky' => $row['thread_sticky'],
-                                                        'with_attachments' => $row['thread_with_attachments']);
+                $thread_data[$row['thread_id']]
+                    = array('id' => $row['thread_id'],
+                            'board' => &$board_data[$row['board_id']],
+                            'original_post' => $row['thread_original_post'],
+                            'bump_limit' => $row['thread_bump_limit'],
+                            'deleted' => $row['thread_deleted'],
+                            'archived' => $row['thread_archived'],
+                            'sage' => $row['thread_sage'],
+                            'sticky' => $row['thread_sticky'],
+                            'with_attachments' => $row['thread_with_attachments']);
             }
             if (!isset($user_data[$row['user_id']])) {
-                $user_data[$row['user_id']] = array('id' => $row['user_id'],
-                                                    'keyword' => $row['user_keyword'],
-                                                    'posts_per_thread' => $row['user_posts_per_thread'],
-                                                    'threads_per_page' => $row['user_threads_per_page'],
-                                                    'lines_per_post' => $row['user_lines_per_post'],
-                                                    'language' => $row['user_language'],
-                                                    'stylesheet' => $row['user_stylesheet'],
-                                                    'password' => $row['user_password'],
-                                                    'goto' => $row['user_goto']);
+                $user_data[$row['user_id']]
+                    = array('id' => $row['user_id'],
+                            'keyword' => $row['user_keyword'],
+                            'posts_per_thread' => $row['user_posts_per_thread'],
+                            'threads_per_page' => $row['user_threads_per_page'],
+                            'lines_per_post' => $row['user_lines_per_post'],
+                            'language' => $row['user_language'],
+                            'stylesheet' => $row['user_stylesheet'],
+                            'password' => $row['user_password'],
+                            'goto' => $row['user_goto']);
             }
-            array_push($favorites,
-                       array('user' => &$user_data[$row['user_id']],
-                             'thread' => &$thread_data[$row['thread_id']],
-                             'post' => array('id' => $row['post_id'],
-                                             'board' => &$board_data[$row['board_id']],
-                                             'thread' => &$thread_data[$row['thread_id']],
-                                             'number' => $row['post_number'],
-                                             'user' => &$user_data[$row['user_id']],
-                                             'password' => $row['post_password'],
-                                             'name' => $row['post_name'],
-                                             'tripcode' => $row['post_tripcode'],
-                                             'ip' => $row['post_ip'],
-                                             'subject' => $row['post_subject'],
-                                             'date_time' => $row['post_date_time'],
-                                             'text' => $row['post_text'],
-                                             'sage' => $row['post_sage']),
-                             'last_readed' => $row['last_readed']));
+            array_push(
+                $favorites,
+                array('user' => &$user_data[$row['user_id']],
+                      'thread' => &$thread_data[$row['thread_id']],
+                      'post' => array('id' => $row['post_id'],
+                                      'board' => &$board_data[$row['board_id']],
+                                      'thread' => &$thread_data[$row['thread_id']],
+                                      'number' => $row['post_number'],
+                                      'user' => &$user_data[$row['user_id']],
+                                      'password' => $row['post_password'],
+                                      'name' => $row['post_name'],
+                                      'tripcode' => $row['post_tripcode'],
+                                      'ip' => $row['post_ip'],
+                                      'subject' => $row['post_subject'],
+                                      'date_time' => $row['post_date_time'],
+                                      'text' => $row['post_text'],
+                                      'sage' => $row['post_sage']),
+                      'last_readed' => $row['last_readed']));
         }
     }
 
@@ -1005,11 +1011,11 @@ function db_favorites_get_by_user($link, $user) {
 function db_favorites_mark_readed($link, $user, $thread) {
     if ($thread === null) {
         if (!mysqli_query($link, "call sp_favorites_mark_readed_all($user)")) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
     } else {
         if (!mysqli_query($link, "call sp_favorites_mark_readed($user, $thread)")) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
     }
 
@@ -1036,7 +1042,7 @@ function db_files_add($link, $hash, $name, $size, $thumbnail, $thumbnail_w, $thu
     $query = "call sp_files_add('$hash', '$name', $size, '$thumbnail', $thumbnail_w, $thumbnail_h)";
     $result = mysqli_query($link, $query);
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $row = mysqli_fetch_assoc($result);
@@ -1054,26 +1060,28 @@ function db_files_add($link, $hash, $name, $size, $thumbnail, $thumbnail_w, $thu
 function db_files_get_by_post($link, $post_id) {
     $result = mysqli_query($link, "call sp_files_get_by_post($post_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $files = array();
     if (mysqli_affected_rows($link) > 0) {
         while (($row = mysqli_fetch_assoc($result)) != NULL) {
-            array_push($files,
-                       array('id' => $row['id'],
-                             'hash' => $row['hash'],
-                             'name' => $row['name'],
-                             'size' => $row['size'],
-                             'thumbnail' => $row['thumbnail'],
-                             'thumbnail_w' => $row['thumbnail_w'],
-                             'thumbnail_h' => $row['thumbnail_h'],
-                             'attachment_type' => Config::ATTACHMENT_TYPE_FILE));
+            array_push(
+                $files,
+                array('id' => $row['id'],
+                      'hash' => $row['hash'],
+                      'name' => $row['name'],
+                      'size' => $row['size'],
+                      'thumbnail' => $row['thumbnail'],
+                      'thumbnail_w' => $row['thumbnail_w'],
+                      'thumbnail_h' => $row['thumbnail_h'],
+                      'attachment_type' => Config::ATTACHMENT_TYPE_FILE));
         }
     }
 
     mysqli_free_result($result);
     db_cleanup_link($link);
+    
     return $files;
 }
 /**
@@ -1086,7 +1094,7 @@ function db_files_get_by_post($link, $post_id) {
 function db_files_get_by_thread($link, $thread_id) {
     $result = mysqli_query($link, "call sp_files_get_by_thread($thread_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $files = array();
@@ -1117,7 +1125,7 @@ function db_files_get_by_thread($link, $thread_id) {
 function db_files_get_dangling($link) {
     $result = mysqli_query($link, 'call sp_files_get_dangling()');
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $files = array();
@@ -1151,7 +1159,7 @@ function db_files_get_dangling($link) {
  function db_files_get_same($link, $board_id, $user_id, $file_hash) {
     $result = mysqli_query($link, "call sp_files_get_same($board_id, $user_id, '$file_hash')");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $files = array();
@@ -1214,7 +1222,7 @@ function db_files_get_dangling($link) {
 function db_groups_add($link, $name) {
     $result = mysqli_query($link, "call sp_groups_add('$name')");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     if(mysqli_affected_rows($link) <= 0
@@ -1234,7 +1242,7 @@ function db_groups_add($link, $name) {
 function db_groups_delete($link, $groups) {
     foreach ($groups as $id) {
         if (!mysqli_query($link, "call sp_groups_delete($id)")) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
 
         db_cleanup_link($link);
@@ -1248,7 +1256,7 @@ function db_groups_delete($link, $groups) {
  */
 function db_groups_get_all($link) {
     if ( ($result = mysqli_query($link, 'call sp_groups_get_all()')) == false) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $groups = array();
@@ -1278,7 +1286,7 @@ function db_groups_get_by_user($link, $user_id) {
     // Запрос.
     $result = mysqli_query($link, "call sp_groups_get_by_user($user_id)");
 	if (!$result) {
-		throw new CommonException(mysqli_error($link));
+		throw new DBException(mysqli_error($link));
     }
 
     // Выбор данных из результата выполнения запроса.
@@ -1309,7 +1317,7 @@ function db_groups_get_by_user($link, $user_id) {
  */
 function db_hard_ban_add($link, $range_beg, $range_end) {
     if (!mysqli_query($link, "call sp_hard_ban_add('$range_beg', '$range_end')")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -1327,7 +1335,7 @@ function db_hard_ban_add($link, $range_beg, $range_end) {
  */
 function db_hidden_threads_add($link, $thread_id, $user_id) {
     if (!mysqli_query($link, "call sp_hidden_threads_add($thread_id, $user_id)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -1340,7 +1348,7 @@ function db_hidden_threads_add($link, $thread_id, $user_id) {
  */
 function db_hidden_threads_delete($link, $thread_id, $user_id) {
     if(!mysqli_query($link, "call sp_hidden_threads_delete($thread_id, $user_id)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -1357,9 +1365,9 @@ function db_hidden_threads_get_by_boards($link, $boards) {
     $threads = array();
 
     foreach ($boards as $b) {
-        $result = mysqli_query($link, "call sp_hidden_threads_get_by_board({$b['id']})");
-        if (!$result) {
-            throw new CommonException(mysqli_error($link));
+        $query = "call sp_hidden_threads_get_by_board({$b['id']})";
+        if ( ($result = mysqli_query($link, $query)) == FALSE) {
+            throw new DBException(mysqli_error($link));
         }
 
         if (mysqli_affected_rows($link) > 0) {
@@ -1415,7 +1423,7 @@ function db_images_add($link,
     $query = "call sp_images_add($hash, '$name', $widht, $height, $size, '$thumbnail', $thumbnail_w, $thumbnail_h, $spoiler)";
     $result = mysqli_query($link, $query);
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $row = mysqli_fetch_assoc($result);
@@ -1433,29 +1441,20 @@ function db_images_add($link,
 function db_images_get_by_board($link, $board_id) {
     $result = mysqli_query($link, "call sp_images_get_by_board($board_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $images = array();
     if (mysqli_affected_rows($link) > 0) {
-        while ( ($row = mysqli_fetch_assoc($result)) != null) {
-            array_push($images,
-                       array('id' => $row['id'],
-                             'hash' => $row['hash'],
-                             'name' => $row['name'],
-                             'widht' => $row['widht'],
-                             'height' => $row['height'],
-                             'size' => $row['size'],
-                             'thumbnail' => $row['thumbnail'],
-                             'thumbnail_w' => $row['thumbnail_w'],
-                             'thumbnail_h' => $row['thumbnail_h'],
-                             'spoiler' => $row['spoiler'],
-                             'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE));
+        while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            $row['attachment_type'] = Config::ATTACHMENT_TYPE_IMAGE;
+            array_push($images, $row);
         }
     }
 
     mysqli_free_result($result);
     db_cleanup_link($link);
+
     return $images;
 }
 /**
@@ -1468,29 +1467,31 @@ function db_images_get_by_board($link, $board_id) {
 function db_images_get_by_post($link, $post_id) {
 	$result = mysqli_query($link, "call sp_images_get_by_post($post_id)");
 	if (!$result) {
-		throw new CommonException(mysqli_error($link));
+		throw new DBException(mysqli_error($link));
     }
 
 	$images = array();
 	if (mysqli_affected_rows($link) > 0) {
 		while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
-			array_push($images,
-                       array('id' => $row['id'],
-                             'hash' => $row['hash'],
-                             'name' => $row['name'],
-                             'widht' => $row['widht'],
-                             'height' => $row['height'],
-                             'size' => $row['size'],
-                             'thumbnail' => $row['thumbnail'],
-                             'thumbnail_w' => $row['thumbnail_w'],
-                             'thumbnail_h' => $row['thumbnail_h'],
-                             'spoiler' => $row['spoiler'],
-                             'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE));
+			array_push(
+                $images,
+                array('id' => $row['id'],
+                      'hash' => $row['hash'],
+                      'name' => $row['name'],
+                      'widht' => $row['widht'],
+                      'height' => $row['height'],
+                      'size' => $row['size'],
+                      'thumbnail' => $row['thumbnail'],
+                      'thumbnail_w' => $row['thumbnail_w'],
+                      'thumbnail_h' => $row['thumbnail_h'],
+                      'spoiler' => $row['spoiler'],
+                      'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE));
         }
     }
 
 	mysqli_free_result($result);
 	db_cleanup_link($link);
+
 	return $images;
 }
 /**
@@ -1503,7 +1504,7 @@ function db_images_get_by_post($link, $post_id) {
 function db_images_get_by_thread($link, $thread_id) {
     $result = mysqli_query($link, "call sp_images_get_by_thread($thread_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $images = array();
@@ -1537,7 +1538,7 @@ function db_images_get_by_thread($link, $thread_id) {
 function db_images_get_dangling($link) {
     $result = mysqli_query($link, 'call sp_images_get_dangling()');
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $images = array();
@@ -1575,7 +1576,7 @@ function db_images_get_same($link, $board_id, $user_id, $image_hash) {
     $query = "call sp_images_get_same($board_id, $user_id, '$image_hash')";
     $result = mysqli_query($link, $query);
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $images = array();
@@ -1640,7 +1641,7 @@ function db_images_get_same($link, $board_id, $user_id, $image_hash) {
 function db_languages_add($link, $code) {
     $result = mysqli_query($link, "call sp_languages_add('$code')");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -1653,7 +1654,7 @@ function db_languages_add($link, $code) {
 function db_languages_delete($link, $id) {
     $result = mysqli_query($link, "call sp_languages_delete($id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -1667,7 +1668,7 @@ function db_languages_delete($link, $id) {
 function db_languages_get_all($link) {
     $result = mysqli_query($link, 'call sp_languages_get_all()');
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $languages = array();
@@ -1715,7 +1716,7 @@ function db_links_add($link,
     $query = "call sp_links_add('$url', $widht, $height, $size, '$thumbnail', $thumbnail_w, $thumbnail_h)";
     $result = mysqli_query($link, $query);
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $row = mysqli_fetch_assoc($result);
@@ -1733,27 +1734,29 @@ function db_links_add($link,
 function db_links_get_by_post($link, $post_id) {
     $result = mysqli_query($link, "call sp_links_get_by_post($post_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $links = array();
     if (mysqli_affected_rows($link) > 0) {
         while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
-            array_push($links,
-                       array('id' => $row['id'],
-                             'url' => $row['url'],
-                             'widht' => $row['widht'],
-                             'height' => $row['height'],
-                             'size' => $row['size'],
-                             'thumbnail' => $row['thumbnail'],
-                             'thumbnail_w' => $row['thumbnail_w'],
-                             'thumbnail_h' => $row['thumbnail_h'],
-                             'attachment_type' => Config::ATTACHMENT_TYPE_LINK));
+            array_push(
+                $links,
+                array('id' => $row['id'],
+                      'url' => $row['url'],
+                      'widht' => $row['widht'],
+                      'height' => $row['height'],
+                      'size' => $row['size'],
+                      'thumbnail' => $row['thumbnail'],
+                      'thumbnail_w' => $row['thumbnail_w'],
+                      'thumbnail_h' => $row['thumbnail_h'],
+                      'attachment_type' => Config::ATTACHMENT_TYPE_LINK));
         }
     }
 
     mysqli_free_result($result);
     db_cleanup_link($link);
+
     return $links;
 }
 /**
@@ -1766,7 +1769,7 @@ function db_links_get_by_post($link, $post_id) {
 function db_links_get_by_thread($link, $thread_id) {
     $result = mysqli_query($link, "call sp_links_get_by_thread($thread_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $links = array();
@@ -1798,7 +1801,7 @@ function db_links_get_by_thread($link, $thread_id) {
 function db_links_get_dangling($link) {
     $result = mysqli_query($link, 'call sp_links_get_dangling()');
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $links = array();
@@ -1841,7 +1844,7 @@ function db_macrochan_tags_add($link, $name) { // Java CC
     $result = mysqli_query($link,
             'call sp_macrochan_tags_add(' . $name . ')');
 	if (!$result) {
-		throw new CommonException(mysqli_error($link));
+		throw new DBException(mysqli_error($link));
     }
 
 	db_cleanup_link($link);
@@ -1855,7 +1858,7 @@ function db_macrochan_tags_delete_by_name($link, $name) {
     $name = $name == null ? 'null' : "'$name'";
     $result = mysqli_query($link, "call sp_macrochan_tags_delete_by_name($name)");
 	if (!$result) {
-		throw new CommonException(mysqli_error($link));
+		throw new DBException(mysqli_error($link));
     }
 
 	db_cleanup_link($link);
@@ -1869,12 +1872,12 @@ function db_macrochan_tags_delete_by_name($link, $name) {
 function db_macrochan_tags_get_all($link) {
     $result = mysqli_query($link, 'call sp_macrochan_tags_get_all()');
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $tags = array();
     if (mysqli_affected_rows($link) > 0) {
-        while ( ($row = mysqli_fetch_assoc($result)) != null) {
+        while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             array_push($tags, array('id' => $row['id'],
                                     'name' => $row['name']));
         }
@@ -1882,6 +1885,7 @@ function db_macrochan_tags_get_all($link) {
 
     mysqli_free_result($result);
     db_cleanup_link($link);
+
     return $tags;
 }
 
@@ -1911,7 +1915,7 @@ function db_macrochan_images_add($link, $name, $width, $height, $size, $thumbnai
                                                                 $thumbnail_w,
                                                                 $thumbnail_h)");
 	if (!$result) {
-		throw new CommonException(mysqli_error($link));
+		throw new DBException(mysqli_error($link));
     }
 
 	db_cleanup_link($link);
@@ -1925,7 +1929,7 @@ function db_macrochan_images_delete_by_name($link, $name) {
     $name = $name == null ? 'null' : "'$name'";
     $result = mysqli_query($link, "call sp_macrochan_images_delete_by_name($name)");
 	if (!$result) {
-		throw new CommonException(mysqli_error($link));
+		throw new DBException(mysqli_error($link));
     }
 
 	db_cleanup_link($link);
@@ -1939,7 +1943,7 @@ function db_macrochan_images_delete_by_name($link, $name) {
 function db_macrochan_images_get_all($link) {
     $result = mysqli_query($link, 'call sp_macrochan_images_get_all()');
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     $images = array();
     if (mysqli_affected_rows($link) > 0) {
@@ -1969,7 +1973,7 @@ function db_macrochan_images_get_all($link) {
 function db_macrochan_images_get_random($link, $name) {
     $result = mysqli_query($link, "call sp_macrochan_images_get_random('$name')");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $images = null;
@@ -2003,7 +2007,7 @@ function db_macrochan_tags_images_add($link, $tag_name, $image_name) {
     $image_name = $image_name == null ? 'null' : "'$image_name'";
     $result = mysqli_query($link, "call sp_macrochan_tags_images_add($tag_name, $image_name)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -2021,7 +2025,7 @@ function db_macrochan_tags_images_get($link, $tag_name, $image_name) {
     $image_name = $image_name == null ? 'null' : "'$image_name'";
     $result = mysqli_query($link, "call sp_macrochan_tags_images_get($tag_name, $image_name)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $tags_images = null;
@@ -2045,7 +2049,7 @@ function db_macrochan_tags_images_get($link, $tag_name, $image_name) {
 function db_macrochan_tags_images_get_all($link) { // Java CC
     $result = mysqli_query($link, 'call sp_macrochan_tags_images_get_all()');
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     $tags_images = array();
     if (mysqli_affected_rows($link) > 0) {
@@ -2071,7 +2075,7 @@ function db_macrochan_tags_images_get_all($link) { // Java CC
  */
 function db_popdown_handlers_add($link, $name) {
     if (!mysqli_query($link, "call sp_popdown_handlers_add('$name')")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -2083,7 +2087,7 @@ function db_popdown_handlers_add($link, $name) {
  */
 function db_popdown_handlers_delete($link, $id) {
     if (!mysqli_query($link, "call sp_popdown_handlers_delete($id)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -2097,7 +2101,7 @@ function db_popdown_handlers_delete($link, $id) {
 function db_popdown_handlers_get_all($link) {
     $result = mysqli_query($link, 'call sp_popdown_handlers_get_all()');
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $popdown_handlers = array();
@@ -2159,7 +2163,7 @@ function db_posts_add($link,
     $query = "call sp_posts_add($board_id, $thread_id, $user_id, $password, $name, $tripcode, $ip, $subject, '$date_time', $text, $sage)";
     $result = mysqli_query($link, $query);
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $post = null;
@@ -2190,7 +2194,7 @@ function db_posts_add($link,
  */
 function db_posts_add_text_by_id($link, $id, $text) {
     if (!mysqli_query($link, "call sp_posts_edit_text_by_id($id, '$text')")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -2202,7 +2206,7 @@ function db_posts_add_text_by_id($link, $id, $text) {
  */
 function db_posts_delete($link, $id) {
     if (!mysqli_query($link, "call sp_posts_delete($id)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -2215,7 +2219,7 @@ function db_posts_delete($link, $id) {
  */
 function db_posts_delete_last($link, $id, $date_time) {
     if(!mysqli_query($link, "call sp_posts_delete_last($id, '$date_time')")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -2226,7 +2230,7 @@ function db_posts_delete_last($link, $id, $date_time) {
  */
 function db_posts_delete_marked($link) {
     if (!mysqli_query($link, 'call sp_posts_delete_marked()')) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -2255,7 +2259,7 @@ function db_posts_get_all($link)
 {
 	$result = mysqli_query($link, 'call sp_posts_get_all()');
 	if(!$result)
-		throw new CommonException(mysqli_error($link));
+		throw new DBException(mysqli_error($link));
 	$posts = array();
 	if(mysqli_affected_rows($link) > 0)
 		while(($row = mysqli_fetch_assoc($result)) !== null)
@@ -2290,7 +2294,7 @@ function db_posts_get_all($link)
 function db_posts_get_all_numbers($link) { // Java CC
     $result = mysqli_query($link, 'call sp_posts_get_all_numbers()');
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $posts = array();
@@ -2319,7 +2323,7 @@ function db_posts_get_by_boards($link, $boards) {
     foreach ($boards as $b) {
         $result = mysqli_query($link, "call sp_posts_get_by_board({$b['id']})");
         if (!$result) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
 
         if (mysqli_affected_rows($link) > 0) {
@@ -2408,12 +2412,12 @@ function db_posts_get_by_boards_datetime($link,
                                                       $posts_per_page)";
         $result = mysqli_multi_query($link, $query);
         if (!$result) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
 
         // Collect data from query result.
         if ( ($result = mysqli_store_result($link)) == FALSE) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
         if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             $count += $row['count'];
@@ -2421,10 +2425,10 @@ function db_posts_get_by_boards_datetime($link,
         mysqli_free_result($result);
 
         if (!mysqli_next_result($link)) {
-            throw new CommonException('Not all expected data received.');
+            throw new DBException('Not all expected data received.');
         }
         if ( ($result = mysqli_store_result($link)) == false) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
         while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             if (!isset($thread_data[$row['thread_id']])) {
@@ -2492,12 +2496,12 @@ function db_posts_get_by_boards_ip($link,
                                                 $posts_per_page)";
         $result = mysqli_multi_query($link, $query);
         if (!$result) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
 
         // Collect data from query result.
         if ( ($result = mysqli_store_result($link)) == FALSE) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
         if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             $count += $row['count'];
@@ -2505,10 +2509,10 @@ function db_posts_get_by_boards_ip($link,
         mysqli_free_result($result);
 
         if (!mysqli_next_result($link)) {
-            throw new CommonException('Not all expected data received.');
+            throw new DBException('Not all expected data received.');
         }
         if ( ($result = mysqli_store_result($link)) == false) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
         while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             if (!isset($thread_data[$row['thread_id']])) {
@@ -2576,12 +2580,12 @@ function db_posts_get_by_boards_number($link,
                                                     $posts_per_page)";
         $result = mysqli_multi_query($link, $query);
         if (!$result) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
 
         // Collect data from query result.
         if ( ($result = mysqli_store_result($link)) == FALSE) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
         if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             $count += $row['count'];
@@ -2589,10 +2593,10 @@ function db_posts_get_by_boards_number($link,
         mysqli_free_result($result);
 
         if (!mysqli_next_result($link)) {
-            throw new CommonException('Not all expected data received.');
+            throw new DBException('Not all expected data received.');
         }
         if ( ($result = mysqli_store_result($link)) == false) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
         while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             if (!isset($board_data[$board['id']])) {
@@ -2644,12 +2648,12 @@ function db_posts_get_by_ids($link, $ids) {
     foreach ($ids as $id) {
         $result = mysqli_multi_query($link, "call sp_posts_get_by_id($id)");
         if (!$result) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
 
         // Collect board data.
         if ( ($result = mysqli_store_result($link)) == FALSE) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
         if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             if (!isset($boards[$row['board_id']])) {
@@ -2679,10 +2683,10 @@ function db_posts_get_by_ids($link, $ids) {
 
         // Collect thread data.
         if (!mysqli_next_result($link)) {
-            throw new CommonException('Not all expected data received.');
+            throw new DBException('Not all expected data received.');
         }
         if ( ($result = mysqli_store_result($link)) == FALSE) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
         if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             if (!isset($threads[$row['thread_id']])) {
@@ -2703,10 +2707,10 @@ function db_posts_get_by_ids($link, $ids) {
 
         // Collect post data.
         if (!mysqli_next_result($link)) {
-            throw new CommonException('Not all expected data received.');
+            throw new DBException('Not all expected data received.');
         }
         if ( ($result = mysqli_store_result($link)) == FALSE) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
         if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             array_push($posts, array('id' => $row['post_id'],
@@ -2744,12 +2748,12 @@ function db_posts_get_by_number($link, $board_name, $post_number) {
 
     $result = mysqli_multi_query($link, $query);
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     // Collect board data.
     if ( ($result = mysqli_store_result($link)) == FALSE) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
         $board = array('id' => $row['id'],
@@ -2777,7 +2781,7 @@ function db_posts_get_by_number($link, $board_name, $post_number) {
     // Collect thread data.
     if (mysqli_next_result($link)) {
         if ( ($result = mysqli_store_result($link)) == FALSE) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
         if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             $thread = array('id' => $row['id'],
@@ -2797,7 +2801,7 @@ function db_posts_get_by_number($link, $board_name, $post_number) {
     // Collect post data.
     if (mysqli_next_result($link)) {
         if ( ($result = mysqli_store_result($link)) == FALSE) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
         if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             $post = array('id' => $row['id'],
@@ -2831,7 +2835,7 @@ function db_posts_get_by_number($link, $board_name, $post_number) {
 function db_posts_get_by_thread($link, $thread_id) {
     $result = mysqli_query($link, "call sp_posts_get_by_thread($thread_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $posts = array();
@@ -2901,11 +2905,11 @@ function db_posts_get_original_by_threads($link, $threads) {
     foreach ($threads as $t) {
         $query = "call sp_posts_get_original_by_thread({$t['id']})";
         if ( ($result = mysqli_multi_query($link, $query)) == FALSE) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
 
         if ( ($result = mysqli_store_result($link)) == FALSE) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
         if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             if (!isset($board_data[$row['id']])) {
@@ -2915,10 +2919,10 @@ function db_posts_get_original_by_threads($link, $threads) {
         mysqli_free_result($result);
         
         if (!mysqli_next_result($link)) {
-            throw new CommonException('Not all expected data received.');
+            throw new DBException('Not all expected data received.');
         }
         if ( ($result = mysqli_store_result($link)) == false) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
         if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             if (!isset($thread_data[$row['id']])) {
@@ -2927,10 +2931,10 @@ function db_posts_get_original_by_threads($link, $threads) {
         }
 
         if (!mysqli_next_result($link)) {
-            throw new CommonException('Not all expected data received.');
+            throw new DBException('Not all expected data received.');
         }
         if ( ($result = mysqli_store_result($link)) == false) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
         if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             $row['board'] = &$board_data[$row['board']];
@@ -2971,12 +2975,12 @@ function db_posts_get_reported_by_boards($link,
                                                       $posts_per_page)";
         $result = mysqli_multi_query($link, $query);
         if (!$result) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
 
         // Collect data from query result.
         if ( ($result = mysqli_store_result($link)) == FALSE) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
         if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             $count += $row['count'];
@@ -2984,10 +2988,10 @@ function db_posts_get_reported_by_boards($link,
         mysqli_free_result($result);
 
         if (!mysqli_next_result($link)) {
-            throw new CommonException('Not all expected data received.');
+            throw new DBException('Not all expected data received.');
         }
         if ( ($result = mysqli_store_result($link)) == false) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
         while( ($row = mysqli_fetch_assoc($result)) != NULL) {
             if (!isset($board_data[$row['board_id']])) {
@@ -3053,7 +3057,7 @@ function db_posts_get_reported_by_boards($link,
 function db_posts_get_visible_by_id($link, $post_id, $user_id) {
     $result = mysqli_query($link, "call sp_posts_get_visible_by_id($post_id, $user_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $post = null;
@@ -3122,7 +3126,7 @@ function db_posts_get_visible_by_number($link, $board_name, $post_number, $user_
     // Query.
     $result = mysqli_query($link, "call sp_posts_get_visible_by_number('$board_name', $post_number, $user_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     // Collect data from query result.
@@ -3198,7 +3202,7 @@ function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id, $fil
     foreach ($threads as $thread) {
         $result = mysqli_query($link, "call sp_posts_get_visible_by_thread({$thread['id']}, $user_id)");
         if (!$result) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
 
         if (mysqli_affected_rows($link) > 0) {
@@ -3262,7 +3266,7 @@ function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id, $fil
     return $posts;
 }
 /**
- * Get specified count of visible posts.
+ * Get visible posts.
  * @param MySQLi $link Link to database.
  * @param int $board_id Boards.
  * @param int $thread_id Thread id.
@@ -3271,17 +3275,22 @@ function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id, $fil
  * @return array
  * posts.
  */
-function db_posts_get_visible_by_thread_preview($link, $board_id, $thread_id, $user_id, $posts_per_thread) {
-    $query = "call sp_posts_get_visible_by_thread_preview($board_id, $thread_id, $user_id, $posts_per_thread)";
+function db_posts_get_visible_by_thread_preview($link, $board_id, $thread_id,
+                                                $user_id, $posts_per_thread) {
+
+    $query = "call sp_posts_get_visible_by_thread_preview($board_id,
+                                                          $thread_id,
+                                                          $user_id,
+                                                          $posts_per_thread)";
     if (mysqli_multi_query($link, $query) == FALSE) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $posts_count = -1;
 
     // Save posts count.
-    if ( ($result = mysqli_store_result($link)) == false) {
-        throw new CommonException(mysqli_error($link));
+    if ( ($result = mysqli_store_result($link)) == FALSE) {
+        throw new DBException(mysqli_error($link));
     }
     $board_data = NULL;
     if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
@@ -3291,10 +3300,10 @@ function db_posts_get_visible_by_thread_preview($link, $board_id, $thread_id, $u
 
     // Save board data.
     if (!mysqli_next_result($link)) {
-        throw new CommonException('Not all expected data received.');
+        throw new DBException('Not all expected data received.');
     }
-    if ( ($result = mysqli_store_result($link)) == false) {
-        throw new CommonException(mysqli_error($link));
+    if ( ($result = mysqli_store_result($link)) == FALSE) {
+        throw new DBException(mysqli_error($link));
     }
     $board_data = NULL;
     if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
@@ -3304,10 +3313,10 @@ function db_posts_get_visible_by_thread_preview($link, $board_id, $thread_id, $u
 
     // Save thread data.
     if (!mysqli_next_result($link)) {
-        throw new CommonException('Not all expected data received.');
+        throw new DBException('Not all expected data received.');
     }
     if ( ($result = mysqli_store_result($link)) == FALSE) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     $thread_data = array();
     if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
@@ -3318,10 +3327,10 @@ function db_posts_get_visible_by_thread_preview($link, $board_id, $thread_id, $u
 
     // Save replies.
     if (!mysqli_next_result($link)) {
-        throw new CommonException('Not all expected data received.');
+        throw new DBException('Not all expected data received.');
     }
     if ( ($result = mysqli_store_result($link)) == FALSE) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     $posts = array();
     while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
@@ -3343,10 +3352,10 @@ function db_posts_get_visible_by_thread_preview($link, $board_id, $thread_id, $u
 
     // Save original post.
     if (!mysqli_next_result($link)) {
-        throw new CommonException('Not all expected data received.');
+        throw new DBException('Not all expected data received.');
     }
     if ( ($result = mysqli_store_result($link)) == FALSE) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
         array_push($posts, array('id' => $row['id'],
@@ -3369,6 +3378,7 @@ function db_posts_get_visible_by_thread_preview($link, $board_id, $thread_id, $u
 
     // Cleanup.
     db_cleanup_link($link);
+
     return $posts;
 }
 /**
@@ -3386,7 +3396,7 @@ function db_posts_search_visible_by_boards($link, $boards, $keyword, $user) {
         $query = "call sp_posts_search_visible_by_board({$b['id']}, '$keyword', $user)";
         $result = mysqli_query($link, $query);
         if (!$result) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
 
         if (mysqli_affected_rows($link) > 0) {
@@ -3460,7 +3470,7 @@ function db_posts_search_visible_by_boards($link, $boards, $keyword, $user) {
 function db_posts_files_add($link, $post, $board, $file, $deleted) {
     $query = "call sp_posts_files_add($post, $board, $file, $deleted)";
     if (!mysqli_query($link, $query)) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     db_cleanup_link($link);
 }
@@ -3471,7 +3481,7 @@ function db_posts_files_add($link, $post, $board, $file, $deleted) {
  */
 function db_posts_files_delete_by_post($link, $post_id) {
     if (!mysqli_query($link, "call sp_posts_files_delete_by_post($post_id)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -3481,7 +3491,7 @@ function db_posts_files_delete_by_post($link, $post_id) {
  */
 function db_posts_files_delete_marked($link) {
     if (!mysqli_query($link, 'call sp_posts_files_delete_marked()')) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -3496,17 +3506,19 @@ function db_posts_files_delete_marked($link) {
 function db_posts_files_get_by_post($link, $post_id) {
     $result = mysqli_query($link, "call sp_posts_files_get_by_post($post_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $posts_files = array();
     if (mysqli_affected_rows($link) > 0) {
         while (($row = mysqli_fetch_assoc($result)) != NULL) {
-            array_push($posts_files,
-                       array('post' => $row['post'],
-                             'file' => $row['file'],
-                             'deleted' => $row['deleted'],
-                             'attachment_type' => Config::ATTACHMENT_TYPE_FILE));
+            array_push(
+                $posts_files,
+                array('post' => $row['post'],
+                      'file' => $row['file'],
+                      'deleted' => $row['deleted'],
+                      'attachment_type' => Config::ATTACHMENT_TYPE_FILE)
+            );
         }
     }
 
@@ -3530,7 +3542,7 @@ function db_posts_files_get_by_post($link, $post_id) {
 function db_posts_images_add($link, $post, $board, $image, $deleted) {
     $query = "call sp_posts_images_add($post, $board, $image, $deleted)";
     if(!mysqli_query($link, $query)) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     db_cleanup_link($link);
 }
@@ -3541,7 +3553,7 @@ function db_posts_images_add($link, $post, $board, $image, $deleted) {
  */
 function db_posts_images_delete_by_post($link, $post_id) {
     if (!mysqli_query($link, "call sp_posts_images_delete_by_post($post_id)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -3551,7 +3563,7 @@ function db_posts_images_delete_by_post($link, $post_id) {
  */
 function db_posts_images_delete_marked($link) {
     if (!mysqli_query($link, 'call sp_posts_images_delete_marked()')) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -3566,22 +3578,24 @@ function db_posts_images_delete_marked($link) {
 function db_posts_images_get_by_post($link, $post_id) {
     $result = mysqli_query($link, "call sp_posts_images_get_by_post($post_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $posts_images = array();
     if (mysqli_affected_rows($link) > 0) {
-        while (($row = mysqli_fetch_assoc($result)) !== null) {
-            array_push($posts_images,
-                       array('post' => $row['post'],
-                             'image' => $row['image'],
-                             'deleted' => $row['deleted'],
-                             'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE));
+        while (($row = mysqli_fetch_assoc($result)) !== NULL) {
+            array_push(
+                $posts_images,
+                array('post' => $row['post'],
+                      'image' => $row['image'],
+                      'deleted' => $row['deleted'],
+                      'attachment_type' => Config::ATTACHMENT_TYPE_IMAGE));
         }
     }
 
     mysqli_free_result($result);
     db_cleanup_link($link);
+
     return $posts_images;
 }
 
@@ -3598,7 +3612,7 @@ function db_posts_images_get_by_post($link, $post_id) {
  */
 function db_posts_links_add($link, $post, $posts_links_link, $deleted) {
     if(!mysqli_query($link, "call sp_posts_links_add($post, $posts_links_link, $deleted)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     db_cleanup_link($link);
 }
@@ -3609,7 +3623,7 @@ function db_posts_links_add($link, $post, $posts_links_link, $deleted) {
  */
 function db_posts_links_delete_by_post($link, $post_id) {
     if (!mysqli_query($link, "call sp_posts_links_delete_by_post($post_id)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -3619,7 +3633,7 @@ function db_posts_links_delete_by_post($link, $post_id) {
  */
 function db_posts_links_delete_marked($link) {
     if (!mysqli_query($link, 'call sp_posts_links_delete_marked()')) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -3634,22 +3648,24 @@ function db_posts_links_delete_marked($link) {
 function db_posts_links_get_by_post($link, $post_id) {
     $result = mysqli_query($link, "call sp_posts_links_get_by_post($post_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $posts_links = array();
     if (mysqli_affected_rows($link) > 0) {
         while (($row = mysqli_fetch_assoc($result)) != NULL) {
-            array_push($posts_links,
-                       array('post' => $row['post'],
-                             'link' => $row['link'],
-                             'deleted' => $row['deleted'],
-                             'attachment_type' => Config::ATTACHMENT_TYPE_LINK));
+            array_push(
+                $posts_links,
+                array('post' => $row['post'],
+                      'link' => $row['link'],
+                      'deleted' => $row['deleted'],
+                      'attachment_type' => Config::ATTACHMENT_TYPE_LINK));
         }
     }
 
     mysqli_free_result($result);
     db_cleanup_link($link);
+
     return $posts_links;
 }
 
@@ -3666,7 +3682,7 @@ function db_posts_links_get_by_post($link, $post_id) {
  */
 function db_posts_videos_add($link, $post, $video, $deleted) {
     if(!mysqli_query($link, "call sp_posts_videos_add($post, $video, $deleted)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     db_cleanup_link($link);
 }
@@ -3677,7 +3693,7 @@ function db_posts_videos_add($link, $post, $video, $deleted) {
  */
 function db_posts_videos_delete_by_post($link, $post_id) {
     if (!mysqli_query($link, "call sp_posts_videos_delete_by_post($post_id)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -3687,7 +3703,7 @@ function db_posts_videos_delete_by_post($link, $post_id) {
  */
 function db_posts_videos_delete_marked($link) {
     if (!mysqli_query($link, 'call sp_posts_videos_delete_marked()')) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -3702,22 +3718,24 @@ function db_posts_videos_delete_marked($link) {
 function db_posts_videos_get_by_post($link, $post_id) {
     $result = mysqli_query($link, "call sp_posts_videos_get_by_post($post_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $posts_videos = array();
     if (mysqli_affected_rows($link) > 0) {
         while (($row = mysqli_fetch_assoc($result)) != NULL) {
-            array_push($posts_videos,
-                       array('post' => $row['post'],
-                             'video' => $row['video'],
-                             'deleted' => $row['deleted'],
-                             'attachment_type' => Config::ATTACHMENT_TYPE_VIDEO));
+            array_push(
+                $posts_videos,
+                array('post' => $row['post'],
+                      'video' => $row['video'],
+                      'deleted' => $row['deleted'],
+                      'attachment_type' => Config::ATTACHMENT_TYPE_VIDEO));
         }
     }
 
     mysqli_free_result($result);
     db_cleanup_link($link);
+
     return $posts_videos;
 }
 
@@ -3732,7 +3750,7 @@ function db_posts_videos_get_by_post($link, $post_id) {
  */
 function db_reports_add($link, $post_id) {
 	if (!mysqli_query($link, "call sp_reports_add($post_id)")) {
-		throw new CommonException(mysqli_error($link));
+		throw new DBException(mysqli_error($link));
     }
 
 	db_cleanup_link($link);
@@ -3744,7 +3762,7 @@ function db_reports_add($link, $post_id) {
  */
 function db_reports_delete($link, $post_id) {
 	if (!mysqli_query($link, "call sp_reports_delete($post_id)")) {
-		throw new CommonException(mysqli_error($link));
+		throw new DBException(mysqli_error($link));
     }
 
 	db_cleanup_link($link);
@@ -3755,7 +3773,7 @@ function db_reports_delete($link, $post_id) {
 function db_reports_get_all($link) {
     $result = mysqli_query($link, 'call sp_reports_get_all()');
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $reports = array();
@@ -3781,7 +3799,7 @@ function db_reports_get_all($link) {
  */
 function db_spamfilter_add($link, $pattern) {
     if (!mysqli_query($link, "call sp_spamfilter_add('$pattern')")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -3793,7 +3811,7 @@ function db_spamfilter_add($link, $pattern) {
  */
 function db_spamfilter_delete($link, $id) {
 	if (!mysqli_query($link, "call sp_spamfilter_delete($id)")) {
-		throw new CommonException(mysqli_error($link));
+		throw new DBException(mysqli_error($link));
     }
 
 	db_cleanup_link($link);
@@ -3807,7 +3825,7 @@ function db_spamfilter_delete($link, $id) {
 function db_spamfilter_get_all($link) {
     $result = mysqli_query($link, 'call sp_spamfilter_get_all()');
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $patterns = array();
@@ -3835,7 +3853,7 @@ function db_spamfilter_get_all($link) {
  */
 function db_stylesheets_add($link, $name) {
     if (!mysqli_query($link, "call sp_stylesheets_add('$name')")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -3847,7 +3865,7 @@ function db_stylesheets_add($link, $name) {
  */
 function db_stylesheets_delete($link, $id) {
     if (!mysqli_query($link, "call sp_stylesheets_delete($id)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -3861,7 +3879,7 @@ function db_stylesheets_delete($link, $id) {
 function db_stylesheets_get_all($link) {
     $result = mysqli_query($link, 'call sp_stylesheets_get_all()');
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $stylesheets = array();
@@ -3917,7 +3935,7 @@ function db_threads_add($link, $board_id, $original_post, $bump_limit, $sage, $w
 
     $result = mysqli_query($link, "call sp_threads_add($board_id, $original_post, $bump_limit, $sage, $with_attachments)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $thread = null;
@@ -3940,7 +3958,7 @@ function db_threads_add($link, $board_id, $original_post, $bump_limit, $sage, $w
  */
 function db_threads_delete_marked($link) {
     if (!mysqli_query($link, 'call sp_threads_delete_marked()')) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -3963,7 +3981,7 @@ function db_threads_edit($link, $thread_id, $bump_limit, $sticky, $sage, $with_a
     $closed = $closed ? '1' : '0';
     $query = "call sp_threads_edit($thread_id, $bump_limit, $sticky, $sage, $with_attachments, $closed)";
     if (!mysqli_query($link, $query)) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     db_cleanup_link($link);
 }
@@ -3976,7 +3994,7 @@ function db_threads_edit($link, $thread_id, $bump_limit, $sticky, $sage, $with_a
 function db_threads_edit_original_post($link, $id, $original_post) {
     if(!mysqli_query($link,
             "call sp_threads_edit_original_post($id, $original_post)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     db_cleanup_link($link);
 }
@@ -3996,12 +4014,12 @@ function db_threads_get_all($link, $page, $threads_per_page) {
     $query = "call sp_threads_get_all($page, $threads_per_page)";
     $result = mysqli_multi_query($link, $query);
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     // Collect data from query result.
     if ( ($result = mysqli_store_result($link)) == FALSE) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
         $count = $row['count'];
@@ -4009,10 +4027,10 @@ function db_threads_get_all($link, $page, $threads_per_page) {
     mysqli_free_result($result);
 
     if (!mysqli_next_result($link)) {
-        throw new CommonException('Not all expected data received.');
+        throw new DBException('Not all expected data received.');
     }
     if ( ($result = mysqli_store_result($link)) == false) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
         if (!isset($board_data[$row['board_id']])) {
@@ -4071,7 +4089,7 @@ function db_threads_get_archived($link)
 {
 	$result = mysqli_query($link, 'call sp_threads_get_archived()');
 	if(!$result)
-		throw new CommonException(mysqli_error($link));
+		throw new DBException(mysqli_error($link));
 	$threads = array();
 	if(mysqli_affected_rows($link) > 0)
 		while(($row = mysqli_fetch_assoc($result)) !== null)
@@ -4097,7 +4115,7 @@ function db_threads_get_archived($link)
 function db_threads_get_by_id($link, $id) {
     $result = mysqli_query($link, "call sp_threads_get_by_id($id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $thread = null;
@@ -4140,7 +4158,7 @@ function db_threads_get_by_id($link, $id) {
 function db_threads_get_by_original_post($link, $board, $original_post) {
     $result = mysqli_query($link, "call sp_threads_get_by_original_post($board, $original_post)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $thread = null;
@@ -4171,7 +4189,7 @@ function db_threads_get_by_original_post($link, $board, $original_post) {
 function db_threads_get_changeable_by_id($link, $thread_id, $user_id) {
     $result = mysqli_query($link, "call sp_threads_get_changeable_by_id($thread_id, $user_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     if (mysqli_affected_rows($link) <= 0) {
@@ -4237,12 +4255,12 @@ function db_threads_get_moderatable($link, $user_id, $page, $threads_per_page) {
                                               $threads_per_page)";
 	$result = mysqli_multi_query($link, $query);
 	if (!$result) {
-		throw new CommonException(mysqli_error($link));
+		throw new DBException(mysqli_error($link));
     }
 
     // Collect data from query result.
     if ( ($result = mysqli_store_result($link)) == FALSE) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
         $count = $row['count'];
@@ -4250,10 +4268,10 @@ function db_threads_get_moderatable($link, $user_id, $page, $threads_per_page) {
     mysqli_free_result($result);
 
     if (!mysqli_next_result($link)) {
-        throw new CommonException('Not all expected data received.');
+        throw new DBException('Not all expected data received.');
     }
     if ( ($result = mysqli_store_result($link)) == false) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
         if (!isset($board_data[$row['board_id']])) {
@@ -4307,7 +4325,7 @@ function db_threads_get_moderatable_by_id($link, $thread_id, $user_id) {
     $result = mysqli_query($link,
         "call sp_threads_get_moderatable_by_id($thread_id, $user_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $thread = null;
@@ -4334,7 +4352,7 @@ function db_threads_get_visible_by_board($link, $board_id, $user_id) {
 
     $result = mysqli_query($link, "call sp_threads_get_visible_by_board($board_id, $user_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     if (mysqli_affected_rows($link) > 0) {
@@ -4422,7 +4440,7 @@ function db_threads_search_visible_by_board($link, $board_id, $page, $user_id,
 		$result = mysqli_query($link, 'call sp_threads_search_visible_by_board('
 			. $board_id . ', ' . $user_id . ', "' . $word . '")');
 		if(!$result)
-			throw new CommonException(mysqli_error($link));
+			throw new DBException(mysqli_error($link));
 		if(mysqli_affected_rows($link) > 0)
 			while(($row = mysqli_fetch_assoc($result)) != null)
 			{
@@ -4477,7 +4495,7 @@ function db_threads_get_visible_by_original_post($link, $board, $original_post, 
                                                            $original_post,
                                                            $user_id)";
     if ( ($result = mysqli_query($link, $query)) == FALSE) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     if (mysqli_affected_rows($link) <= 0) {
@@ -4528,7 +4546,7 @@ function db_threads_get_visible_by_original_post($link, $board, $original_post, 
     return $thread;
 }
 /**
- * Calculate count of visible threads.
+ * Get visible threads.
  * @param MySQLi $link Link to database.
  * @param int $user_id User id.
  * @param int $board_id Board id.
@@ -4537,38 +4555,42 @@ function db_threads_get_visible_by_original_post($link, $board, $original_post, 
  * @return array
  * threads.
  */
-function db_threads_get_visible_by_page($link, $user_id, $board_id, $page, $threads_per_page) {
-    $query = "call sp_threads_get_visible_by_page($user_id, $board_id, $page, $threads_per_page)";
+function db_threads_get_visible_by_page($link, $user_id, $board_id, $page,
+                                        $threads_per_page) {
+
+    $query = "call sp_threads_get_visible_by_page($user_id, $board_id, $page,
+                                                  $threads_per_page)";
     if (mysqli_multi_query($link, $query) == FALSE) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
-    // If page is 1 first sticky threads comes.
+    // If page is 1, first sticky threads comes.
     $sticky_threads = array();
     if ($page == 1) {
         if ( ($result = mysqli_store_result($link)) == FALSE) {
-            throw new CommonException(mysqli_error($link));
+            throw new DBException(mysqli_error($link));
         }
         while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
-            array_push($sticky_threads, array('id' => $row['id'],
-                                              'board' => NULL,
-                                              'original_post' => $row['original_post'],
-                                              'bump_limit' => $row['bump_limit'],
-                                              'sage' => $row['sage'],
-                                              'sticky' => $row['sticky'],
-                                              'with_attachments' => $row['with_attachments'],
-                                              'closed' => $row['closed']));
+            array_push($sticky_threads,
+                       array('id' => $row['id'],
+                             'board' => NULL,
+                             'original_post' => $row['original_post'],
+                             'bump_limit' => $row['bump_limit'],
+                             'sage' => $row['sage'],
+                             'sticky' => $row['sticky'],
+                             'with_attachments' => $row['with_attachments'],
+                             'closed' => $row['closed']));
         }
         mysqli_free_result($result);
 
         if (!mysqli_next_result($link)) {
-            throw new CommonException('Not all expected data received.');
+            throw new DBException('Not all expected data received.');
         }
     }
 
     // Save boards data.
-    if ( ($result = mysqli_store_result($link)) == false) {
-        throw new CommonException(mysqli_error($link));
+    if ( ($result = mysqli_store_result($link)) == FALSE) {
+        throw new DBException(mysqli_error($link));
     }
     $board_data = NULL;
     if ( ($row = mysqli_fetch_assoc($result)) != NULL) {
@@ -4582,21 +4604,22 @@ function db_threads_get_visible_by_page($link, $user_id, $board_id, $page, $thre
 
     // Save threads.
     if (!mysqli_next_result($link)) {
-        throw new CommonException('Not all expected data received.');
+        throw new DBException('Not all expected data received.');
     }
     if ( ($result = mysqli_store_result($link)) == FALSE) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     $threads = array();
     while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
-        array_push($threads, array('id' => $row['id'],
-                                   'board' => &$board_data,
-                                   'original_post' => $row['original_post'],
-                                   'bump_limit' => $row['bump_limit'],
-                                   'sage' => $row['sage'],
-                                   'sticky' => $row['sticky'],
-                                   'with_attachments' => $row['with_attachments'],
-                                   'closed' => $row['closed']));
+        array_push($threads,
+                   array('id' => $row['id'],
+                         'board' => &$board_data,
+                         'original_post' => $row['original_post'],
+                         'bump_limit' => $row['bump_limit'],
+                         'sage' => $row['sage'],
+                         'sticky' => $row['sticky'],
+                         'with_attachments' => $row['with_attachments'],
+                         'closed' => $row['closed']));
     }
     mysqli_free_result($result);
 
@@ -4611,24 +4634,26 @@ function db_threads_get_visible_by_page($link, $user_id, $board_id, $page, $thre
  * @param MySQLi $link Link to database.
  * @param int $user_id User id.
  * @param int $board_id Board id.
- * @return string
+ * @return int
  * count of visible threads.
  */
 function db_threads_get_visible_count($link, $user_id, $board_id) {
-    $result = mysqli_query($link, "call sp_threads_get_visible_count($user_id, $board_id)");
-    if (!$result) {
-        throw new CommonException(mysqli_error($link));
+    $threads_count = 0;
+    $query = "call sp_threads_get_visible_count($user_id, $board_id)";
+    if ( ($result = mysqli_query($link, $query)) == FALSE) {
+        throw new DBException(mysqli_error($link));
     }
 
-    if (mysqli_affected_rows($link) > 0 && ($row = mysqli_fetch_assoc($result)) != NULL) {
-        mysqli_free_result($result);
-        db_cleanup_link($link);
-        return $row['threads_count'];
-    } else {
-        mysqli_free_result($result);
-        db_cleanup_link($link);
-        return 0;
+    if (mysqli_affected_rows($link) > 0
+            && ($row = mysqli_fetch_assoc($result)) != NULL) {
+
+        $threads_count = $row['threads_count'];
     }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+
+    return kotoba_intval($threads_count);
 }
 /**
  * Move thread.
@@ -4638,7 +4663,7 @@ function db_threads_get_visible_count($link, $user_id, $board_id) {
  */
 function db_threads_move_thread($link, $thread_id, $board_id) {
     if (!mysqli_query($link, "call sp_threads_move_thread($thread_id, $board_id)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -4655,7 +4680,7 @@ function db_threads_move_thread($link, $thread_id, $board_id) {
  */
 function db_upload_handlers_add($link, $name) {
     if (!mysqli_query($link, "call sp_upload_handlers_add('$name')")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -4667,7 +4692,7 @@ function db_upload_handlers_add($link, $name) {
  */
 function db_upload_handlers_delete($link, $id) {
     if (!mysqli_query($link, "call sp_upload_handlers_delete($id)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -4681,7 +4706,7 @@ function db_upload_handlers_delete($link, $id) {
 function db_upload_handlers_get_all($link) {
     $result = mysqli_query($link, 'call sp_upload_handlers_get_all()');
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $upload_handlers = array();
@@ -4714,7 +4739,7 @@ function db_upload_types_add($link, $extension, $store_extension, $is_image, $up
 	$thumbnail_image = $thumbnail_image == null ? 'null' : "'$thumbnail_image'";
     $is_image = $is_image ? '1' : '0';
     if(!mysqli_query($link, "call sp_upload_types_add('$extension', '$store_extension', $is_image, $upload_handler_id, $thumbnail_image)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -4726,7 +4751,7 @@ function db_upload_types_add($link, $extension, $store_extension, $is_image, $up
  */
 function db_upload_types_delete($link, $id) {
     if (!mysqli_query($link, "call sp_upload_types_delete($id)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -4744,7 +4769,7 @@ function db_upload_types_edit($link, $id, $store_extension, $is_image, $upload_h
     $thumbnail_image = $thumbnail_image == null ? 'null' : "'$thumbnail_image'";
     $is_image = $is_image ? '1' : '0';
     if(!mysqli_query($link, "call sp_upload_types_edit($id, '$store_extension', $is_image, $upload_handler_id, $thumbnail_image)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -4758,7 +4783,7 @@ function db_upload_types_edit($link, $id, $store_extension, $is_image, $upload_h
 function db_upload_types_get_all($link) {
     $result = mysqli_query($link, 'call sp_upload_types_get_all()');
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $upload_types = array();
@@ -4788,7 +4813,7 @@ function db_upload_types_get_all($link) {
 function db_upload_types_get_by_board($link, $board_id) {
     $result = mysqli_query($link, "call sp_upload_types_get_by_board($board_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $upload_types = array();
@@ -4822,7 +4847,7 @@ function db_upload_types_get_by_board($link, $board_id) {
  */
 function db_user_groups_add($link, $user_id, $group_id) {
     if (!mysqli_query($link, "call sp_user_groups_add($user_id, $group_id)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     
     db_cleanup_link($link);
@@ -4835,7 +4860,7 @@ function db_user_groups_add($link, $user_id, $group_id) {
  */
 function db_user_groups_delete($link, $user_id, $group_id) {
     if (!mysqli_query($link, "call sp_user_groups_delete($user_id, $group_id)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -4849,7 +4874,7 @@ function db_user_groups_delete($link, $user_id, $group_id) {
  */
 function db_user_groups_edit($link, $user_id, $old_group_id, $new_group_id) {
     if (!mysqli_query($link, "call sp_user_groups_edit($user_id, $old_group_id, $new_group_id)")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -4863,7 +4888,7 @@ function db_user_groups_edit($link, $user_id, $old_group_id, $new_group_id) {
 function db_user_groups_get_all($link) {
     $result = mysqli_query($link, 'call sp_user_groups_get_all()');
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $user_groups = array();
@@ -4922,7 +4947,7 @@ function db_users_edit_by_keyword($link,
               $threads_per_page, $lines_per_post, $language, $stylesheet,
               $password, $goto)";
     if (!mysqli_query($link, $query)) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     db_cleanup_link($link);
@@ -4936,7 +4961,7 @@ function db_users_edit_by_keyword($link,
 function db_users_get_all($link) {
     $result = mysqli_query($link, 'call sp_users_get_all()');
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $users = array();
@@ -4961,7 +4986,7 @@ function db_users_get_admins($link) {
     // Query.
     $result = mysqli_query($link, 'call sp_users_get_admins()');
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     // Collect data from query result.
@@ -4986,12 +5011,12 @@ function db_users_get_admins($link) {
  */
 function db_users_get_by_keyword($link, $keyword) {
     if (mysqli_multi_query($link, "call sp_users_get_by_keyword('$keyword')") == false) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     // User settings.
     if ( ($result = mysqli_store_result($link)) == false) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     if ( ($row = mysqli_fetch_assoc($result)) !== null) {
         $user_settings['id'] = $row['id'];
@@ -5007,12 +5032,12 @@ function db_users_get_by_keyword($link, $keyword) {
     }
     mysqli_free_result($result);
     if (!mysqli_next_result($link)) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     // Groups.
     if ( ($result = mysqli_store_result($link)) == false) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     $user_settings['groups'] = array();
     while ( ($row = mysqli_fetch_assoc($result)) !== null) {
@@ -5035,7 +5060,7 @@ function db_users_get_by_keyword($link, $keyword) {
  */
 function db_users_set_goto($link, $id, $goto) {
     if(!mysqli_query($link, "call sp_users_set_goto($id, '$goto')")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     db_cleanup_link($link);
 }
@@ -5047,7 +5072,7 @@ function db_users_set_goto($link, $id, $goto) {
  */
 function db_users_set_password($link, $id, $password) {
     if (!mysqli_query($link, "call sp_users_set_password($id, '$password')")) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
     db_cleanup_link($link);
 }
@@ -5068,7 +5093,7 @@ function db_users_set_password($link, $id, $password) {
 function db_videos_add($link, $code, $widht, $height) {
     $result = mysqli_query($link, "call sp_videos_add('$code', $widht, $height)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $row = mysqli_fetch_assoc($result);
@@ -5086,23 +5111,25 @@ function db_videos_add($link, $code, $widht, $height) {
 function db_videos_get_by_post($link, $post_id) {
     $result = mysqli_query($link, "call sp_videos_get_by_post($post_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $videos = array();
     if (mysqli_affected_rows($link) > 0) {
         while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
-            array_push($videos,
-                       array('id' => $row['id'],
-                             'code' => $row['code'],
-                             'widht' => $row['widht'],
-                             'height' => $row['height'],
-                             'attachment_type' => Config::ATTACHMENT_TYPE_VIDEO));
+            array_push(
+                $videos,
+                array('id' => $row['id'],
+                      'code' => $row['code'],
+                      'widht' => $row['widht'],
+                      'height' => $row['height'],
+                      'attachment_type' => Config::ATTACHMENT_TYPE_VIDEO));
         }
     }
 
     mysqli_free_result($result);
     db_cleanup_link($link);
+
     return $videos;
 }
 /**
@@ -5115,7 +5142,7 @@ function db_videos_get_by_post($link, $post_id) {
 function db_videos_get_by_thread($link, $thread_id) {
     $result = mysqli_query($link, "call sp_videos_get_by_thread($thread_id)");
     if (!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $videos = array();
@@ -5143,7 +5170,7 @@ function db_videos_get_by_thread($link, $thread_id) {
 function db_videos_get_dangling($link) {
     $result = mysqli_query($link, 'call sp_videos_get_dangling()');
     if(!$result) {
-        throw new CommonException(mysqli_error($link));
+        throw new DBException(mysqli_error($link));
     }
 
     $videos = array();
