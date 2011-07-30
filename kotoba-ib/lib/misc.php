@@ -453,6 +453,17 @@ function is_guest()
 	return false;
 }
 /**
+ * Check if macrochan integration enabled on board.
+ * @param array $board Board.
+ * @return boolean
+ * return TRUE if macrochan integration enabled and FALSE otherwise.
+ */
+function is_macrochan_enabled($board) {
+    return $board['enable_macro'] === NULL
+           ? Config::ENABLE_MACRO
+           : $board['enable_macro'];
+}
+/**
  * Check if user is moderator.
  * @return boolean
  * TRUE if user is moderator and FALSE otherwise.
@@ -478,6 +489,20 @@ function is_postid_enabled($board) {
     return $board['enable_postid'] === NULL ? Config::ENABLE_POSTID : $board['enable_postid'];
 }
 /**
+ * Check if shi plugin enabled.
+ * @param array $board Board.
+ * @return boolean
+ * TRUE if shi plugin and FALSE otherwise.
+ */
+function is_shi_enabled($board) {
+    $_ = Config::ENABLE_SHI;
+    if (isset($board['enable_shi']) && $board['enable_shi'] !== NULL) {
+        $_ = $board['enable_shi'];
+    }
+
+    return $_ == TRUE;
+}
+/**
  * Check if translation enabled.
  * @param array $board Board.
  * @return
@@ -485,6 +510,20 @@ function is_postid_enabled($board) {
  */
 function is_translation_enabled($board) {
     return $board['enable_translation'] === null ? Config::ENABLE_TRANSLATION : $board['enable_translation'];
+}
+/**
+ * Check if youtube video attachments enabled.
+ * @param array $board Board.
+ * @return boolean
+ * TRUE if youtube video attachments enabled and FALSE otherwise.
+ */
+function is_youtube_enabled($board) {
+    $_ = Config::ENABLE_YOUTUBE;
+    if (isset($board['enable_youtube']) && $board['enable_youtube'] !== NULL) {
+        $_ = $board['enable_youtube'];
+    }
+
+    return $_ == TRUE;
 }
 /**
  * Check if captcha enabled.

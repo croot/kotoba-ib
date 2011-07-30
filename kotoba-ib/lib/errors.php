@@ -284,7 +284,16 @@ class BoardNotFoundError extends KotobaError {
     function __construct($name) {
         parent::__construct(
             kgettext('Boards.'),
-            sprintf(kgettext('Board name=%s not found.'), $name)
+            sprintf(kgettext('Board name=%s not found.'), $name),
+            Config::DIR_PATH . '/img/errors/board_not_found.png'
+        );
+    }
+}
+class MaxPageError extends KotobaError {
+    function __construct($num) {
+        parent::__construct(
+            kgettext('Pages.'),
+            sprintf(kgettext('Page number=%d not exist.'), $num)
         );
     }
 }
@@ -429,17 +438,6 @@ $ERRORS['CAPTCHA']
                     $smarty->assign('show_control', is_admin() || is_mod());
                     $smarty->assign('ib_name', Config::IB_NAME);
                     $smarty->assign('text', sprintf($text, $captcha));
-                    $smarty->assign('title', $title);
-                    $smarty->assign('image', $image);
-                    die($smarty->fetch('error.tpl'));
-                });
-$ERRORS['MAX_PAGE']
-    = new Error('Page number=%d not exist.', 'Pages.',
-                Config::DIR_PATH . '/img/errors/default_error.png',
-                function ($smarty, $num, $text, $title, $image) {
-                    $smarty->assign('show_control', is_admin() || is_mod());
-                    $smarty->assign('ib_name', Config::IB_NAME);
-                    $smarty->assign('text', sprintf($text, $num));
                     $smarty->assign('title', $title);
                     $smarty->assign('image', $image);
                     die($smarty->fetch('error.tpl'));

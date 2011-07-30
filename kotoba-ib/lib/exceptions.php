@@ -340,9 +340,9 @@ function display_exception_page($smarty, $exception, $show_control) {
     $md = $exception->getMessageData();
     $smarty->assign('show_control', $show_control);
     $smarty->assign('ib_name', Config::IB_NAME);
-    $smarty->assign('text', $md['text']);
     $smarty->assign('title', $md['title']);
     $smarty->assign('image', $md['image']);
+    $smarty->assign('text', $md['text']);
     $smarty->assign('debug_info', $exception->__toString());
     $smarty->display('exception.tpl');
 }
