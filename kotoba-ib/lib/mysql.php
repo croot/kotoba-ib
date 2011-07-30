@@ -1009,12 +1009,14 @@ function db_favorites_get_by_user($link, $user) {
  * @param int|null $thread Thread id or NULL.
  */
 function db_favorites_mark_readed($link, $user, $thread) {
-    if ($thread === null) {
+    if ($thread === NULL) {
         if (!mysqli_query($link, "call sp_favorites_mark_readed_all($user)")) {
             throw new DBException(mysqli_error($link));
         }
     } else {
-        if (!mysqli_query($link, "call sp_favorites_mark_readed($user, $thread)")) {
+        if (!mysqli_query($link,
+                          "call sp_favorites_mark_readed($user, $thread)")) {
+
             throw new DBException(mysqli_error($link));
         }
     }
@@ -3190,24 +3192,29 @@ function db_posts_get_visible_by_number($link, $board_name, $post_number, $user_
  * @param MySQLi $link Link to database.
  * @param array $threads Threads.
  * @param int $user_id User id.
- * @param Object $filter Filter function. First two arguments must be thread and post.
+ * @param Object $filter Filter function. First two arguments must be thread and
+ * post.
  * @param array $args Filter arguments.
  * @return array
  * posts.
  */
-function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id, $filter, $args) {
+function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id,
+                                                 $filter, $args) {
+
     $posts = array();
     $arg = count($args);
 
     foreach ($threads as $thread) {
-        $result = mysqli_query($link, "call sp_posts_get_visible_by_thread({$thread['id']}, $user_id)");
+        $query = "call sp_posts_get_visible_by_thread({$thread['id']},
+                                                      $user_id)";
+        $result = mysqli_query($link, $query);
         if (!$result) {
             throw new DBException(mysqli_error($link));
         }
 
         if (mysqli_affected_rows($link) > 0) {
             $args[$arg] = $thread;
-            while ( ($row = mysqli_fetch_assoc($result)) != null) {
+            while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
                 $args[$arg + 1] = $row;
                 if (call_user_func_array($filter, $args)) {
                     if (!isset ($tmp_boards[$row['board_id']])) {
@@ -3241,20 +3248,22 @@ function db_posts_get_visible_filtred_by_threads($link, $threads, $user_id, $fil
                                   'sticky' => $row['thread_sticky'],
                                   'with_attachments' => $row['thread_with_attachments']);
                     }
-                    array_push($posts,
-                               array('id' => $row['post_id'],
-                                     'board' => &$tmp_boards[$row['board_id']],
-                                     'thread' => &$tmp_threads[$row['thread_id']],
-                                     'number' => $row['post_number'],
-                                     'user' => $row['post_user'],
-                                     'password' => $row['post_password'],
-                                     'name' => $row['post_name'],
-                                     'tripcode' => $row['post_tripcode'],
-                                     'ip' => $row['post_ip'],
-                                     'subject' => $row['post_subject'],
-                                     'date_time' => $row['post_date_time'],
-                                     'text' => $row['post_text'],
-                                     'sage' => $row['post_sage']));
+                    array_push(
+                        $posts,
+                        array('id' => $row['post_id'],
+                              'board' => &$tmp_boards[$row['board_id']],
+                              'thread' => &$tmp_threads[$row['thread_id']],
+                              'number' => $row['post_number'],
+                              'user' => $row['post_user'],
+                              'password' => $row['post_password'],
+                              'name' => $row['post_name'],
+                              'tripcode' => $row['post_tripcode'],
+                              'ip' => $row['post_ip'],
+                              'subject' => $row['post_subject'],
+                              'date_time' => $row['post_date_time'],
+                              'text' => $row['post_text'],
+                              'sage' => $row['post_sage'])
+                        );
                 }
             }
         }
@@ -4318,17 +4327,16 @@ function db_threads_get_moderatable($link, $user_id, $page, $threads_per_page) {
  * @param MySQLi $link Link to database.
  * @param int $thread_id Thread id.
  * @param int $user_id User id.
- * @return mixed
+ * @return array|null
  * thread or NULL if this thread is not moderatable for this user.
  */
 function db_threads_get_moderatable_by_id($link, $thread_id, $user_id) {
-    $result = mysqli_query($link,
-        "call sp_threads_get_moderatable_by_id($thread_id, $user_id)");
-    if (!$result) {
+    $query = "call sp_threads_get_moderatable_by_id($thread_id, $user_id)";
+    if ( ($result = mysqli_query($link, $query)) == FALSE) {
         throw new DBException(mysqli_error($link));
     }
 
-    $thread = null;
+    $thread = NULL;
     if (mysqli_affected_rows($link) > 0) {
         while (($row = mysqli_fetch_assoc($result)) != NULL) {
             $thread['id'] = $row['id'];
@@ -4337,6 +4345,7 @@ function db_threads_get_moderatable_by_id($link, $thread_id, $user_id) {
 
     mysqli_free_result($result);
     db_cleanup_link($link);
+
     return $thread;
 }
 /**
@@ -4487,10 +4496,13 @@ function db_threads_search_visible_by_board($link, $board_id, $page, $user_id,
  * @param int $board Board id.
  * @param int $original_post Original post number.
  * @param int $user_id User id.
- * @return array
- * threads.
+ * @return array|boolean
+ * thread or boolean FALSE if any error occurred and set last error to
+ * appropriate error object.
  */
-function db_threads_get_visible_by_original_post($link, $board, $original_post, $user_id) {
+function db_threads_get_visible_by_original_post($link, $board, $original_post,
+                                                 $user_id) {
+
     $query = "call sp_threads_get_visible_by_original_post($board,
                                                            $original_post,
                                                            $user_id)";
@@ -4501,14 +4513,17 @@ function db_threads_get_visible_by_original_post($link, $board, $original_post, 
     if (mysqli_affected_rows($link) <= 0) {
         mysqli_free_result($result);
         db_cleanup_link($link);
-        return 1;
+        kotoba_set_last_error(new ThreadNotAvailableError($user_id,
+                                                          $original_post));
+        return FALSE;
     }
 
     $row = mysqli_fetch_assoc($result);
     if (isset($row['error']) && $row['error'] == 'NOT_FOUND') {
         mysqli_free_result($result);
         db_cleanup_link($link);
-        return 2;
+        kotoba_set_last_error(new ThreadNotFoundError($original_post));
+        return FALSE;
     }
 
     $board_data = array('id' => $row['board_id'],
@@ -4543,6 +4558,7 @@ function db_threads_get_visible_by_original_post($link, $board, $original_post, 
 
     mysqli_free_result($result);
     db_cleanup_link($link);
+
     return $thread;
 }
 /**

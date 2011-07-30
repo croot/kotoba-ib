@@ -144,7 +144,7 @@ $_['You are not admin.']['eng'] = 'You are not admin.';
 $_['You are not moderator.']['eng'] = 'You are not moderator.';
 $_['You enter wrong verification code %s.']['eng'] = 'You enter wrong verification code %s.';
 $_['You id=%d have no permission to do it on board id=%d.']['eng'] = 'You id=%d have no permission to do it on board id=%d.';
-$_['You id=%d have no permission to do it on thread id=%d.']['eng'] = 'You id=%d have no permission to do it on thread id=%d.';
+$_['You id=%d have no permission to do it on thread number=%d.']['eng'] = 'You id=%d have no permission to do it on thread number=%d.';
 
 unset($_);
 ?>

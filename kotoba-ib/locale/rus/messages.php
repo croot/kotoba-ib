@@ -144,7 +144,7 @@ $_['You are not admin.']['rus'] = 'Вы не являетесь админист
 $_['You are not moderator.']['rus'] = 'Вы не являетесь модератором.';
 $_['You enter wrong verification code %s.']['rus'] = 'Вы ввели неверный код подтверждения %s.';
 $_['You id=%d have no permission to do it on board id=%d.']['rus'] = 'У вас id=%d нет прав для запрашиваемого действия с доской id=%d.';
-$_['You id=%d have no permission to do it on thread id=%d.']['rus'] = 'У вас id=%d нет прав для запрашиваемого действия с нитью id=%d.';
+$_['You id=%d have no permission to do it on thread number=%d.']['rus'] = 'У вас id=%d нет прав для запрашиваемого действия с нитью number=%d.';
 
 unset($_);
 ?>
