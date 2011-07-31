@@ -1686,6 +1686,7 @@ function db_languages_get_all($link) {
 
     mysqli_free_result($result);
     db_cleanup_link($link);
+
     return $languages;
 }
 
@@ -3893,10 +3894,9 @@ function db_stylesheets_get_all($link) {
 
     $stylesheets = array();
     if (mysqli_affected_rows($link) > 0) {
-        while (($row = mysqli_fetch_assoc($result)) != NULL) {
-            array_push($stylesheets,
-                       array('id' => $row['id'],
-                             'name' => $row['name']));
+        while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
+            array_push($stylesheets, array('id' => $row['id'],
+                                           'name' => $row['name']));
         }
     } else {
         throw new StylesheetsNotExistsException();
@@ -3904,6 +3904,7 @@ function db_stylesheets_get_all($link) {
 
     mysqli_free_result($result);
     db_cleanup_link($link);
+
     return $stylesheets;
 }
 
@@ -4959,9 +4960,14 @@ function db_users_edit_by_keyword($link,
     }
     $password = ($password === NULL? 'null' : "'$password'");
     $goto = ($goto === NULL? 'null' : "'$goto'");
-    $query = "call sp_users_edit_by_keyword('$keyword', $posts_per_thread,
-              $threads_per_page, $lines_per_post, $language, $stylesheet,
-              $password, $goto)";
+    $query = "call sp_users_edit_by_keyword('$keyword',
+                                            $posts_per_thread,
+                                            $threads_per_page,
+                                            $lines_per_post,
+                                            $language,
+                                            $stylesheet,
+                                            $password,
+                                            $goto)";
     if (!mysqli_query($link, $query)) {
         throw new DBException(mysqli_error($link));
     }
@@ -5022,19 +5028,20 @@ function db_users_get_admins($link) {
  * Load user settings.
  * @param MySQLi $link Link to database.
  * @param string $keyword Keyword hash.
- * @return int|array Returns array of user settings or integer error value.
- * Error values are: 1 - user not exists.
+ * @return array|boolean Returns array of user settings or boolean FALSE if any
+ * error occurred and set last error to appropriate error object.
  */
 function db_users_get_by_keyword($link, $keyword) {
-    if (mysqli_multi_query($link, "call sp_users_get_by_keyword('$keyword')") == false) {
+    $query = "call sp_users_get_by_keyword('$keyword')";
+    if (mysqli_multi_query($link, $query) == FALSE) {
         throw new DBException(mysqli_error($link));
     }
 
     // User settings.
-    if ( ($result = mysqli_store_result($link)) == false) {
+    if ( ($result = mysqli_store_result($link)) == FALSE) {
         throw new DBException(mysqli_error($link));
     }
-    if ( ($row = mysqli_fetch_assoc($result)) !== null) {
+    if ( ($row = mysqli_fetch_assoc($result)) !== NULL) {
         $user_settings['id'] = $row['id'];
         $user_settings['posts_per_thread'] = $row['posts_per_thread'];
         $user_settings['threads_per_page'] = $row['threads_per_page'];
@@ -5044,7 +5051,8 @@ function db_users_get_by_keyword($link, $keyword) {
         $user_settings['password'] = $row['password'];
         $user_settings['goto'] = $row['goto'];
     } else {
-        return 1;
+        kotoba_set_last_error(new UserNotExistsError($keyword));
+        return FALSE;
     }
     mysqli_free_result($result);
     if (!mysqli_next_result($link)) {
@@ -5052,11 +5060,11 @@ function db_users_get_by_keyword($link, $keyword) {
     }
 
     // Groups.
-    if ( ($result = mysqli_store_result($link)) == false) {
+    if ( ($result = mysqli_store_result($link)) == FALSE) {
         throw new DBException(mysqli_error($link));
     }
     $user_settings['groups'] = array();
-    while ( ($row = mysqli_fetch_assoc($result)) !== null) {
+    while ( ($row = mysqli_fetch_assoc($result)) !== NULL) {
         array_push($user_settings['groups'], $row['name']);
     }
     if (count($user_settings['groups']) <= 0) {
@@ -5066,6 +5074,7 @@ function db_users_get_by_keyword($link, $keyword) {
     // Cleanup.
     mysqli_free_result($result);
     db_cleanup_link($link);
+
     return $user_settings;
 }
 /**

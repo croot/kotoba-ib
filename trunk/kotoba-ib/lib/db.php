@@ -2730,8 +2730,8 @@ function users_get_admins() {
 /**
  * Load user settings.
  * @param string $keyword Keyword hash.
- * @return int|array Returns array of user settings or integer error value.
- * Error values are: 1 - user not exists.
+ * @return array|boolean Returns array of user settings or boolean FALSE if any
+ * error occurred and set last error to appropriate error object.
  */
 function users_get_by_keyword($keyword) {
     return db_users_get_by_keyword(DataExchange::getDBLink(), $keyword);

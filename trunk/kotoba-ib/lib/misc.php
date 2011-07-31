@@ -195,27 +195,26 @@ function kotoba_array_column($src, $col) {
 /**
  * Load user settings.
  * @param string $keyword Keyword hash.
- * @return int Returns integer 0 valuer if user settings successfully loaded or
- * integer error value. Error values are: 1 - user not exists.
+ * @return boolean
+ * TURE if user settings loaded successfully or FALSE otherwise. In case of
+ * error last error will contain appropriate error object.
  */
 function load_user_settings($keyword) {
-    $user_settings = users_get_by_keyword($keyword);
-
-    if ($user_settings === 1) {
-        return 1;
+    if ( ($_ = users_get_by_keyword($keyword)) === FALSE) {
+        return FALSE;
     }
 
-    $_SESSION['user'] = kotoba_intval($user_settings['id']);
-    $_SESSION['groups'] = $user_settings['groups'];
-    $_SESSION['threads_per_page'] = kotoba_intval($user_settings['threads_per_page']);
-    $_SESSION['posts_per_thread'] = kotoba_intval($user_settings['posts_per_thread']);
-    $_SESSION['lines_per_post'] = kotoba_intval($user_settings['lines_per_post']);
-    $_SESSION['stylesheet'] = $user_settings['stylesheet'];
-    $_SESSION['language'] = $user_settings['language'];
-    $_SESSION['password'] = $user_settings['password'] == '' ? NULL : $user_settings['password'];
-    $_SESSION['goto'] = $user_settings['goto'];
+    $_SESSION['user'] = kotoba_intval($_['id']);
+    $_SESSION['groups'] = $_['groups'];
+    $_SESSION['threads_per_page'] = kotoba_intval($_['threads_per_page']);
+    $_SESSION['posts_per_thread'] = kotoba_intval($_['posts_per_thread']);
+    $_SESSION['lines_per_post'] = kotoba_intval($_['lines_per_post']);
+    $_SESSION['stylesheet'] = $_['stylesheet'];
+    $_SESSION['language'] = $_['language'];
+    $_SESSION['password'] = $_['password'] == '' ? NULL : $_['password'];
+    $_SESSION['goto'] = $_['goto'];
 
-    return 0;
+    return TRUE;
 }
 /**
  * Check page number.
