@@ -314,6 +314,30 @@ class ThreadNotFoundError extends KotobaError {
         );
     }
 }
+class UserNotExistsError extends KotobaError {
+    function __construct($keyword) {
+        parent::__construct(
+            kgettext('Users.'),
+            sprintf(kgettext('User keyword=%s not exists.'), $keyword)
+        );
+    }
+}
+class StylesheetNotExistsError extends KotobaError {
+    function __construct($id) {
+        parent::__construct(
+            kgettext('Stylesheets.'),
+            sprintf(kgettext('Stylesheet id=%d not exist.'), $id)
+        );
+    }
+}
+class LanguageNotExistsError extends KotobaError {
+    function __construct($id) {
+        parent::__construct(
+            kgettext('Languages.'),
+            sprintf(kgettext('Language id=%s not exist.'), $id)
+        );
+    }
+}
 
 $KOTOBA_LAST_ERROR = NULL;
 
@@ -359,17 +383,6 @@ $ERRORS['NO_WORDS']
     = new Error('No words for search.', 'Search.');
 $ERRORS['LONG_WORD']
     = new Error('One of search words is more than 60 characters.', 'Search.');
-$ERRORS['LANGUAGE_NOT_EXIST']
-    = new Error('Language id=%s not exist.', 'Languages.',
-                Config::DIR_PATH . '/img/errors/default_error.png',
-                function ($smarty, $id, $text, $title, $image) {
-                    $smarty->assign('show_control', is_admin() || is_mod());
-                    $smarty->assign('ib_name', Config::IB_NAME);
-                    $smarty->assign('text', sprintf($text, $id));
-                    $smarty->assign('title', $title);
-                    $smarty->assign('image', $image);
-                    die($smarty->fetch('error.tpl'));
-                });
 $ERRORS['POST_NOT_FOUND']
     = new Error('Post id=%d not found or user id=%d have no permission.',
                 'Posts.',
@@ -384,17 +397,6 @@ $ERRORS['POST_NOT_FOUND']
                 });
 $ERRORS['SEARCH_KEYWORD']
     = new Error('Search keyword not set or too short.', 'Search.');
-$ERRORS['STYLESHEET_NOT_EXIST']
-    = new Error('Stylesheet id=%d not exist.', 'Stylesheets.',
-                Config::DIR_PATH . '/img/errors/default_error.png',
-                function ($smarty, $id, $text, $title, $image) {
-                    $smarty->assign('show_control', is_admin() || is_mod());
-                    $smarty->assign('ib_name', Config::IB_NAME);
-                    $smarty->assign('text', sprintf($text, $id));
-                    $smarty->assign('title', $title);
-                    $smarty->assign('image', $image);
-                    die($smarty->fetch('error.tpl'));
-                });
 $ERRORS['THREAD_NOT_FOUND_ID']
     = new Error('Thread id=%d not found.', 'Threads.',
                 Config::DIR_PATH . '/img/errors/board_not_found.png',
@@ -454,17 +456,6 @@ $ERRORS['NOT_ADMIN']
     = new Error('You are not admin.', 'Admin.');
 $ERRORS['NOT_MOD']
     = new Error('You are not moderator.', 'Moderator.');
-$ERRORS['USER_NOT_EXIST']
-    = new Error('User keyword=%s not exists.', 'Users.',
-                Config::DIR_PATH . '/img/errors/default_error.png',
-                function ($smarty, $keyword, $text, $title, $image) {
-                    $smarty->assign('show_control', is_admin() || is_mod());
-                    $smarty->assign('ib_name', Config::IB_NAME);
-                    $smarty->assign('text', sprintf($text, $keyword));
-                    $smarty->assign('title', $title);
-                    $smarty->assign('image', $image);
-                    die($smarty->fetch('error.tpl'));
-                });
 $ERRORS['UPLOAD_ERR_INI_SIZE']
     = new Error('Upload limit upload_max_filesize from php.ini exceeded.',
                 'Uploads.');

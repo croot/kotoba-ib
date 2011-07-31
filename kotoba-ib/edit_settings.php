@@ -4,128 +4,160 @@
  * See license.txt for more info.*
  *********************************/
 
-// Edit user settings script.
+/*
+ * Edit user settings script.
+ *
+ * Parameters:
+ * keyword_load - keyword for load settings.
+ * keyword_save - keyword for save settings.
+ * threads_per_page - used in case of save settings. Count of threads per page
+ *                    in board view (see config.php).
+ * posts_per_thread - used in case of save settings. Count of posts per thread
+ *                    in board view (see config.php).
+ * lines_per_post - used in case of save settings. Count of lines per post
+ *                  in board view (see config.php).
+ * stylesheet_id - used in case of save settings. Stylesheet id.
+ * language_id - used in case of save settings. Language id.
+ * goto - used in case of save settings. Redirection after posting.
+ */
 
-require_once 'config.php';
-require_once Config::ABS_PATH . '/lib/exceptions.php';
-require_once Config::ABS_PATH . '/lib/errors.php';
-require_once Config::ABS_PATH . '/lib/db.php';
+require_once dirname(__FILE__) . '/config.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 
 try {
     // Initialization.
     kotoba_session_start();
     if (Config::LANGUAGE != $_SESSION['language']) {
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
+        require Config::ABS_PATH
+                . "/locale/{$_SESSION['language']}/messages.php";
     }
     locale_setup();
     $smarty = new SmartyKotobaSetup();
 
     // Check if client banned.
-    if (!isset($_SERVER['REMOTE_ADDR'])
-            || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
+    if ( ($ban = bans_check(get_remote_addr())) !== FALSE) {
 
-        throw new RemoteAddressException();
-    }
-    if ( ($ban = bans_check($ip)) !== false) {
+        // Cleanup.
+        DataExchange::releaseResources();
+
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
+        $smarty->display('banned.tpl');
+
         session_destroy();
-        DataExchange::releaseResources();
-        die($smarty->fetch('banned.tpl'));
+        exit(1);
     }
 
     $stylesheets = stylesheets_get_all();
     $languages = languages_get_all();
 
-    // Load / Save settings.
-    if (isset($_POST['keyword_load'])) {
+    // Load or save settings.
+    if (isset($_REQUEST['keyword_load'])) {
+
+        // Reload session.
         $kotoba_session_start_time = $_SESSION['kotoba_session_start_time'];
         session_destroy();
         kotoba_session_start();
         $_SESSION['kotoba_session_start_time'] = $kotoba_session_start_time;
         if (Config::LANGUAGE != $_SESSION['language']) {
-            require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
+            require Config::ABS_PATH
+                    . "/locale/{$_SESSION['language']}/messages.php";
         }
-        $_ = users_check_keyword($_POST['keyword_load']);
-        if ($_ === FALSE) {
+
+        // Check keyword and load user settings.
+        if ( ($_ = users_check_keyword($_REQUEST['keyword_load'])) === FALSE) {
 
             // Cleanup.
             DataExchange::releaseResources();
 
-            $_ = kotoba_last_error();
-            $_($smarty);
+            display_error_page($smarty, kotoba_last_error());
             exit(1);
         }
         $keyword_hash = md5($_);
-        if (load_user_settings($keyword_hash) === 1) {
+        if (load_user_settings($keyword_hash) === FALSE) {
 
             // Cleanup.
             DataExchange::releaseResources();
 
-            $ERRORS['USER_NOT_EXIST']($smarty, $keyword_hash);
+            display_error_page($smarty, kotoba_last_error());
             exit(1);
         }
+
+        // Redirection.
         header('Location: ' . Config::DIR_PATH . "/edit_settings.php");
+
+        // Cleanup.
         DataExchange::releaseResources();
+
         exit(0);
-    } elseif (isset($_POST['keyword_save'])) {
+    } elseif (isset($_REQUEST['keyword_save'])) {
+
+        // Reload session.
         $kotoba_session_start_time = $_SESSION['kotoba_session_start_time'];
         session_destroy();
         kotoba_session_start();
         $_SESSION['kotoba_session_start_time'] = $kotoba_session_start_time;
         if (Config::LANGUAGE != $_SESSION['language']) {
-            require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
+            require Config::ABS_PATH
+                    . "/locale/{$_SESSION['language']}/messages.php";
         }
-        $_ = users_check_keyword($_POST['keyword_save']);
-        if ($_ === FALSE) {
+
+        // Check keyword.
+        if ( ($_ = users_check_keyword($_REQUEST['keyword_save'])) === FALSE) {
 
             // Cleanup.
             DataExchange::releaseResources();
 
-            $_ = kotoba_last_error();
-            $_($smarty);
+            display_error_page($smarty, kotoba_last_error());
             exit(1);
         }
         $keyword_hash = md5($_);
-        $_ = users_check_threads_per_page($_POST['threads_per_page']);
+
+        // Check threads per page.
+        $_ = users_check_threads_per_page($_REQUEST['threads_per_page']);
         if ($_ === FALSE) {
 
             // Cleanup.
             DataExchange::releaseResources();
 
-            $_ = kotoba_last_error();
-            $_($smarty);
+            display_error_page($smarty, kotoba_last_error());
             exit(1);
         }
         $threads_per_page = $_;
-        $_ = users_check_posts_per_thread($_POST['posts_per_thread']);
+
+        // Check posts per thread.
+        $_ = users_check_posts_per_thread($_REQUEST['posts_per_thread']);
         if ($_ === FALSE) {
 
             // Cleanup.
             DataExchange::releaseResources();
 
-            $_ = kotoba_last_error();
-            $_($smarty);
+            display_error_page($smarty, kotoba_last_error());
             exit(1);
         }
         $posts_per_thread = $_;
-        $lines_per_post = users_check_lines_per_post($_POST['lines_per_post']);
-        if ($lines_per_post === FALSE) {
+
+        // Check lines per post.
+        $_ = users_check_lines_per_post($_REQUEST['lines_per_post']);
+        if ($_ === FALSE) {
 
             // Cleanup.
             DataExchange::releaseResources();
 
-            $_ = kotoba_last_error();
-            $_($smarty);
+            display_error_page($smarty, kotoba_last_error());
             exit(1);
         }
+        $lines_per_post = $_;
 
-        $stylesheet_id = stylesheets_check_id($_POST['stylesheet_id']);
-        $found = false;
+        // Check stylesheet.
+        $stylesheet_id = stylesheets_check_id($_REQUEST['stylesheet_id']);
+        $found = FALSE;
         foreach ($stylesheets as $stylesheet) {
             if ($stylesheet_id == $stylesheet['id']) {
-                $found = true;
+                $found = TRUE;
                 break;
             }
         }
@@ -134,15 +166,17 @@ try {
             // Cleanup.
             DataExchange::releaseResources();
 
-            $ERRORS['STYLESHEET_NOT_EXIST']($smarty, $stylesheet_id);
+            display_error_page($smarty,
+                               new StylesheetNotExistsError($stylesheet_id));
             exit(1);
         }
 
-        $language_id = languages_check_id($_POST['language_id']);
-        $found = false;
+        // Check language.
+        $language_id = languages_check_id($_REQUEST['language_id']);
+        $found = FALSE;
         foreach ($languages as $language) {
             if ($language_id == $language['id']) {
-                $found = true;
+                $found = TRUE;
                 break;
             }
         }
@@ -151,20 +185,22 @@ try {
             // Cleanup.
             DataExchange::releaseResources();
 
-            $ERRORS['LANGUAGE_NOT_EXIST']($smarty, $language_id);
+            display_error_page($smarty,
+                               new LanguageNotExistsError($language_id));
             exit(1);
         }
 
-        $goto = users_check_goto($_POST['goto']);
+        // Check goto.
+        $goto = users_check_goto($_REQUEST['goto']);
         if ($goto === FALSE) {
 
             // Cleanup.
             DataExchange::releaseResources();
 
-            $_ = new UserGotoError();
-            $_($smarty);
+            display_error_page($smarty, new UserGotoError());
             exit(1);
         }
+
         users_edit_by_keyword($keyword_hash,
                               $posts_per_thread,
                               $threads_per_page,
@@ -173,31 +209,28 @@ try {
                               $stylesheet_id,
                               null,
                               $goto);
-        if (load_user_settings($keyword_hash) === 1) {
+
+        if (load_user_settings($keyword_hash) === FALSE) {
 
             // Cleanup.
             DataExchange::releaseResources();
 
-            $ERRORS['USER_NOT_EXIST']($smarty, $keyword_hash);
+            display_error_page($smarty, kotoba_last_error());
             exit(1);
         }
+
+        // Redirection.
         header('Location: ' . Config::DIR_PATH . "/edit_settings.php");
+
+        // Cleanup.
         DataExchange::releaseResources();
+
         exit(0);
     }
 
     $categories = categories_get_all();
     $boards = boards_get_visible($_SESSION['user']);
-
-    // Make category-boards tree for navigation panel.
-    foreach ($categories as &$c) {
-        $c['boards'] = array();
-        foreach ($boards as $b) {
-            if ($b['category'] == $c['id'] && !in_array($b['name'], Config::$INVISIBLE_BOARDS)) {
-                array_push($c['boards'], $b);
-            }
-        }
-    }
+    make_category_boards_tree($categories, $boards);
 
     // Pass all threads hidden by specific user.
     $htfilter = function ($hidden_thread, $user) {
@@ -206,7 +239,8 @@ try {
         }
         return false;
     };
-    $hidden_threads = hidden_threads_get_filtred_by_boards($boards, $htfilter, $_SESSION['user']);
+    $hidden_threads = hidden_threads_get_filtred_by_boards($boards, $htfilter,
+                                                           $_SESSION['user']);
 
     // Get favorite threads. Calculate count of unread posts and sort.
     $favorites = favorites_get_by_user($_SESSION['user']);
@@ -218,11 +252,14 @@ try {
     $pfilter = function($thread, $post) {
         return true;
     };
-    $posts = posts_get_visible_filtred_by_threads($threads, $_SESSION['user'], $pfilter);
+    $posts = posts_get_visible_filtred_by_threads($threads, $_SESSION['user'],
+                                                  $pfilter);
     foreach ($favorites as &$f) {
         $f['unread'] = 0;
         foreach ($posts as $post) {
-            if ($f['thread']['id'] == $post['thread']['id'] && $post['number'] > $f['last_readed']) {
+            if ($f['thread']['id'] == $post['thread']['id']
+                    && $post['number'] > $f['last_readed']) {
+
                 $f['unread']++;
             }
         }
@@ -258,19 +295,12 @@ try {
     DataExchange::releaseResources();
 
     exit(0);
-} catch (FormatException $fe) {
-    $smarty->assign('msg', $fe->__toString());
-    DataExchange::releaseResources();
-    if ($fe->getReason() == FormatException::$messages['STYLESHEET_ID']
-            || $fe->getReason() == FormatException::$messages['LANGUAGE_ID']) {
-
-        header('Location: http://z0r.de/?id=114');
-        exit;
-    }
-    die($smarty->fetch('exception.tpl'));
 } catch (Exception $e) {
-    $smarty->assign('msg', $e->__toString());
+
+    // Cleanup.
     DataExchange::releaseResources();
-    die($smarty->fetch('exception.tpl'));
+
+    display_exception_page($smarty, $e, is_admin() || is_mod());
+    exit(1);
 }
 ?>

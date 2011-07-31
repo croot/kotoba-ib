@@ -1,0 +1,24 @@
+* Изменён список требуемых скриптов (require) в скриптах threads.php и edit_settings.php.
+* Изменена на новую логика проверки на бан.
+* Добавлены новые комментарии и внесены изменения в форматирование кода.
+* Произведена ревизия функций stylesheets_get_all, languages_get_all. Изменено форматирование кода.
+* Исправлен вывод ошибки при неправильном ключевом слове.
+* Ошибка user not exists переделана в класс.
+* Функция db_users_get_by_keyword и соответствующая users_get_by_keyword теперь возвращаюет ошибку через last error. Теперь они вместо кода ошибки возвращают FALSE.
+* Переделана обработка ошибки user not exists в load_user_settings.
+* Функция load_user_settings теперь вовращает FALSE в случае ошибки и TRUE в случае успешной работы.
+* Изменен вывод ошибки user not exists в скрипте edit_settings.php.
+* Описаны параметры, которые принимает скрипт edit_settings.php.
+* Проведена ревизия функций users_check_threads_per_page, users_check_posts_per_thread, users_check_lines_per_post.
+* Исправлен вывод ошибки при неправильном threads per page, posts per thread и lines per post
+* Источник входных параметров скрипта изменён с POST на REUQEST
+* Ошибка stylesheet not exists переделана в класс.
+* Исправлен вывод ошибки stylesheet not exists.
+* Ошибка language not exists переделана в класс.
+* Исправлен вывод ошибки language not exists.
+* Проведена ревизия функций languages_check_id, stylesheets_check_id и users_check_goto.
+* Исправлен вывод ошибки user goto.
+* Произведена ревизия функций users_edit_by_keyword и db_users_edit_by_keyword. Изменено форматирование кода.
+* Произведена ревизия функции users_edit_by_keyword.
+* Созание дерева категорий и их досок переделано на использование функции make_category_boards_tree.
+* Переделана обработка исключений в catch. Новый вывод информации об исключении с помощью display_exception_page.
