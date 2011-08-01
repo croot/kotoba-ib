@@ -240,15 +240,15 @@ function check_module($name)
  * Thanks to javalc6@gmail.com <a href="http://ru2.php.net/manual/en/function.mb-check-encoding.php#95289">http://ru2.php.net/manual/en/function.mb-check-encoding.php#95289</a>
  * @param string $text Текст UTF-8
  * @return bool
- * Возвращает true, если текст корректный и false в противном случае.
+ * TRUE if unicod is valid and FALSE otherwise.
  */
-function check_utf8($text) { // Java CC
+function check_utf8($text) {
     $len = strlen($text);
     for ($i = 0; $i < $len; $i++) {
         $c = ord($text[$i]);
         if ($c > 128) {
             if ($c > 247) {
-                return false;
+                return FALSE;
             } elseif ($c > 239) {
                 $bytes = 4;
             } elseif ($c > 223) {
@@ -256,22 +256,22 @@ function check_utf8($text) { // Java CC
             } elseif ($c > 191) {
                 $bytes = 2;
             } else {
-                return false;
+                return FALSE;
             }
             if (($i + $bytes) > $len) {
-                return false;
+                return FALSE;
             }
             while ($bytes > 1) {
                 $i++;
                 $b = ord($text[$i]);
                 if ($b < 128 || $b > 191) {
-                    return false;
+                    return FALSE;
                 }
                 $bytes--;
             }
         }
     }
-    return true;
+    return TRUE;
 }
 /**
  * Create names for uploaded file and thumbnail.
@@ -302,7 +302,7 @@ function calculate_tripcode($name) {
         return array($name, null);
     }
     $enc = mb_convert_encoding($code, 'Shift_JIS', Config::MB_ENCODING);
-    $salt = mb_substr($enc .'H..', 1, 2);
+    $salt = mb_substr($enc . 'H..', 1, 2);
     $salt2 = preg_replace("/![\.-z]/", '.', $salt);
     $salt3 = strtr($salt2, ":;<=>?@[\]^_`", "ABCDEFGabcdef");
     $cr = crypt($code, $salt3);
@@ -361,7 +361,41 @@ function calculate_file_hash($path) {
  * TRUE if it ELSE otherwise.
  */
 function use_oekaki() {
-    return isset($_POST['use_oekaki']) && $_POST['use_oekaki'] == '1' && isset($_SESSION['oekaki']) && is_array($_SESSION['oekaki']);
+    return isset($_REQUEST['use_oekaki'])
+           && $_REQUEST['use_oekaki'] == '1'
+           && isset($_SESSION['oekaki'])
+           && is_array($_SESSION['oekaki']);
+}
+/**
+ * Check error on file uploading.
+ * @param int $err File upload error.
+ * @return boolean
+ * TRUE if no error and FALSE otherwise. In case of error set last error to
+ * appropriate error object.
+ */
+function upload_check_error($err) {
+    switch ($err) {
+        case UPLOAD_ERR_INI_SIZE:
+            kotoba_set_last_error(new UploadIniSizeError());
+            return FALSE;
+        case UPLOAD_ERR_FORM_SIZE:
+            kotoba_set_last_error(new UploadFormSizeError());
+            return FALSE;
+        case UPLOAD_ERR_PARTIAL:
+            kotoba_set_last_error(new UploadPartialError());
+            return FALSE;
+        case UPLOAD_ERR_NO_TMP_DIR:
+            kotoba_set_last_error(new UploadNoTmpDirError());
+            return FALSE;
+        case UPLOAD_ERR_CANT_WRITE:
+            kotoba_set_last_error(new UploadCantWriteError());
+            return FALSE;
+        case UPLOAD_ERR_EXTENSION:
+            kotoba_set_last_error(new UploadExtensionError());
+            return FALSE;
+    }
+
+    return TRUE;
 }
 /**
  * Get file extension.
@@ -527,32 +561,41 @@ function is_youtube_enabled($board) {
 /**
  * Check if captcha enabled.
  * @param array $board Board.
- * @return
+ * @return boolean
  * TRUE if captcha enabled or FALSE otherwise.
  */
 function is_captcha_enabled($board) {
-    return !is_admin() && (($board['enable_captcha'] === null && Config::ENABLE_CAPTCHA) || $board['enable_captcha']);
+    if (is_admin()) {
+        return FALSE;
+    }
+
+    $_ = Config::ENABLE_CAPTCHA;
+    if (isset($board['enable_captcha']) && $board['enable_captcha'] !== NULL) {
+        $_ = $board['enable_captcha'];
+    }
+
+    return $_ == TRUE;
 }
 /**
  * Check if captcha valid.
- * @return
+ * @return boolean
  * TRUE if captcha valid or FALSE otherwise.
  */
 function is_captcha_valid() {
-    return isset($_POST['captcha_code'])
+    return isset($_REQUEST['captcha_code'])
            && isset($_SESSION['captcha_code'])
-           && mb_strtolower($_POST['captcha_code'],
+           && mb_strtolower($_REQUEST['captcha_code'],
                             Config::MB_ENCODING) === $_SESSION['captcha_code'];
 }
 /**
  * Check if animaptcha valid.
- * @return
+ * @return boolean
  * TRUE if animaptcha valid or FALSE otherwise.
  */
 function is_animaptcha_valid() {
-    return isset($_POST['animaptcha_code'])
+    return isset($_REQUEST['animaptcha_code'])
            && isset($_SESSION['animaptcha_code'])
-           && in_array(mb_strtolower($_POST['animaptcha_code'],
+           && in_array(mb_strtolower($_REQUEST['animaptcha_code'],
                                      Config::MB_ENCODING),
                        $_SESSION['animaptcha_code'], TRUE);
 }

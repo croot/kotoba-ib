@@ -338,6 +338,151 @@ class LanguageNotExistsError extends KotobaError {
         );
     }
 }
+class BoardNotAvailableError extends KotobaError {
+    function __construct($user_id, $board_id) {
+        parent::__construct(
+            kgettext('Boards.'),
+            sprintf(kgettext('You id=%d have no permission to do it on board '
+                             . 'id=%d.'), $user_id, $board_id)
+        );
+    }
+}
+class BoardNotFoundIdError extends KotobaError {
+    function __construct($id) {
+        parent::__construct(
+            kgettext('Boards.'),
+            sprintf(kgettext('Board id=%d not found.'), $id)
+        );
+    }
+}
+class CaptchaError extends KotobaError {
+    function __construct($captcha) {
+        parent::__construct(
+            kgettext('Captcha.'),
+            sprintf(kgettext('You enter wrong verification code %s.'), $captcha)
+        );
+    }
+}
+class MaxNameLengthError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Posts.'),
+            kgettext('Name too long.')
+        );
+    }
+}
+class MaxSubjectLengthError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Posts.'),
+            kgettext('Subject too long.')
+        );
+    }
+}
+class UploadIniSizeError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Uploads.'),
+            kgettext('Upload limit upload_max_filesize from php.ini exceeded.')
+        );
+    }
+}
+class UploadFormSizeError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Uploads.'),
+            kgettext('Upload limit MAX_FILE_SIZE from html form exceeded.')
+        );
+    }
+}
+class UploadPartialError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Uploads.'),
+            kgettext('File is loaded partially.')
+        );
+    }
+}
+class UploadNoTmpDirError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Uploads.'),
+            kgettext('Temporary directory not found.')
+        );
+    }
+}
+class UploadCantWriteError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Uploads.'),
+            kgettext('Cant write file to disk.')
+        );
+    }
+}
+class UploadExtensionError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Uploads.'),
+            kgettext('File uploading interrupted by extension.')
+        );
+    }
+}
+class UploadFiletypeNotSupportedError extends KotobaError {
+    function __construct($ext) {
+        parent::__construct(
+            kgettext('Uploads.'),
+            sprintf(kgettext('File type %s not supported for upload.'), $ext)
+        );
+    }
+}
+class MinImgSizeError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Uploads.'),
+            kgettext('Image too small.')
+        );
+    }
+}
+class MaxFileLinkError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Uploads.'),
+            kgettext('Link too long.')
+        );
+    }
+}
+class EmptyPostError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Posts.'),
+            kgettext('No attachment and text is empty.')
+        );
+    }
+}
+class MaxTextLengthError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Posts.'),
+            kgettext('Text too long.')
+        );
+    }
+}
+class SpamError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Spam.'),
+            kgettext('Message detected as spam.')
+        );
+    }
+}
+class NonUnicodeError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Unicode.'),
+            kgettext('Invlid unicode characters deteced.')
+        );
+    }
+}
 
 $KOTOBA_LAST_ERROR = NULL;
 
@@ -351,12 +496,6 @@ function kotoba_set_last_error($error) {
     $KOTOBA_LAST_ERROR = $error;
 }
 
-$ERRORS['SPAM']
-    = new Error('Message detected as spam.', 'Spam.');
-$ERRORS['EMPTY_POST']
-    = new Error('No attachment and text is empty.', 'Posts.');
-$ERRORS['NON_UNICODE']
-    = new Error('Invlid unicode characters deteced.', 'Unicode.');
 $ERRORS['THREAD_ARCHIVED']
     = new Error('Thread id=%s was archived.', 'Threads.',
                 Config::DIR_PATH . '/img/errors/default_error.png',
@@ -410,99 +549,27 @@ $ERRORS['THREAD_NOT_FOUND_ID']
                 });
 $ERRORS['THREADS_EDIT']
     = new Error('No threads to edit.', 'Threads.');
-$ERRORS['BOARD_NOT_ALLOWED']
-    = new Error('You id=%d have no permission to do it on board id=%d.',
-                'Boards.',
-                Config::DIR_PATH . '/img/errors/board_not_found.png',
-                function ($smarty, $user_id, $board_id, $text, $title, $image) {
-                    $smarty->assign('show_control', is_admin() || is_mod());
-                    $smarty->assign('ib_name', Config::IB_NAME);
-                    $smarty->assign('text',
-                                    sprintf($text, $user_id, $board_id));
-                    $smarty->assign('title', $title);
-                    $smarty->assign('image', $image);
-                    die($smarty->fetch('error.tpl'));
-                });
-$ERRORS['BOARD_NOT_FOUND_ID']
-    = new Error('Board id=%d not found.', 'Boards.',
-                Config::DIR_PATH . '/img/errors/board_not_found.png',
-                function ($smarty, $id, $text, $title, $image) {
-                    $smarty->assign('show_control', is_admin() || is_mod());
-                    $smarty->assign('ib_name', Config::IB_NAME);
-                    $smarty->assign('text', sprintf($text, $id));
-                    $smarty->assign('title', $title);
-                    $smarty->assign('image', $image);
-                    die($smarty->fetch('error.tpl'));
-                });
 $ERRORS['ACL_RULE_EXCESS']
     = new Error('Board, Thread or Post is unique. Set one of it.', 'ACL.');
 $ERRORS['ACL_RULE_CONFLICT']
     = new Error('Change permission cannot be set without view. Moderate '
                 . 'permission cannot be set without all others.', 'ACL.');
-$ERRORS['CAPTCHA']
-    = new Error('You enter wrong verification code %s.', 'Captcha.',
-                Config::DIR_PATH . '/img/errors/default_error.png',
-                function ($smarty, $captcha, $text, $title, $image) {
-                    $smarty->assign('show_control', is_admin() || is_mod());
-                    $smarty->assign('ib_name', Config::IB_NAME);
-                    $smarty->assign('text', sprintf($text, $captcha));
-                    $smarty->assign('title', $title);
-                    $smarty->assign('image', $image);
-                    die($smarty->fetch('error.tpl'));
-                });
 $ERRORS['GUEST']
     = new Error('Guests cannot do that.', 'Guest.');
 $ERRORS['NOT_ADMIN']
     = new Error('You are not admin.', 'Admin.');
 $ERRORS['NOT_MOD']
     = new Error('You are not moderator.', 'Moderator.');
-$ERRORS['UPLOAD_ERR_INI_SIZE']
-    = new Error('Upload limit upload_max_filesize from php.ini exceeded.',
-                'Uploads.');
-$ERRORS['UPLOAD_ERR_FORM_SIZE']
-    = new Error('Upload limit MAX_FILE_SIZE from html form exceeded.',
-                'Uploads.');
-$ERRORS['UPLOAD_ERR_PARTIAL']
-    = new Error('File is loaded partially.', 'Uploads.');
 $ERRORS['UPLOAD_ERR_NO_FILE']
     = new Error('No file uploaded.', 'Uploads.');
-$ERRORS['UPLOAD_ERR_NO_TMP_DIR']
-    = new Error('Temporary directory not found.', 'Uploads.');
-$ERRORS['UPLOAD_ERR_CANT_WRITE']
-    = new Error('Cant write file to disk.', 'Uploads.');
-$ERRORS['UPLOAD_ERR_EXTENSION']
-    = new Error('File uploading interrupted by extension.', 'Uploads.');
-$ERRORS['UPLOAD_FILETYPE_NOT_SUPPORTED']
-    = new Error('File type %s not supported for upload.', 'Uploads.',
-                Config::DIR_PATH . '/img/errors/default_error.png',
-                function ($smarty, $ext, $text, $title, $image) {
-                    $smarty->assign('show_control', is_admin() || is_mod());
-                    $smarty->assign('ib_name', Config::IB_NAME);
-                    $smarty->assign('text', sprintf($text, $ext));
-                    $smarty->assign('title', $title);
-                    $smarty->assign('image', $image);
-                    die($smarty->fetch('error.tpl'));
-                });
 $ERRORS['MAX_BOARD_TITLE']
     = new Error('Board title too long.', 'Boards.');
-$ERRORS['MAX_NAME_LENGTH']
-    = new Error('Name length too long.', 'Posts.');
-$ERRORS['MAX_SUBJECT_LENGTH']
-    = new Error('Subject too long.', 'Posts.');
-$ERRORS['MAX_TEXT_LENGTH']
-    = new Error('Text too long.', 'Posts.');
-$ERRORS['MAX_TEXT_LENGTH']
-    = new Error('Text too long.', 'Posts.');
 $ERRORS['MAX_ANNOTATION']
     = new Error('Annotation too long.', 'Boards.');
-$ERRORS['MAX_FILE_LINK']
-    = new Error('Link too long.', 'Uploads.');
 $ERRORS['MAX_SMALL_IMG_SIZE']
     = new Error('So small image cannot have so many data.', 'Uploads.');
 $ERRORS['MIN_IMG_DIMENTIONS']
     = new Error('Image dimensions too small.', 'Uploads.');
-$ERRORS['MIN_IMG_SIZE']
-    = new Error('Image too small.', 'Uploads.');
 $ERRORS['WORD_TOO_LONG']
     = new Error('Word too long.', 'Wordfilter.');
 
