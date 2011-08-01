@@ -753,12 +753,13 @@ function boards_get_changeable($user_id)
  * Get changeable board.
  * @param int $board_id Board id.
  * @param int $user_id User id.
- * @return int|array Returns array of board data or integer error value. Error
- * values is: 1 if user have no permissions to change board, 2 if board not
- * found.
+ * @return array|boolean
+ * board data or FALSE if any error occurred and set last error to appropriate
+ * error object.
  */
 function boards_get_changeable_by_id($board_id, $user_id) {
-    return db_boards_get_changeable_by_id(DataExchange::getDBLink(), $board_id, $user_id);
+    return db_boards_get_changeable_by_id(DataExchange::getDBLink(), $board_id,
+                                          $user_id);
 }
 /**
  * Получает доски, доступные для модерирования заданному пользователю.
@@ -1072,15 +1073,17 @@ function images_add($hash,
 /**
  * Check image size.
  * @param int $img_size image size.
- * @return int Return 0 on success or error code. Error codes: 1 - image too
- * small.
+ * @return boolean
+ * TRUE on success otherwise FALSE. If any error occurred set last error to
+ * appropriate error object.
  */
 function images_check_size($size) {
     if ($size < Config::MIN_IMGSIZE) {
-        return 1;
+        kotoba_set_last_error(new MinImgSizeError());
+        return FALSE;
     }
 
-    return 0;
+    return TRUE;
 }
 /**
  * Get images.
@@ -1463,15 +1466,17 @@ function posts_check_id($id) {
 /**
  * Check name length.
  * @param string $name Name.
- * @return int Returns 0 on success or error value. Error values: 1 - name too
- * long.
+ * @return boolean
+ * TRUE is name length is ok and FALSE otherwise. In case of error set last
+ * error to appropriate error object.
  */
 function posts_check_name_size($name) {
     if (strlen($name) > Config::MAX_THEME_LENGTH) {
-        return 1;
+        kotoba_set_last_error(new MaxNameLengthError());
+        return FALSE;
     }
 
-    return 0;
+    return TRUE;
 }
 /**
  * Check post number.
@@ -1511,19 +1516,23 @@ function posts_check_password($password) {
 /**
  * Check subject size.
  * @param string $subject Subject.
- * @return int Reutrn 0 on success or error value. Error values: 1 - subject too
- * long.
+ * @return boolean
+ * TRUE if subject length is ok and FALSE otherwise. In case of error set last
+ * error to appropriate error object.
  */
 function posts_check_subject_size($subject) {
     if (strlen($subject) > Config::MAX_THEME_LENGTH) {
-        return 1;
+        kotoba_set_last_error(new MaxSubjectLengthError());
+        return FALSE;
     }
 
-    return 0;
+    return TRUE;
 }
 /**
  * Validate text.
  * @param string $text Text.
+ * @return boolean
+ * TRUE if text valid and FALSE otherwise.
  */
 function posts_check_text($text) {
     if (!check_utf8($text)) {
@@ -1535,15 +1544,17 @@ function posts_check_text($text) {
 /**
  * Check text size.
  * @param string $text Text.
- * @return int Reutrn 0 on success or error value. Error values: 1 - text too
- * long.
+ * @return boolean
+ * TRUE if text length is ok and FALSE otherwise. In case of error set last
+ * error to appropriate error object.
  */
 function posts_check_text_size($text) {
     if (mb_strlen($text) > Config::MAX_MESSAGE_LENGTH) {
-        return 1;
+        kotoba_set_last_error(new MaxTextLengthError());
+        return FALSE;
     }
 
-    return 0;
+    return TRUE;
 }
 /**
  * Crop text.
@@ -2512,6 +2523,18 @@ function upload_types_get_all() {
 function upload_types_get_by_board($board_id) {
     return db_upload_types_get_by_board(DataExchange::getDBLink(), $board_id);
 }
+/**
+ * Get upload type.
+ * @param int $board_id Board id.
+ * @param string $ext Extension.
+ * @return array|null
+ * upload type or NULL if upload type not found. In case of upload type not
+ * found set last error to appropriate error object.
+ */
+function upload_types_get_by_board_ext($board_id, $ext) {
+    return db_upload_types_get_by_board_ext(DataExchange::getDBLink(),
+                                            $board_id, $ext);
+}
 
 /* ************************
  * User groups relations. *
@@ -2792,14 +2815,17 @@ function videos_add($code, $widht, $height) {
 /**
  * Check youtube video code.
  * @param string $code Code of vide.
- * @return string|int Returns safe code of video or integer error code. Error
- * codes: 1 - link too long.
+ * @return string|boolean
+ * safe code of video or FALSE if file link too long and set last error to
+ * appropriate error value.
  */
 function videos_check_code($code) {
     $code = RawURLEncode($code);
     if (strlen($code) > Config::MAX_FILE_LINK) {
-        return 1;
+        kotoba_set_last_error(new MaxFileLinkError());
+        return FALSE;
     }
+
     return RawURLEncode($code);
 }
 

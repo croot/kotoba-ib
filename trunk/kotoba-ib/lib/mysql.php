@@ -682,27 +682,29 @@ function db_boards_get_changeable($link, $user_id)
  * @param MySQLi $link Link to database.
  * @param int $board_id Board id.
  * @param int $user_id User id.
- * @return int|array Returns array of board data or integer error value. Error
- * values is: 1 if user have no permissions to change board, 2 if board not
- * found.
+ * @return array|boolean
+ * board data or FALSE if any error occurred and set last error to appropriate
+ * error object.
  */
 function db_boards_get_changeable_by_id($link, $board_id, $user_id) {
-    $result = mysqli_query($link, "call sp_boards_get_changeable_by_id($board_id, $user_id)");
-    if (!$result) {
+    $query = "call sp_boards_get_changeable_by_id($board_id, $user_id)";
+    if ( ($result = mysqli_query($link, $query)) == FALSE) {
         throw new DBException(mysqli_error($link));
     }
 
     if (mysqli_affected_rows($link) <= 0) {
         mysqli_free_result($result);
         db_cleanup_link($link);
-        return 1;
+        kotoba_set_last_error(new BoardNotAvailableError($user_id, $board_id));
+        return FALSE;
     }
 
     $row = mysqli_fetch_assoc($result);
     if (isset($row['error']) && $row['error'] == 'NOT_FOUND') {
         mysqli_free_result($result);
         db_cleanup_link($link);
-        return 2;
+        kotoba_set_last_error(new BoardNotFoundIdError($board_id));
+        return FALSE;
     }
 
     $board = array('id' => $row['id'],
@@ -723,6 +725,7 @@ function db_boards_get_changeable_by_id($link, $board_id, $user_id) {
 
     mysqli_free_result($result);
     db_cleanup_link($link);
+
     return $board;
 }
 /**
@@ -3842,13 +3845,13 @@ function db_spamfilter_get_all($link) {
     if (mysqli_affected_rows($link) > 0) {
         while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             array_push($patterns,
-                       array('id' => $row['id'],
-                             'pattern' => $row['pattern']));
+                       array('id' => $row['id'], 'pattern' => $row['pattern']));
         }
     }
 
     mysqli_free_result($result);
     db_cleanup_link($link);
+
     return $patterns;
 }
 
@@ -4849,6 +4852,36 @@ function db_upload_types_get_by_board($link, $board_id) {
 
     mysqli_free_result($result);
     db_cleanup_link($link);
+    return $upload_types;
+}
+/**
+ * Get upload type.
+ * @param MySQLi $link Link to database.
+ * @param int $board_id Board id.
+ * @param string $ext Extension.
+ * @return array|null
+ * upload type or NULL if upload type not found. In case of upload type not
+ * found set last error to appropriate error object.
+ */
+function db_upload_types_get_by_board_ext($link, $board_id, $ext) {
+    $query = "call sp_upload_types_get_by_board_ext($board_id, '$ext')";
+    $result = mysqli_query($link, $query);
+    if (!$result) {
+        throw new DBException(mysqli_error($link));
+    }
+
+    $upload_types = NULL;
+    if (mysqli_affected_rows($link) > 0
+            && ($row = mysqli_fetch_assoc($result)) != NULL) {
+
+        $upload_types = $row;
+    } else {
+        kotoba_set_last_error(new UploadFiletypeNotSupportedError($ext));
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+
     return $upload_types;
 }
 

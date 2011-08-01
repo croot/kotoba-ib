@@ -176,6 +176,7 @@ drop procedure if exists sp_upload_types_delete|
 drop procedure if exists sp_upload_types_edit|
 drop procedure if exists sp_upload_types_get_all|
 drop procedure if exists sp_upload_types_get_by_board|
+drop procedure if exists sp_upload_types_get_by_board_ext|
 
 drop procedure if exists sp_user_groups_add|
 drop procedure if exists sp_user_groups_delete|
@@ -4600,6 +4601,27 @@ begin
         from upload_types ut
         join board_upload_types but on ut.id = but.upload_type and but.board = board_id
         join upload_handlers uh on uh.id = ut.upload_handler;
+end|
+
+-- Selects upload type.
+create procedure sp_upload_types_get_by_board_ext
+(
+    board_id int,           -- Board id.
+    _extension varchar(10)  -- Extension.
+)
+begin
+    select ut.id,
+           ut.extension,
+           ut.store_extension,
+           ut.is_image,
+           ut.upload_handler,
+           uh.name as upload_handler_name,
+           ut.thumbnail_image
+        from upload_types ut
+        join board_upload_types but on ut.id = but.upload_type
+                                       and but.board = board_id
+        join upload_handlers uh on uh.id = ut.upload_handler
+        where ut.extension = _extension;
 end|
 
 -- --------------------------

@@ -9,6 +9,10 @@
  *
  * Parameters:
  * MAX_FILE_SIZE - maximum size of uploaded file in bytes (see config.default).
+ * board - board id.
+ * captcha_code (optional) - captcha code.
+ * animaptcha_code (optional) - animaptcha word.
+ * goto - redirection.
  * name - name.
  * subject - subject.
  * text - text.
@@ -17,19 +21,16 @@
  * use_oekaki (optional) - use drawn picture as attachment.
  * macrochan_tag (optional) - macrochan tag name.
  * youtube_video_code (optional) - code of youtube video.
- * captcha_code (optional) - captcha code.
- * animaptcha_code (optional) - animaptcha word.
  * password - password.
- * goto - redirection.
  * sage - sage flag.
- * board - board id.
  */
 
-require_once 'config.php';
-require_once Config::ABS_PATH . '/lib/exceptions.php';
-require_once Config::ABS_PATH . '/lib/errors.php';
-require_once Config::ABS_PATH . '/lib/db.php';
+require_once dirname(__FILE__) . '/config.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
+
 require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
 require_once Config::ABS_PATH . '/lib/upload_handlers.php';
 require_once Config::ABS_PATH . '/lib/mark.php';
@@ -39,43 +40,36 @@ try {
     // Initialization.
     kotoba_session_start();
     if (Config::LANGUAGE != $_SESSION['language']) {
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
+        require Config::ABS_PATH
+                . "/locale/{$_SESSION['language']}/messages.php";
     }
     locale_setup();
     $smarty = new SmartyKotobaSetup();
 
     // Check if client banned.
-    if (!isset($_SERVER['REMOTE_ADDR'])
-            || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
+    if ( ($ban = bans_check(get_remote_addr())) !== FALSE) {
 
-        throw new RemoteAddressException();
-    }
-    if ( ($ban = bans_check($ip)) !== false) {
+        // Cleanup.
+        DataExchange::releaseResources();
+
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
+        $smarty->display('banned.tpl');
+
         session_destroy();
-        DataExchange::releaseResources();
-        die($smarty->fetch('banned.tpl'));
+        exit(1);
     }
 
+    // Check board id and get board.
     $board_id = boards_check_id($_REQUEST['board']);
-    $ret = boards_get_changeable_by_id($board_id, $_SESSION['user']);
-    if ($ret === 1) {
+    $board = boards_get_changeable_by_id($board_id, $_SESSION['user']);
+    if ($board === FALSE) {
 
         // Cleanup.
         DataExchange::releaseResources();
 
-        $ERRORS['BOARD_NOT_ALLOWED']($smarty, $_SESSION['user'], $board_id);
+        display_error_page($smarty, kotoba_last_error());
         exit(1);
-    } else if ($ret === 2) {
-
-        // Cleanup.
-        DataExchange::releaseResources();
-
-        $ERRORS['BOARD_NOT_FOUND_ID']($smarty, $board_id);
-        exit(1);
-    } else {
-        $board = $ret;
     }
 
     // Captcha.
@@ -85,110 +79,108 @@ try {
                 if (is_captcha_valid()) {
                     // Pass! Do smth?
                 } else {
+
+                    // Cleanup.
                     DataExchange::releaseResources();
-                    $ERRORS['CAPTCHA']($smarty,
-                                       mb_strtolower($_POST['captcha_code'],
-                                                     Config::MB_ENCODING),
-                                       $_SESSION['captcha_code']);
+
+                    $_ = mb_strtolower($_REQUEST['captcha_code'],
+                                       Config::MB_ENCODING);
+                    display_error_page($smarty, new CaptchaError($_));
+                    exit(1);
                 }
                 break;
             case 'animaptcha':
                 if (is_animaptcha_valid()) {
                     // Pass! Do smth?
                 } else {
+
+                    // Cleanup.
                     DataExchange::releaseResources();
-                    $ERRORS['CAPTCHA']($smarty,
-                                       mb_strtolower($_POST['animaptcha_code'],
-                                                     Config::MB_ENCODING),
-                                       implode(',',
-                                               $_SESSION['animaptcha_code']));
+
+                    $_ = mb_strtolower($_REQUEST['animaptcha_code'],
+                                       Config::MB_ENCODING);
+                    display_error_page($smarty, new CaptchaError($_));
+                    exit(1);
                 }
                 break;
             default:
+
+                // Cleanup.
                 DataExchange::releaseResources();
-                $ERRORS['CAPTCHA']($smarty, 'Unknown captcha type',
-                                   'Unknown captcha type');
+
+                $_ = 'Unknown captcha type';
+                display_error_page($smarty, new CaptchaError($_));
+                exit(1);
                 break;
         }
     }
 
     // Redirection.
-    $goto = null;
-    $should_update_goto = false;
-    if (isset($_POST['goto'])) {
-        $goto = users_check_goto($_POST['goto']);
-        if ($goto === FALSE) {
+    $goto = NULL;
+    $should_update_goto = FALSE;
+    if (isset($_REQUEST['goto'])) {
+
+        // Check redirection.
+        if ( ($goto = users_check_goto($_REQUEST['goto'])) === FALSE) {
 
             // Cleanup.
             DataExchange::releaseResources();
 
-            $_ = new UserGotoError();
-            $_($smarty);
+            display_error_page($smarty, new UserGotoError());
             exit(1);
         }
+
         if (!isset($_SESSION['goto']) || $_SESSION['goto'] != $goto) {
             $_SESSION['goto'] = $goto;
-            $should_update_goto = true;
+            $should_update_goto = TRUE;
         }
     } else {
+
         // Cleanup.
         DataExchange::releaseResources();
 
-        $_ = new UserGotoError();
-        $_($smarty);
+        display_error_page($smarty, new UserGotoError());
         exit(1);
     }
 
     // Password.
-    $password = null;
-    $should_update_password = false;
-    if (isset($_POST['password']) && $_POST['password'] != '') {
-        $password = posts_check_password($_POST['password']);
+    $password = NULL;
+    $should_update_password = FALSE;
+    if (isset($_REQUEST['password']) && $_REQUEST['password'] != '') {
+
+        $password = posts_check_password($_REQUEST['password']);
         if ($password === FALSE) {
 
             // Cleanup
             DataExchange::releaseResources();
 
-            $_ = kotoba_last_error();
-            $_($smarty);
+            display_error_page($smarty, kotoba_last_error());
             exit(1);
         }
-        if (!isset($_SESSION['password']) || $_SESSION['password'] != $password) {
+
+        if (!isset($_SESSION['password'])
+                || $_SESSION['password'] != $password) {
+
             $_SESSION['password'] = $password;
-            $should_update_password = true;
+            $should_update_password = TRUE;
         }
     }
 
     // Name and tripcode.
-    $name = null;
-    $tripcode = null;
+    $name = NULL;
+    $tripcode = NULL;
     if (!$board['force_anonymous']) {
-        if (posts_check_name_size($_POST['name']) === 1) {
-
-            // Cleanup
-            DataExchange::releaseResources();
-
-            $ERRORS['MAX_NAME_LENGTH']($smarty);
-            exit(1);
-        }
-        $name = htmlentities($_POST['name'], ENT_QUOTES, Config::MB_ENCODING);
+        $name = htmlentities($_REQUEST['name'], ENT_QUOTES,
+                             Config::MB_ENCODING);
         $name = str_replace('\\', '\\\\', $name);
-        if (posts_check_name_size($name) === 1) {
-
-            // Cleanup
-            DataExchange::releaseResources();
-
-            $ERRORS['MAX_NAME_LENGTH']($smarty);
-            exit(1);
-        }
         $name = str_replace("\n", '', $name);
         $name = str_replace("\r", '', $name);
-        if (posts_check_name_size($name) === 1) {
+        if (posts_check_name_size($name) == FALSE) {
 
             // Cleanup
             DataExchange::releaseResources();
 
-            $ERRORS['MAX_NAME_LENGTH']($smarty);
+            display_error_page($smarty, kotoba_last_error());
             exit(1);
         }
         $name_tripcode = calculate_tripcode($name);
@@ -198,152 +190,108 @@ try {
     }
 
     // Subject.
-    if (posts_check_subject_size($_POST['subject']) === 1) {
-
-        // Cleanup
-        DataExchange::releaseResources();
-
-        $ERRORS['MAX_SUBJECT_LENGTH']($smarty);
-        exit(1);
-    }
-    $subject = htmlentities($_POST['subject'], ENT_QUOTES, Config::MB_ENCODING);
+    $subject = htmlentities($_REQUEST['subject'], ENT_QUOTES,
+                            Config::MB_ENCODING);
     $subject = str_replace('\\', '\\\\', $subject);
-    if (posts_check_subject_size($subject) === 1) {
-
-        // Cleanup
-        DataExchange::releaseResources();
-
-        $ERRORS['MAX_SUBJECT_LENGTH']($smarty);
-        exit(1);
-    }
     $subject = str_replace("\n", '', $subject);
     $subject = str_replace("\r", '', $subject);
+    if (posts_check_subject_size($subject) == FALSE) {
+
+        // Cleanup
+        DataExchange::releaseResources();
+
+        display_error_page($smarty, kotoba_last_error());
+        exit(1);
+    }
 
     // Attachment type.
     $attachment_type = null;
     if ($board['with_attachments']) {
         if ((isset($_FILES['file']) && $_FILES['file']['error'] != UPLOAD_ERR_NO_FILE) || use_oekaki()) {
             if (!use_oekaki()) {
-                switch ($_FILES['file']['error']) {
-                    case UPLOAD_ERR_INI_SIZE:
+                if (upload_check_error($_FILES['file']['error']) == FALSE) {
 
-                        // Cleanup
-                        DataExchange::releaseResources();
+                    // Cleanup
+                    DataExchange::releaseResources();
 
-                        $ERRORS['UPLOAD_ERR_INI_SIZE']($smarty);
-                        exit(1);
-                        break;
-                    case UPLOAD_ERR_FORM_SIZE:
-
-                        // Cleanup
-                        DataExchange::releaseResources();
-
-                        $ERRORS['UPLOAD_ERR_FORM_SIZE']($smarty);
-                        exit(1);
-                        break;
-                    case UPLOAD_ERR_PARTIAL:
-
-                        // Cleanup
-                        DataExchange::releaseResources();
-
-                        $ERRORS['UPLOAD_ERR_PARTIAL']($smarty);
-                        exit(1);
-                        break;
-                    case UPLOAD_ERR_NO_TMP_DIR:
-
-                        // Cleanup
-                        DataExchange::releaseResources();
-
-                        $ERRORS['UPLOAD_ERR_NO_TMP_DIR']($smarty);
-                        exit(1);
-                        break;
-                    case UPLOAD_ERR_CANT_WRITE:
-
-                        // Cleanup
-                        DataExchange::releaseResources();
-
-                        $ERRORS['UPLOAD_ERR_CANT_WRITE']($smarty);
-                        exit(1);
-                        break;
-                    case UPLOAD_ERR_EXTENSION:
-
-                        // Cleanup
-                        DataExchange::releaseResources();
-
-                        $ERRORS['UPLOAD_ERR_EXTENSION']($smarty);
-                        exit(1);
-                        break;
+                    display_error_page($smarty, kotoba_last_error());
+                    exit(1);
                 }
                 $uploaded_file_path = $_FILES['file']['tmp_name'];
                 $uploaded_file_name = $_FILES['file']['name'];
                 $uploaded_file_size = $_FILES['file']['size'];
             } else {
-                $uploaded_file_path = Config::ABS_PATH . "/shi/{$_SESSION['oekaki']['file']}";
+                $uploaded_file_path = Config::ABS_PATH
+                                      . "/shi/{$_SESSION['oekaki']['file']}";
                 $uploaded_file_name = $_SESSION['oekaki']['file'];
-                if ( ($uploaded_file_size = filesize($uploaded_file_path)) === false) {
+                $uploaded_file_size = filesize($uploaded_file_path);
+                if ($uploaded_file_size === FALSE) {
                     throw new Exception('Cannot calculate filesize.');
                 }
             }
-            $uploaded_file_ext = get_extension($uploaded_file_name);
-            $uploaded_file_ext = mb_strtolower($uploaded_file_ext, Config::MB_ENCODING);
-            $upload_types = upload_types_get_by_board($board['id']);
-            $found = false;
-            $upload_type = null;
-            foreach ($upload_types as $ut) {
-                if ($ut['extension'] == $uploaded_file_ext) {
-                    $found = true;
-                    $upload_type = $ut;
-                    break;
-                }
-            }
-            if (!$found) {
+
+            // Get upload type.
+            $_ = get_extension($uploaded_file_name);
+            $_ = mb_strtolower($_, Config::MB_ENCODING);
+            if ( ($_ = upload_types_check_extension($_)) === FALSE) {
 
                 // Cleanup
                 DataExchange::releaseResources();
 
-                $ERRORS['UPLOAD_FILETYPE_NOT_SUPPORTED']($smarty,
-                                                         $uploaded_file_ext);
+                display_error_page($smarty, kotoba_last_error());
                 exit(1);
             }
+            $upload_type = upload_types_get_by_board_ext($board['id'], $_);
+            if ($upload_type == NULL) {
+
+                // Cleanup
+                DataExchange::releaseResources();
+
+                display_error_page($smarty, kotoba_last_error());
+                exit(1);
+            }
+
             if ($upload_type['is_image']) {
-                $attachment_type = Config::ATTACHMENT_TYPE_IMAGE;
-                if (images_check_size($uploaded_file_size) === 1) {
+                if (images_check_size($uploaded_file_size) === FALSE) {
 
                     // Cleanup
                     DataExchange::releaseResources();
 
-                    $ERRORS['MIN_IMG_SIZE']($smarty);
+                    display_error_page($smarty, kotoba_last_error());
                     exit(1);
                 }
+                $attachment_type = Config::ATTACHMENT_TYPE_IMAGE;
             } else {
                 $attachment_type = Config::ATTACHMENT_TYPE_FILE;
             }
-        } elseif (($board['enable_macro'] === null && Config::ENABLE_MACRO || $board['enable_macro'])
-                && isset($_POST['macrochan_tag'])
-                && $_POST['macrochan_tag'] != '') {
+        } elseif (is_macrochan_enabled($board)
+                && isset($_REQUEST['macrochan_tag'])
+                && $_REQUEST['macrochan_tag'] != '') {
 
-            $_ = macrochan_tags_check($_POST['macrochan_tag']);
+            $_ = macrochan_tags_check($_REQUEST['macrochan_tag']);
             if ($_ === FALSE) {
 
                 // Cleanup
                 DataExchange::releaseResources();
 
-                $_ = kotoba_last_error();
-                $_($smarty);
+                display_error_page($smarty, kotoba_last_error());
                 exit(1);
             }
             $macrochan_tag['name'] = $_;
             $attachment_type = Config::ATTACHMENT_TYPE_LINK;
-        } elseif (($board['enable_youtube'] === null && Config::ENABLE_YOUTUBE || $board['enable_youtube'])
-                && isset($_POST['youtube_video_code'])
-                && $_POST['youtube_video_code'] != '') {
-            $youtube_video_code = videos_check_code($_POST['youtube_video_code']);
-            if ($youtube_video_code === 1) {
+        } elseif (is_youtube_enabled($board)
+                && isset($_REQUEST['youtube_video_code'])
+                && $_REQUEST['youtube_video_code'] != '') {
+            
+            $youtube_video_code = videos_check_code(
+                $_REQUEST['youtube_video_code']
+            );
+            if ($youtube_video_code === FALSE) {
 
                 // Cleanup
                 DataExchange::releaseResources();
 
-                $ERRORS['MAX_FILE_LINK']($smarty);
+                display_error_page($smarty, kotoba_last_error());
                 exit(1);
             }
             $attachment_type = Config::ATTACHMENT_TYPE_VIDEO;
@@ -353,66 +301,61 @@ try {
     }
 
     // Text.
-    $text = $_POST['text'];
+    $text = $_REQUEST['text'];
     if ($attachment_type === NULL && !preg_match('/\S/', $text)) {
-        throw new NodataException($EXCEPTIONS['EMPTY_MESSAGE']());
-    }
-    if (posts_check_text_size($text) === 1) {
 
         // Cleanup
         DataExchange::releaseResources();
 
-        $ERRORS['MAX_TEXT_LENGTH']($smarty);
+        display_error_page($smarty, new EmptyPostError());
+        exit(1);
+    }
+    if (posts_check_text_size($text) === FALSE) {
+
+        // Cleanup
+        DataExchange::releaseResources();
+
+        display_error_page($smarty, kotoba_last_error());
         exit(1);
     }
     if (Config::ENABLE_SPAMFILTER) {
         $spam_filter = spamfilter_get_all();
         foreach ($spam_filter as $record) {
             if (preg_match("/{$record['pattern']}/", $text) > 0) {
-                throw new SpamException();
+
+                // Cleanup
+                DataExchange::releaseResources();
+
+                display_error_page($smarty, new SpamError());
+                exit(1);
             }
         }
     }
     $text = htmlentities($text, ENT_QUOTES, Config::MB_ENCODING);
     $text = transform($text);
-	if (posts_check_text_size($text) === 1) {
-
-        // Cleanup
-        DataExchange::releaseResources();
-
-        $ERRORS['MAX_TEXT_LENGTH']($smarty);
-        exit(1);
-    }
     if (Config::ENABLE_WORDFILTER) {
-        $words = words_get_all_by_board(boards_check_id($_POST['board']));
+        $words = words_get_all_by_board(boards_check_id($_REQUEST['board']));
         foreach ($words as $word) {
-            $text = preg_replace("#".$word['word']."#iu", $word['replace'], $text);
+            $text = preg_replace("#".$word['word']."#iu", $word['replace'],
+                                 $text);
         }
     }
     $text = str_replace('\\', '\\\\', $text);
-    if (posts_check_text_size($text) === 1) {
-
-        // Cleanup
-        DataExchange::releaseResources();
-
-        $ERRORS['MAX_TEXT_LENGTH']($smarty);
-        exit(1);
-    }
     if (!posts_check_text($text)) {
 
         // Cleanup
         DataExchange::releaseResources();
 
-        $ERRORS['NON_UNICODE']($smarty);
+        display_error_page($smarty, new NonUnicodeError());
         exit(1);
     }
     posts_prepare_text($text, $board);
-    if (posts_check_text_size($text) === 1) {
+    if (posts_check_text_size($text) === FALSE) {
 
         // Cleanup
         DataExchange::releaseResources();
 
-        $ERRORS['MAX_TEXT_LENGTH']($smarty);
+        display_error_page($smarty, kotoba_last_error());
         exit(1);
     }
 
@@ -499,7 +442,7 @@ try {
                     $thumb_dimensions = array('x' => Config::THUMBNAIL_WIDTH,
                                               'y' => Config::THUMBNAIL_HEIGHT);
                 }
-                $spoiler = (isset($_POST['spoiler']) && $_POST['spoiler'] == '1') ? true : false;
+                $spoiler = (isset($_REQUEST['spoiler']) && $_REQUEST['spoiler'] == '1') ? true : false;
                 $attachment_id = images_add($file_hash,
                                             $file_names[0],
                                             $img_dimensions['x'],
