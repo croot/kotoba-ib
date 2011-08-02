@@ -1,0 +1,14 @@
+create_thread.php
+* Отключен Latex.
+* Произведена ревизия функций words_get_all_by_board, db_words_get_all_by_board и boards_check_id.
+* Произведена ревизия функций posts_prepare_text, purify_ascii, Изменено формаирование кода.
+* Отключена разметка котобы.
+* Добавлена новая разметка с помощью bbcode. Осуществляется с пом. функции bbcode_kotoba_mark из mark.php. Ссылки пока что не работают.
+* Произведена ревизия функций calculate_file_hash, attachments_get_same, db_files_get_same, db_images_get_same. Изменено форматирование кода.
+* Добавлена разметка вакабы. Осуществляется с пом. функции wakaba_mark из mark.php. Ссылки пока что не работают.
+* Произведена ревизия функций create_filenames, files_add, db_files_add и image_get_dimensions.
+* Ошибка min img dimentions переделана в класс MinImgDimentionsError.
+* Изменён вывод ошибки min img dimentions.
+* Ошибка max small img size переделана в класс MaxSmallImgSizeError.
+* Произведена ревизия функции create_thumbnail. Изменено возвращаемое значение в случае ошибки.
+* Добавлена обработка и вывод ошибки max small img size.

@@ -30,11 +30,11 @@ require_once Config::ABS_PATH . '/lib/misc.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
 require_once Config::ABS_PATH . '/lib/exceptions.php';
+//require_once Config::ABS_PATH . '/lib/latex_render.php';
 
 require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
 require_once Config::ABS_PATH . '/lib/upload_handlers.php';
 require_once Config::ABS_PATH . '/lib/mark.php';
-require_once Config::ABS_PATH . '/lib/latex_render.php';
 
 try {
     // Initialization.
@@ -332,12 +332,11 @@ try {
         }
     }
     $text = htmlentities($text, ENT_QUOTES, Config::MB_ENCODING);
-    $text = transform($text);
+    //$text = transform($text);
     if (Config::ENABLE_WORDFILTER) {
         $words = words_get_all_by_board(boards_check_id($_REQUEST['board']));
-        foreach ($words as $word) {
-            $text = preg_replace("#".$word['word']."#iu", $word['replace'],
-                                 $text);
+        foreach ($words as $_) {
+            $text = preg_replace("#".$_['word']."#iu", $_['replace'], $text);
         }
     }
     $text = str_replace('\\', '\\\\', $text);
@@ -360,7 +359,7 @@ try {
     }
 
     // Attachment.
-    if ($attachment_type !== null) {
+    if ($attachment_type !== NULL) {
         if ($attachment_type == Config::ATTACHMENT_TYPE_FILE
                 || $attachment_type == Config::ATTACHMENT_TYPE_IMAGE) {
 
@@ -369,17 +368,22 @@ try {
             $same_attachments = null;
             switch ($board['same_upload']) {
                 case 'once':
-                    $same_attachments = attachments_get_same($board['id'], $_SESSION['user'], $file_hash);
+                    $same_attachments = attachments_get_same($board['id'],
+                                                             $_SESSION['user'],
+                                                             $file_hash);
                     if (count($same_attachments) > 0) {
                         $file_exists = true;
                     }
                     break;
 
                 case 'no':
-                    $same_attachments = attachments_get_same($board['id'], $_SESSION['user'], $file_hash);
+                    $same_attachments = attachments_get_same($board['id'],
+                                                             $_SESSION['user'],
+                                                             $file_hash);
                     if (count($same_attachments) > 0) {
                         $smarty->assign('show_control', is_admin() || is_mod());
-                        $smarty->assign('boards', boards_get_visible($_SESSION['user']));
+                        $smarty->assign('boards',
+                                        boards_get_visible($_SESSION['user']));
                         $smarty->assign('board', $board);
                         $smarty->assign('same_attachments', $same_attachments);
                         $smarty->display('same_attachments.tpl');
@@ -403,7 +407,8 @@ try {
             if ($file_exists) {
                 $attachment_id = $same_attachments[0]['id'];
             } else {
-                $abs_file_path = Config::ABS_PATH . "/{$board['name']}/other/{$file_names[0]}";
+                $abs_file_path = Config::ABS_PATH
+                                 . "/{$board['name']}/other/{$file_names[0]}";
                 move_uploded_file($uploaded_file_path, $abs_file_path);
                 $attachment_id = files_add($file_hash,
                                            $file_names[0],
@@ -416,33 +421,51 @@ try {
             if ($file_exists) {
                 $attachment_id = $same_attachments[0]['id'];
             } else {
-                $img_dimensions = image_get_dimensions($upload_type, $uploaded_file_path);
-                if($img_dimensions['x'] < Config::MIN_IMGWIDTH && $img_dimensions['y'] < Config::MIN_IMGHEIGHT) {
+                $img_dimensions = image_get_dimensions($upload_type,
+                                                       $uploaded_file_path);
+                if($img_dimensions['x'] < Config::MIN_IMGWIDTH
+                        && $img_dimensions['y'] < Config::MIN_IMGHEIGHT) {
 
                     // Cleanup
                     DataExchange::releaseResources();
 
-                    $ERRORS['MIN_IMG_DIMENTIONS']($smarty);
+                    display_error_page($smarty, new MinImgDimentionsError());
                     exit(1);
                 }
-                $abs_img_path = Config::ABS_PATH . "/{$board['name']}/img/{$file_names[0]}";
-                $abs_thumb_path = Config::ABS_PATH . "/{$board['name']}/thumb/{$file_names[1]}";
+                $abs_img_path = Config::ABS_PATH
+                                . "/{$board['name']}/img/{$file_names[0]}";
+                $abs_thumb_path = Config::ABS_PATH
+                                  . "/{$board['name']}/thumb/{$file_names[1]}";
                 if (!use_oekaki()) {
                     move_uploded_file($uploaded_file_path, $abs_img_path);
-                    $thumb_dimensions = create_thumbnail($abs_img_path,
-                                                         $abs_thumb_path,
-                                                         $img_dimensions,
-                                                         $upload_type,
-                                                         Config::THUMBNAIL_WIDTH,
-                                                         Config::THUMBNAIL_HEIGHT);
+                    $thumb_dimensions = create_thumbnail(
+                        $abs_img_path,
+                        $abs_thumb_path,
+                        $img_dimensions,
+                        $upload_type,
+                        Config::THUMBNAIL_WIDTH,
+                        Config::THUMBNAIL_HEIGHT
+                    );
+                    if ($thumb_dimensions === FALSE) {
+
+                        // Cleanup
+                        DataExchange::releaseResources();
+
+                        display_error_page($smarty, kotoba_last_error());
+                        exit(1);
+                    }
                 } else {
                     copy_uploded_file($uploaded_file_path, $abs_img_path);
-                    copy_uploded_file(Config::ABS_PATH . "/shi/{$_SESSION['oekaki']['thumbnail']}",
-                                      $abs_thumb_path);
+                    copy_uploded_file(
+                        Config::ABS_PATH
+                        . "/shi/{$_SESSION['oekaki']['thumbnail']}",
+                        $abs_thumb_path
+                    );
                     $thumb_dimensions = array('x' => Config::THUMBNAIL_WIDTH,
                                               'y' => Config::THUMBNAIL_HEIGHT);
                 }
-                $spoiler = (isset($_REQUEST['spoiler']) && $_REQUEST['spoiler'] == '1') ? true : false;
+                $spoiler = (isset($_REQUEST['spoiler'])
+                            && $_REQUEST['spoiler'] == '1') ? true : false;
                 $attachment_id = images_add($file_hash,
                                             $file_names[0],
                                             $img_dimensions['x'],
@@ -455,8 +478,11 @@ try {
             }
         } elseif ($attachment_type == Config::ATTACHMENT_TYPE_LINK) {
             $macrochan_image = macrochan_images_get_random($macrochan_tag['name']);
-            $macrochan_image['name'] = "http://12ch.ru/macro/index.php/image/{$macrochan_image['name']}";
-            $macrochan_image['thumbnail'] = "http://12ch.ru/macro/index.php/thumb/{$macrochan_image['thumbnail']}";
+            $macrochan_image['name'] = "http://12ch.ru/macro/index.php/image/"
+                                       . "{$macrochan_image['name']}";
+            $macrochan_image['thumbnail'] = "http://12ch.ru/macro/index.php/"
+                                            ."thumb/"
+                                            ."{$macrochan_image['thumbnail']}";
             $attachment_id = links_add($macrochan_image['name'],
                                        $macrochan_image['width'],
                                        $macrochan_image['height'],

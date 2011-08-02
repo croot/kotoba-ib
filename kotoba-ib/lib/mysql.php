@@ -410,6 +410,7 @@ function db_words_get_all_by_board($link, $board_id) {
 
     mysqli_free_result($result);
     db_cleanup_link($link);
+
     return $words;
 }
 
@@ -1043,10 +1044,11 @@ function db_favorites_mark_readed($link, $user, $thread) {
  * @return int
  * added file id.
  */
-function db_files_add($link, $hash, $name, $size, $thumbnail, $thumbnail_w, $thumbnail_h) {
-    $query = "call sp_files_add('$hash', '$name', $size, '$thumbnail', $thumbnail_w, $thumbnail_h)";
-    $result = mysqli_query($link, $query);
-    if (!$result) {
+function db_files_add($link, $hash, $name, $size, $thumbnail, $thumbnail_w,
+                      $thumbnail_h) {
+    $query = "call sp_files_add('$hash', '$name', $size, '$thumbnail',
+                                $thumbnail_w, $thumbnail_h)";
+    if ( ($result = mysqli_query($link, $query)) == FALSE) {
         throw new DBException(mysqli_error($link));
     }
 
@@ -1162,8 +1164,8 @@ function db_files_get_dangling($link) {
  * files.
  */
  function db_files_get_same($link, $board_id, $user_id, $file_hash) {
-    $result = mysqli_query($link, "call sp_files_get_same($board_id, $user_id, '$file_hash')");
-    if (!$result) {
+    $query = "call sp_files_get_same($board_id, $user_id, '$file_hash')";
+    if ( ($result = mysqli_query($link, $query)) == FALSE) {
         throw new DBException(mysqli_error($link));
     }
 
@@ -1171,28 +1173,30 @@ function db_files_get_dangling($link) {
     if (mysqli_affected_rows($link) > 0) {
         while ( ($row = mysqli_fetch_assoc($result)) != NULL) {
             if (!isset($thread_data[$row['thread_id']])) {
-                $thread_data[$row['thread_id']] = array('id' => $row['thread_id'],
-                                                        'board' => $row['thread_board'],
-                                                        'original_post' => $row['thread_original_post'],
-                                                        'bump_limit' => $row['thread_bump_limit'],
-                                                        'sage' => $row['thread_sage'],
-                                                        'sticky' => $row['thread_sticky'],
-                                                        'with_attachments' => $row['thread_with_attachments']);
+                $thread_data[$row['thread_id']]
+                    = array('id' => $row['thread_id'],
+                            'board' => $row['thread_board'],
+                            'original_post' => $row['thread_original_post'],
+                            'bump_limit' => $row['thread_bump_limit'],
+                            'sage' => $row['thread_sage'],
+                            'sticky' => $row['thread_sticky'],
+                            'with_attachments' => $row['thread_with_attachments']);
             }
             if (!isset($post_data[$row['post_id']])) {
-                $post_data[$row['post_id']] = array('id' => $row['post_id'],
-                                                    'board' => $row['post_board'],
-                                                    'thread' => &$thread_data[$row['thread_id']],
-                                                    'number' => $row['post_number'],
-                                                    'user' => $row['post_user'],
-                                                    'password' => $row['post_password'],
-                                                    'name' => $row['post_name'],
-                                                    'tripcode' => $row['post_tripcode'],
-                                                    'ip' => $row['post_ip'],
-                                                    'subject' => $row['post_subject'],
-                                                    'date_time' => $row['post_date_time'],
-                                                    'text`' => $row['post_text'],
-                                                    'sage' => $row['post_sage']);
+                $post_data[$row['post_id']]
+                    = array('id' => $row['post_id'],
+                            'board' => $row['post_board'],
+                            'thread' => &$thread_data[$row['thread_id']],
+                            'number' => $row['post_number'],
+                            'user' => $row['post_user'],
+                            'password' => $row['post_password'],
+                            'name' => $row['post_name'],
+                            'tripcode' => $row['post_tripcode'],
+                            'ip' => $row['post_ip'],
+                            'subject' => $row['post_subject'],
+                            'date_time' => $row['post_date_time'],
+                            'text`' => $row['post_text'],
+                            'sage' => $row['post_sage']);
             }
             array_push($files,
                        array('id' => $row['file_id'],
@@ -1210,6 +1214,7 @@ function db_files_get_dangling($link) {
 
     mysqli_free_result($result);
     db_cleanup_link($link);
+
     return $files;
  }
 

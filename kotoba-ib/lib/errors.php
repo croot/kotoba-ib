@@ -483,6 +483,22 @@ class NonUnicodeError extends KotobaError {
         );
     }
 }
+class MinImgDimentionsError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Uploads.'),
+            kgettext('Image dimensions too small.')
+        );
+    }
+}
+class MaxSmallImgSizeError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Uploads.'),
+            kgettext('So small image cannot have so many data.')
+        );
+    }
+}
 
 $KOTOBA_LAST_ERROR = NULL;
 
@@ -566,10 +582,6 @@ $ERRORS['MAX_BOARD_TITLE']
     = new Error('Board title too long.', 'Boards.');
 $ERRORS['MAX_ANNOTATION']
     = new Error('Annotation too long.', 'Boards.');
-$ERRORS['MAX_SMALL_IMG_SIZE']
-    = new Error('So small image cannot have so many data.', 'Uploads.');
-$ERRORS['MIN_IMG_DIMENTIONS']
-    = new Error('Image dimensions too small.', 'Uploads.');
 $ERRORS['WORD_TOO_LONG']
     = new Error('Word too long.', 'Wordfilter.');
 

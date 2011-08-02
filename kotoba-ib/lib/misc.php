@@ -334,11 +334,14 @@ function copy_uploded_file($source, $dest) {
  * @param string $text Text.
  */
 function purify_ascii(&$text) {
-    $text = str_replace(array("\x00", "\x01", "\x02", "\x03", "\x04", "\x05",
-            "\x06", "\x07", "\x08", "\x0B", "\x0C", "\x0D", "\x0E", "\x0F", "\x10",
-            "\x11", "\x12", "\x13", "\x14", "\x15", "\x16", "\x17", "\x18",
-            "\x19", "\x1A", "\x1B", "\x1C", "\x1D", "\x1E", "\x1F", "\x7F"),
-            '', $text);
+    $text = str_replace(
+        array("\x00", "\x01", "\x02", "\x03", "\x04", "\x05", "\x06", "\x07",
+              "\x08", "\x0B", "\x0C", "\x0D", "\x0E", "\x0F", "\x10", "\x11",
+              "\x12", "\x13", "\x14", "\x15", "\x16", "\x17", "\x18", "\x19",
+              "\x1A", "\x1B", "\x1C", "\x1D", "\x1E", "\x1F", "\x7F"),
+        '',
+        $text
+    );
 }
 /**
  * Calculate md5 hash of file.
@@ -347,7 +350,7 @@ function purify_ascii(&$text) {
  * md5 hash.
  */
 function calculate_file_hash($path) {
-	$hash = null;
+	$hash = NULL;
 
 	if ( ($hash = hash_file('md5', $path)) === false) {
 		throw new FileHashException($path);
@@ -643,26 +646,23 @@ function image_get_dimensions($upload_type, $file) {
  * @param array $type Image file type.
  * @param int $resize_x Thumbnail width.
  * @param int $resize_y Thumbnail height.
- * @return array
- * thumbnail dimensions.
+ * @return array|boolean
+ * thumbnail dimensions or FALSE if any error occurred. Also in case of error
+ * set last error to appropriate error object.
  */
-function create_thumbnail($source, $dest, $source_dimensions, $type, $resize_x, $resize_y) {
+function create_thumbnail($source, $dest, $source_dimensions, $type, $resize_x,
+                          $resize_y) {
+
     $result = array();
 
     // small image doesn't need to be thumbnailed
-    if ($source_dimensions['x'] < $resize_x && $source_dimensions['y'] < $resize_y) {
+    if ($source_dimensions['x'] < $resize_x
+            && $source_dimensions['y'] < $resize_y) {
+
         // big file but small image is some kind of trolling
         if (filesize($source) > Config::SMALLIMAGE_LIMIT_FILE_SIZE) {
-            //throw new LimitException(LimitException::$messages['MAX_SMALL_IMG_SIZE']);
-            // TODO Handle error
-
-            // Cleanup.
-            // code
-
-            // $ERRORS['MAX_SMALL_IMG_SIZE']($smarty);
-            // exit(1);
-            echo "So small image cannot have so many data.<br>\n";
-            exit(1);
+            kotoba_set_last_error(new MaxSmallImgSizeError());
+            return FALSE;
         }
         $result['x'] = $source_dimensions['x'];
         $result['y'] = $source_dimensions['y'];
@@ -670,6 +670,7 @@ function create_thumbnail($source, $dest, $source_dimensions, $type, $resize_x, 
         return $result;
     }
 
-    return $type['upload_handler_name']($source, $dest, $source_dimensions, $type, $resize_x, $resize_y);
+    return $type['upload_handler_name']($source, $dest, $source_dimensions,
+                                        $type, $resize_x, $resize_y);
 }
 ?>
