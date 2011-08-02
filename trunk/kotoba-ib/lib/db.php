@@ -354,8 +354,10 @@ function attachments_get_dangling() {
 function attachments_get_same($board_id, $user_id, $hash) {
 	$attachments = array();
 
-    $files = db_files_get_same(DataExchange::getDBLink(), $board_id, $user_id, $hash);
-    $images = db_images_get_same(DataExchange::getDBLink(), $board_id, $user_id, $hash);
+    $files = db_files_get_same(DataExchange::getDBLink(), $board_id, $user_id,
+                               $hash);
+    $images = db_images_get_same(DataExchange::getDBLink(), $board_id, $user_id,
+                                 $hash);
 
     foreach ($files as $file) {
         array_push($attachments, $file);
@@ -1859,7 +1861,8 @@ function posts_is_author_admin($id) {
  */
 function posts_prepare_text(&$text, $board) {
     purify_ascii($text);
-    kotoba_mark($text, $board);
+    //kotoba_mark($text, $board);
+    //bbcode_kotoba_mark($text);
     $text = str_replace("</blockquote>\n", '</blockquote>', $text);
     $text = str_replace("\n<blockquote", '<blockquote', $text);
     $text = preg_replace('/\n{3,}/', '\n', $text);
