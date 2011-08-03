@@ -5,14 +5,14 @@
  *********************************/
 
 /**
- * Error messages in russian.
+ * Upload handlers.
  * @package ?
  */
 
 /**
- * Derp. PHPDoc sucks.
+ *
  */
-require_once '../config.php';
+require_once dirname(dirname(__FILE__)) . '/config.php';
 require_once Config::ABS_PATH . '/lib/exceptions.php';
 
 // Скрипт обработчиков загружаемых файлов и вспомогательных фукнций.

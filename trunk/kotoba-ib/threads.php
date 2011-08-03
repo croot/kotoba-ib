@@ -266,7 +266,7 @@ try {
     DataExchange::releaseResources();
 
     exit(0);
-} catch(Exception $e) {
+} catch(KotobaException $e) {
 
     // Cleanup.
     DataExchange::releaseResources();

@@ -25,7 +25,7 @@ Variables:
 <br>
 <div style="display: block;" class="replymode">{$title}</div>
 <p align="center">
-    <img src="{$image}" alt="{$title}" />
+    <img src="{$image}" alt="{$image}" />
     <br>
     {$text}
 </p>

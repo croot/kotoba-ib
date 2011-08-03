@@ -271,7 +271,7 @@ class UserThreadsPerPageError extends KotobaError {
     }
 }
 class BoardNameError extends KotobaError {
-    function __construct($min, $max) {
+    function __construct() {
         parent::__construct(
             kgettext('Boards.'),
             kgettext('Board name has wrong format. Board name must be string '
@@ -306,11 +306,28 @@ class ThreadNotAvailableError extends KotobaError {
         );
     }
 }
+class ThreadNotAvailableIdError extends KotobaError {
+    function __construct($user_id, $thread_id) {
+        parent::__construct(
+            kgettext('Threads.'),
+            sprintf(kgettext('You id=%d have no permission to do it on thread '
+                             . 'id=%d.'), $user_id, $thread_id)
+        );
+    }
+}
 class ThreadNotFoundError extends KotobaError {
     function __construct($original_post) {
         parent::__construct(
             kgettext('Threads.'),
             sprintf(kgettext('Thread number=%d not found.'), $original_post)
+        );
+    }
+}
+class ThreadNotFoundIdError extends KotobaError {
+    function __construct($id) {
+        parent::__construct(
+            kgettext('Threads.'),
+            sprintf(kgettext('Thread id=%d not found.'), $id)
         );
     }
 }
@@ -334,7 +351,7 @@ class LanguageNotExistsError extends KotobaError {
     function __construct($id) {
         parent::__construct(
             kgettext('Languages.'),
-            sprintf(kgettext('Language id=%s not exist.'), $id)
+            sprintf(kgettext('Language id=%d not exist.'), $id)
         );
     }
 }
@@ -499,6 +516,22 @@ class MaxSmallImgSizeError extends KotobaError {
         );
     }
 }
+class ThreadArchivedError extends KotobaError {
+    function __construct($id) {
+        parent::__construct(
+            kgettext('Threads.'),
+            sprintf(kgettext('Thread id=%d was archived.'), $id)
+        );
+    }
+}
+class ThreadClosedError extends KotobaError {
+    function __construct($id) {
+        parent::__construct(
+            kgettext('Threads.'),
+            sprintf(kgettext('Thread id=%d was closed.'), $id)
+        );
+    }
+}
 
 $KOTOBA_LAST_ERROR = NULL;
 
@@ -512,28 +545,6 @@ function kotoba_set_last_error($error) {
     $KOTOBA_LAST_ERROR = $error;
 }
 
-$ERRORS['THREAD_ARCHIVED']
-    = new Error('Thread id=%s was archived.', 'Threads.',
-                Config::DIR_PATH . '/img/errors/default_error.png',
-                function ($smarty, $id, $text, $title, $image) {
-                    $smarty->assign('show_control', is_admin() || is_mod());
-                    $smarty->assign('ib_name', Config::IB_NAME);
-                    $smarty->assign('text', sprintf($text, $id));
-                    $smarty->assign('title', $title);
-                    $smarty->assign('image', $image);
-                    die($smarty->fetch('error.tpl'));
-                });
-$ERRORS['THREAD_CLOSED']
-    = new Error('Thread id=%s was closed.', 'Threads.',
-                Config::DIR_PATH . '/img/errors/default_error.png',
-                function ($smarty, $id, $text, $title, $image) {
-                    $smarty->assign('show_control', is_admin() || is_mod());
-                    $smarty->assign('ib_name', Config::IB_NAME);
-                    $smarty->assign('text', sprintf($text, $id));
-                    $smarty->assign('title', $title);
-                    $smarty->assign('image', $image);
-                    die($smarty->fetch('error.tpl'));
-                });
 $ERRORS['NO_WORDS']
     = new Error('No words for search.', 'Search.');
 $ERRORS['LONG_WORD']
@@ -552,17 +563,6 @@ $ERRORS['POST_NOT_FOUND']
                 });
 $ERRORS['SEARCH_KEYWORD']
     = new Error('Search keyword not set or too short.', 'Search.');
-$ERRORS['THREAD_NOT_FOUND_ID']
-    = new Error('Thread id=%d not found.', 'Threads.',
-                Config::DIR_PATH . '/img/errors/board_not_found.png',
-                function ($smarty, $id, $text, $title, $image) {
-                    $smarty->assign('show_control', is_admin() || is_mod());
-                    $smarty->assign('ib_name', Config::IB_NAME);
-                    $smarty->assign('text', sprintf($text, $id));
-                    $smarty->assign('title', $title);
-                    $smarty->assign('image', $image);
-                    die($smarty->fetch('error.tpl'));
-                });
 $ERRORS['THREADS_EDIT']
     = new Error('No threads to edit.', 'Threads.');
 $ERRORS['ACL_RULE_EXCESS']

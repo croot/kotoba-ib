@@ -14,6 +14,7 @@
  */
 require_once dirname(dirname(__FILE__)) . '/config.php';
 require_once Config::ABS_PATH . '/lib/exceptions.php';
+require_once Config::ABS_PATH . '/lib/upload_handlers.php';
 
 /* **************************
  * Начальная инициализация. *
@@ -30,7 +31,6 @@ class SmartyKotobaSetup extends Smarty {
     function SmartyKotobaSetup() {
 
         // Fix warning on strftime.
-        date_default_timezone_set(Config::DEFAULT_TIMEZONE);
         parent::__construct();
 
         $language = isset($_SESSION['language'])
@@ -94,7 +94,6 @@ function kotoba_session_start() {
     }
 
     if (!isset($_SESSION['kotoba_session_start_time'])) {
-        date_default_timezone_set(Config::DEFAULT_TIMEZONE);
         $_SESSION['kotoba_session_start_time'] = time();
     }
 

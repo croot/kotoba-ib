@@ -2070,26 +2070,21 @@ function stylesheets_get_all() {
  ********************/
 
 /**
- * Добавляет нить. Если номер оригинального сообщения null, то будет создана
- * пустая нить.
- * @param int $board_id Идентификатор доски.
- * @param int|null $original_post Номер оригинального сообщения.
- * @param int|null $bump_limit Специфичный для нити бамплимит.
- * @param int $sage Флаг поднятия нити.
- * @param int|null $with_attachments Флаг вложений.
- * @return array|null
- * Возвращает нить:<br>
- * 'id' - Идентификатор.<br>
- * 'board' - Идентификатор доски.<br>
- * 'original_post' - Номер оригинального сообщения.<br>
- * 'bump_limit' - Специфичный для нити бамплимит.<br>
- * 'sage' - Флаг поднятия нити.<br>
- * 'sticky' - Флаг закрепления.<br>
- * 'with_attachments' - Флаг вложений.<br>
- * Или null, если что-то пошло не так.
+ * Adds thread. If original_post is NULL, new empty thread will be created.
+ * @param int $board_id Board id.
+ * @param int|null $original_post Original post number or null for new empty
+ * thread.
+ * @param int $bump_limit|null Thread specific bumplimit.
+ * @param int $sage Sage flag.
+ * @param int $with_attachments|null Attachments flag.
+ * @return array
+ * added thread.
  */
-function threads_add($board_id, $original_post, $bump_limit, $sage, $with_attachments) { // Java CC
-    return db_threads_add(DataExchange::getDBLink(), $board_id, $original_post, $bump_limit, $sage, $with_attachments);
+function threads_add($board_id, $original_post, $bump_limit, $sage,
+                     $with_attachments) {
+
+    return db_threads_add(DataExchange::getDBLink(), $board_id, $original_post,
+                          $bump_limit, $sage, $with_attachments);
 }
 /**
  * Check thread specific bumplimit.
@@ -2143,7 +2138,7 @@ function threads_edit($thread_id, $bump_limit, $sticky, $sage, $with_attachments
  */
 function threads_edit_original_post($id, $original_post) { // Java CC
     db_threads_edit_original_post(DataExchange::getDBLink(), $id,
-        $original_post);
+                                  $original_post);
 }
 /**
  * Get threads.
@@ -2197,9 +2192,9 @@ function threads_get_by_original_post($board, $original_post) {
  * Get changeable thread.
  * @param int $thread_id Thread id.
  * @param int $user_id User id.
- * @return int|array Returns array of thread data or integer error value. Error
- * values is: 1 if user have no permissions to change thread, 2 if thread not
- * found.
+ * @return array|boolean
+ * array of thread data or FALSE if any error occurred and set last error to
+ * approppriate error object.
  */
 function threads_get_changeable_by_id($thread_id, $user_id) {
     return db_threads_get_changeable_by_id(DataExchange::getDBLink(),
@@ -2243,7 +2238,8 @@ function threads_get_moderatable_by_id($thread_id, $user_id) {
  */
 function threads_get_visible_filtred_by_board($board_id, $user_id, $filter) {
     $filtred_threads = array();
-    $threads = db_threads_get_visible_by_board(DataExchange::getDBLink(), $board_id, $user_id);
+    $threads = db_threads_get_visible_by_board(DataExchange::getDBLink(),
+                                               $board_id, $user_id);
 
     /*
      * Arguments for filter.
@@ -2639,7 +2635,9 @@ function users_check_lines_per_post($lines_per_post) {
     if ($length <= 2 && $length >= 1) {
         $lines_per_post = RawUrlEncode($lines_per_post);
         $length = strlen($lines_per_post);
-        if($length > 2 || (ctype_digit($lines_per_post) === false) || $length < 1) {
+        if($length > 2 || (ctype_digit($lines_per_post) === false)
+                || $length < 1) {
+
             $_ = new UserLinesPerPostError(Config::MIN_LINESPERPOST,
                                            Config::MAX_LINESPERPOST);
             kotoba_set_last_error($_);
@@ -2666,7 +2664,9 @@ function users_check_posts_per_thread($posts_per_thread) {
     if ($length <= 2 && $length >= 1) {
         $posts_per_thread = RawUrlEncode($posts_per_thread);
         $length = strlen($posts_per_thread);
-        if($length > 2 || (ctype_digit($posts_per_thread) === false) || $length < 1) {
+        if($length > 2 || (ctype_digit($posts_per_thread) === false)
+                || $length < 1) {
+
             $_ = new UserPostsPerThreadError(Config::MIN_POSTSPERTHREAD,
                                              Config::MAX_POSTSPERTHREAD);
             kotoba_set_last_error($_);
@@ -2693,7 +2693,9 @@ function users_check_threads_per_page($threads_per_page) {
     if ($length <= 2 && $length >= 1) {
         $threads_per_page = RawUrlEncode($threads_per_page);
         $length = strlen($threads_per_page);
-        if ($length > 2 || (ctype_digit($threads_per_page) === false) || $length < 1) {
+        if ($length > 2 || (ctype_digit($threads_per_page) === false)
+                || $length < 1) {
+
             $_ = new UserThreadsPerPageError(Config::MIN_THREADSPERPAGE,
                                              Config::MAX_THREADSPERPAGE);
             kotoba_set_last_error($_);

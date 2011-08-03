@@ -57,7 +57,7 @@ try {
     }
 
     $page = 1;
-    if (isset($_GET['page'])) {
+    if (isset($_REQUEST['page'])) {
         $page = check_page($_REQUEST['page']);
     }
 
@@ -159,6 +159,7 @@ try {
     $smarty->assign('password', $password);
     $smarty->assign('upload_types', $upload_types);
     $smarty->assign('pages', ($pages = range(1, $page_max)));
+    $smarty->assign('pages_count', count($pages));
     $smarty->assign('page', $page);
     $smarty->assign('goto', $_SESSION['goto']);
     $smarty->assign('macrochan_tags', $macrochan_tags);
@@ -256,7 +257,7 @@ try {
     DataExchange::releaseResources();
 
     exit(0);
-} catch(Exception $e) {
+} catch(KotobaException $e) {
 
     // Cleanup.
     DataExchange::releaseResources();

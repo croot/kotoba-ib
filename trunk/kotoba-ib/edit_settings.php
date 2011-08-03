@@ -283,19 +283,21 @@ try {
     $smarty->assign('stylesheets', $stylesheets);
     $smarty->assign('favorites', $favorites);
     $smarty->assign('hidden_threads', $hidden_threads);
-    date_default_timezone_set(Config::DEFAULT_TIMEZONE);
-    $smarty->assign('sess', array('expire' => session_cache_expire(),
-                                  'cookie_params' => session_get_cookie_params(),
-                                  'id' => session_id(),
-                                  'name' => session_name(),
-                                  'curtime' => time()));
+    $smarty->assign(
+        'sess',
+        array('expire' => session_cache_expire(),
+              'cookie_params' => session_get_cookie_params(),
+              'id' => session_id(),
+              'name' => session_name(),
+              'curtime' => time())
+    );
     $smarty->display('edit_settings.tpl');
 
     // Cleanup.
     DataExchange::releaseResources();
 
     exit(0);
-} catch (Exception $e) {
+} catch (KotobaException $e) {
 
     // Cleanup.
     DataExchange::releaseResources();

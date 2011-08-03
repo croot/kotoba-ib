@@ -30,11 +30,9 @@ require_once Config::ABS_PATH . '/lib/misc.php';
 require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
 require_once Config::ABS_PATH . '/lib/exceptions.php';
-//require_once Config::ABS_PATH . '/lib/latex_render.php';
-
-require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
-require_once Config::ABS_PATH . '/lib/upload_handlers.php';
 require_once Config::ABS_PATH . '/lib/mark.php';
+//require_once Config::ABS_PATH . '/lib/latex_render.php';
+require_once Config::ABS_PATH . '/lib/popdown_handlers.php';
 
 try {
     // Initialization.
@@ -147,7 +145,6 @@ try {
     $password = NULL;
     $should_update_password = FALSE;
     if (isset($_REQUEST['password']) && $_REQUEST['password'] != '') {
-
         $password = posts_check_password($_REQUEST['password']);
         if ($password === FALSE) {
 
@@ -207,7 +204,10 @@ try {
     // Attachment type.
     $attachment_type = null;
     if ($board['with_attachments']) {
-        if ((isset($_FILES['file']) && $_FILES['file']['error'] != UPLOAD_ERR_NO_FILE) || use_oekaki()) {
+        if ((isset($_FILES['file'])
+                    && $_FILES['file']['error'] != UPLOAD_ERR_NO_FILE)
+                || use_oekaki()) {
+
             if (!use_oekaki()) {
                 if (upload_check_error($_FILES['file']['error']) == FALSE) {
 
@@ -226,7 +226,7 @@ try {
                 $uploaded_file_name = $_SESSION['oekaki']['file'];
                 $uploaded_file_size = filesize($uploaded_file_path);
                 if ($uploaded_file_size === FALSE) {
-                    throw new Exception('Cannot calculate filesize.');
+                    throw new ParanoicException('Cannot calculate filesize.');
                 }
             }
 
@@ -321,7 +321,7 @@ try {
     if (Config::ENABLE_SPAMFILTER) {
         $spam_filter = spamfilter_get_all();
         foreach ($spam_filter as $record) {
-            if (preg_match("/{$record['pattern']}/", $text) > 0) {
+            if (TRUE || preg_match("/{$record['pattern']}/", $text) > 0) {
 
                 // Cleanup
                 DataExchange::releaseResources();
@@ -387,7 +387,10 @@ try {
                         $smarty->assign('board', $board);
                         $smarty->assign('same_attachments', $same_attachments);
                         $smarty->display('same_attachments.tpl');
+
+                        // Cleanup.
                         DataExchange::releaseResources();
+
                         exit(0);
                     }
                     break;
@@ -395,7 +398,8 @@ try {
                 case 'yes':
                     break;
                 default:
-                    throw new Exception('Unknown same uploads behaviour.');
+                    throw new ParanoicException('Unknown same uploads '
+                                                .'behaviour.');
                     break;
             }
             if (!$file_exists) {
@@ -423,7 +427,7 @@ try {
             } else {
                 $img_dimensions = image_get_dimensions($upload_type,
                                                        $uploaded_file_path);
-                if($img_dimensions['x'] < Config::MIN_IMGWIDTH
+                if ($img_dimensions['x'] < Config::MIN_IMGWIDTH
                         && $img_dimensions['y'] < Config::MIN_IMGHEIGHT) {
 
                     // Cleanup
@@ -449,6 +453,7 @@ try {
                     if ($thumb_dimensions === FALSE) {
 
                         // Cleanup
+                        unlink($abs_img_path);
                         DataExchange::releaseResources();
 
                         display_error_page($smarty, kotoba_last_error());
@@ -477,7 +482,9 @@ try {
                                             $spoiler);
             }
         } elseif ($attachment_type == Config::ATTACHMENT_TYPE_LINK) {
-            $macrochan_image = macrochan_images_get_random($macrochan_tag['name']);
+            $macrochan_image = macrochan_images_get_random(
+                $macrochan_tag['name']
+            );
             $macrochan_image['name'] = "http://12ch.ru/macro/index.php/image/"
                                        . "{$macrochan_image['name']}";
             $macrochan_image['thumbnail'] = "http://12ch.ru/macro/index.php/"
@@ -493,24 +500,16 @@ try {
         } elseif ($attachment_type == Config::ATTACHMENT_TYPE_VIDEO) {
             $attachment_id = videos_add($youtube_video_code, 220, 182);
         } else {
-            throw new CommonException('Not supported.');
+            throw new ParanoicException("Attachment type $attachment_type not "
+                                        . "supported.");
         }
     }
 
     // Create empty thread and create post.
     $thread = threads_add($board['id'], null, null, 0, null);
-    date_default_timezone_set(Config::DEFAULT_TIMEZONE);
-    $post = posts_add($board['id'],
-                      $thread['id'],
-                      $_SESSION['user'],
-                      $password,
-                      $name,
-                      $tripcode,
-                      ip2long($_SERVER['REMOTE_ADDR']),
-                      $subject,
-                      date(Config::DATETIME_FORMAT),
-                      $text,
-                      null);
+    $post = posts_add($board['id'], $thread['id'], $_SESSION['user'], $password,
+                      $name, $tripcode, ip2long($_SERVER['REMOTE_ADDR']),
+                      $subject, date(Config::DATETIME_FORMAT), $text, null);
 
     // Закрепляем сообщение как оригинальное сообщение созданной пустой нити.
     threads_edit_original_post($thread['id'], $post['number']);
@@ -532,8 +531,8 @@ try {
                 posts_videos_add($post['id'], $attachment_id, 0);
                 break;
             default:
-                throw new CommonException('Not supported.');
-                break;
+                throw new ParanoicException("Attachment type $attachment_type "
+                                            . "not supported.");
         }
     }
 
@@ -557,49 +556,40 @@ try {
 
     // Redirect.
     if ($_SESSION['goto'] == 't') {
-        header('Location: ' . Config::DIR_PATH . "/{$board['name']}/{$post['number']}/");
+        header('Location: '
+               . Config::DIR_PATH . "/{$board['name']}/{$post['number']}/");
     } else {
-        header('Location: ' . Config::DIR_PATH . "/{$board['name']}/");
+        header('Location: '
+               . Config::DIR_PATH . "/{$board['name']}/");
     }
 
+    // Temporary code for highload tests!
     if (ctype_digit($thread['id'])) {
         echo "{$thread['id']}";
     } else {
-        throw new Exception('ID of new original post is empty. Highload issue?');
+        throw new ParanoicException('ID of new original post is empty. '
+                                    . 'Highload issue?');
     }
 
     // Cleanup.
     DataExchange::releaseResources();
 
     exit(0);
-} catch (CommonException $e) {
-    if (isset($abs_file_path)) {
+} catch (Exception $e) {
+
+    // Cleanup.
+    if (isset($abs_file_path) && file_exists($abs_file_path)) {
         unlink($abs_file_path);
     }
-    if (isset($abs_img_path)) {
+    if (isset($abs_img_path) && file_exists($abs_img_path)) {
         unlink($abs_img_path);
     }
-    if (isset($abs_thumb_path)) {
+    if (isset($abs_thumb_path) && file_exists($abs_thumb_path)) {
         unlink($abs_thumb_path);
     }
-    display_exception_page($smarty, $e, is_admin() || is_mod());
-} catch (Exception $e) {
-    $smarty->assign('msg', $e->__toString());
     DataExchange::releaseResources();
-    if (isset($abs_file_path)) { // Удаление загруженного файла.
-        @unlink($abs_file_path);
-    }
-    if (isset($abs_img_path)) { // Удаление загруженного файла.
-        @unlink($abs_img_path);
-    }
-    if (isset($abs_thumb_path)) { // Удаление уменьшенной копии.
-        @unlink($abs_thumb_path);
-    }
-    die($smarty->fetch('exception.tpl'));
+
+    display_exception_page($smarty, $e, is_admin() || is_mod());
+    exit(1);
 }
-
-// Cleanup.
-DataExchange::releaseResources();
-
-exit(1);
 ?>

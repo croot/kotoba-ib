@@ -101,6 +101,7 @@ $_['Popdown handler name wrong format.']['eng'] = 'Popdown handler name wrong fo
 $_['Popdown handlers.']['eng'] = 'Popdown handlers.';
 $_['Post id=%d not found or user id=%d have no permission.']['eng'] = 'Post id=%d not found or user id=%d have no permission.';
 $_['Posts.']['eng'] = 'Posts.';
+$_['Programmer is not paranoic!']['eng'] = 'Programmer is not paranoic!';
 $_['Redirection wrong format.']['eng'] = 'Redirection wrong format.';
 $_['Request method.']['eng'] = 'Request method.';
 $_['Request method not defined or unexpected.']['eng'] = 'Request method not defined or unexpected.';
@@ -119,6 +120,7 @@ $_['Stylesheets.']['eng'] = 'Stylesheets.';
 $_['Subject too long.']['eng'] = 'Subject too long.';
 $_['Temporary directory not found.']['eng'] = 'Temporary directory not found.';
 $_['Text too long.']['eng'] = 'Text too long.';
+$_['This shit finally happen: %s. Thats it.']['eng'] = 'This shit finally happen: %s. Thats it.';
 $_['Thread id=%d not found.']['eng'] = 'Thread id=%d not found.';
 $_['Thread number=%d not found.']['eng'] = 'Thread number=%d not found.';
 $_['Thread id=%d was archived.']['eng'] = 'Thread id=%d was archived.';
@@ -145,6 +147,7 @@ $_['You are not moderator.']['eng'] = 'You are not moderator.';
 $_['You enter wrong verification code %s.']['eng'] = 'You enter wrong verification code %s.';
 $_['You id=%d have no permission to do it on board id=%d.']['eng'] = 'You id=%d have no permission to do it on board id=%d.';
 $_['You id=%d have no permission to do it on thread number=%d.']['eng'] = 'You id=%d have no permission to do it on thread number=%d.';
+$_['You id=%d have no permission to do it on thread id=%d.']['eng'] = 'You id=%d have no permission to do it on thread id=%d.';
 
 unset($_);
 ?>

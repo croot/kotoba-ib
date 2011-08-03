@@ -18,6 +18,7 @@ Variables:
     $boards - boards.
     $banner - banner.
     $pages - pages numbers.
+    $pages_count - pages count.
     $MAX_FILE_SIZE - maximum size of uploaded file in bytes (see config.default).
     $name - name.
     $oekaki - oekaki data.
@@ -60,7 +61,7 @@ google.load("language", "1");
 <div class="logo"><img src="{$DIR_PATH}/misc/img/{$banner.name}" alt="{$banner.name}" width="{$banner.widht}" height="{$banner.height}"></div>
 {/if}
 <div class="logo">{$ib_name} — /{$board.name}/ {$board.title}</div>
-{include file='pages_list.tpl' board_name=$board.name pages=$pages page=$page}
+{include file='pages_list.tpl' board_name=$board.name pages=$pages page=$page pages_count=$pages_count}
 
 
 <hr>
@@ -154,7 +155,7 @@ Hidden threads:
 <a href="{$DIR_PATH}/unhide_thread.php?thread={$hidden_threads[i].thread}" title="Refer to unhide thread.">{$hidden_threads[i].thread_number}</a>
 {/section}
 {/if}
-{include file='pages_list.tpl' board_name=$board.name pages=$pages page=$page}
+{include file='pages_list.tpl' board_name=$board.name pages=$pages page=$page pages_count=$pages_count}
 <br>
 {include file='navbar.tpl' DIR_PATH=$DIR_PATH categories=$categories boards=$boards}
 <br>

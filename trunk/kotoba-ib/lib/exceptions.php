@@ -335,6 +335,16 @@ class UnknownUploadTypeException extends UploadException {
         parent::__construct($_['text']);
     }
 }
+class ParanoicException extends KotobaException {
+    public function __construct($text) {
+        $_['title'] = kgettext('Programmer is not paranoic!');
+        $_['text'] = kgettext('This shit finally happen: %s. Thats it.');
+        $_['text'] = sprintf($_['text'], $text);
+        $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
+        $this->message_data = $_;
+        parent::__construct($_['text']);
+    }
+}
 
 function display_exception_page($smarty, $exception, $show_control) {
     $md = $exception->getMessageData();
