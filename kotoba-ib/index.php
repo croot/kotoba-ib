@@ -162,11 +162,14 @@ try {
     DataExchange::releaseResources();
 
     exit(0);
-} catch (Exception $e) {
+} catch (KotobaException $e) {
 
     // Cleanup.
     DataExchange::releaseResources();
 
+    if (!isset($smarty)) {
+        $smarty = new SmartyKotobaSetup();
+    }
     display_exception_page($smarty, $e, is_admin() || is_mod());
     exit(1);
 }

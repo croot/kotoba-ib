@@ -8,9 +8,7 @@
  * Create captcha image script.
  */
 
-require_once '../config.php';
-require_once Config::ABS_PATH . '/lib/exceptions.php';
-require_once Config::ABS_PATH . '/lib/errors.php';
+require_once dirname(dirname(__FILE__)) . '/config.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
 
 // <editor-fold defaultstate="collapsed" desc="Font">
@@ -59,7 +57,6 @@ $font = array('а' => array(4, array(0, 2, 1, 1, 2, 1, 3, 2, 3, 5, 4, 6), array(
 function drawtext($image, $xshift, $yshift, $text, $color) {
     global $font;
 
-    mb_internal_encoding(Config::MB_ENCODING);
     mb_regex_encoding(Config::MB_ENCODING);
     $text = preg_split('/(?<!^)(?!$)/u', mb_strtolower($text));
     $char_space = 7;
@@ -94,17 +91,23 @@ function getrandchar() {
 
 kotoba_session_start();
 if (Config::LANGUAGE != $_SESSION['language']) {
-    require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
+    require Config::ABS_PATH . "/locale/{$_SESSION['language']}/messages.php";
 }
 locale_setup();
 
 $im = imagecreate(100, 30);
 
-if (isset($_SESSION['stylesheet']) && $_SESSION['stylesheet'] == 'kusaba.css') {
+if (isset($_SESSION['stylesheet'])
+        && $_SESSION['stylesheet'] == 'kusaba.css') {
+
     $bg = imagecolorallocate($im, 238, 255, 238);
-} elseif (isset($_SESSION['stylesheet']) && $_SESSION['stylesheet'] == 'futaba.css') {
+} elseif (isset($_SESSION['stylesheet'])
+        && $_SESSION['stylesheet'] == 'futaba.css') {
+
     $bg = imagecolorallocate($im, 255, 255, 238);
-} elseif (isset($_SESSION['stylesheet']) && $_SESSION['stylesheet'] == 'kotoba.css') {
+} elseif (isset($_SESSION['stylesheet'])
+        && $_SESSION['stylesheet'] == 'kotoba.css') {
+
     $bg = imagecolorallocate($im, 236, 255, 208);
 } else {
     $bg = imagecolorallocate($im, 255, 100, 255);
@@ -116,7 +119,8 @@ for ($i = 0; $i < 5; $i++) {
     $word .= getrandchar();
 }
 drawtext($im, 10, 10, $word, $textcolor);
-imageline($im, rand(0, 100), rand(0, 30), rand(0, 100), rand(0, 30), $textcolor);
+imageline($im, rand(0, 100), rand(0, 30), rand(0, 100), rand(0, 30),
+          $textcolor);
 
 header('Content-type: image/png');
 

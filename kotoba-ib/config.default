@@ -1,10 +1,4 @@
 <?php
-die('Disabled');
-/* ***********************************
- * Этот файл является частью Kotoba. *
- * Файл license.txt содержит условия *
- * распространения Kotoba.           *
- *************************************/
 /* *******************************
  * This file is part of Kotoba.  *
  * See license.txt for more info.*
@@ -78,8 +72,8 @@ class Config
     // Включение постинга видео с ютуба.
     const ENABLE_YOUTUBE = false;
 
-	// Captcha enable.
-	const ENABLE_CAPTCHA = true;
+    // Captcha enable.
+    const ENABLE_CAPTCHA = true;
 
     // Availiable captcha.
     static $CAPTCHAS = array('captcha', 'animaptcha');
@@ -316,5 +310,9 @@ class Config
     const CONVERT_BINARY = 'c:/usr/bin/convert.exe';
 }
 
+/*
+ * Global predefines.
+ */
 ini_set('register_globals', false);
+date_default_timezone_set(Config::DEFAULT_TIMEZONE);
 ?>

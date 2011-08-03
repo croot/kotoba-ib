@@ -101,6 +101,7 @@ $_['Popdown handler name wrong format.']['rus'] = 'Имя обработчика
 $_['Popdown handlers.']['rus'] = 'Обработчики автоматического удаления нитей.';
 $_['Post id=%d not found or user id=%d have no permission.']['rus'] = 'Сообщение id=%d не найдено или пользователь id=%d не имеет прав для его просмотра.';
 $_['Posts.']['rus'] = 'Сообщения.';
+$_['Programmer is not paranoic!']['rus'] = 'У прораммиста нет паранойи!';
 $_['Redirection wrong format.']['rus'] = 'Перенаправление при постинге имеет не верный формат.';
 $_['Request method.']['rus'] = 'Метод запроса.';
 $_['Request method not defined or unexpected.']['rus'] = 'Неожиданный или неопределённый метод запроса.';
@@ -119,6 +120,7 @@ $_['Stylesheets.']['rus'] = 'Стили.';
 $_['Subject too long.']['rus'] = 'Тема сообщения слишком длинная.';
 $_['Temporary directory not found.']['rus'] = 'Временная директория не найдена.';
 $_['Text too long.']['rus'] = 'Текст сообщения слишком длинный.';
+$_['This shit finally happen: %s. Thats it.']['rus'] = 'Эта фигня всё же случилась: %s. Вот так-то.';
 $_['Thread id=%d not found.']['rus'] = 'Нить id=%d не найдена.';
 $_['Thread number=%d not found.']['rus'] = 'Нить number=%d не найдена.';
 $_['Thread id=%d was archived.']['rus'] = 'Нить id=%d была заархивирована.';
@@ -145,6 +147,7 @@ $_['You are not moderator.']['rus'] = 'Вы не являетесь модера
 $_['You enter wrong verification code %s.']['rus'] = 'Вы ввели неверный код подтверждения %s.';
 $_['You id=%d have no permission to do it on board id=%d.']['rus'] = 'У вас id=%d нет прав для запрашиваемого действия с доской id=%d.';
 $_['You id=%d have no permission to do it on thread number=%d.']['rus'] = 'У вас id=%d нет прав для запрашиваемого действия с нитью number=%d.';
+$_['You id=%d have no permission to do it on thread id=%d.']['rus'] = 'У вас id=%d нет прав для запрашиваемого действия с нитью id=%d.';
 
 unset($_);
 ?>
