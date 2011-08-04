@@ -575,7 +575,7 @@ try {
     DataExchange::releaseResources();
 
     exit(0);
-} catch (Exception $e) {
+} catch (KotobaException $e) {
 
     // Cleanup.
     if (isset($abs_file_path) && file_exists($abs_file_path)) {

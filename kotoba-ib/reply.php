@@ -529,20 +529,12 @@ try {
     }
 
     // Save post.
-    $post = posts_add($board['id'],
-                      $thread['id'],
-                      $_SESSION['user'],
-                      $password,
-                      $name,
-                      $tripcode,
-                      ip2long($_SERVER['REMOTE_ADDR']),
-                      $subject,
-                      date(Config::DATETIME_FORMAT),
-                      $text,
-                      $sage);
+    $post = posts_add($board['id'], $thread['id'], $_SESSION['user'], $password,
+                      $name, $tripcode, ip2long($_SERVER['REMOTE_ADDR']),
+                      $subject, date(Config::DATETIME_FORMAT), $text, $sage);
 
     // Save attachment.
-    if ($attachment_type !== null) {
+    if ($attachment_type !== NULL) {
         switch ($attachment_type) {
             case Config::ATTACHMENT_TYPE_FILE:
                 posts_files_add($post['id'], $post['board'], $attachment_id, 0);
@@ -558,8 +550,8 @@ try {
                 posts_videos_add($post['id'], $attachment_id, 0);
                 break;
             default:
-                throw new CommonException('Not supported.');
-                break;
+                throw new ParanoicException("Attachment type $attachment_type "
+                                            . "not supported.");
         }
     }
 
@@ -583,33 +575,38 @@ try {
 
     // Redirect.
     if ($_SESSION['goto'] == 't') {
-        header('Location: ' . Config::DIR_PATH . "/{$board['name']}/{$thread['original_post']}/");
+        header('Location: ' . Config::DIR_PATH
+               . "/{$board['name']}/{$thread['original_post']}/");
     } else {
         header('Location: ' . Config::DIR_PATH . "/{$board['name']}/");
     }
 
+    // Temporary code for highload tests!
     if (ctype_digit($post['id'])) {
         echo "{$post['id']}";
     } else {
-        throw new Exception('ID of new post is empty. Highload issue?');
+        throw new ParanoicException('ID of new post is empty. Highload issue?');
     }
 
     // Cleanup.
     DataExchange::releaseResources();
 
     exit(0);
-} catch (Exception $e) {
-    $smarty->assign('msg', $e->__toString());
+} catch (KotobaException $e) {
+
+    // Cleanup.
+    if (isset($abs_file_path) && file_exists($abs_file_path)) {
+        unlink($abs_file_path);
+    }
+    if (isset($abs_img_path) && file_exists($abs_img_path)) {
+        unlink($abs_img_path);
+    }
+    if (isset($abs_thumb_path) && file_exists($abs_thumb_path)) {
+        unlink($abs_thumb_path);
+    }
     DataExchange::releaseResources();
-	if (isset($abs_file_path)) { // Удаление загруженного файла.
-		@unlink($abs_file_path);
-    }
-    if (isset($abs_img_path)) { // Удаление загруженного файла.
-        @unlink($abs_img_path);
-    }
-    if (isset($abs_thumb_path)) { // Удаление уменьшенной копии.
-        @unlink($abs_thumb_path);
-    }
-    die($smarty->fetch('exception.tpl'));
+
+    display_exception_page($smarty, $e, is_admin() || is_mod());
+    exit(1);
 }
 ?>

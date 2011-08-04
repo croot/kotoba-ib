@@ -1767,11 +1767,13 @@ function posts_get_reported_by_boards($boards, $page, $posts_per_page) {
  * Get visible post.
  * @param int $post_id Post id.
  * @param int $user_id User id.
- * @return array
- * post.
+ * @return array|boolean
+ * post or FALSE if any error occurred and set last error to appropriate error
+ * object.
  */
 function posts_get_visible_by_id($post_id, $user_id) {
-    return db_posts_get_visible_by_id(DataExchange::getDBLink(), $post_id, $user_id);
+    return db_posts_get_visible_by_id(DataExchange::getDBLink(), $post_id,
+                                      $user_id);
 }
 /**
  * Get visible post.

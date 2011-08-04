@@ -4,17 +4,17 @@
  * See license.txt for more info. *
  **********************************/
 
-// Animaptcha.
+/**
+ * Create animaptcha image script.
+ */
 
-require_once '../config.php';
-require_once Config::ABS_PATH . '/lib/exceptions.php';
-require_once Config::ABS_PATH . '/lib/errors.php';
+require_once dirname(dirname(__FILE__)) . '/config.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
 
 // Initialization.
 kotoba_session_start();
 if (Config::LANGUAGE != $_SESSION['language']) {
-    require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
+    require Config::ABS_PATH . "/locale/{$_SESSION['language']}/messages.php";
 }
 locale_setup();
 

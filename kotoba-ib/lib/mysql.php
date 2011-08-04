@@ -3071,17 +3071,20 @@ function db_posts_get_reported_by_boards($link,
  * @param MySQLi $link Link to database.
  * @param int $post_id Post id.
  * @param int $user_id User id.
- * @return array
- * post.
+ * @return array|boolean
+ * post or FALSE if any error occurred and set last error to appropriate error
+ * object.
  */
 function db_posts_get_visible_by_id($link, $post_id, $user_id) {
-    $result = mysqli_query($link, "call sp_posts_get_visible_by_id($post_id, $user_id)");
-    if (!$result) {
+    $query = "call sp_posts_get_visible_by_id($post_id, $user_id)";
+    if ( ($result = mysqli_query($link, $query)) == FALSE) {
         throw new DBException(mysqli_error($link));
     }
 
-    $post = null;
-    if (mysqli_affected_rows($link) > 0 && ($row = mysqli_fetch_assoc($result)) != null) {
+    $post = NULL;
+    if (mysqli_affected_rows($link) > 0
+            && ($row = mysqli_fetch_assoc($result)) != null) {
+
         $post['id'] = $row['post_id'];
         $post['number'] = $row['post_number'];
         $post['user'] = $row['post_user'];
@@ -3122,15 +3125,14 @@ function db_posts_get_visible_by_id($link, $post_id, $user_id) {
         $post['thread']['with_attachments'] = $row['thread_with_attachments'];
     }
 
-    if($post === null) {
-        //throw new NodataException(NodataException::$messages['POST_NOT_FOUND'], $post_id, $user_id);
-        // TODO Handle error!
-        echo "Post not found!<br>\n";
-        exit(1);
+    if ($post === NULL) {
+        kotoba_set_last_error(new PostNotFoundIdError($post_id, $user_id));
+        return FALSE;
     }
 
     mysqli_free_result($result);
     db_cleanup_link($link);
+
     return $post;
 }
 /**

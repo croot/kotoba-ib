@@ -532,6 +532,19 @@ class ThreadClosedError extends KotobaError {
         );
     }
 }
+class PostNotFoundIdError extends KotobaError {
+    function __construct($post_id, $user_id) {
+        parent::__construct(
+            kgettext('Posts.'),
+            sprintf(
+                kgettext('Post id=%d not found or user id=%d have no '
+                         . 'permission.'),
+                $post_id,
+                $user_id
+            )
+        );
+    }
+}
 
 $KOTOBA_LAST_ERROR = NULL;
 
@@ -549,18 +562,6 @@ $ERRORS['NO_WORDS']
     = new Error('No words for search.', 'Search.');
 $ERRORS['LONG_WORD']
     = new Error('One of search words is more than 60 characters.', 'Search.');
-$ERRORS['POST_NOT_FOUND']
-    = new Error('Post id=%d not found or user id=%d have no permission.',
-                'Posts.',
-                Config::DIR_PATH . '/img/errors/default_error.png',
-                function ($smarty, $post_id, $user_id, $text, $title, $image) {
-                    $smarty->assign('show_control', is_admin() || is_mod());
-                    $smarty->assign('ib_name', Config::IB_NAME);
-                    $smarty->assign('text', sprintf($text, $post_id, $user_id));
-                    $smarty->assign('title', $title);
-                    $smarty->assign('image', $image);
-                    die($smarty->fetch('error.tpl'));
-                });
 $ERRORS['SEARCH_KEYWORD']
     = new Error('Search keyword not set or too short.', 'Search.');
 $ERRORS['THREADS_EDIT']
