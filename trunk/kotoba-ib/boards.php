@@ -119,6 +119,8 @@ try {
         $_SESSION['posts_per_thread']
     );
 
+    $posts_attachments = array();
+    $attachments = array();
     if (is_attachments_enabled($board)) {
         $posts_attachments = posts_attachments_get_by_posts($posts);
         $attachments = attachments_get_by_posts($posts);

@@ -70,6 +70,7 @@ $_['Image libraries disabled or doesn\'t work.']['eng'] = 'Image libraries disab
 $_['Image too small.']['eng'] = 'Image too small.';
 $_['Imagemagic doesn\'t support %s file type.']['eng'] = 'Imagemagic doesn\'t support %s file type.';
 $_['Imagemagic library.']['eng'] = 'Imagemagic library.';
+$_['Input params.']['eng'] = 'Input params.';
 $_['Invlid unicode characters deteced.']['eng'] = 'Invlid unicode characters deteced.';
 $_['Keyword length must be 2 up to 32 symbols. Valid symbols is: latin letters, digits, underscore and dash.']['eng'] = 'Keyword length must be 2 up to 32 symbols. Valid symbols is: latin letters, digits, underscore and dash.';
 $_['Language id=%d not exist.']['eng'] = 'Language id=%d not exist.';
@@ -105,6 +106,7 @@ $_['Programmer is not paranoic!']['eng'] = 'Programmer is not paranoic!';
 $_['Redirection wrong format.']['eng'] = 'Redirection wrong format.';
 $_['Request method.']['eng'] = 'Request method.';
 $_['Request method not defined or unexpected.']['eng'] = 'Request method not defined or unexpected.';
+$_['Requied parameter %s not set.']['eng'] = 'Requied parameter %s not set.';
 $_['Remote address is not an IP address.']['eng'] = 'Remote address is not an IP address.';
 $_['Search.']['eng'] = 'Search.';
 $_['Search keyword not set or too short.']['eng'] = 'Search keyword not set or too short.';

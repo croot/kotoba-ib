@@ -15,7 +15,7 @@ Variables:
 <div class="navbar">
 {if isset($categories)}{strip}
     {foreach from=$categories item=c name=categories}
-        [&nbsp;{$c.name}:&nbsp;
+        [&nbsp;
         {foreach from=$c.boards item=b name=boards}
             <a href="{$DIR_PATH}/{$b.name}/">{$b.name}</a>&nbsp;
             {if !$smarty.foreach.boards.last}/&nbsp;{/if}
@@ -34,5 +34,5 @@ This script uses obsolete call of navbar template.
 <a href="{$DIR_PATH}/{$boards[i].name}/">{$boards[i].name}</a>{math equation="c+1" c=$count assign=count}{/if}{/section}
 {if $count > 0} ]
 {/if}
-{/if}[<a href="{$DIR_PATH}/">Главная</a>]
+{/if}
 </div>

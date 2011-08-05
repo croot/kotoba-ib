@@ -230,3 +230,25 @@ function expandimg(post, url, thumb_url, w, h, thumb_w, thumb_h) {
         expandimg.expanded = false;
     }
 }
+
+function menu_toggle(button, area) {
+    var tog=document.getElementById(area);
+    if(tog.style.display)    {
+        tog.style.display="";
+    }    else {
+        tog.style.display="none";
+    }
+    button.innerHTML=(tog.style.display)?'+':'&minus;';
+    set_cookie('menu_show_'+area, tog.style.display ? '0' : '1', 30);
+}
+
+function menu_removeframes(msg) {
+    var boardlinks = document.getElementsByTagName("a");
+    for (var i=0; i<boardlinks.length; i++) {
+        if (boardlinks[i].className == "boardlink") {
+            boardlinks[i].target = "_top";
+        }
+    }
+    document.getElementById("removeframes").innerHTML = msg;
+    return false;
+}

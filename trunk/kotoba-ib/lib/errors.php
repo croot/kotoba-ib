@@ -545,6 +545,22 @@ class PostNotFoundIdError extends KotobaError {
         );
     }
 }
+class RequiedParamError extends KotobaError {
+    function __construct($param) {
+        parent::__construct(
+            kgettext('Input params.'),
+            sprintf(kgettext('Requied parameter %s not set.'), $param)
+        );
+    }
+}
+class GuestError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Guest.'),
+            kgettext('Guests cannot do that.')
+        );
+    }
+}
 
 $KOTOBA_LAST_ERROR = NULL;
 
@@ -571,8 +587,6 @@ $ERRORS['ACL_RULE_EXCESS']
 $ERRORS['ACL_RULE_CONFLICT']
     = new Error('Change permission cannot be set without view. Moderate '
                 . 'permission cannot be set without all others.', 'ACL.');
-$ERRORS['GUEST']
-    = new Error('Guests cannot do that.', 'Guest.');
 $ERRORS['NOT_ADMIN']
     = new Error('You are not admin.', 'Admin.');
 $ERRORS['NOT_MOD']
@@ -588,6 +602,7 @@ $ERRORS['WORD_TOO_LONG']
 
 
 function display_error_page($smarty, $error) {
+    $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('ib_name', Config::IB_NAME);
     $smarty->assign('text', $error->getText());
     $smarty->assign('title', $error->getTitle());

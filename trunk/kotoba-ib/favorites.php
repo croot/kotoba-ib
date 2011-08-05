@@ -5,40 +5,53 @@
  *********************************/
 
 /*
- * Favorites script.
+ * Favorites management script.
  *
  * Parameters:
- * action - favorites action. Add, delete, mark_readed, mark_all_readed
+ * action - favorites action. add, delete, mark_readed, mark_all_readed
  * thread - thread id.
  */
 
-require_once 'config.php';
-require_once Config::ABS_PATH . '/lib/exceptions.php';
-require_once Config::ABS_PATH . '/lib/errors.php';
-require_once Config::ABS_PATH . '/lib/db.php';
+require_once dirname(__FILE__) . '/config.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 
 try {
     // Initialization.
     kotoba_session_start();
     if (Config::LANGUAGE != $_SESSION['language']) {
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
+        require Config::ABS_PATH
+            . "/locale/{$_SESSION['language']}/messages.php";
     }
     locale_setup();
     $smarty = new SmartyKotobaSetup();
 
     // Check if client banned.
-    if (!isset($_SERVER['REMOTE_ADDR'])
-            || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
+    if ( ($ban = bans_check(get_remote_addr())) !== FALSE) {
 
-        throw new RemoteAddressException();
-    }
-    if ( ($ban = bans_check($ip)) !== false) {
+        // Cleanup.
+        DataExchange::releaseResources();
+
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
+        $smarty->display('banned.tpl');
+
         session_destroy();
-        DataExchange::releaseResources();
-        die($smarty->fetch('banned.tpl'));
+        exit(1);
+    }
+
+    // Check for requied parameters.
+    foreach (array('action') as $param) {
+        if (!isset($_REQUEST[$param])) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+
+            display_error_page($smarty, new RequiedParamError($param));
+            exit(1);
+        }
     }
 
     // Guests cannot have favorites.
@@ -47,16 +60,13 @@ try {
         // Cleanup.
         DataExchange::releaseResources();
 
-        $ERRORS['GUEST']($smarty);
+        display_error_page($smarty, kotoba_last_error());
         exit(1);
     }
 
-    // Check input parameters.
-    $REQUEST = "_{$_SERVER['REQUEST_METHOD']}";
-    $REQUEST = $$REQUEST;
-    $action = isset($REQUEST['action']) ? $REQUEST['action'] : null;
-    $thread = isset($REQUEST['thread']) ? $REQUEST['thread'] : null;
-
+    // Perform action.
+    $action = $_REQUEST['action'];
+    $thread = isset($_REQUEST['thread']) ? $_REQUEST['thread'] : NULL;
     switch ($action) {
         case 'add':
             favorites_add($_SESSION['user'], threads_check_id($thread));
@@ -81,9 +91,12 @@ try {
     header('Location: ' . Config::DIR_PATH . '/edit_settings.php');
 
     exit(0);
-} catch (Exception $e) {
-    $smarty->assign('msg', $e->__toString());
+} catch(KotobaException $e) {
+
+    // Cleanup.
     DataExchange::releaseResources();
-    die($smarty->fetch('exception.tpl'));
+
+    display_exception_page($smarty, $e, is_admin() || is_mod());
+    exit(1);
 }
 ?>
