@@ -12,7 +12,9 @@ Variables:
 *}
 <div class="adminbar">
 [<a href="{$DIR_PATH}/edit_settings.php">Настройки</a>]
+[Архив]
 [<a href="{$DIR_PATH}/search.php">Поиск</a>]
+[<a href="{$DIR_PATH}/">Главная</a>]
 {if $show_control}[<a href="{$DIR_PATH}/manage.php">Управление</a>]
 {/if}
 </div>

@@ -9,21 +9,19 @@ Code of imageboard main page.
 Variables:
     $DIR_PATH - path from server document root to index.php directory (see config.default).
     $STYLESHEET - stylesheet (see config.default).
-    $show_control - show link to manage page.
-    $categories - categories.
-    $boards - boards.
     $ib_name - imageboard name.
-    $version - version of Kotoba.
-    $last_modification - date of last Kotoba modification.
-    $news_html - news html code.
 *}
-{include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET page_title='Главная страница'}
-
-{include file='adminbar.tpl' DIR_PATH=$DIR_PATH show_control=$show_control}
-
-{include file='navbar.tpl' DIR_PATH=$DIR_PATH categories=$categories boards=$boards}
-
-<div class="logo">{$ib_name}</div>
-<p>Версия {$version}. Время последнего изменения: {$last_modification}.</p>
-<p>{$news_html}</p>
-{include file='footer.tpl'}
+<html>
+<head>
+<title>{$ib_name}</title>
+<!-- <link rel="shortcut icon" href="/favicon.ico"> -->
+</head>
+<frameset cols="15%,*" frameborder="0" border="0">
+<frame src="{$DIR_PATH}/menu.php" name="menu" id="menu">
+<frame src="{$DIR_PATH}/news.php" name="main" id="main">
+<noframes>
+Your browser doesn't support frames, which {$ib_name} requires.<br>
+Please upgrade to something newer.
+</noframes>
+</frameset>
+</html>

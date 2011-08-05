@@ -4,7 +4,17 @@
  * See license.txt for more info.*
  *********************************/
 
-// Catalog of threads.
+/*
+ * Catalog of threads.
+ *
+ * Parameters:
+ * board - board name.
+ * page - page number.
+ */
+
+require_once dirname(__FILE__) . '/config.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/db.php';
 
 require_once 'config.php';
 require_once Config::ABS_PATH . '/lib/exceptions.php';
@@ -20,62 +30,66 @@ try {
     // Initialization.
     kotoba_session_start();
     if (Config::LANGUAGE != $_SESSION['language']) {
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
+        require Config::ABS_PATH
+            . "/locale/{$_SESSION['language']}/messages.php";
     }
     locale_setup();
     $smarty = new SmartyKotobaSetup();
 
     // Check if client banned.
-    if (!isset($_SERVER['REMOTE_ADDR'])
-            || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
+    if ( ($ban = bans_check(get_remote_addr())) !== FALSE) {
 
-        throw new RemoteAddressException();
-    }
-    if ( ($ban = bans_check($ip)) !== FALSE) {
+        // Cleanup.
+        DataExchange::releaseResources();
+
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
+        $smarty->display('banned.tpl');
+
         session_destroy();
-        DataExchange::releaseResources();
-        die($smarty->fetch('banned.tpl'));
+        exit(1);
     }
 
     // Fix for Firefox.
     header("Cache-Control: private");
 
+    // Check for requied parameters.
+    foreach (array('board') as $param) {
+        if (!isset($_REQUEST[$param])) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+
+            display_error_page($smarty, new RequiedParamError($param));
+            exit(1);
+        }
+    }
+
+    // Check board name.
     $board_name = boards_check_name($_REQUEST['board']);
-    if ($board_name === 1) {
+    if ($board_name === FALSE) {
 
         // Cleanup.
         DataExchange::releaseResources();
 
-        $ERRORS['BOARD_NAME']($smarty);
+        display_error_page($smarty, kotoba_last_error());
         exit(1);
     }
-    $categories = categories_get_all();
-    $boards = boards_get_visible($_SESSION['user']);
 
+    // Check page.
     $page = 1;
     $pages = array();
     $page_max = 1;
     if (isset($_REQUEST['page'])) {
-        if ( ($page = check_page($_REQUEST['page'], FALSE)) === NULL) {
-            DataExchange::releaseResources();
-            throw new IntvalException();
-        }
+        $page = check_page($_REQUEST['page']);
     }
 
-    // Make category-boards tree for navigation panel.
-    foreach ($categories as &$c) {
-        $c['boards'] = array();
-        foreach ($boards as $b) {
-            if ($b['category'] == $c['id']
-                    && !in_array($b['name'], Config::$INVISIBLE_BOARDS)) {
+    // Get categories, boards and make tree for navigation panel (navbar).
+    $categories = categories_get_all();
+    $boards = boards_get_visible($_SESSION['user']);
+    make_category_boards_tree($categories, $boards);
 
-                array_push($c['boards'], $b);
-            }
-        }
-    }
-
+    // Check if board exists.
     $board = NULL;
     foreach ($boards as $b) {
         if ($b['name'] == $board_name) {
@@ -87,14 +101,13 @@ try {
         // Cleanup.
         DataExchange::releaseResources();
 
-        $ERRORS['BOARD_NOT_FOUND']($smarty, $board_name);
+        display_error_page($smarty, new BoardNotFoundError($board_name));
         exit(1);
     }
 
+    // Calculate maximum page number.
     $threads_count = threads_get_visible_count($_SESSION['user'], $board['id']);
-    $page_max = ($threads_count % 100 == 0
-        ? (int)($threads_count / 100)
-        : (int)($threads_count / 100) + 1);
+    $page_max = ceil($threads_count / 100);
     if ($page_max == 0) {
         $page_max = 1;  // Important for empty boards.
     }
@@ -103,9 +116,11 @@ try {
         // Cleanup.
         DataExchange::releaseResources();
 
-        $ERRORS['MAX_PAGE']($smarty, $page);
+        display_error_page($smarty, new MaxPageError($page));
         exit(1);
     }
+
+    // Get threads, original posts and attachments.
 
     $threads = threads_get_visible_by_page($_SESSION['user'],
                                            $board['id'],
@@ -116,7 +131,7 @@ try {
 
     $posts_attachments = array();
     $attachments = array();
-    if ($board['with_attachments']) {
+    if (is_attachments_enabled($board)) {
         $posts_attachments = posts_attachments_get_by_posts($posts);
         $attachments = attachments_get_by_posts($posts);
     }
@@ -152,9 +167,12 @@ try {
     DataExchange::releaseResources();
 
     exit(0);
-} catch(Exception $e) {
-    $smarty->assign('msg', $e->__toString());
+} catch(KotobaException $e) {
+
+    // Cleanup.
     DataExchange::releaseResources();
-    die($smarty->fetch('exception.tpl'));
+
+    display_exception_page($smarty, $e, is_admin() || is_mod());
+    exit(1);
 }
 ?>
