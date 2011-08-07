@@ -1344,7 +1344,8 @@ function db_hard_ban_add($link, $range_beg, $range_end) {
  * @param int $user_id User id.
  */
 function db_hidden_threads_add($link, $thread_id, $user_id) {
-    if (!mysqli_query($link, "call sp_hidden_threads_add($thread_id, $user_id)")) {
+    $query = "call sp_hidden_threads_add($thread_id, $user_id)";
+    if (mysqli_query($link, $query) == FALSE) {
         throw new DBException(mysqli_error($link));
     }
 
@@ -4136,8 +4137,8 @@ function db_threads_get_archived($link)
  * Get thread.
  * @param MySQLi $link Link to database.
  * @param int $id Thread id.
- * @return array
- * thread.
+ * @return array|null
+ * thread or NULL if thread not found.
  */
 function db_threads_get_by_id($link, $id) {
     $result = mysqli_query($link, "call sp_threads_get_by_id($id)");
@@ -4145,8 +4146,10 @@ function db_threads_get_by_id($link, $id) {
         throw new DBException(mysqli_error($link));
     }
 
-    $thread = null;
-    if(mysqli_affected_rows($link) > 0 && ($row = mysqli_fetch_assoc($result)) != NULL) {
+    $thread = NULL;
+    if(mysqli_affected_rows($link) > 0
+            && ($row = mysqli_fetch_assoc($result)) != NULL) {
+
         $thread['id'] = $row['thread_id'];
         $thread['original_post'] = $row['thread_original_post'];
         $thread['bump_limit'] = $row['thread_bump_limit'];

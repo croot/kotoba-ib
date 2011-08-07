@@ -14,7 +14,7 @@ Variables:
     $categories - categories.
 *}
 {include file='header.tpl' DIR_PATH=$DIR_PATH STYLESHEET=$STYLESHEET
-         page_title='Menu'}
+         page_title='Меню'}
 
 <script type="text/javascript">var DIR_PATH = '{$DIR_PATH}';</script>
 <script type="text/javascript"  src="{$DIR_PATH}/protoaculous-compressed.js"></script>
@@ -24,11 +24,11 @@ Variables:
 </style>
 <h1>{$ib_name}</h1>
 <ul>
-<li><a href="{$DIR_PATH}/news.php" target="main">Home</a></li>
-<li id="removeframes"><a href="#" onclick="javascript:return menu_removeframes('Frames removed.');" target="_self">[Remove frames]</a></li>
+<li><a href="{$DIR_PATH}/news.php" target="main">Главная страница</a></li>
+<li id="removeframes"><a href="#" onclick="javascript:return menu_removeframes('Фреймы удалены.');" target="_self">[Удалить фреймы]</a></li>
 </ul>
 {foreach $categories as $category}
-<h2><span class="plus" onclick="menu_toggle(this, '{$category.id}');" title="Click to show/hide.">&minus;</span>&nbsp;{$category.name}</h2>
+<h2><span class="plus" onclick="menu_toggle(this, '{$category.id}');" title="Нажмите, чтобы увидеть/скрыть.">&minus;</span>&nbsp;{$category.name}</h2>
 <div id="{$category.id}" style="">
 <ul>
     <!-- boardlink is a fake class to endentify this links. Used in js function menu_removeframes-->

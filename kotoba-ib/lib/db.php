@@ -998,7 +998,8 @@ function hard_ban_add($range_beg, $range_end) {
  * @param int $user_id User id.
  */
 function hidden_threads_add($thread_id, $user_id) {
-    return db_hidden_threads_add(DataExchange::getDBLink(), $thread_id, $user_id);
+    return db_hidden_threads_add(DataExchange::getDBLink(), $thread_id,
+                                 $user_id);
 }
 /**
  * Unhide thread.
@@ -2174,8 +2175,8 @@ function threads_get_archived()
 /**
  * Get thread.
  * @param int $id Thread id.
- * @return array
- * thread.
+ * @return array|null
+ * thread or NULL if thread not found.
  */
 function threads_get_by_id($id) {
     return db_threads_get_by_id(DataExchange::getDBLink(), $id);
