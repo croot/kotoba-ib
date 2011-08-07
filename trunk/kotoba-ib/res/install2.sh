@@ -528,9 +528,9 @@ done
 # 5. Download smarty, unpack and patch.
 #
 echo "Download smarty, unpack and patch."
-execute "wget -P /tmp/ http://www.smarty.net/files/Smarty-2.6.26.tar.gz" "`basename $0`:$LINENO"
-execute "tar -zxvf /tmp/Smarty-2.6.26.tar.gz -C /tmp/ > /dev/null" "`basename $0`:$LINENO"
-execute "cp -r /tmp/Smarty-2.6.26/libs/* $DST_DIR/$SMARTY_DIR/libs/" "`basename $0`:$LINENO"
+execute "wget -P /tmp/ http://www.smarty.net/files/Smarty-3.0.4.tar.gz" "`basename $0`:$LINENO"
+execute "tar -zxvf /tmp/Smarty-3.0.4.tar.gz -C /tmp/ > /dev/null" "`basename $0`:$LINENO"
+execute "cp -r /tmp/Smarty-3.0.4/libs/* $DST_DIR/$SMARTY_DIR/libs/" "`basename $0`:$LINENO"
 execute "cp $DST_DIR/$SMARTY_DIR/libs/Smarty.class.php $DST_DIR/$LIB_DIR/Smarty.class.php" "`basename $0`:$LINENO"
 
 #

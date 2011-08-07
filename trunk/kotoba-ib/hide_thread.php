@@ -11,34 +11,46 @@
  * thread - thread id.
  */
 
-require 'config.php';
-require_once Config::ABS_PATH . '/lib/exceptions.php';
-require_once Config::ABS_PATH . '/lib/errors.php';
-require_once Config::ABS_PATH . '/lib/logging.php';
-require_once Config::ABS_PATH . '/lib/db.php';
+require_once dirname(__FILE__) . '/config.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 
 try {
     // Initialization.
     kotoba_session_start();
     if (Config::LANGUAGE != $_SESSION['language']) {
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
+        require Config::ABS_PATH
+            . "/locale/{$_SESSION['language']}/messages.php";
     }
     locale_setup();
     $smarty = new SmartyKotobaSetup();
 
     // Check if client banned.
-    if (!isset($_SERVER['REMOTE_ADDR'])
-            || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
+    if ( ($ban = bans_check(get_remote_addr())) !== FALSE) {
 
-        throw new RemoteAddressException();
-    }
-    if ( ($ban = bans_check($ip)) !== false) {
+        // Cleanup.
+        DataExchange::releaseResources();
+
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
+        $smarty->display('banned.tpl');
+
         session_destroy();
-        DataExchange::releaseResources();
-        die($smarty->fetch('banned.tpl'));
+        exit(1);
+    }
+
+    // Check for requied parameters.
+    foreach (array('thread') as $param) {
+        if (!isset($_REQUEST[$param])) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+
+            display_error_page($smarty, new RequiedParamError($param));
+            exit(1);
+        }
     }
 
     // Guests cannot hide threads.
@@ -47,31 +59,36 @@ try {
         // Cleanup.
         DataExchange::releaseResources();
 
-        $ERRORS['GUEST']($smarty);
+        display_error_page($smarty, kotoba_last_error());
         exit(1);
     }
 
-    // Check input parameters.
-    $REQUEST = "_{$_SERVER['REQUEST_METHOD']}";
-    $REQUEST = $$REQUEST;
-    if (isset($REQUEST['thread'])) {
-        $thread = threads_get_by_id(threads_check_id($REQUEST['thread']));
-    } else {
-        header('Location: http://z0r.de/?id=114');
+    // Check thread id and get thread.
+    $thread_id = threads_check_id($_REQUEST['thread']);
+    if ( ($thread = threads_get_by_id($thread_id)) === NULL) {
+
+        // Cleanup.
         DataExchange::releaseResources();
-        exit(1);
+
+        display_error_page($smarty, new ThreadNotFoundIdError($thread_id));
+        exit(0);
     }
 
     hidden_threads_add($thread['id'], $_SESSION['user']);
 
+    // Redirect back to board.
     header('Location: ' . Config::DIR_PATH . "/{$thread['board']['name']}/");
 
+    // Cleanup.
     DataExchange::releaseResources();
 
     exit(0);
-} catch(Exception $e) {
-    $smarty->assign('msg', $e->__toString());
+} catch(KotobaException $e) {
+
+    // Cleanup.
     DataExchange::releaseResources();
-    die($smarty->fetch('exception.tpl'));
+
+    display_exception_page($smarty, $e, is_admin() || is_mod());
+    exit(1);
 }
 ?>
