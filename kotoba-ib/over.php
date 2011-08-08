@@ -4,13 +4,14 @@
  * See license.txt for more info.*
  *********************************/
 
-// Share imageboard data for overchan.
+/*
+ * Share imageboard data for overchan.
+ */
 
-require_once 'config.php';
-require_once Config::ABS_PATH . '/lib/exceptions.php';
-require_once Config::ABS_PATH . '/lib/errors.php';
-require Config::ABS_PATH . '/locale/' . Config::LANGUAGE . '/exceptions.php';
+require_once dirname(__FILE__) . '/config.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
 require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 
 try {
     // Get data about boards and categories.
@@ -22,13 +23,22 @@ try {
     foreach ($categories as $category) {
         foreach ($boards as $board) {
             if ($category['id'] == $board['category']) {
-                $out .= "<a href=\"/{$board['name']}/\">{$board['name']}</a> /\n";
+                $out .= "<a href=\"/{$board['name']}/\">"
+                        . "{$board['name']}</a> /\n";
             }
         }
-        $out = mb_substr($out, 0, mb_strlen($out, Config::MB_ENCODING) - 3, Config::MB_ENCODING);
+        $out = mb_substr(
+            $out,
+            0,
+            mb_strlen($out, Config::MB_ENCODING) - 3, Config::MB_ENCODING
+        );
         $out .= " |\n";
     }
-    $out = mb_substr($out, 0, mb_strlen($out, Config::MB_ENCODING) - 3, Config::MB_ENCODING);
+    $out = mb_substr(
+        $out,
+        0,
+        mb_strlen($out, Config::MB_ENCODING) - 3, Config::MB_ENCODING
+    );
     $out .= ']';
     echo $out;
 
@@ -36,9 +46,12 @@ try {
     DataExchange::releaseResources();
 
     exit(0);
-} catch(Exception $e) {
-    $smarty->assign('msg', $e->__toString());
+} catch(KotobaException $e) {
+
+    // Cleanup.
     DataExchange::releaseResources();
-    die($smarty->fetch('exception.tpl'));
+
+    display_exception_page($smarty, $e, is_admin() || is_mod());
+    exit(1);
 }
 ?>

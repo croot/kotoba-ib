@@ -561,6 +561,14 @@ class GuestError extends KotobaError {
         );
     }
 }
+class NotModError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Moderator.'),
+            kgettext('You are not moderator.')
+        );
+    }
+}
 
 $KOTOBA_LAST_ERROR = NULL;
 
@@ -589,8 +597,6 @@ $ERRORS['ACL_RULE_CONFLICT']
                 . 'permission cannot be set without all others.', 'ACL.');
 $ERRORS['NOT_ADMIN']
     = new Error('You are not admin.', 'Admin.');
-$ERRORS['NOT_MOD']
-    = new Error('You are not moderator.', 'Moderator.');
 $ERRORS['UPLOAD_ERR_NO_FILE']
     = new Error('No file uploaded.', 'Uploads.');
 $ERRORS['MAX_BOARD_TITLE']
