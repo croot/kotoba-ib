@@ -14,38 +14,51 @@
  * search['boards'] - array of boards for search.
  */
 
-require_once 'config.php';
-require_once Config::ABS_PATH . '/lib/exceptions.php';
-require_once Config::ABS_PATH . '/lib/errors.php';
-require_once Config::ABS_PATH . '/lib/db.php';
+require_once dirname(__FILE__) . '/config.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
 require_once Config::ABS_PATH . '/lib/wrappers.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 
 try {
     // Initialization.
     kotoba_session_start();
     if (Config::LANGUAGE != $_SESSION['language']) {
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
+        require Config::ABS_PATH
+                . "/locale/{$_SESSION['language']}/messages.php";
     }
     locale_setup();
     $smarty = new SmartyKotobaSetup();
 
     // Check if client banned.
-    if (!isset($_SERVER['REMOTE_ADDR'])
-            || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
+    if ( ($ban = bans_check(get_remote_addr())) !== FALSE) {
 
-        throw new RemoteAddressException();
-    }
-    if ( ($ban = bans_check($ip)) !== false) {
+        // Cleanup.
+        DataExchange::releaseResources();
+
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
+        $smarty->display('banned.tpl');
+
         session_destroy();
-        DataExchange::releaseResources();
-        die($smarty->fetch('banned.tpl'));
+        exit(1);
     }
 
     // Fix for Firefox.
     header("Cache-Control: private");
+
+    // Check for requied parameters.
+    foreach (array('search') as $param) {
+        if (!isset($_REQUEST[$param])) {
+
+            // Cleanup.
+            DataExchange::releaseResources();
+
+            display_error_page($smarty, new RequiedParamError($param));
+            exit(1);
+        }
+    }
 
     $categories = categories_get_all();
     $boards = boards_get_visible($_SESSION['user']);
