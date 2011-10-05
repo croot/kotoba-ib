@@ -4208,6 +4208,48 @@ function db_threads_get_by_original_post($link, $board, $original_post) {
     return $thread;
 }
 /**
+ * Get thread by board name and reply post number.
+ * @param MySQLi $link Link to database.
+ * @param string $board_name Board name.
+ * @param int $reply_number Reply number.
+ * @return array|boolean
+ * array of thread data or FALSE if any error occurred and set last error to
+ * approppriate error object.
+ */
+function db_threads_get_by_reply($link, $board_name, $reply_number) {
+    $query = "call sp_threads_get_by_reply('$board_name', $reply_number)";
+    if ( ($result = mysqli_query($link, $query)) == FALSE) {
+        throw new DBException(mysqli_error($link));
+    }
+
+    $thread = NULL;
+    if(mysqli_affected_rows($link) > 0
+            && ($row = mysqli_fetch_assoc($result)) != NULL) {
+
+        if (isset($row['error']) && $row['error'] == 'BOARD_NOT_FOUND') {
+            mysqli_free_result($result);
+            db_cleanup_link($link);
+            kotoba_set_last_error(new BoardNotFoundError($board_name));
+            return FALSE;
+        }
+
+        if (isset($row['error']) && $row['error'] == 'POST_NOT_FOUND') {
+            mysqli_free_result($result);
+            db_cleanup_link($link);
+            kotoba_set_last_error(
+                new PostNotFoundError($board_name, $reply_number)
+            );
+            return FALSE;
+        }
+
+        $thread = $row;
+    }
+
+    mysqli_free_result($result);
+    db_cleanup_link($link);
+    return $thread;
+}
+/**
  * Gets changeable thread.
  * @param MySQLi $link Link to database.
  * @param int $thread_id Thread id.

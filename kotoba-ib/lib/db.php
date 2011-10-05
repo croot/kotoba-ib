@@ -1865,7 +1865,7 @@ function posts_is_author_admin($id) {
 function posts_prepare_text(&$text, $board) {
     purify_ascii($text);
     //kotoba_mark($text, $board);
-    //bbcode_kotoba_mark($text);
+    $text = bbcode_kotoba_mark($text, $board['name']);
     $text = str_replace("</blockquote>\n", '</blockquote>', $text);
     $text = str_replace("\n<blockquote", '<blockquote', $text);
     $text = preg_replace('/\n{3,}/', '\n', $text);
@@ -2190,6 +2190,18 @@ function threads_get_by_id($id) {
  */
 function threads_get_by_original_post($board, $original_post) {
     return db_threads_get_by_original_post(DataExchange::getDBLink(), $board, $original_post);
+}
+/**
+ * Get thread by board name and reply post number.
+ * @param string $board_name Board name.
+ * @param int $reply_number Reply number.
+ * @return array|boolean
+ * array of thread data or FALSE if any error occurred and set last error to
+ * approppriate error object.
+ */
+function threads_get_by_reply($board_name, $reply_number) {
+    return db_threads_get_by_reply(DataExchange::getDBLink(), $board_name,
+                                   $reply_number);
 }
 /**
  * Get changeable thread.

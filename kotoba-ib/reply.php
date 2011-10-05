@@ -358,7 +358,7 @@ try {
     $text = htmlentities($text, ENT_QUOTES, Config::MB_ENCODING);
     //$text = transform($text);
     if (Config::ENABLE_WORDFILTER) {
-        $words = words_get_all_by_board(boards_check_id($_REQUEST['board']));
+        $words = words_get_all_by_board($board['id']);
         foreach ($words as $_) {
             $text = preg_replace("#".$_['word']."#iu", $_['replace'], $text);
         }

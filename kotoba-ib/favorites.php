@@ -60,7 +60,7 @@ try {
         // Cleanup.
         DataExchange::releaseResources();
 
-        display_error_page($smarty, kotoba_last_error());
+        display_error_page($smarty, new GuestError());
         exit(1);
     }
 
