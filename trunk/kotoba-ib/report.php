@@ -54,7 +54,7 @@ try {
     }
 
     // Check post id and get post.
-    $post = posts_get_visible_by_id(posts_check_id($REQUEST['post']),
+    $post = posts_get_visible_by_id(posts_check_id($_REQUEST['post']),
                                     $_SESSION['user']);
     if ($post === FALSE) {
 

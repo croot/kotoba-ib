@@ -475,18 +475,18 @@ function is_guest()
 	{
 		if($_SESSION['user'] == Config::GUEST_ID)
 			return true;
-	}
+        }
 	else
 		throw new CommonException('');
 	if(isset($_SESSION['groups']) && is_array($_SESSION['groups']))
 	{
 		if(in_array(Config::GST_GROUP_NAME, $_SESSION['groups']))
 			return true;
-	}
+    }
 	else
 		throw new CommonException('');
 	return false;
-}
+        }
 /**
  * Check if macrochan integration enabled on board.
  * @param array $board Board.

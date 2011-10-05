@@ -156,6 +156,7 @@ drop procedure if exists sp_threads_get_all|
 drop procedure if exists sp_threads_get_archived|
 drop procedure if exists sp_threads_get_by_id|
 drop procedure if exists sp_threads_get_by_original_post|
+drop procedure if exists sp_threads_get_by_reply|
 drop procedure if exists sp_threads_get_changeable_by_id|
 drop procedure if exists sp_threads_get_moderatable|
 drop procedure if exists sp_threads_get_moderatable_by_id|
@@ -3348,6 +3349,31 @@ begin
             and board = _board
             and deleted = 0
             and archived = 0;
+end|
+
+-- Get thread by board name and reply post number.
+create procedure sp_threads_get_by_reply
+(
+    _board_name varchar(16),    -- Board id.
+    _reply_number int           -- Thread number.
+)
+begin
+    declare _board_id int;
+    declare _thread_id int;
+
+    select id into _board_id from boards where name = _board_name;
+    if (_board_id is null) then
+        select 'BOARD_NOT_FOUND' as error;
+    else
+        select thread into _thread_id
+            from posts
+            where board = _board_id and number = _reply_number;
+            if (_thread_id is null) then
+                select 'POST_NOT_FOUND' as error;
+            else
+                select * from threads where id = _thread_id and deleted = 0;
+            end if;
+    end if;
 end|
 
 -- Get changeable thread.

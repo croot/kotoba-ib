@@ -879,16 +879,29 @@ function lurl_content_handler($content, $argument) {
     return "&gt;&gt;$content";
 }
 function lurl_param_handler($content, $argument) {
-    return "http://coyc.net/b/res/" . ($argument - 1) . ".html#$argument";
+    list ($b, $p) = preg_split("/\//", $argument);
+    $p = posts_check_number($p);
+    if ( ($b = boards_check_name($b)) == FALSE
+            || ($thread = threads_get_by_reply($b, $p)) == FALSE) {
+
+        return "href=\"{error}\"";
+    }
+    return "class=\"ref|$b|{$thread['original_post']}|$p\" href=\"" . Config::DIR_PATH . "/$b/{$thread['original_post']}#$p\"";
 }
 function gurl_content_handler($content, $argument) {
     return "&gt;&gt;&gt;$content";
 }
 function gurl_param_handler($content, $argument) {
     list ($b, $p) = preg_split("/\//", $argument);
-    return "http://coyc.net/$b/res/" . ($p - 1) . ".html#$p";
+    $p = posts_check_number($p);
+    if ( ($b = boards_check_name($b)) == FALSE
+            || ($thread = threads_get_by_reply($b, $p)) == FALSE) {
+
+        return "href=\"{error}\"";
+    }
+    return "class=\"ref|$b|{$thread['original_post']}|$p\" href=\"" . Config::DIR_PATH . "/$b/{$thread['original_post']}#$p\"";
 }
-function bbcode_kotoba_mark($text) {
+function bbcode_kotoba_mark($text, $board) {
     static $arrayBBCode = array(
         'i' => array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<i>', 'close_tag'=>'</i>', 'childs'=>'b,s,u'),
         'b' => array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<b>', 'close_tag'=>'</b>', 'childs'=>'i,s,u'),
@@ -901,10 +914,10 @@ function bbcode_kotoba_mark($text) {
         'li' => array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<li>', 'close_tag'=>'</li>', 'childs'=>'i,b,s,u,spoiler'),
         'url' => array('type'=>BBCODE_TYPE_OPTARG, 'open_tag'=>'<a href="{PARAM}">', 'close_tag'=>'</a>', 'default_arg'=>'{CONTENT}'),
         'google' => array('type'=>BBCODE_TYPE_OPTARG, 'open_tag'=>'<a href="http://www.google.ru/search?q={PARAM}">', 'close_tag'=>'</a>', 'content_handling'=>'google_content_handler', 'param_handling'=>'param_handler'),
-        'wiki' => array('type'=>BBCODE_TYPE_OPTARG, 'open_tag'=>'<a href="http://en.wikipedia.org/wiki/{PARAM}">', 'close_tag'=>'</a>', 'content_handling'=>'wiki_content_handler', 'param_handling'=>'param_handler'),
+        'wiki' => array('type'=>BBCODE_TYPE_OPTARG, 'open_tag'=>'<a href="http://ru.wikipedia.org/wiki/{PARAM}">', 'close_tag'=>'</a>', 'content_handling'=>'wiki_content_handler', 'param_handling'=>'param_handler'),
         'quote' => array('type'=>BBCODE_TYPE_OPTARG, 'open_tag'=>'<span style="color:green;">', 'close_tag'=>'</span>'),
-        'lurl' => array('type'=>BBCODE_TYPE_OPTARG, 'open_tag'=>'<a href="{PARAM}">', 'close_tag'=>'</a>', 'content_handling'=>'lurl_content_handler', 'param_handling'=>'lurl_param_handler'),
-        'gurl' => array('type'=>BBCODE_TYPE_OPTARG, 'open_tag'=>'<a href="{PARAM}">', 'close_tag'=>'</a>', 'content_handling'=>'gurl_content_handler', 'param_handling'=>'gurl_param_handler')
+        'lurl' => array('type'=>BBCODE_TYPE_OPTARG, 'open_tag'=>'<a {PARAM}>', 'close_tag'=>'</a>', 'content_handling'=>'lurl_content_handler', 'param_handling'=>'lurl_param_handler'),
+        'gurl' => array('type'=>BBCODE_TYPE_OPTARG, 'open_tag'=>'<a {PARAM}>', 'close_tag'=>'</a>', 'content_handling'=>'gurl_content_handler', 'param_handling'=>'gurl_param_handler')
     );
     static $BBHandler = NULL;
 
@@ -913,7 +926,7 @@ function bbcode_kotoba_mark($text) {
     }
 
     $text = preg_replace('/&gt;&gt;&gt;\/(\w+?)\/(\d+)/', '[gurl=$1/$2]/$1/$2[/gurl]', $text);
-    $text = preg_replace('/&gt;&gt;(\d+)/', '[lurl=$1]$1[/lurl]', $text);
+    $text = preg_replace('/&gt;&gt;(\d+)/', "[lurl=$board/$1]$1[/lurl]", $text);
     $text = preg_replace('/(&gt;.+)/', '[quote]$1[/quote]', $text);
 
     return bbcode_parse($BBHandler, $text);
