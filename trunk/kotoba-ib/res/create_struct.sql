@@ -296,10 +296,12 @@ engine=InnoDB;
 create table posts_files    -- Posts files relations.
 (
     post int not null,      -- Post id.
+    board int not null,     -- Board id.
     file int not null,      -- File id.
     deleted bit not null,   -- Mark to delete.
-    unique key (post, file),
+    unique key (post, board, file),
     constraint foreign key (post) references posts (id) on delete restrict on update restrict,
+    constraint foreign key (board) references boards (id) on delete restrict on update restrict,
     constraint foreign key (file) references files (id) on delete restrict on update restrict
 )
 engine=InnoDB;
@@ -307,10 +309,12 @@ engine=InnoDB;
 create table posts_images   -- Posts images relations.
 (
     post int not null,      -- Post id.
+    board int not null,     -- Board id.
     image int not null,     -- Image id.
     deleted bit not null,   -- Mark to delete.
-    unique key (post, image),
+    unique key (post, board, image),
     constraint foreign key (post) references posts (id) on delete restrict on update restrict,
+    constraint foreign key (board) references boards (id) on delete restrict on update restrict,
     constraint foreign key (image) references images (id) on delete restrict on update restrict
 )
 engine=InnoDB;

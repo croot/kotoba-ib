@@ -1865,9 +1865,11 @@ function posts_is_author_admin($id) {
 function posts_prepare_text(&$text, $board) {
     purify_ascii($text);
     //kotoba_mark($text, $board);
-    $text = bbcode_kotoba_mark($text, $board['name']);
-    $text = str_replace("</blockquote>\n", '</blockquote>', $text);
-    $text = str_replace("\n<blockquote", '<blockquote', $text);
+    if (function_exists('bbcode_create')) {
+        $text = bbcode_kotoba_mark($text, $board['name']);
+        $text = str_replace("</blockquote>\n", '</blockquote>', $text);
+        $text = str_replace("\n<blockquote", '<blockquote', $text);
+    }
     $text = preg_replace('/\n{3,}/', '\n', $text);
     $text = preg_replace('/\n/', '<br>', $text);
 }
