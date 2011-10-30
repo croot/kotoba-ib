@@ -14,7 +14,7 @@ Variables:
 [<a href="{$DIR_PATH}/edit_settings.php">Settings</a>]
 [Archive]
 [<a href="{$DIR_PATH}/search.php">Search</a>]
-[<a href="{$DIR_PATH}/">Home</a>]
+[<a href="{$DIR_PATH}/" target="_top">Home</a>]
 {if $show_control}[<a href="{$DIR_PATH}/manage.php">Manage</a>]
 {/if}
 </div>

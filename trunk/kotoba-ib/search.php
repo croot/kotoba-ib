@@ -48,18 +48,6 @@ try {
     // Fix for Firefox.
     header("Cache-Control: private");
 
-    // Check for requied parameters.
-    foreach (array('search') as $param) {
-        if (!isset($_REQUEST[$param])) {
-
-            // Cleanup.
-            DataExchange::releaseResources();
-
-            display_error_page($smarty, new RequiedParamError($param));
-            exit(1);
-        }
-    }
-
     $categories = categories_get_all();
     $boards = boards_get_visible($_SESSION['user']);
 

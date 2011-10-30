@@ -906,7 +906,7 @@ function bbcode_kotoba_mark($text, $board) {
         'i' => array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<i>', 'close_tag'=>'</i>', 'childs'=>'b,s,u'),
         'b' => array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<b>', 'close_tag'=>'</b>', 'childs'=>'i,s,u'),
         'code' => array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<pre>', 'close_tag'=>'</pre>'),
-        'spoiler' => array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<span style="color:red;">', 'close_tag'=>'</span>'),
+        'spoiler' => array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<span class="spoiler" style="color: black;" onmouseover="this.style.color=\'white\';" onmouseout="this.style.color=\'black\'">', 'close_tag'=>'</span>'),
         's' => array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<s>', 'close_tag'=>'</s>', 'childs'=>'b,i'),
         'u' => array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<u>', 'close_tag'=>'</u>', 'childs'=>'b,i'),
         'ul' => array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<ul>', 'close_tag'=>'</ul>', 'childs'=>'li'),

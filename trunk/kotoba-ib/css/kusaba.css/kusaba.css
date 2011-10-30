@@ -176,22 +176,8 @@
     font-family:sans-serif;
 }
 .spoiler {
-    background: #C2D311;
-    color: #C2D311;
-}
-.spoiler blockquote {
-    background: #C2D311 !important;
-    color: #C2C2EE !important;
-}
-.spoiler blockquote:hover {
-    color:#789922 !important;
-}
-.spoiler:hover {
-    background: #C2D311;
-    color: #000000;
-}
-.spoiler:hover blockquote {
-    color:#789922 !important;
+    background: black;
+    color: black;
 }
 .theader {
     background:#00E010;
