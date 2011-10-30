@@ -1872,6 +1872,7 @@ function posts_prepare_text(&$text, $board) {
     }
     $text = preg_replace('/\n{3,}/', '\n', $text);
     $text = preg_replace('/\n/', '<br>', $text);
+    $text = mysqli_real_escape_string(DataExchange::getDBLink(), $text);
 }
 /**
  * Search posts by keyword.

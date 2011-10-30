@@ -2465,7 +2465,7 @@ function db_posts_get_by_boards_datetime($link,
             }
             array_push($posts,
                        array('id' => $row['post_id'],
-                             'board' => &$board,
+                             'board' => $board,
                              'thread' => &$thread_data[$row['thread_id']],
                              'number' => $row['post_number'],
                              'user' => $row['post_user'],
@@ -2485,6 +2485,12 @@ function db_posts_get_by_boards_datetime($link,
         db_cleanup_link($link);
     }
 
+    usort($posts, function($a, $b) {
+        if ($a['date_time'] == $b['date_time']) {
+            return 0;
+        }
+        return ($a['date_time'] < $b['date_time']) ? 1 : -1;
+    });
     return array('count' => $count, 'posts' => $posts);
 }
 /**

@@ -264,11 +264,13 @@ try {
         $attachments = attachments_get_by_posts($posts);
         foreach ($posts as $post) {
             array_push($moderate_posts,
-                       post_moderate_generate_html($smarty,
-                                                   $post,
-                                                   $posts_attachments,
-                                                   $attachments,
-                                                   users_is_admin($post['user'])));
+                       post_moderate_generate_html(
+                           $smarty,
+                           $post,
+                           $posts_attachments,
+                           $attachments,
+                           users_is_admin($post['user'])
+                       ));
         }
     }
 
