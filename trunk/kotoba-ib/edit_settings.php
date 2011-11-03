@@ -283,13 +283,17 @@ try {
     $smarty->assign('stylesheets', $stylesheets);
     $smarty->assign('favorites', $favorites);
     $smarty->assign('hidden_threads', $hidden_threads);
+    $cookie_params = session_get_cookie_params();
+    $exp_h = intval((time() - $_SESSION['kotoba_session_start_time']) / 3600);
+    $exp_m = intval((time() - $_SESSION['kotoba_session_start_time']) / 60) - $exp_h * 60;
     $smarty->assign(
         'sess',
-        array('expire' => Config::SESSION_LIFETIME / 60,
-              'cookie_params' => session_get_cookie_params(),
+        array('exp_h' => $exp_h,
+              'exp_m' => $exp_m,
               'id' => session_id(),
               'name' => session_name(),
-              'curtime' => time())
+              'lifet_h' => Config::SESSION_LIFETIME / 3600,
+              'lifet_m' => 0)
     );
     $smarty->display('edit_settings.tpl');
 
