@@ -28,7 +28,7 @@ Variables:
 <div class="logo">Мои настройки</div>
 <br>
 {$sess.name}={$sess.id}<br>
-Сессия истекает через: {$exp_h}:{$exp_m} / {$lifet_h}:{$lifet_m} минут.<br>
+Сессия истекает через: {$sess.exp_h}:{$sess.exp_m} / {$sess.lifet_h}:{$sess.lifet_m} минут.<br>
 <br/>
 <form action="{$DIR_PATH}/edit_settings.php" method="post">
 <i>Введите ключевое слово, чтобы загрузить ваши настройки.</i><br/>
