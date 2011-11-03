@@ -28,7 +28,7 @@ Variables:
 <div class="logo">Settings</div>
 <br>
 {$sess.name}={$sess.id}<br>
-Session expire in: {$exp_h}:{$exp_m} / {$lifet_h}:{$lifet_m} minutes.<br>
+Session expire in: {$sess.exp_h}:{$sess.exp_m} / {$sess.lifet_h}:{$sess.lifet_m} minutes.<br>
 <br/>
 <form action="{$DIR_PATH}/edit_settings.php" method="post">
 <i>Enter keyword to load your settings.</i><br/>
