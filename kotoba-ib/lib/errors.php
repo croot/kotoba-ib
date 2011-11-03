@@ -569,6 +569,14 @@ class NotModError extends KotobaError {
         );
     }
 }
+class NotAdminError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Admin.'),
+            kgettext('You are not admin.')
+        );
+    }
+}
 
 $KOTOBA_LAST_ERROR = NULL;
 
@@ -595,8 +603,6 @@ $ERRORS['ACL_RULE_EXCESS']
 $ERRORS['ACL_RULE_CONFLICT']
     = new Error('Change permission cannot be set without view. Moderate '
                 . 'permission cannot be set without all others.', 'ACL.');
-$ERRORS['NOT_ADMIN']
-    = new Error('You are not admin.', 'Admin.');
 $ERRORS['UPLOAD_ERR_NO_FILE']
     = new Error('No file uploaded.', 'Uploads.');
 $ERRORS['MAX_BOARD_TITLE']
