@@ -284,7 +284,9 @@ try {
     $smarty->assign('favorites', $favorites);
     $smarty->assign('hidden_threads', $hidden_threads);
     $cookie_params = session_get_cookie_params();
-    $exp_h = floor((time() - $_SESSION['kotoba_session_start_time']) / 3600);
+    $lifet_h = Config::SESSION_LIFETIME / 3600;
+    $lifet_m = 0;
+    $exp_h = $lifet_h - floor((time() - $_SESSION['kotoba_session_start_time']) / 3600);
     $exp_m = floor((time() - $_SESSION['kotoba_session_start_time']) / 60) - $exp_h * 60;
     $smarty->assign(
         'sess',
@@ -292,8 +294,8 @@ try {
               'exp_m' => $exp_m,
               'id' => session_id(),
               'name' => session_name(),
-              'lifet_h' => Config::SESSION_LIFETIME / 3600,
-              'lifet_m' => 0)
+              'lifet_h' => $lifet_h,
+              'lifet_m' => $lifet_m)
     );
     $smarty->display('edit_settings.tpl');
 
