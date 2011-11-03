@@ -6,36 +6,38 @@
 
 // Moderators main script.
 
-require_once '../config.php';
-require_once Config::ABS_PATH . '/lib/exceptions.php';
+require_once dirname(__FILE__) . '/config.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
 require_once Config::ABS_PATH . '/lib/logging.php';
-require_once Config::ABS_PATH . '/lib/db.php';
-require_once Config::ABS_PATH . '/lib/misc.php';
 require_once Config::ABS_PATH . '/lib/wrappers.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 
 try {
     // Initialization.
     kotoba_session_start();
     if (Config::LANGUAGE != $_SESSION['language']) {
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/logging.php";
+        require Config::ABS_PATH
+                . "/locale/{$_SESSION['language']}/messages.php";
+        require Config::ABS_PATH
+                . "/locale/{$_SESSION['language']}/logging.php";
     }
     locale_setup();
     $smarty = new SmartyKotobaSetup();
 
     // Check if client banned.
-    if (!isset($_SERVER['REMOTE_ADDR'])
-            || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
+    if ( ($ban = bans_check(get_remote_addr())) !== FALSE) {
 
-        throw new RemoteAddressException();
-    }
-    if ( ($ban = bans_check($ip)) !== false) {
+        // Cleanup.
+        DataExchange::releaseResources();
+
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
+        $smarty->display('banned.tpl');
+
         session_destroy();
-        DataExchange::releaseResources();
-        die($smarty->fetch('banned.tpl'));
+        exit(1);
     }
 
     // Check permission and write message to log file.
@@ -45,84 +47,87 @@ try {
         // Cleanup.
         DataExchange::releaseResources();
 
-        $ERRORS['NOT_MOD']($smarty);
+        display_error_page($smarty, new NotModError());
         exit(1);
     }
     call_user_func(Logging::$f['MODERATE_USE']);
 
-    $REQ = $_REQUEST;
+    $_REQUEST = $_REQUEST;
 
-    $f = array();   // Filter params.
+    $f = array();   // Filter.
 
-    $action = FALSE;
-    $a = array();   // Action params.
+    $do_action = FALSE;
+    $a = array();   // Action.
 
     $page = 1;
-    $page_max = 1;
-    if (isset($REQ['page'])) {
-        $page = check_page($REQ['page']);
+    if (isset($_REQUEST['page'])) {
+        $page = check_page($_REQUEST['page']);
     }
 
     $f['board'] = '';
     $f['date_time'] = '';
     $f['number'] = '';
     $f['ip'] = '';
-    if (isset($REQ['filter'])) {
-        if (isset($REQ['filter']['board'])) {
-            if ($REQ['filter']['board'] == 'all') {
+    if (isset($_REQUEST['filter'])) {
+        if (isset($_REQUEST['filter']['board'])) {
+            if ($_REQUEST['filter']['board'] == 'all') {
                 $f['board'] = 'all';
             } else {
-                $f['board'] = boards_check_id($REQ['filter']['board']);
+                $f['board'] = boards_check_id($_REQUEST['filter']['board']);
             }
         }
 
-        if (isset($REQ['filter']['date_time'])
-                && $REQ['filter']['date_time'] != '') {
+        if (isset($_REQUEST['filter']['date_time'])
+                && $_REQUEST['filter']['date_time'] != '') {
 
-            $f['date_time'] = $REQ['filter']['date_time'];
+            $f['date_time'] = $_REQUEST['filter']['date_time'];
             $f['date_time'] = date_format(date_create($f['date_time']), 'U');
         }
 
-        if (isset($REQ['filter']['number']) && $REQ['filter']['number'] != '') {
-            $f['number'] = posts_check_number($REQ['filter']['number']);
+        if (isset($_REQUEST['filter']['number'])
+                && $_REQUEST['filter']['number'] != '') {
+
+            $f['number'] = posts_check_number($_REQUEST['filter']['number']);
         }
 
-        if (isset($REQ['filter']['ip']) && $REQ['filter']['ip'] != '') {
-            $f['ip'] = ip2long($REQ['filter']['ip']);
+        if (isset($_REQUEST['filter']['ip'])
+                && $_REQUEST['filter']['ip'] != '') {
+
+            $f['ip'] = ip2long($_REQUEST['filter']['ip']);
         }
     }
 
     $a['ban_type'] = '';
     $a['del_type'] = '';
-    if (isset($REQ['action'])) {
-        if (isset($REQ['action']['ban_type'])) {
-            if ($REQ['action']['ban_type'] == 'simple') {
+    if (isset($_REQUEST['action'])) {
+        if (isset($_REQUEST['action']['ban_type'])) {
+            if ($_REQUEST['action']['ban_type'] == 'simple') {
                 $a['ban_type'] = 'simple';
-            } else if ($REQ['action']['ban_type'] == 'hard') {
+            } else if ($_REQUEST['action']['ban_type'] == 'hard') {
                 $a['ban_type'] = 'hard';
-            } else if ($REQ['action']['ban_type'] == 'none') {
+            } else if ($_REQUEST['action']['ban_type'] == 'none') {
                 $a['ban_type'] = 'none';
             }
         }
 
-        if (isset($REQ['action']['del_type'])) {
-            if ($REQ['action']['del_type'] == 'post') {
+        if (isset($_REQUEST['action']['del_type'])) {
+            if ($_REQUEST['action']['del_type'] == 'post') {
                 $a['del_type'] = 'post';
-            } else if ($REQ['action']['del_type'] == 'file') {
+            } else if ($_REQUEST['action']['del_type'] == 'file') {
                 $a['del_type'] = 'file';
-            } else if ($REQ['action']['del_type'] == 'last') {
+            } else if ($_REQUEST['action']['del_type'] == 'last') {
                 $a['del_type'] = 'last';
-            } else if ($REQ['action']['del_type'] == 'none') {
+            } else if ($_REQUEST['action']['del_type'] == 'none') {
                 $a['del_type'] = 'none';
             }
         }
     }
 
-    if (isset($REQ['do_action'])) {
-        $action = TRUE;
+    if (isset($_REQUEST['do_action'])) {
+        $do_action = TRUE;
     }
 
-    $boards = ($is_admin == true) ? boards_get_all()
+    $boards = ($is_admin == TRUE) ? boards_get_all()
                                   : boards_get_moderatable($_SESSION['user']);
     $filter_boards = array();
     $output = '';
@@ -140,17 +145,15 @@ try {
     $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
     $smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
 
-    date_default_timezone_set(Config::DEFAULT_TIMEZONE);
-
-    if ($action && isset($REQ['marked'])) {
+    if ($do_action && isset($_REQUEST['marked'])) {
 
         // Check add post id's.
-        for ($i = 0; $i < count($REQ['marked']); $i++) {
-            $REQ['marked'][$i] = posts_check_id($REQ['marked'][$i]);
+        for ($i = 0; $i < count($_REQUEST['marked']); $i++) {
+            $_REQUEST['marked'][$i] = posts_check_id($_REQUEST['marked'][$i]);
         }
 
         // Now post id's are safe. Get post by it's id's.
-        $posts = posts_get_by_ids($REQ['marked']);
+        $posts = posts_get_by_ids($_REQUEST['marked']);
 
         // Do action for each marked post.
         foreach ($posts as $post) {
@@ -160,10 +163,12 @@ try {
                 case 'simple':
 
                     // Ban for 1 hour by default.
-                    bans_add($post['ip'],
-                             $post['ip'],
-                             'Banned via Moderator\\\'s Main Script.',
-                             date(Config::DATETIME_FORMAT, time() + (60 * 60)));
+                    bans_add(
+                        $post['ip'],
+                        $post['ip'],
+                        'Banned via Moderator\\\'s Main Script.',
+                        date(Config::DATETIME_FORMAT, time() + (60 * 60))
+                    );
                     break;
                 case 'hard':
                     hard_ban_add($post['ip'], $post['ip']);
@@ -182,9 +187,10 @@ try {
 
                     // Delete all posts posted from this IP-address in last
                     // hour.
-                    posts_delete_last($post['id'],
-                                      date(Config::DATETIME_FORMAT,
-                                           time() - (60 * 60)));
+                    posts_delete_last(
+                        $post['id'],
+                        date(Config::DATETIME_FORMAT,time() - (60 * 60))
+                    );
                     break;
             }
         }
@@ -204,7 +210,7 @@ try {
                 DataExchange::releaseResources();
                 Logging::close_log();
 
-                $ERRORS['NOT_ADMIN']($smarty);
+                display_error_page($smarty, new NotAdminError());
                 exit(1);
             }
         } else {
@@ -223,7 +229,7 @@ try {
                                                        $page,
                                                        100);
             $posts = $posts_data['posts'];
-            $f['date_time'] = $REQ['filter']['date_time'];
+            $f['date_time'] = $_REQUEST['filter']['date_time'];
             $f['date_time'] = date_format(date_create($f['date_time']),
                                           Config::DATETIME_FORMAT);
         } else if ($f['number'] != '') {
@@ -243,9 +249,7 @@ try {
 
         // We already select posts but anyway we need to calculate
         // pages count and check what page was correct.
-        $page_max = ($posts_data['count'] % 100 == 0
-                     ? (int)($posts_data['count'] / 100)
-                     : (int)($posts_data['count'] / 100) + 1);
+        $page_max = ceil($posts_data['count'] / 100);
         if ($page_max == 0) {
             $page_max = 1;
         }
@@ -255,7 +259,7 @@ try {
             DataExchange::releaseResources();
             Logging::close_log();
 
-            $ERRORS['MAX_PAGE']($smarty, $page);
+            display_error_page($smarty, new MaxPageError($page));
             exit(1);
         }
 
@@ -276,12 +280,14 @@ try {
 
     $smarty->assign('moderate_posts', $moderate_posts);
     $smarty->assign('filter', $f);
+
     $pages = array();
-    for ($i = 1; $i <= $page_max; $i++) {
-        array_push($pages, $i);
+    if (isset($page_max)) {
+        $pages = range(1, $page_max);
     }
-    $smarty->assign('pages', $pages);
+
     $smarty->assign('page', $page);
+    $smarty->assign('pages', $pages);
     $smarty->display('moderate.tpl');
 
     // Cleanup.
@@ -289,9 +295,13 @@ try {
     Logging::close_log();
 
     exit(0);
-} catch(Exception $e) {
-    $smarty->assign('msg', $e->__toString());
+} catch(KotobaException $e) {
+
+    // Cleanup.
     DataExchange::releaseResources();
-    die($smarty->fetch('exception.tpl'));
+    Logging::close_log();
+
+    display_exception_page($smarty, $e, is_admin() || is_mod());
+    exit(1);
 }
 ?>

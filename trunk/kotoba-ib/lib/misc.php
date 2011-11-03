@@ -86,7 +86,7 @@ function kotoba_strval($var) {
  */
 function kotoba_session_start() {
     ini_set('session.save_path', Config::ABS_PATH . '/sessions');
-    session_cache_expire(Config::SESSION_LIFETIME / 60);
+    ini_set('session.gc_maxlifetime', Config::SESSION_LIFETIME);
     session_set_cookie_params(Config::SESSION_LIFETIME);
 
     if (!session_start()) {
