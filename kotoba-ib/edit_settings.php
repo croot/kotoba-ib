@@ -285,7 +285,7 @@ try {
     $smarty->assign('hidden_threads', $hidden_threads);
     $smarty->assign(
         'sess',
-        array('expire' => session_cache_expire(),
+        array('expire' => Config::SESSION_LIFETIME / 60,
               'cookie_params' => session_get_cookie_params(),
               'id' => session_id(),
               'name' => session_name(),
