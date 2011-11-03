@@ -284,8 +284,8 @@ try {
     $smarty->assign('favorites', $favorites);
     $smarty->assign('hidden_threads', $hidden_threads);
     $cookie_params = session_get_cookie_params();
-    $exp_h = intval((time() - $_SESSION['kotoba_session_start_time']) / 3600);
-    $exp_m = intval((time() - $_SESSION['kotoba_session_start_time']) / 60) - $exp_h * 60;
+    $exp_h = floor((time() - $_SESSION['kotoba_session_start_time']) / 3600);
+    $exp_m = floor((time() - $_SESSION['kotoba_session_start_time']) / 60) - $exp_h * 60;
     $smarty->assign(
         'sess',
         array('exp_h' => $exp_h,
