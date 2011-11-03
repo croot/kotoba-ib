@@ -28,9 +28,9 @@ Variables:
 <div class="logo">Мои настройки</div>
 <br>
 {$sess.name}={$sess.id}<br>
-Сессия истекает через: {$sess.expire / 60 - intval(($sess.curtime - $settings.kotoba_session_start_time) / 120)}:
-                       {$sess.expire - intval(($sess.curtime - $settings.kotoba_session_start_time) / 60)}/
-                       {$sess.expire / 60}:{$sess.expire} минут.<br>
+Сессия истекает через:
+{$sess.expire / 60 - intval(($sess.curtime - $settings.kotoba_session_start_time) / 360)}:{$sess.expire - intval(($sess.curtime - $settings.kotoba_session_start_time) / 60)} /
+{$sess.expire / 60}:{$sess.expire} минут.<br>
 <br/>
 <form action="{$DIR_PATH}/edit_settings.php" method="post">
 <i>Введите ключевое слово, чтобы загрузить ваши настройки.</i><br/>
