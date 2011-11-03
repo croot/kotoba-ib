@@ -29,7 +29,7 @@ Variables:
 <br>
 {$sess.name}={$sess.id}<br>
 Session expire in:
-{$sess.expire / 60 - intval(($sess.curtime - $settings.kotoba_session_start_time) / 60) / 60}:{$sess.expire - intval(($sess.curtime - $settings.kotoba_session_start_time) / 60)} /
+{$sess.expire / 60 - intval(($sess.curtime - $settings.kotoba_session_start_time) / 3600)}:{$sess.expire - intval(($sess.curtime - $settings.kotoba_session_start_time) / 60)} /
 {$sess.expire / 60}:{$sess.expire} minutes.<br>
 <br/>
 <form action="{$DIR_PATH}/edit_settings.php" method="post">
