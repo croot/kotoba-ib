@@ -274,6 +274,11 @@ try {
     };
     usort($favorites, $cmp);
 
+    // Calculate current PHP session expiration time.
+    $elapsed = time() - $_SESSION['kotoba_session_start_time'];
+    $exp_h = (Config::SESSION_LIFETIME / 3600 - 1) - floor($elapsed / 3600);
+    $exp_m = 59 - (floor($elapsed / 60) - floor($elapsed / 3600) * 60);
+
     // Generate html-code of page and display.
     $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('categories', $categories);
@@ -283,19 +288,12 @@ try {
     $smarty->assign('stylesheets', $stylesheets);
     $smarty->assign('favorites', $favorites);
     $smarty->assign('hidden_threads', $hidden_threads);
-    $cookie_params = session_get_cookie_params();
-    $lifet_h = Config::SESSION_LIFETIME / 3600;
-    $lifet_m = 0;
-    $exp_h = $lifet_h - floor((time() - $_SESSION['kotoba_session_start_time']) / 3600);
-    $exp_m = floor((time() - $_SESSION['kotoba_session_start_time']) / 60) - $exp_h * 60;
     $smarty->assign(
         'sess',
         array('exp_h' => $exp_h,
               'exp_m' => $exp_m,
               'id' => session_id(),
-              'name' => session_name(),
-              'lifet_h' => $lifet_h,
-              'lifet_m' => $lifet_m)
+              'name' => session_name())
     );
     $smarty->display('edit_settings.tpl');
 

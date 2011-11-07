@@ -400,7 +400,8 @@ function bans_check($ip) {
  */
 function bans_check_range_beg($range_beg) {
     if ( ($range_beg = ip2long($range_beg)) == false) {
-        throw new FormatException($EXCEPTIONS['BANS_RANGE_BEG']());
+        kotoba_set_last_error(new RangeBegError());
+        return FALSE;
     }
     return $range_beg;
 }

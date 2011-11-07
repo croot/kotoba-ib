@@ -4,37 +4,40 @@
  * See license.txt for more info.*
  *********************************/
 
-// Archive thread script.
+// Archives threads.
+// TODO Сделать этот скрипт консольным.
 
-require_once '../config.php';
-require_once Config::ABS_PATH . '/lib/exceptions.php';
+require_once dirname(dirname(__FILE__)) . '/config.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
 require_once Config::ABS_PATH . '/lib/logging.php';
-require_once Config::ABS_PATH . '/lib/db.php';
-require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 
 try {
     // Initialization.
     kotoba_session_start();
     if (Config::LANGUAGE != $_SESSION['language']) {
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/logging.php";
+        require Config::ABS_PATH
+                . "/locale/{$_SESSION['language']}/messages.php";
+        require Config::ABS_PATH
+                . "/locale/{$_SESSION['language']}/logging.php";
     }
     locale_setup();
     $smarty = new SmartyKotobaSetup();
 
     // Check if client banned.
-    if (!isset($_SERVER['REMOTE_ADDR'])
-            || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
+    if ( ($ban = bans_check(get_remote_addr())) !== FALSE) {
 
-        throw new RemoteAddressException();
-    }
-    if ( ($ban = bans_check($ip)) !== FALSE) {
+        // Cleanup.
+        DataExchange::releaseResources();
+
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
+        $smarty->display('banned.tpl');
+
         session_destroy();
-        DataExchange::releaseResources();
-        die($smarty->fetch('banned.tpl'));
+        exit(1);
     }
 
     // Check permission and write message to log file.
@@ -43,7 +46,7 @@ try {
         // Cleanup.
         DataExchange::releaseResources();
 
-        $ERRORS['NOT_ADMIN']($smarty);
+        display_error_page($smarty, new NotAdminError());
         exit(1);
     }
     call_user_func(Logging::$f['ARCHIVE_USE']);
@@ -54,9 +57,6 @@ try {
     $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
     $smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
     $smarty->assign('ib_name', Config::IB_NAME);
-
-    $admins = users_get_admins();
-    $admins_id = kotoba_array_column($admins, 'id');
 
     foreach ($threads as $thread) {
 
@@ -76,33 +76,42 @@ try {
 
         foreach ($posts as $p) {
 
+            // Find if author of this post is admin.
+            $author_admin = posts_is_author_admin($p['user']);
+
             // Default name.
-            if (!$board['force_anonymous'] && $board['default_name'] !== null && $p['name'] === null) {
+            if (!$board['force_anonymous'] && $board['default_name']
+                    && !$p['name']) {
+
                 $p['name'] = $board['default_name'];
             }
 
-            $author_admin = in_array($p['user'], $admins_id);
-
             // Original post or reply.
             if ($thread['original_post'] == $p['number']) {
-                $original_attachments = archive_get_attachments($smarty,
-                                                                $board,
-                                                                $p,
-                                                                $posts_attachments,
-                                                                $attachments);
+                $original_attachments = archive_get_attachments(
+                    $smarty,
+                    $board,
+                    $p,
+                    $posts_attachments,
+                    $attachments
+                );
 
+                // TODO На кой чёрт ip заархивированному посту?
                 $p['ip'] = long2ip($p['ip']);
                 $smarty->assign('post', $p);
                 $smarty->assign('attachments', $original_attachments);
                 $smarty->assign('author_admin', $author_admin);
                 $original_post_html = $smarty->fetch('post_original_archive.tpl');
             } else {
-                $simple_attachments = archive_get_attachments($smarty,
-                                                              $board,
-                                                              $p,
-                                                              $posts_attachments,
-                                                              $attachments);
+                $simple_attachments = archive_get_attachments(
+                    $smarty,
+                    $board,
+                    $p,
+                    $posts_attachments,
+                    $attachments
+                );
 
+                // TODO На кой чёрт ip заархивированному посту?
                 $p['ip'] = long2ip($p['ip']);
                 $smarty->assign('post', $p);
                 $smarty->assign('author_admin', $author_admin);
@@ -115,10 +124,13 @@ try {
         $view_html .= $smarty->fetch('thread_archive.tpl');
 
         // Write output to file.
-        $file = fopen(Config::ABS_PATH . "/{$board['name']}/arch/" . "{$thread['original_post']}.html", 'w');
+        $file = fopen(Config::ABS_PATH
+                      . "/{$board['name']}/arch/"
+                      . "{$thread['original_post']}.html", 'w');
         if ($file) {
             fwrite($file, $view_html);
         }
+        // TODO Ошибка, если файл не создался.
         fclose($file);
 
         // Remove data from database.
@@ -132,16 +144,22 @@ try {
     Logging::close_log();
 
     exit(0);
-} catch(Exception $e) {
-    $smarty->assign('msg', $e->__toString());
+} catch(KotobaException $e) {
+
+    // Cleanup.
     DataExchange::releaseResources();
-    die($smarty->fetch('exception.tpl'));
+    Logging::close_log();
+
+    display_exception_page($smarty, $e, is_admin() || is_mod());
+    exit(1);
 }
 
 /**
  * Wrapper for get attachments of certain post.
  */
-function archive_get_attachments($smarty, $board, &$post, $posts_attachments, $attachments) {
+function archive_get_attachments($smarty, $board, &$post, $posts_attachments,
+        $attachments) {
+
     $post_attachments = array();
     $post['with_attachments'] = false;
 
@@ -152,16 +170,21 @@ function archive_get_attachments($smarty, $board, &$post, $posts_attachments, $a
                     switch ($a['attachment_type']) {
                         case Config::ATTACHMENT_TYPE_FILE:
                             if ($a['id'] == $pa['file']) {
-                                $a['file_link'] = Config::DIR_PATH . "/{$board['name']}/other/{$a['name']}";
-                                $a['thumbnail_link'] = Config::DIR_PATH . "/img/{$a['thumbnail']}";
+                                $a['file_link'] = Config::DIR_PATH
+                                    . "/{$board['name']}/other/{$a['name']}";
+                                $a['thumbnail_link'] = Config::DIR_PATH
+                                    . "/img/{$a['thumbnail']}";
                                 $post['with_attachments'] = true;
                                 array_push($post_attachments, $a);
                             }
                             break;
                         case Config::ATTACHMENT_TYPE_IMAGE:
                             if ($a['id'] == $pa['image']) {
-                                $a['image_link'] = Config::DIR_PATH . "/{$board['name']}/img/{$a['name']}";
-                                $a['thumbnail_link'] = Config::DIR_PATH . "/{$board['name']}/thumb/{$a['thumbnail']}";
+                                $a['image_link'] = Config::DIR_PATH
+                                    . "/{$board['name']}/img/{$a['name']}";
+                                $a['thumbnail_link'] = Config::DIR_PATH
+                                    . "/{$board['name']}/"
+                                    . "thumb/{$a['thumbnail']}";
                                 $post['with_attachments'] = true;
                                 array_push($post_attachments, $a);
                             }

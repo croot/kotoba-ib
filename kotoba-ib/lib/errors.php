@@ -577,6 +577,23 @@ class NotAdminError extends KotobaError {
         );
     }
 }
+class ACLRuleExcessError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('ACL.'),
+            kgettext('Board, Thread or Post is unique. Set one of it.')
+        );
+    }
+}
+class ACLRuleConflictError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('ACL.'),
+            kgettext('Change permission cannot be set without view. Moderate '
+                     . 'permission cannot be set without all others.')
+        );
+    }
+}
 
 $KOTOBA_LAST_ERROR = NULL;
 
@@ -598,11 +615,6 @@ $ERRORS['SEARCH_KEYWORD']
     = new Error('Search keyword not set or too short.', 'Search.');
 $ERRORS['THREADS_EDIT']
     = new Error('No threads to edit.', 'Threads.');
-$ERRORS['ACL_RULE_EXCESS']
-    = new Error('Board, Thread or Post is unique. Set one of it.', 'ACL.');
-$ERRORS['ACL_RULE_CONFLICT']
-    = new Error('Change permission cannot be set without view. Moderate '
-                . 'permission cannot be set without all others.', 'ACL.');
 $ERRORS['UPLOAD_ERR_NO_FILE']
     = new Error('No file uploaded.', 'Uploads.');
 $ERRORS['MAX_BOARD_TITLE']
