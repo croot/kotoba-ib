@@ -1,4 +1,12 @@
 <?php
+if (!isset($argv[1]) || !isset($argv[2])) {
+    echo "Usage: tree_sync.php svn_path web_path [debug]\n";
+    echo "svn_path - path to working copy.\n";
+    echo "web_path - path to live copy.\n";
+    echo "debug - debug value. 0 - debug off, 1 - debug on. Debug off by default.\n";
+    echo "Example: php tree_sync.php /home/sorc/kotoba /var/www/html/kotoba\n";
+    exit(0);
+}
 $SVN_PATH = $argv[1];
 $WEB_PATH = $argv[2];
 $DEBUG = isset($argv[3]) ? $argv[3] : 0;
@@ -54,10 +62,8 @@ $tree = array('admin' => array('archive.php' => $default_copy_check,
                                'update_macrochan.php' => $default_copy_check),
               'animaptcha' => array('animaptcha.php' => $default_copy_check),
               'captcha' => array('image.php' => $default_copy_check),
-              'css' => array('futaba.css' => array('futaba.css' => $default_copy_check),
-                             'kusaba.css' => array('kusaba.css' => $default_copy_check,
+              'css' => array('kusaba.css' => array('kusaba.css' => $default_copy_check,
                                                    'kusaba_menu.css' => $default_copy_check),
-                             'kotoba.css' => array('kotoba.css' => $default_copy_check),
                              'global.css' => $default_copy_check),
               'lib' => array('db.php' => $default_copy_check,
                              'errors.php' => $default_copy_check,
