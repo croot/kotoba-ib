@@ -79,7 +79,15 @@ google.load("language", "1");
 {else}    <!-- Captcha disabled -->{/if}
 
     <tr><td class="postblock">Subject: </td><td><input type="text" name="subject" size="35" maxlength="75" accesskey="s"> <input type="submit" value="Create thread"></td></tr>
-    <tr><td class="postblock">Message: </td><td><textarea name="text" cols="48" rows="4" accesskey="m"></textarea><img id="resizer" src="{$DIR_PATH}/flower.png" title="Drag to resize text area."></td></tr>
+    <tr><td class="postblock">Message: </td>
+        <td>
+            <a href="#">
+                <img src="{$DIR_PATH}/css/{$STYLESHEET}/mark_bold.png" alt="[Bold Text]" title="Bold Text" border="0" width="16" height="16"/>
+            </a><br>
+            <textarea name="text" cols="48" rows="4" accesskey="m"></textarea>
+            <img id="resizer" src="{$DIR_PATH}/flower.png" title="Drag to resize text area.">
+        </td>
+    </tr>
 {if $board.with_attachments}
     <tr><td class="postblock">File: </td><td><input type="file" name="file" size="35" accesskey="f"> Spoiler: <input type="checkbox" name="spoiler" value="1" /></td></tr>
     {if isset($oekaki)}<tr><td class="postblock">My art: </td><td><a href="{$DIR_PATH}/shi/{$oekaki.file}"><img border="0" src="{$DIR_PATH}/shi/{$oekaki.thumbnail}" align="middle" /></a> Use instead: <input type="checkbox" name="use_oekaki" value="1"></td></tr>{else}<!-- Oekaki disabled -->{/if}
