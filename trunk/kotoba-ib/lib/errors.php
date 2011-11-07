@@ -594,6 +594,46 @@ class ACLRuleConflictError extends KotobaError {
         );
     }
 }
+class BoardTitleTooLongError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Boards.'),
+            kgettext('Board title too long.')
+        );
+    }
+}
+class BoardAnnotationTooLongError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Boards.'),
+            kgettext('Annotation too long.')
+        );
+    }
+}
+class NoEditableThreadsError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Threads.'),
+            kgettext('No threads to edit.')
+        );
+    }
+}
+class WordTooLongError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Wordfilter.'),
+            kgettext('Word too long.')
+        );
+    }
+}
+class SearchKeywordError extends KotobaError {
+    function __construct() {
+        parent::__construct(
+            kgettext('Search.'),
+            kgettext('Search keyword not set or too short.')
+        );
+    }
+}
 
 $KOTOBA_LAST_ERROR = NULL;
 
@@ -611,18 +651,8 @@ $ERRORS['NO_WORDS']
     = new Error('No words for search.', 'Search.');
 $ERRORS['LONG_WORD']
     = new Error('One of search words is more than 60 characters.', 'Search.');
-$ERRORS['SEARCH_KEYWORD']
-    = new Error('Search keyword not set or too short.', 'Search.');
-$ERRORS['THREADS_EDIT']
-    = new Error('No threads to edit.', 'Threads.');
 $ERRORS['UPLOAD_ERR_NO_FILE']
     = new Error('No file uploaded.', 'Uploads.');
-$ERRORS['MAX_BOARD_TITLE']
-    = new Error('Board title too long.', 'Boards.');
-$ERRORS['MAX_ANNOTATION']
-    = new Error('Annotation too long.', 'Boards.');
-$ERRORS['WORD_TOO_LONG']
-    = new Error('Word too long.', 'Wordfilter.');
 
 
 function display_error_page($smarty, $error) {

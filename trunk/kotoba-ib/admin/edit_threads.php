@@ -4,37 +4,39 @@
  * See license.txt for more info.*
  *********************************/
 
-// Edit threads script.
+// Edit threads.
 
-require_once '../config.php';
-require_once Config::ABS_PATH . '/lib/exceptions.php';
+require_once dirname(dirname(__FILE__)) . '/config.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
 require_once Config::ABS_PATH . '/lib/logging.php';
-require_once Config::ABS_PATH . '/lib/db.php';
-require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 
 try {
     // Initialization.
     kotoba_session_start();
     if (Config::LANGUAGE != $_SESSION['language']) {
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/logging.php";
+        require Config::ABS_PATH
+                . "/locale/{$_SESSION['language']}/messages.php";
+        require Config::ABS_PATH
+                . "/locale/{$_SESSION['language']}/logging.php";
     }
     locale_setup();
     $smarty = new SmartyKotobaSetup();
 
     // Check if client banned.
-    if (!isset($_SERVER['REMOTE_ADDR'])
-            || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
+    if ( ($ban = bans_check(get_remote_addr())) !== FALSE) {
 
-        throw new RemoteAddressException();
-    }
-    if ( ($ban = bans_check($ip)) !== false) {
+        // Cleanup.
+        DataExchange::releaseResources();
+
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
+        $smarty->display('banned.tpl');
+
         session_destroy();
-        DataExchange::releaseResources();
-        die($smarty->fetch('banned.tpl'));
+        exit(1);
     }
 
     call_user_func(Logging::$f['EDIT_THREADS_USE']);
@@ -50,9 +52,11 @@ try {
     if ($is_admin) {
         list($count, $threads) = threads_get_all($page, 100);
     } else {
-        list($count, $threads) = threads_get_moderatable($_SESSION['user'],
-                                                         $page,
-                                                         100);
+        list($count, $threads) = threads_get_moderatable(
+            $_SESSION['user'],
+            $page,
+            100
+        );
     }
     if (count($threads) <= 0) {
 
@@ -60,14 +64,13 @@ try {
         DataExchange::releaseResources();
         Logging::close_log();
 
-        $ERRORS['THREADS_EDIT']($smarty);
+        display_error_page($smarty, new NoEditableThreadsError());
         exit(1);
     }
 
     // We already select threads but anyway we need to calculate
     // pages count and check what page was correct.
-    $page_max = ($count % 100 == 0 ? (int)($count / 100)
-                                   : (int)($count / 100) + 1);
+    $page_max = ceil($count / 100);
     if ($page_max == 0) {
         $page_max = 1;
     }
@@ -77,7 +80,7 @@ try {
         DataExchange::releaseResources();
         Logging::close_log();
 
-        $ERRORS['MAX_PAGE']($smarty, $page);
+        display_error_page($smarty, new MaxPageError($page));
         exit(1);
     }
 
@@ -206,9 +209,11 @@ try {
         if ($is_admin) {
             list($count, $threads) = threads_get_all($page, 100);
         } else {
-            list($count, $threads) = threads_get_moderatable($_SESSION['user'],
-                                                             $page,
-                                                             100);
+            list($count, $threads) = threads_get_moderatable(
+                $_SESSION['user'],
+                $page,
+                100
+            );
         }
         if (count($threads) <= 0) {
 
@@ -216,14 +221,13 @@ try {
             DataExchange::releaseResources();
             Logging::close_log();
 
-            $ERRORS['THREADS_EDIT']($smarty);
+            display_error_page($smarty, new NoEditableThreadsError());
             exit(1);
         }
 
         // We already select threads but anyway we need to calculate
         // pages count and check what page was correct.
-        $page_max = ($count % 100 == 0 ? (int)($count / 100)
-                                       : (int)($count / 100) + 1);
+        $page_max = ceil($count / 100);
         if ($page_max == 0) {
             $page_max = 1;
         }
@@ -233,7 +237,7 @@ try {
             DataExchange::releaseResources();
             Logging::close_log();
 
-            $ERRORS['MAX_PAGE']($smarty, $page);
+            display_error_page($smarty, new MaxPageError($page));
             exit(1);
         }
     }
@@ -242,10 +246,12 @@ try {
     $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('boards', $boards);
     $smarty->assign('threads', $threads);
+
     $pages = array();
-    for ($i = 1; $i <= $page_max; $i++) {
-        array_push($pages, $i);
+    if (isset($page_max)) {
+        $pages = range(1, $page_max);
     }
+
     $smarty->assign('pages', $pages);
     $smarty->assign('page', $page);
     $smarty->display('edit_threads.tpl');
@@ -255,9 +261,13 @@ try {
     Logging::close_log();
 
     exit(0);
-} catch(Exception $e) {
-    $smarty->assign('msg', $e->__toString());
+} catch(KotobaException $e) {
+
+    // Cleanup.
     DataExchange::releaseResources();
-    die($smarty->fetch('exception.tpl'));
+    Logging::close_log();
+
+    display_exception_page($smarty, $e, is_admin() || is_mod());
+    exit(1);
 }
 ?>

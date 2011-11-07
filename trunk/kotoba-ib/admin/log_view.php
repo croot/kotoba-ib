@@ -6,35 +6,37 @@
 
 // Log view script.
 
-require_once '../config.php';
-require_once Config::ABS_PATH . '/lib/exceptions.php';
+require_once dirname(dirname(__FILE__)) . '/config.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
 require_once Config::ABS_PATH . '/lib/logging.php';
-require_once Config::ABS_PATH . '/lib/db.php';
-require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 
 try {
     // Initialization.
     kotoba_session_start();
     if (Config::LANGUAGE != $_SESSION['language']) {
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/logging.php";
+        require Config::ABS_PATH
+                . "/locale/{$_SESSION['language']}/messages.php";
+        require Config::ABS_PATH
+                . "/locale/{$_SESSION['language']}/logging.php";
     }
     locale_setup();
     $smarty = new SmartyKotobaSetup();
 
     // Check if client banned.
-    if (!isset($_SERVER['REMOTE_ADDR'])
-            || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
+    if ( ($ban = bans_check(get_remote_addr())) !== FALSE) {
 
-        throw new RemoteAddressException();
-    }
-    if ( ($ban = bans_check($ip)) !== false) {
+        // Cleanup.
+        DataExchange::releaseResources();
+
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
+        $smarty->display('banned.tpl');
+
         session_destroy();
-        DataExchange::releaseResources();
-        die($smarty->fetch('banned.tpl'));
+        exit(1);
     }
 
     // Check permission and write message to log file.
@@ -43,7 +45,7 @@ try {
         // Cleanup.
         DataExchange::releaseResources();
 
-        $ERRORS['NOT_ADMIN']($smarty);
+        display_error_page($smarty, new NotAdminError());
         exit(1);
     }
     call_user_func(Logging::$f['LOG_VIEW_USE']);
@@ -68,7 +70,8 @@ try {
         $smarty->assign('records_count_prev', $records_count);
 
         date_default_timezone_set(Config::DEFAULT_TIMEZONE);
-        $logf = fopen(Config::ABS_PATH . '/log/actions-' . date(Config::LOG_DATETIME_FORMAT) . '.log', 'r');
+        $logf = fopen(Config::ABS_PATH . '/log/actions-'
+                      . date(Config::LOG_DATETIME_FORMAT) . '.log', 'r');
         $i = 0;
         while (($line = fgets($logf))) {
             $log[$i] = preg_split('/\|/', $line, -1, PREG_SPLIT_NO_EMPTY);
@@ -95,9 +98,15 @@ try {
     // Cleanup.
     DataExchange::releaseResources();
     Logging::close_log();
-} catch (Exception $e) {
-    $smarty->assign('msg', $e->__toString());
+
+    exit(0);
+} catch(KotobaException $e) {
+
+    // Cleanup.
     DataExchange::releaseResources();
-    die($smarty->fetch('exception.tpl'));
+    Logging::close_log();
+
+    display_exception_page($smarty, $e, is_admin() || is_mod());
+    exit(1);
 }
 ?>

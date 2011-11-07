@@ -4,37 +4,39 @@
  * See license.txt for more info.*
  *********************************/
 
-// Edit boards script.
+// Edit boards.
 
-require_once '../config.php';
-require_once Config::ABS_PATH . '/lib/exceptions.php';
+require_once dirname(dirname(__FILE__)) . '/config.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
 require_once Config::ABS_PATH . '/lib/logging.php';
-require_once Config::ABS_PATH . '/lib/db.php';
-require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 
 try {
     // Initialization.
     kotoba_session_start();
     if (Config::LANGUAGE != $_SESSION['language']) {
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/logging.php";
+        require Config::ABS_PATH
+                . "/locale/{$_SESSION['language']}/messages.php";
+        require Config::ABS_PATH
+                . "/locale/{$_SESSION['language']}/logging.php";
     }
     locale_setup();
     $smarty = new SmartyKotobaSetup();
 
     // Check if client banned.
-    if (!isset($_SERVER['REMOTE_ADDR'])
-            || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
+    if ( ($ban = bans_check(get_remote_addr())) !== FALSE) {
 
-        throw new RemoteAddressException();
-    }
-    if ( ($ban = bans_check($ip)) !== false) {
+        // Cleanup.
+        DataExchange::releaseResources();
+
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
+        $smarty->display('banned.tpl');
+
         session_destroy();
-        DataExchange::releaseResources();
-        die($smarty->fetch('banned.tpl'));
+        exit(1);
     }
 
     // Check permission and write message to log file.
@@ -43,7 +45,7 @@ try {
         // Cleanup.
         DataExchange::releaseResources();
 
-        $ERRORS['NOT_ADMIN']($smarty);
+        display_error_page($smarty, new NotAdminError());
         exit(1);
     }
     call_user_func(Logging::$f['EDIT_BOARDS_USE']);
@@ -57,7 +59,9 @@ try {
     foreach ($categories as &$c) {
         $c['boards'] = array();
         foreach ($boards as $b) {
-            if ($b['category'] == $c['id'] && !in_array($b['name'], Config::$INVISIBLE_BOARDS)) {
+            if ($b['category'] == $c['id']
+                    && !in_array($b['name'], Config::$INVISIBLE_BOARDS)) {
+
                 array_push($c['boards'], $b);
             }
         }
@@ -90,57 +94,54 @@ try {
 
             // Check parameters.
             $new_board['name'] = boards_check_name($_POST['new_name']);
-            if ($new_board['name'] === 1) {
+            if ($new_board['name'] === FALSE) {
 
                 // Cleanup.
                 DataExchange::releaseResources();
                 Logging::close_log();
 
-                $ERRORS['BOARD_NAME']($smarty);
+                display_error_page($smarty, kotoba_last_error());
                 exit(1);
             }
             $new_board['title'] = boards_check_title($_POST['new_title']);
-            if ($new_board['title'] === 1) {
+            if ($new_board['title'] === FALSE) {
 
                 // Cleanup.
                 DataExchange::releaseResources();
                 Logging::close_log();
 
-                $ERRORS['MAX_BOARD_TITLE']($smarty);
+                display_error_page($smarty, kotoba_last_error());
                 exit(1);
             }
             $new_board['annotation'] = boards_check_annotation($_POST['new_annotation']);
-            if ($new_board['annotation'] === 1) {
+            if ($new_board['annotation'] === FALSE) {
 
                 // Cleanup.
                 DataExchange::releaseResources();
                 Logging::close_log();
 
-                $ERRORS['MAX_ANNOTATION']($smarty);
+                display_error_page($smarty, kotoba_last_error());
                 exit(1);
             }
-            $_ = boards_check_bump_limit($_POST['new_bump_limit']);
-            if ($_ === FALSE) {
+            $new_board['bump_limit'] = boards_check_bump_limit($_POST['new_bump_limit']);
+            if ($new_board['bump_limit'] === FALSE) {
 
                 // Cleanup.
                 DataExchange::releaseResources();
                 Logging::close_log();
 
-                $_ = kotoba_last_error();
-                $_($smarty);
+                display_error_page($smarty, kotoba_last_error());
                 exit(1);
-            } else {
-                $new_board['bump_limit'] = $_;
             }
             $new_board['force_anonymous'] = isset($_POST['new_force_anonymous']) ? true : false;
             $new_board['default_name'] = boards_check_default_name($_POST['new_default_name']);
-            if ($new_board['default_name'] === 1) {
+            if ($new_board['default_name'] === FALSE) {
 
                 // Cleanup.
                 DataExchange::releaseResources();
                 Logging::close_log();
 
-                $ERRORS['MAX_NAME_LENGTH']($smarty);
+                display_error_page($smarty, kotoba_last_error());
                 exit(1);
             }
             $new_board['with_attachments'] = isset($_POST['new_with_attachments']) ? true : false;
@@ -158,18 +159,15 @@ try {
                     $new_board[$param_name] = $_POST["new_$param_name"] ? true : false;
                 }
             }
-            $_ = boards_check_same_upload($_POST['new_same_upload']);
-            if ($_ === FALSE) {
+            $new_board['same_upload'] = boards_check_same_upload($_POST['new_same_upload']);
+            if ($new_board['same_upload'] === FALSE) {
 
                 // Cleanup.
                 DataExchange::releaseResources();
                 Logging::close_log();
 
-                $_ = kotoba_last_error();
-                $_($smarty);
+                display_error_page($smarty, kotoba_last_error());
                 exit(1);
-            } else {
-                $new_board['same_upload'] = $_;
             }
             $new_board['popdown_handler'] = popdown_handlers_check_id($_POST['new_popdown_handler']);
             $new_board['category'] =  categories_check_id($_POST['new_category']);
@@ -203,13 +201,13 @@ try {
             // Is title was changed?
             if (isset($_POST["title_{$board['id']}"])) {
                 $new_board['title'] = boards_check_title($_POST["title_{$board['id']}"]);
-                if ($new_board['title'] === 1) {
+                if ($new_board['title'] === FALSE) {
 
                     // Cleanup.
                     DataExchange::releaseResources();
                     Logging::close_log();
 
-                    $ERRORS['MAX_BOARD_TITLE']($smarty);
+                    display_error_page($smarty, kotoba_last_error());
                     exit(1);
                 }
                 if (($new_board['title'] === null xor $board['title'] === null)
@@ -223,13 +221,13 @@ try {
             // Is annotation was changed?
             if (isset($_POST["annotation_{$board['id']}"])) {
                 $new_board['annotation'] = boards_check_annotation($_POST["annotation_{$board['id']}"]);
-                if ($new_board['annotation'] === 1) {
+                if ($new_board['annotation'] === FALSE) {
 
                     // Cleanup.
                     DataExchange::releaseResources();
                     Logging::close_log();
 
-                    $ERRORS['MAX_ANNOTATION']($smarty);
+                    display_error_page($smarty, kotoba_last_error());
                     exit(1);
                 }
                 if (($new_board['annotation'] === null xor $board['annotation'] === null)
@@ -242,20 +240,17 @@ try {
 
             // Is board-specified bump limit was changed?
             if (isset($_POST["bump_limit_{$board['id']}"])) {
-                $_ = boards_check_bump_limit(
+                $new_board['bump_limit'] = boards_check_bump_limit(
                     $_POST["bump_limit_{$board['id']}"]
                 );
-                if ($_ === FALSE) {
+                if ($new_board['bump_limit'] === FALSE) {
 
                     // Cleanup.
                     DataExchange::releaseResources();
                     Logging::close_log();
 
-                    $_ = kotoba_last_error();
-                    $_($smarty);
+                    display_error_page($smarty, kotoba_last_error());
                     exit(1);
-                } else {
-                    $new_board['bump_limit'] = $_;
                 }
                 if ($new_board['bump_limit'] != $board['bump_limit']) {
                     $changed = true;
@@ -282,13 +277,13 @@ try {
 			// Is default poster name was changed?
             if (isset($_POST["default_name_{$board['id']}"])) {
                 $new_board['default_name'] = boards_check_default_name($_POST["default_name_{$board['id']}"]);
-                if ($new_board['default_name'] === 1) {
+                if ($new_board['default_name'] === FALSE) {
 
                     // Cleanup.
                     DataExchange::releaseResources();
                     Logging::close_log();
 
-                    $ERRORS['MAX_NAME_LENGTH']($smarty);
+                    display_error_page($smarty, kotoba_last_error());
                     exit(1);
                 }
                 if (($new_board['default_name'] === null xor $board['default_name'] === null)
@@ -340,20 +335,17 @@ try {
 
 			// Is same uploads policy was changed?
             if (isset($_POST["same_upload_{$board['id']}"])) {
-                $_ = boards_check_same_upload(
+                $new_board['same_upload'] = boards_check_same_upload(
                     $_POST["same_upload_{$board['id']}"]
                 );
-                if ($_ === FALSE) {
+                if ($new_board['same_upload'] === FALSE) {
 
                     // Cleanup.
                     DataExchange::releaseResources();
                     Logging::close_log();
 
-                    $_ = kotoba_last_error();
-                    $_($smarty);
+                    display_error_page($smarty, kotoba_last_error());
                     exit(1);
-                } else {
-                    $new_board['same_upload'] = $_;
                 }
                 if ($new_board['same_upload'] != $board['same_upload']) {
                     $changed = true;
@@ -414,9 +406,13 @@ try {
     Logging::close_log();
 
     exit(0);
-} catch(Exception $e) {
-    $smarty->assign('msg', $e->__toString());
+} catch(KotobaException $e) {
+
+    // Cleanup.
     DataExchange::releaseResources();
-    die($smarty->fetch('exception.tpl'));
+    Logging::close_log();
+
+    display_exception_page($smarty, $e, is_admin() || is_mod());
+    exit(1);
 }
 ?>

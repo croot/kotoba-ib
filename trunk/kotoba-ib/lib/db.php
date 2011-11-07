@@ -516,13 +516,14 @@ function words_add($board_id, $word, $replace) {
 /**
  * Check word.
  * @param string $word Word.
- * @return string|int Returns safe word or integer error code. Error codes: 1 -
- * word too long.
+ * @return string|boolean Returns safe word or boolean FALSE if any error
+ * occured and set last error to appropriate error object.
  */
 function words_check_word($word) {
     $word = DataExchange::escapeString($word);
     if (strlen($word) > 100) {
-        return 1;
+        kotoba_set_last_error(new WordTooLongError());
+        return FALSE;
     }
     return $word;
 }
@@ -574,19 +575,20 @@ function boards_add($new_board) {
 /**
  * Check annotation.
  * @param string $annotation Annotation.
- * @return string|null|int Returns safe annotation or NULL if annotation is
- * empty. If any error occurred returns integer error value. Error values: 1 -
- * annotation too long.
+ * @return string|null|boolean Returns safe annotation or NULL if annotation is
+ * empty. If any error occurred returns boolean FALSE and set last kotoba error
+ * to apropriate error object.
  */
 function boards_check_annotation($annotation) {
     $annotation = htmlentities(kotoba_strval($annotation), ENT_QUOTES, Config::MB_ENCODING);
     $len = strlen($annotation);
 
     if ($len == 0) {
-        return null;
+        return NULL;
     }
     if ($len > Config::MAX_ANNOTATION_LENGTH) {
-        return 1;
+        kotoba_set_last_error(new BoardAnnotationTooLongError());
+        return FALSE;
     }
 
     return $annotation;
@@ -608,9 +610,9 @@ function boards_check_bump_limit($bump_limit) {
 /**
  * Check default name.
  * @param string $name Default name.
- * @return string|null|int Returns safe default name or NULL if default name is
- * empty. If any error occurred returns integer error value. Error values: 1 -
- * name too long.
+ * @return string|null|boolean Returns safe default name or NULL if default name
+ * is empty. If any error occurred returns boolean FALSE and set last kotoba
+ * error to apropriate error object.
  */
 function boards_check_default_name($name) {
     $name = htmlentities(kotoba_strval($name), ENT_QUOTES, Config::MB_ENCODING);
@@ -620,7 +622,8 @@ function boards_check_default_name($name) {
         return NULL;
     }
     if ($l > Config::MAX_NAME_LENGTH) {
-        return 1;
+        kotoba_set_last_error(new MaxNameLengthError());
+        return FALSE;
     }
 
 	return $name;
@@ -679,19 +682,21 @@ function boards_check_same_upload($same_upload) {
 /**
  * Check board title.
  * @param mixed $title Board title.
- * @return string|null|int Returns safe board title or NULL if title is empty
- * string. If any error occurred returs integer error value. Error values: 1 -
- * board title too long.
+ * @return string|null|boolean Returns safe board title or NULL if title is
+ * empty string. If any error occurred returns boolean FALSE and set last error
+ * to appropriate error object.
  */
 function boards_check_title($title) {
-    $title = htmlentities(kotoba_strval($title), ENT_QUOTES, Config::MB_ENCODING);
+    $title = htmlentities(kotoba_strval($title), ENT_QUOTES,
+                          Config::MB_ENCODING);
     $l = strlen($title);
 
     if ($l == 0) {
-        return null;
+        return NULL;
     }
     if ($l > 50) {
-        return 1;
+        kotoba_set_last_error(new BoardTitleTooLongError());
+        return FALSE;
     }
 
 	return $title;
