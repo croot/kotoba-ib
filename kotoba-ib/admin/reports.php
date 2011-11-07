@@ -6,36 +6,38 @@
 
 // Report handing script.
 
-require_once '../config.php';
-require_once Config::ABS_PATH . '/lib/exceptions.php';
+require_once dirname(dirname(__FILE__)) . '/config.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
 require_once Config::ABS_PATH . '/lib/logging.php';
-require_once Config::ABS_PATH . '/lib/db.php';
-require_once Config::ABS_PATH . '/lib/misc.php';
 require_once Config::ABS_PATH . '/lib/wrappers.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 
 try {
     // Initialization.
     kotoba_session_start();
     if (Config::LANGUAGE != $_SESSION['language']) {
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/logging.php";
+        require Config::ABS_PATH
+                . "/locale/{$_SESSION['language']}/messages.php";
+        require Config::ABS_PATH
+                . "/locale/{$_SESSION['language']}/logging.php";
     }
     locale_setup();
     $smarty = new SmartyKotobaSetup();
 
     // Check if client banned.
-    if (!isset($_SERVER['REMOTE_ADDR'])
-            || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
+    if ( ($ban = bans_check(get_remote_addr())) !== FALSE) {
 
-        throw new RemoteAddressException();
-    }
-    if ( ($ban = bans_check($ip)) !== false) {
+        // Cleanup.
+        DataExchange::releaseResources();
+
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
+        $smarty->display('banned.tpl');
+
         session_destroy();
-        DataExchange::releaseResources();
-        die($smarty->fetch('banned.tpl'));
+        exit(1);
     }
 
     // Check permission and write message to log file.
@@ -44,7 +46,7 @@ try {
         // Cleanup.
         DataExchange::releaseResources();
 
-        $ERRORS['NOT_ADMIN']($smarty);
+        display_error_page($smarty, new NotAdminError());
         exit(1);
     }
     call_user_func(Logging::$f['REPORTS_USE']);
@@ -73,7 +75,6 @@ try {
     $smarty->assign('ATTACHMENT_TYPE_LINK', Config::ATTACHMENT_TYPE_LINK);
     $smarty->assign('ATTACHMENT_TYPE_VIDEO', Config::ATTACHMENT_TYPE_VIDEO);
     $smarty->assign('ATTACHMENT_TYPE_IMAGE', Config::ATTACHMENT_TYPE_IMAGE);
-    date_default_timezone_set(Config::DEFAULT_TIMEZONE);
 
     // Dirty work.
     if (isset($_GET['filter'])) {
@@ -131,9 +132,10 @@ try {
 
                     // Delete all posts posted from this IP-address in last
                     // hour.
-                    posts_delete_last($post['id'],
-                                      date(Config::DATETIME_FORMAT,
-                                           time() - (60 * 60)));
+                    posts_delete_last(
+                        $post['id'],
+                        date(Config::DATETIME_FORMAT, time() - (60 * 60))
+                    );
                     break;
             }
         }
@@ -181,9 +183,7 @@ try {
 
         // We already select something but anyway we need to calculate
         // pages count and check what page was correct.
-        $page_max = ($posts_data['count'] % 100 == 0
-                     ? (int)($posts_data['count'] / 100)
-                     : (int)($posts_data['count'] / 100) + 1);
+        $page_max = ceil($posts_data['count'] / 100);
         if ($page_max == 0) {
             $page_max = 1;
         }
@@ -193,7 +193,7 @@ try {
             DataExchange::releaseResources();
             Logging::close_log();
 
-            $ERRORS['MAX_PAGE']($smarty, $page);
+            display_error_page($smarty, new MaxPageError($page));
             exit(1);
         }
 
@@ -222,9 +222,10 @@ try {
     }
 
     $pages = array();
-    for ($i = 1; $i <= $page_max; $i++) {
-        array_push($pages, $i);
+    if (isset($page_max)) {
+        $pages = range(1, $page_max);
     }
+
     $smarty->assign('pages', $pages);
     $smarty->assign('page', $page);
     $smarty->assign('prev_filter_board', $prev_filter_board);
@@ -235,9 +236,13 @@ try {
     Logging::close_log();
 
     exit(0);
-} catch(Exception $e) {
-    $smarty->assign('msg', $e->__toString());
+} catch(KotobaException $e) {
+
+    // Cleanup.
     DataExchange::releaseResources();
-    die($smarty->fetch('exception.tpl'));
+    Logging::close_log();
+
+    display_exception_page($smarty, $e, is_admin() || is_mod());
+    exit(1);
 }
 ?>

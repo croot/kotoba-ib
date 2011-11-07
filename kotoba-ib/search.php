@@ -85,15 +85,15 @@ try {
             // Cleanup
             DataExchange::releaseResources();
 
-            $ERRORS['SEARCH_KEYWORD']($smarty);
+            display_error_page($smarty, new SearchKeywordError());
             exit(1);
         }
-        if (posts_check_text_size($search['keyword']) === 1) {
+        if (!posts_check_text_size($search['keyword'])) {
 
             // Cleanup
             DataExchange::releaseResources();
 
-            $ERRORS['MAX_TEXT_LENGTH']($smarty);
+            display_error_page($smarty, new SearchKeywordError());
             exit(1);
         }
 
@@ -103,12 +103,12 @@ try {
         // Strip slashes.
         $keyword = str_replace('\\', '\\\\', $keyword);
 
-        if (posts_check_text_size($keyword) === 1) {
+        if (!posts_check_text_size($keyword)) {
 
             // Cleanup
             DataExchange::releaseResources();
 
-            $ERRORS['MAX_TEXT_LENGTH']($smarty);
+            display_error_page($smarty, new SearchKeywordError());
             exit(1);
         }
         if (!posts_check_text($text)) {
@@ -116,7 +116,7 @@ try {
             // Cleanup
             DataExchange::releaseResources();
 
-            $ERRORS['NON_UNICODE']($smarty);
+            display_error_page($smarty, new NonUnicodeError());
             exit(1);
         }
 
@@ -144,15 +144,17 @@ try {
         }
 
         // Search.
-        $posts = posts_search_visible_by_boards($search_boards, $keyword, users_check_id($_SESSION['user']));
+        $posts = posts_search_visible_by_boards(
+            $search_boards,
+            $keyword,
+            users_check_id($_SESSION['user'])
+        );
 
         // Assign total founded posts count here.
         $smarty->assign('count', count($posts));
 
         // Calculate page count.
-        $page_max = (count($posts) % $posts_per_page == 0
-            ? (int)(count($posts) / $posts_per_page)
-            : (int)(count($posts) / $posts_per_page) + 1);
+        $page_max = ceil(count($posts) / $posts_per_page);
         if ($page_max == 0) {
             $page_max = 1;
         }
@@ -161,12 +163,10 @@ try {
             // Cleanup.
             DataExchange::releaseResources();
 
-            $ERRORS['MAX_PAGE']($smarty, $page);
+            display_error_page($smarty, new MaxPageError($page));
             exit(1);
         }
-        for ($i = 1; $i <= $page_max; $i++) {
-            array_push($pages, $i);
-        }
+        $pages = range(1, $page_max);
 
         // Select posts only from correspond page.
         $posts = array_slice($posts, ($page - 1) * $posts_per_page, $posts_per_page);
@@ -202,9 +202,12 @@ try {
     DataExchange::releaseResources();
 
     exit(0);
-} catch(Exception $e) {
-    $smarty->assign('msg', $e->__toString());
+} catch(KotobaException $e) {
+
+    // Cleanup.
     DataExchange::releaseResources();
-    die($smarty->fetch('exception.tpl'));
+
+    display_exception_page($smarty, $e, is_admin() || is_mod());
+    exit(1);
 }
 ?>
