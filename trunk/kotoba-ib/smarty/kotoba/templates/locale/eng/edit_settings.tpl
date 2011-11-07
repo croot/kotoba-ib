@@ -27,8 +27,8 @@ Variables:
 
 <div class="logo">Settings</div>
 <br>
-{$sess.name}={$sess.id}<br>
-Session expire in: {$sess.exp_h}:{$sess.exp_m} / {$sess.lifet_h}:{$sess.lifet_m} minutes.<br>
+Session identifier:{$sess.id}<br>
+Session expire in {$sess.exp_h}:{$sess.exp_m}<br>
 <br/>
 <form action="{$DIR_PATH}/edit_settings.php" method="post">
 <i>Enter keyword to load your settings.</i><br/>
@@ -53,6 +53,7 @@ Session expire in: {$sess.exp_h}:{$sess.exp_m} / {$sess.lifet_h}:{$sess.lifet_m}
         <tr valign="top"><td>Language: </td><td><select name="language_id">{section name=j loop=$languages}<option value="{$languages[j].id}"{if $settings.language == $languages[j].code} selected{/if}>{$languages[j].code}</option>{/section}</select></td></tr>
         <tr valign="top"><td>Stylesheet: </td><td><select name="stylesheet_id">{section name=i loop=$stylesheets}<option value="{$stylesheets[i].id}"{if $STYLESHEET == $stylesheets[i].name} selected{/if}>{$stylesheets[i].name}</option>{/section}</select></td></tr>
     </table>
+<br>
 <i>Enter keyword to save your settings.<br/>
 Further use this keyword to load your settings.</i><br/>
     <input type="text" name="keyword_save" size="32">

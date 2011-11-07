@@ -6,35 +6,37 @@
 
 // Edit ACL script.
 
-require_once '../config.php';
-require_once Config::ABS_PATH . '/lib/exceptions.php';
+require_once dirname(dirname(__FILE__)) . '/config.php';
+require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/db.php';
 require_once Config::ABS_PATH . '/lib/errors.php';
 require_once Config::ABS_PATH . '/lib/logging.php';
-require_once Config::ABS_PATH . '/lib/db.php';
-require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 
 try {
     // Initialization.
     kotoba_session_start();
     if (Config::LANGUAGE != $_SESSION['language']) {
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/logging.php";
+        require Config::ABS_PATH
+                . "/locale/{$_SESSION['language']}/messages.php";
+        require Config::ABS_PATH
+                . "/locale/{$_SESSION['language']}/logging.php";
     }
     locale_setup();
     $smarty = new SmartyKotobaSetup();
 
     // Check if client banned.
-    if (!isset($_SERVER['REMOTE_ADDR'])
-            || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
+    if ( ($ban = bans_check(get_remote_addr())) !== FALSE) {
 
-        throw new RemoteAddressException();
-    }
-    if ( ($ban = bans_check($ip)) !== FALSE) {
+        // Cleanup.
+        DataExchange::releaseResources();
+
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
+        $smarty->display('banned.tpl');
+
         session_destroy();
-        DataExchange::releaseResources();
-        die($smarty->fetch('banned.tpl'));
+        exit(1);
     }
 
     // Check permission and write message to log file.
@@ -43,7 +45,7 @@ try {
         // Cleanup.
         DataExchange::releaseResources();
 
-        $ERRORS['NOT_ADMIN']($smarty);
+        display_error_page($smarty, new NotAdminError());
         exit(1);
     }
     call_user_func(Logging::$f['EDIT_ACL_USE']);
@@ -58,15 +60,23 @@ try {
     if (isset($_POST['submited'])) {
 
         // Add rule.
-        if ((isset($_POST['new_group']) && isset($_POST['new_board'])
-                && isset($_POST['new_thread']) && isset($_POST['new_post']))
-                && ( $_POST['new_group'] !== '' || $_POST['new_board'] !== ''
-                || $_POST['new_thread'] !== '' || $_POST['new_post'] !== '')) {
+        if ((isset($_POST['new_group'])
+                && isset($_POST['new_board'])
+                && isset($_POST['new_thread'])
+                && isset($_POST['new_post']))
+                && ($_POST['new_group'] !== ''
+                        || $_POST['new_board'] !== ''
+                        || $_POST['new_thread'] !== ''
+                        || $_POST['new_post'] !== '')) {
 
-            $new_group = ($_POST['new_group'] === '') ? null : groups_check_id($_POST['new_group']);
-            $new_board = ($_POST['new_board'] === '') ? null : boards_check_id($_POST['new_board']);
-            $new_thread = ($_POST['new_thread'] === '') ? null : threads_check_id($_POST['new_thread']);
-            $new_post = ($_POST['new_post'] === '') ? null : posts_check_id($_POST['new_post']);
+            $new_group = ($_POST['new_group'] === '')
+                ? NULL : groups_check_id($_POST['new_group']);
+            $new_board = ($_POST['new_board'] === '')
+                ? NULL : boards_check_id($_POST['new_board']);
+            $new_thread = ($_POST['new_thread'] === '')
+                ? NULL : threads_check_id($_POST['new_thread']);
+            $new_post = ($_POST['new_post'] === '')
+                ? NULL : posts_check_id($_POST['new_post']);
             $new_view = (isset($_POST['new_view'])) ? 1 : 0;
             $new_change = (isset($_POST['new_change'])) ? 1 : 0;
             $new_moderate = (isset($_POST['new_moderate'])) ? 1 : 0;
@@ -77,9 +87,13 @@ try {
              */
             $_ = array($new_board, $new_thread, $new_post);
             if (count(array_filter($_, 'is_null')) != 2) {
+
+                // Cleanup.
                 DataExchange::releaseResources();
                 Logging::close_log();
-                $ERRORS['ACL_RULE_EXCESS']($smarty);
+
+                display_error_page($smarty, new ACLRuleExcessError());
+                exit(1);
             }
 
             /*
@@ -89,9 +103,12 @@ try {
             if (($new_view == 0 && ($new_change != 0 || $new_moderate != 0))
                     || ($new_change == 0 && $new_moderate != 0)) {
 
+                // Cleanup.
                 DataExchange::releaseResources();
                 Logging::close_log();
-                $ERRORS['ACL_RULE_CONFLICT']($smarty);
+
+                display_error_page($smarty, new ACLRuleConflictError());
+                exit(1);
             }
 
             // Take a look if we already have that rule.
@@ -128,8 +145,12 @@ try {
         // Change rule.
         foreach($acl as $record) {
 
+            $v = "view_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}";
+            $c = "change_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}";
+            $m = "moderate_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}";
+
             // View permission changed.
-            if ($record['view'] == 1 && !isset($_POST["view_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}"])) {
+            if ($record['view'] == 1 && !isset($_POST[$v])) {
 
                 // View permission removed.
                 acl_edit($record['group'],
@@ -142,13 +163,13 @@ try {
                 $reload_acl = true;
                 continue;
             }
-            if ($record['view'] == 0 && isset($_POST["view_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}"])) {
+            if ($record['view'] == 0 && isset($_POST[$v])) {
 
                 // View permission added. Check for anoter permissions.
-                if ($record['change'] == 0 && isset($_POST["change_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}"])) {
+                if ($record['change'] == 0 && isset($_POST[$c])) {
 
                     // Change permission added. Check for anoter permissions.
-                    if ($record['moderate'] == 0 && isset($_POST["moderate_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}"])) {
+                    if ($record['moderate'] == 0 && isset($_POST[$m])) {
 
                         // Moderation permission added.
                         acl_edit($record['group'],
@@ -187,7 +208,7 @@ try {
             }
 
             // View permission unchanged.
-            if ($record['change'] == 1 && !isset($_POST["change_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}"])) {
+            if ($record['change'] == 1 && !isset($_POST[$c])) {
 
                 // Change permission removed.
                 acl_edit($record['group'],
@@ -200,7 +221,7 @@ try {
                 $reload_acl = true;
                 continue;
             }
-            if ($record['change'] == 0 && isset($_POST["change_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}"])) {
+            if ($record['change'] == 0 && isset($_POST[$c])) {
 
                 // Change permission added.
                 if ($record['view'] == 0) {
@@ -210,7 +231,7 @@ try {
                 } else {
 
                     // Check if Mod. permission added.
-                    if ($record['moderate'] == 0 && isset($_POST["moderate_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}"])) {
+                    if ($record['moderate'] == 0 && isset($_POST[$m])) {
 
                         // Mod. permission added.
                         acl_edit($record['group'],
@@ -237,7 +258,7 @@ try {
             }
 
             // View and Change permission wasn't changed.
-            if ($record['moderate'] == 1 && !isset($_POST["moderate_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}"])) {
+            if ($record['moderate'] == 1 && !isset($_POST[$m])) {
 
                 // Mod. permission removed.
                 acl_edit($record['group'],
@@ -250,7 +271,7 @@ try {
                 $reload_acl = true;
                 continue;
             }
-            if ($record['moderate'] == 0 && isset($_POST["moderate_{$record['group']}_{$record['board']}_{$record['thread']}_{$record['post']}"])) {
+            if ($record['moderate'] == 0 && isset($_POST[$m])) {
 
                 // Mod. permission added.
                 acl_edit($record['group'],
@@ -295,9 +316,13 @@ try {
     Logging::close_log();
 
     exit(0);
-} catch(Exception $e) {
-    $smarty->assign('msg', $e->__toString());
+} catch(KotobaException $e) {
+
+    // Cleanup.
     DataExchange::releaseResources();
-    die($smarty->fetch('exception.tpl'));
+    Logging::close_log();
+
+    display_exception_page($smarty, $e, is_admin() || is_mod());
+    exit(1);
 }
 ?>

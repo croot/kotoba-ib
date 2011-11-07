@@ -27,8 +27,8 @@ Variables:
 
 <div class="logo">Мои настройки</div>
 <br>
-{$sess.name}={$sess.id}<br>
-Сессия истекает через: {$sess.exp_h}:{$sess.exp_m} / {$sess.lifet_h}:{$sess.lifet_m} минут.<br>
+Идентификатор сессии: {$sess.id}<br>
+Сессия истекает через {$sess.exp_h}:{$sess.exp_m}<br>
 <br/>
 <form action="{$DIR_PATH}/edit_settings.php" method="post">
 <i>Введите ключевое слово, чтобы загрузить ваши настройки.</i><br/>
@@ -36,7 +36,7 @@ Variables:
     <input type="submit" value="Загрузить">
 </form>
 <form action="{$DIR_PATH}/edit_settings.php" method="post">
-<h4>Опции просмотра доски:</h4>
+<h4>Настройки просмотра доски:</h4>
     <table border="0">
         <tr valign="top"><td>Число нитей на странице просмотра доски: </td><td><input type="text" name="threads_per_page" size="10" value="{$settings.threads_per_page}"></td></tr>
         <tr valign="top"><td>Число сообщений в нити на странице просмотра доски: </td><td><input type="text" name="posts_per_thread" size="10" value="{$settings.posts_per_thread}"></td></tr>
@@ -48,11 +48,12 @@ Variables:
             </select>
         </td></tr>
     </table>
-<h4>Другое:</h4>
+<h4>Другие настройки:</h4>
     <table border="0">
         <tr valign="top"><td>Язык: </td><td><select name="language_id">{section name=j loop=$languages}<option value="{$languages[j].id}"{if $settings.language == $languages[j].code} selected{/if}>{$languages[j].code}</option>{/section}</select></td></tr>
         <tr valign="top"><td>Стиль оформления: </td><td><select name="stylesheet_id">{section name=i loop=$stylesheets}<option value="{$stylesheets[i].id}"{if $STYLESHEET == $stylesheets[i].name} selected{/if}>{$stylesheets[i].name}</option>{/section}</select></td></tr>
     </table>
+<br>
 <i>Введите ключевое слово, чтобы сохранить эти настройки.<br/>
 В дальнейшем вы сможете загрузить их, введя ключевое слово.</i><br/>
     <input type="text" name="keyword_save" size="32">
