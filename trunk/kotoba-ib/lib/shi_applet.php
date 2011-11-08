@@ -4,35 +4,36 @@
  * See license.txt for more info.*
  *********************************/
 
-// Shi applet script.
+// Shi applet.
 
-require_once '../config.php';
-require_once Config::ABS_PATH . '/lib/exceptions.php';
-require_once Config::ABS_PATH . '/lib/errors.php';
-require_once Config::ABS_PATH . '/lib/db.php';
+require_once dirname(dirname(__FILE__)) . '/config.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 
 try {
     // Initialization.
     kotoba_session_start();
     if (Config::LANGUAGE != $_SESSION['language']) {
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
+        require Config::ABS_PATH
+            . "/locale/{$_SESSION['language']}/messages.php";
     }
     locale_setup();
     $smarty = new SmartyKotobaSetup();
 
     // Check if client banned.
-    if (!isset($_SERVER['REMOTE_ADDR'])
-            || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
+    if ( ($ban = bans_check(get_remote_addr())) !== FALSE) {
 
-        throw new RemoteAddressException();
-    }
-    if ( ($ban = bans_check($ip)) !== false) {
+        // Cleanup.
+        DataExchange::releaseResources();
+
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
+        $smarty->display('banned.tpl');
+
         session_destroy();
-        DataExchange::releaseResources();
-        die($smarty->fetch('banned.tpl'));
+        exit(1);
     }
 
     // Check parameters.
@@ -44,12 +45,12 @@ try {
     }
     if (isset($_POST['board'])) {
         $board_name = boards_check_name($_POST['board']);
-        if ($board_name === 1) {
+        if ($board_name === FALSE) {
 
             // Cleanup.
             DataExchange::releaseResources();
 
-            $ERRORS['BOARD_NAME']($smarty);
+            display_error_page($smarty, kotoba_last_error());
             exit(1);
         }
         $smarty->assign('board', $board_name);
@@ -62,11 +63,7 @@ try {
     } elseif ($_POST['painter'] == 'shi_normal') {
         $tools = 'normal';
     }
-    date_default_timezone_set('Europe/Moscow');
     $file_names = create_filenames('png');
-
-    // Cleanup.
-    DataExchange::releaseResources();
 
     $smarty->assign('image_width', $_POST['x']);
     $smarty->assign('image_height', $_POST['y']);
@@ -78,11 +75,17 @@ try {
     $smarty->assign('file', $file_names[2]);
     $smarty->display('shi_applet.tpl');
 
-    exit(0);
-} catch (Exception $e) {
-    $smarty->assign('msg', $e->__toString());
+    // Cleanup.
     DataExchange::releaseResources();
-    die($smarty->fetch('exception.tpl'));
+
+    exit(0);
+} catch(KotobaException $e) {
+
+    // Cleanup.
+    DataExchange::releaseResources();
+
+    display_exception_page($smarty, $e, is_admin() || is_mod());
+    exit(1);
 }
 /*
     echo "<html>
