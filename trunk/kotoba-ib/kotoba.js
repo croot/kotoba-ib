@@ -253,7 +253,7 @@ function menu_removeframes(msg) {
     return false;
 }
 
-function mark_italic() {
+function mark_warp(tag) {
     var textComponent = document.getElementById('message_area');
     var selectedText;
     // IE version
@@ -266,14 +266,14 @@ function mark_italic() {
         var endPos = textComponent.selectionEnd;
         var length = textComponent.value.length;
         textComponent.value = textComponent.value.substring(0, startPos)
-                              + '[i]'
+                              + '[' + tag + ']'
                               + textComponent.value.substring(startPos, endPos)
-                              + '[/i]'
+                              + '[/' + tag + ']'
                               + textComponent.value.substring(endPos, length);
     }
 }
 
-function mark_bold() {
+function mark_addto(line) {
     var textComponent = document.getElementById('message_area');
     var selectedText;
     // IE version
@@ -285,10 +285,56 @@ function mark_bold() {
         var startPos = textComponent.selectionStart;
         var endPos = textComponent.selectionEnd;
         var length = textComponent.value.length;
-        textComponent.value = textComponent.value.substring(0, startPos)
-                              + '[b]'
-                              + textComponent.value.substring(startPos, endPos)
-                              + '[/b]'
+        textComponent.value = textComponent.value.substring(0, endPos)
+                              + line
                               + textComponent.value.substring(endPos, length);
     }
+}
+
+function mark_italic() {
+    mark_warp('i');
+}
+
+function mark_bold() {
+    mark_warp('b');
+}
+
+function mark_code() {
+    mark_warp('code');
+}
+
+function mark_spoiler() {
+    mark_warp('spoiler');
+}
+
+function mark_strike() {
+    mark_warp('s');
+}
+
+function mark_underline() {
+    mark_warp('u');
+}
+
+function mark_unordered_list() {
+    mark_addto("[ul]\n[li]Hurr[/li]\n[li]Durr[/li]\n[/ul]");
+}
+
+function mark_ordered_list() {
+    mark_addto("[ol]\n[li]Hurr[/li]\n[li]Durr[/li]\n[/ol]");
+}
+
+function mark_url() {
+    mark_addto("[url=\"www.example.com\"]Example[/url]");
+}
+
+function mark_google() {
+    mark_addto("[google]kotoba-ib[/google]");
+}
+
+function mark_wiki() {
+    mark_addto("[wiki]Николай Второй[/wiki]");
+}
+
+function mark_quote() {
+    mark_warp('quote');
 }
