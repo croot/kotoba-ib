@@ -33,7 +33,7 @@ Variables:
 <ul>
     <!-- boardlink is a fake class to endentify this links. Used in js function menu_removeframes-->
     {foreach $category.boards as $board}
-    <li><a href="{$DIR_PATH}/{$board.name}/" class="boardlink" target="main">{$board.title} - /{$board.name}/</a></li>
+    <li><a href="{if isset($board.url)}{$board.url}{else}{$DIR_PATH}/{$board.name}/{/if}" class="boardlink" target="main">{$board.title} - /{$board.name}/</a></li>
     {/foreach}
 </ul>
 </div>

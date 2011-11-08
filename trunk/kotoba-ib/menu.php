@@ -45,6 +45,19 @@ try {
     $boards = boards_get_visible($_SESSION['user']);
     make_category_boards_tree($categories, $boards);
 
+    // Конгломерат. Разкомментируйте и отредактируйте.
+    //array_push(
+    //    $categories,
+    //    array('id' => 'Conglomerate',
+    //          'name' => 'Conglomerate',
+    //          'boards' => array(array('url' => 'http://wakachan.org/unyl/',
+    //                                  'title' => 'Унылчан',
+    //                                  'name' => 'unyl'),
+    //                            array('url' => 'http://ii.dollchan.org/di/',
+    //                                  'title' => 'Канакочан',
+    //                                  'name' => 'di')))
+    //);
+
     list ($style_name, $_) = preg_split('/\./', $_SESSION['stylesheet']);
     $smarty->assign('style_name', $style_name);
     $smarty->assign('ib_name', Config::IB_NAME);
