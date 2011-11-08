@@ -79,7 +79,13 @@ google.load("language", "1");
 {else}    <!-- Captcha disabled -->{/if}
 
     <tr><td class="postblock">Тема: </td><td><input type="text" name="subject" size="35" maxlength="75" accesskey="s"> <input type="submit" value="Создать нить"></td></tr>
-    <tr><td class="postblock">Сообщение: </td><td><textarea name="text" cols="48" rows="4" accesskey="m"></textarea><img id="resizer" src="{$DIR_PATH}/flower.png"></td></tr>
+    <tr><td class="postblock">Сообщение: </td>
+        <td>
+            <a href="#" onclick="mark_italic();return false;"><img src="{$DIR_PATH}/css/{$STYLESHEET}/mark_italic.png" alt="[Italic Text]" title="Наклонный" border="0" width="20" height="20"/></a>
+            <a href="#" onclick="mark_bold();return false;"><img src="{$DIR_PATH}/css/{$STYLESHEET}/mark_bold.png" alt="[Bold Text]" title="Жирный" border="0" width="20" height="20"/></a><br>
+            <textarea id="message_area" name="text" cols="48" rows="4" accesskey="m"></textarea>
+        </td>
+    </tr>
 {if $board.with_attachments}
     <tr><td class="postblock">Файл: </td><td><input type="file" name="file" size="35" accesskey="f"> Спойлер: <input type="checkbox" name="spoiler" value="1" /></td></tr>
     {if isset($oekaki)}<tr><td class="postblock">Мой рисунок: </td><td><a href="{$DIR_PATH}/shi/{$oekaki.file}"><img border="0" src="{$DIR_PATH}/shi/{$oekaki.thumbnail}" align="middle" /></a> Использовать вместо файла: <input type="checkbox" name="use_oekaki" value="1"></td></tr>{else}<!-- Oekaki disabled -->{/if}
@@ -126,28 +132,6 @@ google.load("language", "1");
 </form>{else}<!-- Oekaki disabled -->{/if}
 
 </div>
-{literal}<script type="text/javascript">
-<!--
-var mytextarea = document.forms.postform.text;
-mytextarea.style.width = mytextarea.clientWidth + 'px';
-mytextarea.style.height = mytextarea.clientHeight + 'px';
-if(navigator.userAgent.indexOf("WebKit") < 0) {
-    resizeMaster.setResizer(document.getElementById("resizer"));
-}
-else {
-    // Reset alignment of postform to kusaba default for chrome users,
-    // because chrome have native textarea resizing support.
-    for(var stylesheetKey in document.styleSheets) {
-        if(document.styleSheets[stylesheetKey].href.indexOf("img_global.css") >= 0) {
-            for(var ruleKey in document.styleSheets[stylesheetKey].cssRules) {
-                if(document.styleSheets[stylesheetKey].cssRules[ruleKey].selectorText.indexOf("postarea table") >= 0)
-                    document.styleSheets[stylesheetKey].cssRules[ruleKey].style.margin = "0px auto"
-            }
-        }
-    }
-}
-//-->
-</script>{/literal}
 <hr>{$threads_html}
 {if count($hidden_threads) > 0}
 Скрытые вами нити:
