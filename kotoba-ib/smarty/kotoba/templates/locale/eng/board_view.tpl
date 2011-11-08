@@ -153,5 +153,5 @@ Hidden threads:
 <br>
 {include file='navbar.tpl' DIR_PATH=$DIR_PATH categories=$categories boards=$boards}
 <br>
-<div class="footer" style="clear: both;">- <a href="http://code.google.com/p/kotoba-ib/" target="_top">Kotoba 1.2</a> -</div>
+<div class="footer" style="clear: both;">- <a href="http://code.google.com/p/kotoba-ib/" target="_top">Kotoba 1.3</a> -</div>
 {include file='footer.tpl'}
