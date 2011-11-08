@@ -31,6 +31,6 @@ Variables:
 </p>
 <hr>
 <div class="footer" style="clear: both;">
-    - <a href="http://code.google.com/p/kotoba-ib/" target="_top">Kotoba 1.2</a> -
+    - <a href="http://code.google.com/p/kotoba-ib/" target="_top">Kotoba 1.3</a> -
 </div>
 {include file='footer.tpl'}
