@@ -252,3 +252,43 @@ function menu_removeframes(msg) {
     document.getElementById("removeframes").innerHTML = msg;
     return false;
 }
+
+function mark_italic() {
+    var textComponent = document.getElementById('message_area');
+    var selectedText;
+    // IE version
+    if (document.selection != undefined) {
+        alert('IE not supported yet.');
+    }
+    // Mozilla version
+    else if (textComponent.selectionStart != undefined) {
+        var startPos = textComponent.selectionStart;
+        var endPos = textComponent.selectionEnd;
+        var length = textComponent.value.length;
+        textComponent.value = textComponent.value.substring(0, startPos)
+                              + '[i]'
+                              + textComponent.value.substring(startPos, endPos)
+                              + '[/i]'
+                              + textComponent.value.substring(endPos, length);
+    }
+}
+
+function mark_bold() {
+    var textComponent = document.getElementById('message_area');
+    var selectedText;
+    // IE version
+    if (document.selection != undefined) {
+        alert('IE not supported yet.');
+    }
+    // Mozilla version
+    else if (textComponent.selectionStart != undefined) {
+        var startPos = textComponent.selectionStart;
+        var endPos = textComponent.selectionEnd;
+        var length = textComponent.value.length;
+        textComponent.value = textComponent.value.substring(0, startPos)
+                              + '[b]'
+                              + textComponent.value.substring(startPos, endPos)
+                              + '[/b]'
+                              + textComponent.value.substring(endPos, length);
+    }
+}

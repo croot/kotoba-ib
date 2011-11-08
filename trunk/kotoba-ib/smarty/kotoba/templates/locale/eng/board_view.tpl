@@ -81,11 +81,9 @@ google.load("language", "1");
     <tr><td class="postblock">Subject: </td><td><input type="text" name="subject" size="35" maxlength="75" accesskey="s"> <input type="submit" value="Create thread"></td></tr>
     <tr><td class="postblock">Message: </td>
         <td>
-            <a href="#">
-                <img src="{$DIR_PATH}/css/{$STYLESHEET}/mark_bold.png" alt="[Bold Text]" title="Bold Text" border="0" width="16" height="16"/>
-            </a><br>
-            <textarea name="text" cols="48" rows="4" accesskey="m"></textarea>
-            <img id="resizer" src="{$DIR_PATH}/flower.png" title="Drag to resize text area.">
+            <a href="#" onclick="mark_italic();return false;"><img src="{$DIR_PATH}/css/{$STYLESHEET}/mark_italic.png" alt="[Italic Text]" title="Italic Text" border="0" width="20" height="20"/></a>
+            <a href="#" onclick="mark_bold();return false;"><img src="{$DIR_PATH}/css/{$STYLESHEET}/mark_bold.png" alt="[Bold Text]" title="Bold Text" border="0" width="20" height="20"/></a><br>
+            <textarea id="message_area" name="text" cols="48" rows="4" accesskey="m"></textarea>
         </td>
     </tr>
 {if $board.with_attachments}
@@ -134,28 +132,6 @@ google.load("language", "1");
 </form>{else}<!-- Oekaki disabled -->{/if}
 
 </div>
-{literal}<script type="text/javascript">
-<!--
-var mytextarea = document.forms.postform.text;
-mytextarea.style.width = mytextarea.clientWidth + 'px';
-mytextarea.style.height = mytextarea.clientHeight + 'px';
-if(navigator.userAgent.indexOf("WebKit") < 0) {
-    resizeMaster.setResizer(document.getElementById("resizer"));
-}
-else {
-    // Reset alignment of postform to kusaba default for chrome users,
-    // because chrome have native textarea resizing support.
-    for(var stylesheetKey in document.styleSheets) {
-        if(document.styleSheets[stylesheetKey].href.indexOf("img_global.css") >= 0) {
-            for(var ruleKey in document.styleSheets[stylesheetKey].cssRules) {
-                if(document.styleSheets[stylesheetKey].cssRules[ruleKey].selectorText.indexOf("postarea table") >= 0)
-                    document.styleSheets[stylesheetKey].cssRules[ruleKey].style.margin = "0px auto"
-            }
-        }
-    }
-}
-//-->
-</script>{/literal}
 <hr>{$threads_html}
 {if count($hidden_threads) > 0}
 Hidden threads:
