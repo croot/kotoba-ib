@@ -72,6 +72,15 @@ try {
     $boards = boards_get_visible($_SESSION['user']);
     make_category_boards_tree($categories, $boards);
 
+    // Конгломерат. Разкомментируйте и отредактируйте.
+    //array_push(
+    //    $categories,
+    //    array('boards' => array(array('url' => 'http://wakachan.org/unyl/',
+    //                                  'name' => 'unyl'),
+    //                            array('url' => 'http://ii.dollchan.org/di/',
+    //                                  'name' => 'di')))
+    //);
+
     foreach ($boards as $b) {
         if ($b['name'] == $board_name) {
             $board = $b;

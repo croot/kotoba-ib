@@ -17,7 +17,7 @@ Variables:
     {foreach from=$categories item=c name=categories}
         [&nbsp;
         {foreach from=$c.boards item=b name=boards}
-            <a href="{$DIR_PATH}/{$b.name}/">{$b.name}</a>&nbsp;
+            <a href="{if isset($b.url)}{$b.url}{else}{$DIR_PATH}/{$b.name}/{/if}">{$b.name}</a>&nbsp;
             {if !$smarty.foreach.boards.last}/&nbsp;{/if}
         {/foreach}
         ]&nbsp;
