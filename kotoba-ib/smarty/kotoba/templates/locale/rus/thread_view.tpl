@@ -81,8 +81,18 @@ google.load("language", "1");
     <tr><td class="postblock">Сообщение: </td>
         <td>
             <a href="#" onclick="mark_italic();return false;"><img src="{$DIR_PATH}/css/{$STYLESHEET}/mark_italic.png" alt="[Italic Text]" title="Наклонный" border="0" width="20" height="20"/></a>
-            <a href="#" onclick="mark_bold();return false;"><img src="{$DIR_PATH}/css/{$STYLESHEET}/mark_bold.png" alt="[Bold Text]" title="Жирный" border="0" width="20" height="20"/></a><br>
-            <textarea id="message_area" name="text" cols="48" rows="4" accesskey="m">{if isset($quote)}>>{$quote}{/if}</textarea>
+            <a href="#" onclick="mark_bold();return false;"><img src="{$DIR_PATH}/css/{$STYLESHEET}/mark_bold.png" alt="[Bold Text]" title="Жирный" border="0" width="20" height="20"/></a>
+            <a href="#" onclick="mark_code();return false;"><img src="{$DIR_PATH}/css/{$STYLESHEET}/mark_code.png" alt="[Code]" title="Код" border="0" width="20" height="20"/></a>
+            <a href="#" onclick="mark_spoiler();return false;"><img src="{$DIR_PATH}/css/{$STYLESHEET}/mark_spoiler.png" alt="[Spoiler]" title="Спойлер" border="0" width="20" height="20"/></a>
+            <a href="#" onclick="mark_strike();return false;"><img src="{$DIR_PATH}/css/{$STYLESHEET}/mark_strike.png" alt="[Strike]" title="Зачеркнутый" border="0" width="20" height="20"/></a>
+            <a href="#" onclick="mark_underline();return false;"><img src="{$DIR_PATH}/css/{$STYLESHEET}/mark_underline.png" alt="[Underline]" title="Подчеркнутый" border="0" width="20" height="20"/></a>
+            <a href="#" onclick="mark_unordered_list();return false;"><img src="{$DIR_PATH}/css/{$STYLESHEET}/mark_unordered_list.png" alt="[Unordered List]" title="Не сортированный список" border="0" width="20" height="20"/></a>
+            <a href="#" onclick="mark_ordered_list();return false;"><img src="{$DIR_PATH}/css/{$STYLESHEET}/mark_ordered_list.png" alt="[Ordered List]" title="Сортированный список" border="0" width="20" height="20"/></a>
+            <a href="#" onclick="mark_url();return false;"><img src="{$DIR_PATH}/css/{$STYLESHEET}/mark_url.png" alt="[URL]" title="URL" border="0" width="20" height="20"/></a>
+            <a href="#" onclick="mark_google();return false;"><img src="{$DIR_PATH}/css/{$STYLESHEET}/mark_google.png" alt="[Google]" title="Google" border="0" width="20" height="20"/></a>
+            <a href="#" onclick="mark_wiki();return false;"><img src="{$DIR_PATH}/css/{$STYLESHEET}/mark_wiki.png" alt="[Wiki]" title="Wiki" border="0" width="20" height="20"/></a>
+            <a href="#" onclick="mark_quote();return false;"><img src="{$DIR_PATH}/css/{$STYLESHEET}/mark_quote.png" alt="[Quote]" title="Цитата" border="0" width="20" height="20"/></a><br>
+            <textarea id="message_area" name="text" cols="58" rows="6" accesskey="m">{if isset($quote)}>>{$quote}{/if}</textarea>
         </td>
     </tr>
 {if $thread.with_attachments || ($thread.with_attachments === null && $board.with_attachments)}
