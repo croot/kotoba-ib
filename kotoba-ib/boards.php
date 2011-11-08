@@ -78,9 +78,13 @@ try {
     // Конгломерат. Разкомментируйте и отредактируйте.
     //array_push(
     //    $categories,
-    //    array('boards' => array(array('url' => 'http://wakachan.org/unyl/',
+    //    array('id' => 'Conglomerate',
+    //          'name' => 'Conglomerate',
+    //          'boards' => array(array('url' => 'http://wakachan.org/unyl/',
+    //                                  'title' => 'Унылчан',
     //                                  'name' => 'unyl'),
     //                            array('url' => 'http://ii.dollchan.org/di/',
+    //                                  'title' => 'Канакочан',
     //                                  'name' => 'di')))
     //);
 
