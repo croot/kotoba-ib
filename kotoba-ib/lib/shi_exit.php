@@ -4,35 +4,36 @@
  * See license.txt for more info.*
  *********************************/
 
-// Shi exit callback script.
+// Shi exit callback.
 
-require_once '../config.php';
-require_once Config::ABS_PATH . '/lib/exceptions.php';
-require_once Config::ABS_PATH . '/lib/errors.php';
-require_once Config::ABS_PATH . '/lib/db.php';
+require_once dirname(dirname(__FILE__)) . '/config.php';
 require_once Config::ABS_PATH . '/lib/misc.php';
+require_once Config::ABS_PATH . '/lib/db.php';
+require_once Config::ABS_PATH . '/lib/errors.php';
+require_once Config::ABS_PATH . '/lib/exceptions.php';
 
 try {
     // Initialization.
     kotoba_session_start();
     if (Config::LANGUAGE != $_SESSION['language']) {
-        require Config::ABS_PATH . "/locale/{$_SESSION['language']}/exceptions.php";
+        require Config::ABS_PATH
+            . "/locale/{$_SESSION['language']}/messages.php";
     }
     locale_setup();
     $smarty = new SmartyKotobaSetup();
 
     // Check if client banned.
-    if (!isset($_SERVER['REMOTE_ADDR'])
-            || ($ip = ip2long($_SERVER['REMOTE_ADDR'])) === FALSE) {
+    if ( ($ban = bans_check(get_remote_addr())) !== FALSE) {
 
-        throw new RemoteAddressException();
-    }
-    if ( ($ban = bans_check($ip)) !== false) {
+        // Cleanup.
+        DataExchange::releaseResources();
+
         $smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
         $smarty->assign('reason', $ban['reason']);
+        $smarty->display('banned.tpl');
+
         session_destroy();
-        DataExchange::releaseResources();
-        die($smarty->fetch('banned.tpl'));
+        exit(1);
     }
 
     // Check parameters.
@@ -54,24 +55,24 @@ try {
 
     if (isset($_GET['thread']) && $_GET['thread'] != '' && isset($_GET['board']) && $_GET['board'] != '') {
         $board_name = boards_check_name($_GET['board']);
-        if ($board_name === 1) {
+        if ($board_name === FALSE) {
 
             // Cleanup.
             DataExchange::releaseResources();
 
-            $ERRORS['BOARD_NAME']($smarty);
+            display_error_page($smarty, kotoba_last_error());
             exit(1);
         }
         $thread_original_post = threads_check_original_post($_GET['thread']);
         header('Location: ' . Config::DIR_PATH . "/$board_name/$thread_original_post/");
     } else if(isset($_GET['board']) && $_GET['board'] != '') {
         $board_name = boards_check_name($_GET['board']);
-        if ($board_name === 1) {
+        if ($board_name === FALSE) {
 
             // Cleanup.
             DataExchange::releaseResources();
 
-            $ERRORS['BOARD_NAME']($smarty);
+            display_error_page($smarty, kotoba_last_error());
             exit(1);
         }
         header('Location: ' . Config::DIR_PATH . "/$board_name/");
@@ -81,9 +82,12 @@ try {
     DataExchange::releaseResources();
 
     exit(0);
-} catch (Exception $e) {
-    $smarty->assign('msg', $e->__toString());
+} catch(KotobaException $e) {
+
+    // Cleanup.
     DataExchange::releaseResources();
-    die($smarty->fetch('exception.tpl'));
+
+    display_exception_page($smarty, $e, is_admin() || is_mod());
+    exit(1);
 }
 ?>
