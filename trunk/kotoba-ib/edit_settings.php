@@ -34,9 +34,8 @@ try {
         require Config::ABS_PATH
                 . "/locale/{$_SESSION['language']}/messages.php";
     }
-    locale_setup();
     $smarty = new SmartyKotobaSetup();
-
+    locale_setup();
     // Check if client banned.
     if ( ($ban = bans_check(get_remote_addr())) !== FALSE) {
 

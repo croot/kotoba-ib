@@ -36,7 +36,7 @@ Variables:
 *}
 {include file='header.tpl' DIR_PATH=$DIR_PATH
                            STYLESHEET=$STYLESHEET
-                           page_title="`$ib_name` — /`$board.name`/ `$board.title`. Board view, page $page"}
+                           page_title="`$ib_name` — `$board.title`. Board view, page $page"}
 
 
 {if $enable_translation}
@@ -60,7 +60,7 @@ google.load("language", "1");
 {if isset($banner)}
 <div class="logo"><img src="{$DIR_PATH}/misc/img/{$banner.name}" alt="{$banner.name}" width="{$banner.widht}" height="{$banner.height}"></div>
 {/if}
-<div class="logo">{$ib_name} — /{$board.name}/ {$board.title}</div>
+<div class="logo">{$ib_name} — {$board.title}</div>
 {include file='pages_list.tpl' board_name=$board.name pages=$pages page=$page pages_count=$pages_count}
 
 
