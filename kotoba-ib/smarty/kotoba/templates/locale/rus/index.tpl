@@ -13,8 +13,10 @@ Variables:
 *}
 <html>
 <head>
-<title>{$ib_name}</title>
-<!-- <link rel="shortcut icon" href="/favicon.ico"> -->
+    <title>{$ib_name}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="{$DIR_PATH}/css/global.css">
+    <link rel="stylesheet" type="text/css" href="{$DIR_PATH}/css/{$STYLESHEET}/{$STYLESHEET}">
 </head>
 <frameset cols="15%,*" frameborder="0" border="0">
 <frame src="{$DIR_PATH}/menu.php" name="menu" id="menu">

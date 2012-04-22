@@ -120,7 +120,7 @@ function locale_setup() {
     mb_language(Config::MB_LANGUAGE);
     mb_internal_encoding(Config::MB_ENCODING);
     if (!setlocale(LC_ALL, Config::$LOCALE_NAMES)) {
-        throw new SetLocaleException();
+        //throw new SetLocaleException();
     }
 }
 

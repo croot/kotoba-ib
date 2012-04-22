@@ -87,6 +87,13 @@ try {
     }
 
     $board = $thread['board'];
+    if (!is_admin() && ($board['name'] == Config::NEWS_BOARD || $board['name'] == Config::BANNERS_BOARD)) {
+        // Cleanup
+        DataExchange::releaseResources();
+
+        display_error_page($smarty, new ThreadClosedError($thread['id']));
+        exit(1);
+    }
 
     // Captcha.
     if (is_captcha_enabled($board)) {
