@@ -931,4 +931,259 @@ function bbcode_kotoba_mark($text, $board) {
 
     return bbcode_parse($BBHandler, $text);
 }
+
+/*
+ * This is original wakabamark code from wakaba rewrited to PHP.
+ */
+$protocol_re = "(?:http:\/\/|https:\/\/|ftp:\/\/|mailto:|news:|irc:)";
+$url_re = "/({$protocol_re}[^\s<>()\"]*?(?:\([^\s<>()\"]*?\)[^\s<>()\"]*?)*)" .
+          "((?:\s|<|>|\"|\.||\]|!|\?|,|&#44;|&quot;)*(?:[\s<>()\"]|$))/s";
+function do_spans($handler, $data) {
+    global $url_re;
+
+    foreach ($data as &$d) {
+        $hidden = array();
+
+        // hide <code> sections
+        $d = preg_replace_callback(
+            "/ (?<![\x80-\x9f\xe0-\xfc]) (`+) ([^<>]+?) (?<![\x80-\x9f\xe0-\xfc]) \\1/sx",
+            function ($matches) use (&$hidden) {
+                array_push(
+                    $hidden,
+                    "<code>" . addslashes($matches[2]) . "</code>"
+                );
+                return "<!--" . (count($hidden) - 1) . "-->";
+            },
+            $d
+        );
+
+        // make URLs into links and hide them
+        $d = preg_replace_callback(
+            $url_re,
+            function ($matches) use (&$hidden) {
+                array_push(
+                    $hidden,
+                    "<a href=\"" . addslashes($matches[1]) .
+                    "\" rel=\"nofollow\">" . addslashes($matches[1]) . "</a>"
+                );
+                return "<!--" . (count($hidden) - 1) . "-->{$matches[2]}";
+            },
+            $d
+        );
+
+        // do <strong>
+        $d = preg_replace_callback(
+            "/ (?<![0-9a-zA-Z\*_\x80-\x9f\xe0-\xfc]) (\*\*|__) (?![<>\s\*_]) ([^<>]+?) (?<![<>\s\*_\x80-\x9f\xe0-\xfc]) \\1 (?![0-9a-zA-Z\*_]) /x",
+            function ($matches) {
+                return "<strong>{$matches[2]}</strong>";
+            },
+            $d
+        );
+
+        // do <em>
+        $d = preg_replace_callback(
+            "/ (?<![0-9a-zA-Z\*_\x80-\x9f\xe0-\xfc]) (\*|_) (?![<>\s\*_]) ([^<>]+?) (?<![<>\s\*_\x80-\x9f\xe0-\xfc]) \\1 (?![0-9a-zA-Z\*_]) /x",
+            function ($matches) {
+                return "<em>{$matches[2]}</em>";
+            },
+            $d
+        );
+
+        /*# do ^H
+        if($]>5.007)
+        {
+            my $regexp;
+            $regexp=qr/(?:&#?[0-9a-zA-Z]+;|[^&<>])(?<!\^H)(??{$regexp})?\^H/;
+           $line=~s{($regexp)}{"<del>".(substr $1,0,(length $1)/3)."</del>"}gex;
+        }*/
+
+        if(is_callable($handler)) {
+            $d = $handler($d);
+        }
+
+        // fix up hidden sections
+        $d = preg_replace_callback(
+            "/\<!--([0-9]+)--\>/",
+            function ($matches) use (&$hidden) {
+                return $hidden[addslashes($matches[1])];
+            },
+            $d
+        );
+    }
+
+    return implode("<br />", $data);
+}
+function do_wakabamark($text, $handler, $simplify) {
+    $res = '';
+
+    // Temporary vars.
+    $r1 = '';
+    $r2 = '';
+    $r3 = '';
+
+    $lines = preg_split("/(?:\r\n|\n|\r)/", $text);
+
+    while (isset($lines[0])) {
+        if (preg_match("/^\s*$/", $lines[0])) {
+
+            // skip empty lines
+
+            array_shift($lines);
+        } elseif (preg_match("/^(1\.|[\*\+\-]) /", $lines[0], $m)) {
+
+            // lists
+
+            $html = '';
+
+            if ($m[1] === "1.") {
+                $tag = "ol";
+                $re = "[0-9]+\.";
+                $skip = 1;
+            } else {
+                $tag = "ul";
+                $re = "\Q{$m[1]}\E";
+                $skip = 0;
+            }
+
+            $r1 = "/^($re)(?: |\t)(.*)/";
+            while (isset($lines[0]) && preg_match($r1, $lines[0], $m)) {
+
+                $spaces = mb_strlen($m[1], Config::MB_ENCODING) + 1;
+                $item = "{$m[2]}\n";
+                array_shift($lines);
+
+                $r2 = "/^(?: {1,$spaces}|\t)(.*)/";
+                while (isset($lines[0]) && preg_match($r2, $lines[0], $m)) {
+                    $item .= "{$m[1]}\n";
+                    array_shift($lines);
+                }
+
+                $html .= "<li>" . do_wakabamark($item, $handler, 1) . "</li>";
+
+                if ($skip) {
+                    $r3 = "/^\s*$/";
+                    while (isset($lines[0]) && preg_match($r3, $lines[0])) {
+                        array_shift($lines);    // skip empty lines
+                    }
+                }
+            }
+
+            $res .= "<$tag>$html</$tag>";
+        } elseif (preg_match("/^(?:    |\t)/", $lines[0])) {
+
+            // code sections
+
+            $code = array();
+
+            $r1 = "/^(?:    |\t)(.*)/";
+            while (isset($lines[0]) && preg_match($r1, $lines[0], $m)) {
+                array_push($code, $m[1]);
+                array_shift($lines);
+            }
+
+            $res .= "<pre><code>" . implode("<br />", $code) . "</code></pre>";
+        } elseif (preg_match("/^&gt;/", $lines[0])) {
+
+            // quoted sections
+
+            $quote = array();
+
+            $r1 = "/^(&gt;.*)/";
+            while(isset($lines[0]) && preg_match($r1, $lines[0], $m)) {
+                array_push($quote, $m[1]);
+                array_shift($lines);
+            }
+
+            $res .= "<blockquote>" . do_spans($handler, $quote) .
+                    "</blockquote>";
+        } else {
+
+            // normal paragraph
+
+            $text = array();
+
+            $r1 = "/^(?:\s*$|1\. |[\*\+\-] |&gt;|    |\t)/";
+            while(isset($lines[0]) && !preg_match($r1, $lines[0])) {
+                array_push($text, array_shift($lines));
+            }
+
+            if(!isset($lines[0]) && $simplify) {
+                $res .= do_spans($handler, $text);
+            } else {
+                $res .= "<p>" . do_spans($handler, $text) . "</p>";
+            }
+        }
+
+        $simplify = 0;
+    }
+
+    return $res;
+}
+function format_comment($text, $board) {
+    // hide >>1 references from the quoting code
+    $text = preg_replace("/&gt;&gt;([0-9\-]+)/", "&gtgt;\\1", $text);
+
+    // restore >>1 references
+    $handler = function ($text) use ($board) {
+        return preg_replace_callback(
+            "/&gtgt;([0-9]+)/",
+            function ($matches) use ($board) {
+                $p = posts_check_number($matches[1]);
+                $b = boards_check_name($board);
+                $t = threads_get_by_reply($b, $p);
+
+                if ($b == FALSE || $t == FALSE) {
+                    return addslashes($matches[1]);
+                } else {
+                    return "<a class=\"ref|$b|{$t['original_post']}|$p\" " .
+                           "href=\"" . Config::DIR_PATH .
+                                   "/$b/{$t['original_post']}#$p\">" .
+                           "&gt;&gt;$p</a>";
+                }
+            },
+            $text
+        );
+    };
+
+    $text = do_wakabamark($text, $handler, 0);
+
+    // fix <blockquote> styles for old stylesheets
+    $text = preg_replace("/<blockquote>/", "<blockquote class=\"unkfunc\">",
+                         $text);
+
+    // restore >>1 references hidden in code blocks
+    $text = preg_replace("/&gtgt;/", "&gt;&gt;", $text);
+
+    return $text;
+}
+
+/*echo format_comment(htmlentities(
+"Let's see how wakaba mark works.\n
+*italic* (stars)\n
+**bold** (stars)\n
+_italic_ (underline)\n
+__bold__ (underline)\n
+http://azuchan.ru/example_url#derp\n
+1. List item 1\n
+2. List item 2\n
+* List item 1\n
+* List item 2\n
+    int a = 1, b = 2;\n
+    int c = a + b;\n
+> quote\n
+>>123\n
+Посмотрим, как обстоят дела с русским языком.\n
+*наклонный* (stars)\n
+**жирный** (stars)\n
+_наклонный_ (underline)\n
+__жирный__ (underline)\n
+http://azuchan.ru/Николай2#Расстрел\n
+1. Элемент списка 1\n
+2. Элемент списка 2\n
+* Элемент списка 1\n
+* Элемент списка 2\n
+    int a = 1, b = 2;\n
+    int c = a + b;\n
+> Цитата\n
+>>123", ENT_COMPAT, 'UTF-8'));*/
 ?>
