@@ -28,6 +28,10 @@ drop procedure if exists sp_boards_get_changeable_by_name|
 drop procedure if exists sp_boards_get_moderatable|
 drop procedure if exists sp_boards_get_visible|
 
+drop procedure if exists sp_captcha_add|
+drop procedure if exists sp_captcha_get|
+drop procedure if exists sp_captcha_gc|
+
 drop procedure if exists sp_categories_add|
 drop procedure if exists sp_categories_delete|
 drop procedure if exists sp_categories_get_all|
@@ -783,9 +787,38 @@ begin
         order by b.category, b.name;
 end|
 
--- ----------------
---  Categories.. --
--- ----------------
+-- ------------
+--  Captcha. --
+-- ------------
+
+create procedure sp_captcha_add
+(
+    _ip bigint,         -- Client IP-address.
+    _imgname char(32),  -- Image name.
+    _until datetime     -- Expiration time.
+)
+begin
+    call sp_captcha_gc();
+    insert into captcha (ip, imgname, `until`) values (_ip, _imgname, _until);
+end|
+
+create procedure sp_captcha_get
+(
+    _ip bigint  -- Client IP-address.
+)
+begin
+    call sp_captcha_gc();
+    select imgname as imgname from captcha where ip = _ip;
+end|
+
+create procedure sp_captcha_gc ()
+begin
+    delete from captcha where `until` <= now();
+end|
+
+-- ---------------
+--  Categories. --
+-- ---------------
 
 -- Add category.
 create procedure sp_categories_add

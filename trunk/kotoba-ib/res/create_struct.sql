@@ -422,6 +422,31 @@ CREATE TABLE favorites          -- Favorites.
 )
 engine=InnoDB;
 
+create table users2                     -- Users.
+(
+    phpsessid char(32) not null,        -- PHPSESSID.
+    posts_per_thread int default null,  -- Count of posts per thread.
+    threads_per_page int default null,  -- Count of threads per page.
+    lines_per_post int default null,    -- Count of lines per post.
+    language int not null,              -- Language id.
+    stylesheet int not null,            -- Stylesheet id.
+    password varchar(12) default null,  -- Password.
+    `goto` varchar(32) default null,    -- Redirection.
+    primary key (phpsessid),
+    constraint foreign key (language) references languages (id) on delete restrict on update restrict,
+    constraint foreign key (stylesheet) references stylesheets (id) on delete restrict on update restrict
+)
+engine=InnoDB;
+
+create table captcha                -- Captcha.
+(
+    ip bigint not null,             -- Client IP-address.
+    imgname char(32) not null,      -- Image name.
+    `until` datetime not null,      -- Expiration time.
+    primary key (ip)
+)
+engine=InnoDB;
+
 -- ----------------
 -- Initial data. --
 -- ----------------
