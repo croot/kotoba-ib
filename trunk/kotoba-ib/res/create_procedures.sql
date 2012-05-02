@@ -795,11 +795,12 @@ create procedure sp_captcha_add
 (
     _ip bigint,         -- Client IP-address.
     _imgname char(32),  -- Image name.
-    _until datetime     -- Expiration time.
+    _until bigint       -- Expiration time.
 )
 begin
     call sp_captcha_gc();
-    insert into captcha (ip, imgname, `until`) values (_ip, _imgname, _until);
+    insert into captcha (ip, imgname, `until`)
+                values (_ip, _imgname, FROM_UNIXTIME(_until));
 end|
 
 create procedure sp_captcha_get
