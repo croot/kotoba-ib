@@ -195,6 +195,10 @@ drop procedure if exists sp_users_get_by_keyword|
 drop procedure if exists sp_users_set_goto|
 drop procedure if exists sp_users_set_password|
 
+drop procedure if exists sp_users2_add|
+drop procedure if exists sp_users2_edit_by_phpsessid|
+drop procedure if exists sp_users2_get_by_phpsessid|
+
 drop procedure if exists sp_videos_add|
 drop procedure if exists sp_videos_get_by_post|
 drop procedure if exists sp_videos_get_by_thread|
@@ -1355,7 +1359,7 @@ begin
         from images i
         join posts_images pi on pi.image = i.id
         join posts p on pi.post = p.id
-        where p.board = _board;
+        where p.board = _board and pi.deleted = 0;
 end|
 
 -- Select images.
@@ -4841,6 +4845,73 @@ create procedure sp_users_set_password
 )
 begin
     update users set password = _password where id = _id;
+end|
+
+-- ----------
+--  Users. --
+-- ----------
+
+-- Add user.
+create procedure sp_users2_add
+(
+    _phpsessid char(32),    -- PHPSESSID.
+    _posts_per_thread int,  -- Count of posts per thread.
+    _threads_per_page int,  -- Count of threads per page.
+    _lines_per_post int,    -- Count of lines per post.
+    _language int,          -- Language id.
+    _stylesheet int,        -- Stylesheet id.
+    _password varchar(12),  -- Password.
+    _goto varchar(32)       -- Redirection.
+)
+begin
+    insert into users2 (phpsessid,
+                        posts_per_thread,
+                        threads_per_page,
+                        lines_per_post,
+                        language,
+                        stylesheet,
+                        password,
+                        `goto`)
+                values (_phpsessid,
+                        _posts_per_thread,
+                        _threads_per_page,
+                        _lines_per_post,
+                        _language,
+                        _stylesheet,
+                        _password,
+                        _goto);
+end|
+
+-- Edit user.
+create procedure sp_users2_edit_by_phpsessid
+(
+    _phpsessid char(32),    -- PHPSESSID.
+    _posts_per_thread int,  -- Count of posts per thread.
+    _threads_per_page int,  -- Count of threads per page.
+    _lines_per_post int,    -- Count of lines per post.
+    _language int,          -- Language id.
+    _stylesheet int,        -- Stylesheet id.
+    _password varchar(12),  -- Password.
+    _goto varchar(32)       -- Redirection.
+)
+begin
+    update users2 set posts_per_thread = _posts_per_thread,
+                      threads_per_page = _threads_per_page,
+                      lines_per_post = _lines_per_post,
+                      language = _language,
+                      stylesheet = _stylesheet,
+                      password = _password,
+                      `goto` = _goto
+        where phpsessid = _phpsessid;
+end|
+
+-- Get user.
+create procedure sp_users2_get_by_phpsessid
+(
+    _phpsessid char(32) -- PHPSESSID.
+)
+begin
+    select * from users2 where phpsessid = _phpsessid;
 end|
 
 -- ----------
