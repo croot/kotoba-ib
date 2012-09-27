@@ -933,7 +933,7 @@ function bbcode_kotoba_mark($text, $board) {
 }
 
 /*
- * This is original wakabamark code from wakaba rewrited to PHP.
+ * This is original wakabamark code from wakaba rewriten to PHP.
  */
 $protocol_re = "(?:http:\/\/|https:\/\/|ftp:\/\/|mailto:|news:|irc:)";
 $url_re = "/({$protocol_re}[^\s<>()\"]*?(?:\([^\s<>()\"]*?\)[^\s<>()\"]*?)*)" .
@@ -985,6 +985,15 @@ function do_spans($handler, $data) {
             "/ (?<![0-9a-zA-Z\*_\x80-\x9f\xe0-\xfc]) (\*|_) (?![<>\s\*_]) ([^<>]+?) (?<![<>\s\*_\x80-\x9f\xe0-\xfc]) \\1 (?![0-9a-zA-Z\*_]) /x",
             function ($matches) {
                 return "<em>{$matches[2]}</em>";
+            },
+            $d
+        );
+
+        // spoiler
+        $d = preg_replace_callback(
+            "/ (?<![0-9a-zA-Z\%_\x80-\x9f\xe0-\xfc]) (\%\%|__) (?![<>\s\%_]) ([^<>]+?) (?<![<>\s\%_\x80-\x9f\xe0-\xfc]) \\1 (?![0-9a-zA-Z\%_]) /x",
+            function ($matches) {
+                return "<span class=\"spoiler\" style=\"color: black;\" onmouseover=\"this.style.color='white';\" onmouseout=\"this.style.color='black'\">{$matches[2]}</span>";
             },
             $d
         );

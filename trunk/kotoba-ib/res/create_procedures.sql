@@ -210,6 +210,18 @@ drop procedure if exists sp_words_edit|
 drop procedure if exists sp_words_get_all|
 drop procedure if exists sp_words_get_all_by_board|
 
+DROP PROCEDURE IF EXISTS sp_accounts_add|
+DROP PROCEDURE IF EXISTS sp_accounts_get_by_id|
+DROP PROCEDURE IF EXISTS sp_accounts_get_by_login|
+DROP PROCEDURE IF EXISTS sp_accounts_set_change_login|
+DROP PROCEDURE IF EXISTS sp_accounts_unset_change_login|
+DROP PROCEDURE IF EXISTS sp_accounts_set_change_password|
+DROP PROCEDURE IF EXISTS sp_accounts_unset_change_password|
+DROP PROCEDURE IF EXISTS sp_accounts_block|
+DROP PROCEDURE IF EXISTS sp_accounts_unblock|
+DROP PROCEDURE IF EXISTS sp_accounts_mark_deleted|
+DROP PROCEDURE IF EXISTS sp_accounts_delete|
+
 /*drop procedure if exists sp_posts_uploads_get_by_post|
 drop procedure if exists sp_posts_uploads_add|
 drop procedure if exists sp_posts_uploads_delete_by_post|
@@ -5019,128 +5031,74 @@ begin
     select id, word, `replace` from words where board_id = _board_id;
 end|
 
-/*
--- ----------------------------------------------------------
---  Работа со связями сообщений с информацией о загрузках. --
--- ----------------------------------------------------------
+-- -----------
+-- Accounts --
+-- -----------
 
--- Выбирает для сообщений их связи с информацией о загрузках.
-create procedure sp_posts_uploads_get_by_post
+CREATE PROCEDURE sp_accounts_add
 (
-	post_id int
+    _login CHAR(20),
+    _user_name CHAR(256),
+    _password_hash TEXT,
+    _email TEXT,
+    _admin BIT
 )
-begin
-	select post, upload from posts_uploads where post = post_id;
-end|
+BEGIN
+    DECLARE _id INT;
 
--- Связывает сообщение с информацией о загрузке.
---
--- Аргументы:
--- _post_id - идентификатор сообщения.
--- _upload_id - идентификатор записи с информацией о загрузке.
-create procedure sp_posts_uploads_add
-(
-	_post_id int,
-	_upload_id int
-)
-begin
-	insert into posts_uploads (post, upload) values (_post_id, _upload_id);
-end|
+    INSERT INTO `accounts` (`login`, `user_name`, `password_hash`, `email`, `admin`)
+        VALUES (_login, _user_name, _password_hash, _email, _admin);
 
--- Удаляет закрепления загрузок за заданным сообщением.
---
--- Аргументы:
--- _post_id - идентификатор сообщения.
-create procedure sp_posts_uploads_delete_by_post
-(
-	_post_id int
-)
-begin
-	delete from posts_uploads where post = _post_id;
-end|
+    SELECT last_insert_id() INTO _id;
+    CALL sp_accounts_get_by_id(_id);
+END|
 
--- ------------------------
---  Работа с загрузками. --
--- ------------------------
+CREATE PROCEDURE sp_accounts_get_by_id(_id INT)
+BEGIN
+    SELECT * FROM `accounts` WHERE `id` = _id;
+END|
 
--- Добавляет информацию о загрузке.
---
--- Аргументы:
--- _hash - Хеш файла.
--- _is_image - Флаг изображения.
--- _upload_type - Тип загрузки.
--- _file - Имя файла, URL, код видео.
--- _image_w - Ширина изображения.
--- _image_h - Высота изображения.
--- _size - Размер файла в байтах.
--- _thumbnail - Имя уменьшенной копии.
--- _thumbnail_w - Ширина уменьшенной копии.
--- _thumbnail_h - Высота уменьшенной копии.
-create procedure sp_uploads_add
-(
-	_hash varchar(32),
-	_is_image bit,
-	_upload_type int,
-	_file varchar(256),
-	_image_w int,
-	_image_h int,
-	_size int,
-	_thumbnail varchar(256),
-	_thumbnail_w int,
-	_thumbnail_h int
-)
-begin
-	insert into uploads (`hash`, is_image, upload_type, `file`, image_w,
-		image_h, `size`, thumbnail, thumbnail_w, thumbnail_h)
-	values
-	(_hash, _is_image, _upload_type, _file, _image_w,
-		_image_h, _size, _thumbnail, _thumbnail_w, _thumbnail_h);
-	select last_insert_id() as id;
-end|
+CREATE PROCEDURE sp_accounts_get_by_login(_login CHAR(20))
+BEGIN
+    SELECT * FROM `accounts` WHERE `login` = _login;
+END|
 
--- Удаляет заданную загрузку.
---
--- Аргументы:
--- _id - Идентификатор загрузки.
-create procedure sp_uploads_delete_by_id
-(
-	_id int
-)
-begin
-	delete from uploads where id = _id;
-end|
+CREATE PROCEDURE sp_accounts_set_change_login(_id INT)
+BEGIN
+    UPDATE `accounts` SET `change_login` = 1 WHERE `id` = _id;
+END|
 
--- Выбирает загрузки для заданного сообщения.
---
--- Аргументы:
--- post_id - идентификатор сообщения.
-create procedure sp_uploads_get_by_post
-(
-	post_id int
-)
-begin
-	select id, `hash`, is_image, upload_type, `file`, image_w, image_h, `size`,
-		thumbnail, thumbnail_w, thumbnail_h
-	from uploads u
-	join posts_uploads pu on pu.upload = u.id and pu.post = post_id;
-end|
+CREATE PROCEDURE sp_accounts_unset_change_login(_id INT)
+BEGIN
+    UPDATE `accounts` SET `change_login` = 0 WHERE `id` = _id;
+END|
 
--- Выбирает информацию о висячих загрузках (не связанных с сообщениями).
-create procedure sp_uploads_get_dangling ()
-begin
-	select u.id, u.`hash`, u.is_image, u.link_type, u.`file`, u.file_w,
-		u.file_h, u.`size`, u.thumbnail, u.thumbnail_w, u.thumbnail_h
-	from uploads u
-	left join posts_uploads pu on pu.upload = u.id
-	where pu.upload is null;
-end|
+CREATE PROCEDURE sp_accounts_set_change_password(_id INT)
+BEGIN
+    UPDATE `accounts` SET `change_password` = 1 WHERE `id` = _id;
+END|
 
--- Proc for test mysql bit type support
-drop procedure if exists sp_test_mysql_bit|
-create procedure sp_test_mysql_bit ()
-begin
-	insert into uploads (is_image, upload_type, `file`, `size`) values (1, 0, 'test mysql bit', 0);
-	insert into uploads (is_image, upload_type, `file`, `size`) values (0, 0, 'test mysql bit', 0);
-	select is_image from uploads where `file` = 'test mysql bit';
-	delete from uploads where `file` = 'test mysql bit';
-end|*/
+CREATE PROCEDURE sp_accounts_unset_change_password(_id INT)
+BEGIN
+    UPDATE `accounts` SET `change_password` = 0 WHERE `id` = _id;
+END|
+
+CREATE PROCEDURE sp_accounts_block(_id INT)
+BEGIN
+    UPDATE `accounts` SET `blocked` = 1 WHERE `id` = _id;
+END|
+
+CREATE PROCEDURE sp_accounts_unblock(_id INT)
+BEGIN
+    UPDATE `accounts` SET `blocked` = 0 WHERE `id` = _id;
+END|
+
+CREATE PROCEDURE sp_accounts_mark_deleted(_id INT)
+BEGIN
+    UPDATE `accounts` SET `deleted` = 1 WHERE `id` = _id;
+END|
+
+CREATE PROCEDURE sp_accounts_delete(_id INT)
+BEGIN
+    DELETE FROM `accounts` WHERE `id` = _id;
+END|
