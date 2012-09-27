@@ -5341,7 +5341,6 @@ function db_accounts_add($link, $login, $user_name, $password_hash, $email, $adm
     $user_name = mysqli_real_escape_string($link, $user_name);
     $password_hash = mysqli_real_escape_string($link, $password_hash);
     $email = mysqli_real_escape_string($link, $email);
-    $admin = kotoba_intval($admin);
     $query = "call sp_accounts_add(
         '$login',
         '$user_name',
@@ -5364,11 +5363,48 @@ function db_accounts_add($link, $login, $user_name, $password_hash, $email, $adm
 	return $account;
 }
 
-db_accounts_add($link, $login, $user_name, $password_hash, $email, $admin);
+/**
+ * Возвращает аккаунт по его идентификатору.
+ * @param MySQLi $link Связь с базой данных.
+ * @param int $id Идентификатор.
+ * @return array|NULL Аккаунт или NULL в случае ошибки.
+ */
+function db_accounts_get_by_id($link, $id) {
+    if ( ($result = mysqli_query($link, "call sp_accounts_get_by_id($id)")) == FALSE) {
+        throw new DBException(mysqli_error($link));
+    }
+    
+    $account = NULL;
+    if (mysqli_affected_rows($link) > 0) {
+        $account = mysqli_fetch_assoc($result);
+    }
 
-function db_accounts_get_by_id($link) {}
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $account;
+}
 
-function db_accounts_get_by_login($link) {}
+/**
+ * Возвращает аккаунт по его логину.
+ * @param MySQLi $link Связь с базой данных.
+ * @param string $login Логин.
+ * @return array|NULL Аккаунт или NULL в случае ошибки.
+ */
+function db_accounts_get_by_login($link, $login) {
+    $login = mysqli_real_escape_string($link, $login);
+    if ( ($result = mysqli_query($link, "call sp_accounts_get_by_login('$login')")) == FALSE) {
+        throw new DBException(mysqli_error($link));
+    }
+    
+    $account = NULL;
+    if (mysqli_affected_rows($link) > 0) {
+        $account = mysqli_fetch_assoc($result);
+    }
+
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $account;
+}
 
 function db_accounts_set_change_login($link) {}
 
@@ -5382,7 +5418,7 @@ function db_accounts_block($link) {}
 
 function db_accounts_unblock($link) {}
 
-function db_accounts_mark_deleted($link) {}
+function db_accounts_mark_deleted($link, $id) {}
 
-function db_accounts_delete($link) {}
+function db_accounts_delete($link, $id) {}
 ?>
