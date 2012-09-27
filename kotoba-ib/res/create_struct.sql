@@ -6,6 +6,20 @@ USE kotoba;
 -- Создание таблиц --
 -- ------------------
 
+CREATE TABLE `accounts` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `login` CHAR(20) NOT NULL,
+    `user_name` CHAR(256) NOT NULL,
+    `password_hash` TEXT NOT NULL,
+    `email` TEXT NOT NULL,
+    `admin` BIT NOT NULL,
+    `change_login` BIT NOT NULL DEFAULT 0,
+    `change_password` BIT NOT NULL DEFAULT 0,
+    `blocked` BIT NOT NULL DEFAULT 0,
+    `deleted` BIT NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`)
+) engine=InnoDB;
+
 create table bans                   -- Bans.
 (
     id int not null auto_increment, -- Id.

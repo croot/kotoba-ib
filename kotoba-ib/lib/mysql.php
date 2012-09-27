@@ -5321,4 +5321,68 @@ function db_videos_get_dangling($link) {
     db_cleanup_link($link);
     return $videos;
 }
+
+/* **********
+ * Accounts *
+ ************/
+
+/**
+ * Создаёт новый аккаунт.
+ * @param MySQLi $link Связь с базой данных.
+ * @param string $login Логин.
+ * @param string $user_name Отображаемое имя пользователя.
+ * @param string $password_hash Хеш пароля с солью.
+ * @param string $email e-mail.
+ * @param int $admin Флаг администратора.
+ * @return array|NULL Аккаунт или NULL в случае ошибки.
+ */
+function db_accounts_add($link, $login, $user_name, $password_hash, $email, $admin) {
+    $login = mysqli_real_escape_string($link, $login);
+    $user_name = mysqli_real_escape_string($link, $user_name);
+    $password_hash = mysqli_real_escape_string($link, $password_hash);
+    $email = mysqli_real_escape_string($link, $email);
+    $admin = kotoba_intval($admin);
+    $query = "call sp_accounts_add(
+        '$login',
+        '$user_name',
+        '$password_hash',
+        '$email',
+        $admin
+    )";
+    
+    if ( ($result = mysqli_query($link, $query)) == FALSE) {
+        throw new DBException(mysqli_error($link));
+    }
+    
+    $account = NULL;
+    if (mysqli_affected_rows($link) > 0) {
+        $account = mysqli_fetch_assoc($result);
+    }
+
+	mysqli_free_result($result);
+	db_cleanup_link($link);
+	return $account;
+}
+
+db_accounts_add($link, $login, $user_name, $password_hash, $email, $admin);
+
+function db_accounts_get_by_id($link) {}
+
+function db_accounts_get_by_login($link) {}
+
+function db_accounts_set_change_login($link) {}
+
+function db_accounts_unset_change_login($link) {}
+
+function db_accounts_set_change_password($link) {}
+
+function db_accounts_unset_change_password($link) {}
+
+function db_accounts_block($link) {}
+
+function db_accounts_unblock($link) {}
+
+function db_accounts_mark_deleted($link) {}
+
+function db_accounts_delete($link) {}
 ?>
