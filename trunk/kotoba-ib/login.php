@@ -1,18 +1,15 @@
 <?php
-require_once "config.default";  // TODO Should include config.php in production.
+/* *******************************
+ * This file is part of Kotoba.  *
+ * See license.txt for more info.*
+ *********************************/
 
-$page = new LoginPage();
-$page->setArguments(array(
-    "stylesheet" => "kusaba.css",
-    "title" => "Login"
-));
+require_once "config.php";
+require_once "new_config.inc";
 
-try {
-    echo $page->render();
-} catch (Exception $e) {
-    echo $e;
-    exit(1);
-}
+$page = new LoginPage("Login");
+echo $page->render();
 
+DataExchange::releaseResources();
 exit(0);
 ?>

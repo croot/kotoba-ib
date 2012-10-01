@@ -9,7 +9,7 @@ USE kotoba;
 CREATE TABLE `accounts` (
     `id` INT NOT NULL AUTO_INCREMENT,
     `login` CHAR(20) NOT NULL,
-    `user_name` CHAR(256) NOT NULL,
+    `user_name` CHAR(255) NOT NULL,
     `password_hash` TEXT NOT NULL,
     `email` TEXT NOT NULL,
     `admin` BIT NOT NULL,

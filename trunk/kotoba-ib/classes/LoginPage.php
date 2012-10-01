@@ -1,14 +1,18 @@
 <?php
+/* *******************************
+ * This file is part of Kotoba.  *
+ * See license.txt for more info.*
+ *********************************/
+
 class LoginPage extends Page {
     
-    public function setArguments($args) {
+    public function __construct($title) {
         $this->template = new PHPTAL("templates/login.xhtml");
-        $this->kotobaDocumentRoot = "/kotoba-zzz/kotoba-ib"; // TODO Get it from config
-        $this->currentStylesheet = $args["stylesheet"];
-        $this->title = $args["title"];
-        $this->version = Config::version;
-        
-        // more vars here
+        $this->title = $title;
+    }
+    
+    public function render() {
+        return parent::render();
     }
 }
 ?>

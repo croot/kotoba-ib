@@ -5038,7 +5038,7 @@ end|
 CREATE PROCEDURE sp_accounts_add
 (
     _login CHAR(20),
-    _user_name CHAR(256),
+    _user_name CHAR(255),
     _password_hash TEXT,
     _email TEXT,
     _admin BIT

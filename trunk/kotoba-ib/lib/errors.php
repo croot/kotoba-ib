@@ -654,7 +654,6 @@ $ERRORS['LONG_WORD']
 $ERRORS['UPLOAD_ERR_NO_FILE']
     = new Error('No file uploaded.', 'Uploads.');
 
-
 function display_error_page($smarty, $error) {
     $smarty->assign('show_control', is_admin() || is_mod());
     $smarty->assign('ib_name', Config::IB_NAME);
