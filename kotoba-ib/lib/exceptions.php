@@ -357,4 +357,35 @@ function display_exception_page($smarty, $exception, $show_control) {
     $smarty->assign('debug_info', $exception->__toString());
     $smarty->display('exception.tpl');
 }
+
+function kotoba_exception_handler($exception) {
+    
+$out = <<<HTML
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>Kotoba default exception handler</title>
+    </head>
+    <body>
+HTML;
+    
+    do {
+        $out .= "\n    <p>" . htmlentities(get_class($exception)) .
+                " " . htmlentities("\"" . $exception->getMessage() . "\"") .
+                " in " . htmlentities($exception->getFile()) . ":" . htmlentities($exception->getLine()) .
+                " code " . htmlentities($exception->getCode()) . "<br/>" .
+                "Stack trace :<br/>" . nl2br(htmlentities($exception->getTraceAsString())) . "</p>\n";
+    } while($exception = $exception->getPrevious());
+    
+$out .= <<<HTML
+
+    </body>
+</html>
+HTML;
+
+    echo $out;
+}
+
+set_exception_handler('kotoba_exception_handler');
 ?>
