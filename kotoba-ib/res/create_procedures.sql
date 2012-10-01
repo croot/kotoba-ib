@@ -5100,5 +5100,5 @@ END|
 
 CREATE PROCEDURE sp_accounts_delete(_id INT)
 BEGIN
-    DELETE FROM `accounts` WHERE `id` = _id;
+    DELETE FROM `accounts` WHERE `deleted` = 1 AND `id` = _id;
 END|
