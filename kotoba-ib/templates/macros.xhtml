@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+    <head>
+        <title>Macros</title>
+    </head>
+    <body>
+        
+        <!-- Header macro. Requires title, kotobaDocumentRoot and currentStylesheet variables. -->
+        <tal:block metal:define-macro="header">
+            <title tal:content="title">Title</title>
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+            <link rel="stylesheet" type="text/css" href="${kotobaDocumentRoot}/css/global.css"/>
+            <link rel="stylesheet" type="text/css" href="${kotobaDocumentRoot}/css/${currentStylesheet}/${currentStylesheet}"/>
+            <link rel="icon" type="image/png" href="${kotobaDocumentRoot}/favicon.png" />
+        </tal:block>
+        
+        <!-- Footer macro. Requires version variable. -->
+        <tal:block metal:define-macro="footer">
+            <div class="footer" style="clear: both;">- <a href="http://code.google.com/p/kotoba-ib/" target="_blank">Kotoba ${version}</a> -</div>
+        </tal:block>
+    </body>
+</html>

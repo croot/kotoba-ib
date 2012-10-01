@@ -4,8 +4,9 @@
  * See license.txt for more info.*
  *********************************/
 
-class Config
-{
+require_once "PHPTAL.php";
+
+class Config {
     /* *****************
      * Общие настройки *
      *******************/
@@ -309,6 +310,20 @@ class Config
     const LATEX_BINARY = 'c:/usr/bin/latex.exe';
     const DVIPS_BINARY = 'c:/usr/bin/dvips.exe';
     const CONVERT_BINARY = 'c:/usr/bin/convert.exe';
+
+    /**
+     * Kotoba engine version.
+     */
+    const version = "1.3";
+
+    final public static function autoload($classname) {
+        $path = dirname(__FILE__) . "/classes/$classname.php";
+        require_once $path;
+    }
+
+    final public static function autoloadRegister() {
+        spl_autoload_register(array(__CLASS__, 'autoload'));
+    }
 }
 
 /*
@@ -318,4 +333,5 @@ ini_set('register_globals', false);
 date_default_timezone_set(Config::DEFAULT_TIMEZONE);
 ini_set('session.save_path', Config::ABS_PATH . '/sessions');
 ini_set('session.gc_maxlifetime', Config::SESSION_LIFETIME);
+Config::autoloadRegister();
 ?>

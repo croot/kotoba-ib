@@ -216,6 +216,7 @@ class LanguageNotExistsException extends NodataException {
     public function __construct($id) {
         $_['title'] = kgettext('Languages.');
         $_['text'] = kgettext('Language id=%s not exist.');
+        $_['text'] = sprintf($_['text'], $id);
         $_['image'] = Config::DIR_PATH . '/img/exceptions/default.png';
         $this->message_data = $_;
         parent::__construct($_['text']);
