@@ -4,7 +4,7 @@
  * See license.txt for more info.*
  *********************************/
 
-namespace ru\azuchan;
+namespace ru\azuchan\kotoba;
 
 require_once "config.php";
 require_once "new_config.inc";
